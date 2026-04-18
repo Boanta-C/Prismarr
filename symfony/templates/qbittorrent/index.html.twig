@@ -1,0 +1,1910 @@
+{% extends 'base.html.twig' %}
+{% block title %}Téléchargements — IH-ARGOS{% endblock %}
+{% block page_title %}<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f67ba" stroke-width="2"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/></svg> Téléchargements{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   Stats cards
+   ══════════════════════════════════════════════════════════════════════════ */
+.qbt-stat-card { position:relative; overflow:hidden; height:100%; }
+.qbt-stat-card .card-body { min-height:88px; display:flex; flex-direction:column; justify-content:center; }
+.qbt-stat-card .stat-val { font-size:1.5rem; font-weight:700; line-height:1; letter-spacing:-.5px; }
+.qbt-stat-card .stat-lbl { font-size:.7rem; text-transform:uppercase; letter-spacing:.4px; color:var(--tblr-text-secondary); font-weight:600; }
+.qbt-stat-card .stat-speed { font-size:.72rem; font-weight:600; margin-top:2px; font-family:'SF Mono', Menlo, monospace; min-height:1em; }
+.qbt-stat-card .stat-icon { position:absolute; right:-8px; top:-8px; opacity:.08; }
+/* 2e ligne — cards totaux un peu plus hautes, stat-val à droite */
+.qbt-total-card .card-body { min-height:96px; justify-content:center; }
+
+.qbt-connection { width:9px; height:9px; border-radius:50%; display:inline-block; }
+.qbt-vpn-dot { width:8px; height:8px; border-radius:50%; display:inline-block; background:#6b7280; }
+.qbt-vpn-dot.connected { background:#14b8a6; box-shadow:0 0 6px #14b8a6; animation:pulse-vpn 2.5s infinite; }
+.qbt-vpn-dot.disconnected { background:#ef4444; box-shadow:0 0 6px #ef4444; }
+@keyframes pulse-vpn { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+.qbt-port-badge { display:inline-block; font-size:.58rem; font-weight:700; padding:1px 6px; border-radius:3px; letter-spacing:.3px; text-transform:uppercase; line-height:1.5; }
+.qbt-port-badge.match { background:rgba(34,197,94,.15); color:#16a34a; }
+.qbt-port-badge.desync { background:rgba(239,68,68,.15); color:#dc2626; animation:pulse-desync 2s infinite; }
+.qbt-port-badge.unknown { background:rgba(107,114,128,.12); color:#6b7280; }
+@keyframes pulse-desync { 0%,100%{opacity:1;} 50%{opacity:.55;} }
+.qbt-connection.connected    { background:#22c55e; box-shadow:0 0 8px #22c55e; animation:pulse-connected 2s infinite; }
+.qbt-connection.firewalled   { background:#f59e0b; box-shadow:0 0 8px #f59e0b; }
+.qbt-connection.disconnected { background:#ef4444; box-shadow:0 0 8px #ef4444; }
+@keyframes pulse-connected { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Torrent row — style cards horizontales
+   ══════════════════════════════════════════════════════════════════════════ */
+.qbt-torrent-list { display:flex; flex-direction:column; gap:.3rem; }
+
+.qbt-torrent {
+    display:grid;
+    grid-template-columns: 22px 32px 1fr auto;
+    gap:.6rem;
+    align-items:center;
+    padding:.45rem .7rem;
+    background:var(--tblr-bg-surface);
+    border:1px solid var(--tblr-border-color);
+    border-left:3px solid var(--tblr-border-color);
+    border-radius:6px;
+    transition:all .12s;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+}
+.qbt-torrent:hover { border-color:rgba(47,103,186,.4); box-shadow:0 2px 6px rgba(0,0,0,.05); }
+.qbt-torrent.selected { background:rgba(47,103,186,.05); border-color:#2f67ba; }
+
+/* bordure gauche colorée par état */
+.qbt-torrent[data-state="downloading"] { border-left-color:#3b82f6; }
+.qbt-torrent[data-state="seeding"]     { border-left-color:#22c55e; }
+.qbt-torrent[data-state="paused"]      { border-left-color:#f59e0b; }
+.qbt-torrent[data-state="completed"]   { border-left-color:#14b8a6; }
+.qbt-torrent[data-state="stalled"]     { border-left-color:#f97316; }
+.qbt-torrent[data-state="error"]       { border-left-color:#ef4444; }
+.qbt-torrent[data-state="queued"]      { border-left-color:#6b7280; }
+.qbt-torrent[data-state="checking"]    { border-left-color:#06b6d4; }
+.qbt-torrent[data-state="unknown"]     { border-left-color:#9ca3af; }
+
+/* Colonne 1 — checkbox */
+.qbt-torrent .qbt-check { width:15px; height:15px; cursor:pointer; }
+
+/* Colonne 2 — icône catégorie */
+.qbt-ico {
+    width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:7px;
+    background:linear-gradient(135deg, rgba(47,103,186,.08), rgba(47,103,186,.03));
+    color:#2f67ba;
+    flex-shrink:0;
+}
+.qbt-ico svg { width:16px; height:16px; }
+.qbt-torrent[data-state="downloading"] .qbt-ico { background:linear-gradient(135deg, rgba(59,130,246,.15), rgba(59,130,246,.05)); color:#3b82f6; animation:pulse-ico 2s infinite; }
+.qbt-torrent[data-state="seeding"] .qbt-ico { background:linear-gradient(135deg, rgba(34,197,94,.12), rgba(34,197,94,.03)); color:#22c55e; }
+.qbt-torrent[data-state="paused"] .qbt-ico { background:linear-gradient(135deg, rgba(245,158,11,.12), rgba(245,158,11,.03)); color:#f59e0b; }
+.qbt-torrent[data-state="completed"] .qbt-ico { background:linear-gradient(135deg, rgba(20,184,166,.12), rgba(20,184,166,.03)); color:#14b8a6; }
+.qbt-torrent[data-state="error"] .qbt-ico { background:linear-gradient(135deg, rgba(239,68,68,.15), rgba(239,68,68,.03)); color:#ef4444; }
+@keyframes pulse-ico { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+
+/* Colonne 3 — contenu principal */
+.qbt-main { min-width:0; }
+.qbt-name-row { display:flex; align-items:center; gap:.4rem; margin-bottom:.2rem; }
+.qbt-name { font-size:.78rem; font-weight:600; color:var(--tblr-body-color); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; line-height:1.2; }
+.qbt-meta { font-size:.68rem; color:var(--tblr-text-secondary); }
+.qbt-tag { display:inline-flex; align-items:center; gap:3px; font-size:.6rem; padding:1px 6px; border-radius:3px; font-weight:600; text-transform:uppercase; letter-spacing:.3px; line-height:1.4; }
+.qbt-tag svg { width:10px; height:10px; }
+.qbt-tag-cat { background:rgba(47,103,186,.12); color:#2f67ba; }
+.qbt-tag-tag { background:rgba(162,89,255,.12); color:#a259ff; }
+/* Catégories colorées par type */
+.qbt-tag-radarr { background:rgba(255,194,48,.15); color:#d99400; border:1px solid rgba(255,194,48,.25); cursor:pointer; }
+.qbt-tag-radarr:hover { background:rgba(255,194,48,.28); }
+.qbt-tag-sonarr { background:rgba(0,204,255,.15); color:#0094c4; border:1px solid rgba(0,204,255,.25); cursor:pointer; }
+.qbt-tag-sonarr:hover { background:rgba(0,204,255,.28); }
+.qbt-tag-generic { background:rgba(99,102,241,.12); color:#6366f1; }
+
+/* progress bar visuelle */
+.qbt-bar-wrap { position:relative; height:4px; background:rgba(0,0,0,.06); border-radius:3px; overflow:hidden; }
+body[data-bs-theme="dark"] .qbt-bar-wrap { background:rgba(255,255,255,.06); }
+.qbt-bar { height:100%; border-radius:4px; transition:width .6s ease; position:relative; }
+.qbt-bar-downloading { background:linear-gradient(90deg, #3b82f6, #60a5fa); }
+.qbt-bar-seeding     { background:linear-gradient(90deg, #22c55e, #4ade80); }
+.qbt-bar-paused      { background:linear-gradient(90deg, #f59e0b, #fbbf24); }
+.qbt-bar-completed   { background:linear-gradient(90deg, #14b8a6, #2dd4bf); }
+.qbt-bar-stalled     { background:linear-gradient(90deg, #f97316, #fb923c); }
+.qbt-bar-error       { background:linear-gradient(90deg, #ef4444, #f87171); }
+.qbt-bar-queued      { background:linear-gradient(90deg, #6b7280, #9ca3af); }
+.qbt-bar-checking    { background:linear-gradient(90deg, #06b6d4, #22d3ee); }
+.qbt-bar-unknown     { background:linear-gradient(90deg, #9ca3af, #cbd5e1); }
+
+/* shimmer pendant download */
+.qbt-bar-downloading::after {
+    content:''; position:absolute; top:0; left:-50%; width:50%; height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+    animation:shimmer 1.8s infinite linear;
+}
+@keyframes shimmer { 0% { left:-50%; } 100% { left:150%; } }
+
+.qbt-stats-line { display:flex; align-items:center; gap:.7rem; margin-top:.2rem; font-size:.68rem; color:var(--tblr-text-secondary); flex-wrap:wrap; line-height:1.3; }
+.qbt-stats-line .item { display:flex; align-items:center; gap:.2rem; }
+.qbt-stats-line .item strong { color:var(--tblr-body-color); font-weight:600; font-family:'SF Mono', Menlo, monospace; }
+.qbt-stats-line .sep { width:2px; height:2px; border-radius:50%; background:var(--tblr-border-color); }
+.qbt-stats-line .dl-speed { color:#3b82f6; font-weight:600; font-family:'SF Mono', Menlo, monospace; }
+.qbt-stats-line .up-speed { color:#22c55e; font-weight:600; font-family:'SF Mono', Menlo, monospace; }
+
+/* Colonne 4 — actions */
+.qbt-row-actions { display:flex; gap:.15rem; flex-shrink:0; }
+.qbt-row-actions .btn { padding:3px 6px; border-radius:5px; }
+.qbt-row-actions .btn svg { width:13px; height:13px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Filtres + recherche
+   ══════════════════════════════════════════════════════════════════════════ */
+.qbt-filter-btn { border-radius:6px !important; background:transparent !important; font-size:.78rem; padding:4px 10px; transition:all .15s; }
+.qbt-filter-btn:hover { background:rgba(47,103,186,.06) !important; }
+.qbt-filter-btn.active { font-weight:600; }
+.qbt-filter-btn[data-filter="all"].active         { background:rgba(107,114,128,.15) !important; color:#6b7280 !important; }
+.qbt-filter-btn[data-filter="active"].active      { background:rgba(250,204,21,.18) !important; color:#b45309 !important; }
+.qbt-filter-btn[data-filter="downloading"].active { background:rgba(59,130,246,.15) !important; color:#3b82f6 !important; }
+.qbt-filter-btn[data-filter="seeding"].active     { background:rgba(34,197,94,.15) !important; color:#22c55e !important; }
+.qbt-filter-btn[data-filter="stalled"].active     { background:rgba(249,115,22,.15) !important; color:#f97316 !important; }
+.qbt-filter-btn[data-filter="paused"].active      { background:rgba(245,158,11,.15) !important; color:#f59e0b !important; }
+.qbt-filter-btn[data-filter="completed"].active   { background:rgba(20,184,166,.15) !important; color:#14b8a6 !important; }
+.qbt-filter-btn[data-filter="error"].active       { background:rgba(239,68,68,.15) !important; color:#ef4444 !important; }
+
+.qbt-filter-badge { display:inline-block; margin-left:4px; padding:0 5px; font-size:.6rem; background:rgba(0,0,0,.08); border-radius:8px; font-weight:700; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Barre bulk
+   ══════════════════════════════════════════════════════════════════════════ */
+.qbt-bulk-bar { position:fixed; bottom:0; left:15rem; right:0; z-index:1050; background:var(--tblr-bg-surface); border-top:2px solid #2f67ba; padding:.7rem 1.25rem; display:none; align-items:center; gap:.6rem; box-shadow:0 -6px 18px rgba(0,0,0,.12); }
+.qbt-bulk-bar.show { display:flex; }
+@media(max-width:991px){ .qbt-bulk-bar { left:0; } }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Modal Ajouter — drop zone fichiers .torrent
+   ══════════════════════════════════════════════════════════════════════════ */
+.qbt-drop-zone { position:relative; border:2px dashed var(--tblr-border-color); border-radius:8px; padding:1rem; text-align:center; cursor:pointer; transition:all .15s; background:var(--tblr-bg-surface-secondary); }
+.qbt-drop-zone:hover { border-color:#2f67ba; background:rgba(47,103,186,.04); }
+.qbt-drop-zone.drag-over { border-color:#2f67ba; background:rgba(47,103,186,.1); transform:scale(1.01); }
+.qbt-drop-inner { display:flex; flex-direction:column; align-items:center; gap:.4rem; color:var(--tblr-text-secondary); }
+.qbt-drop-inner svg { color:#2f67ba; opacity:.75; }
+.qbt-drop-text { font-size:.78rem; line-height:1.4; }
+.qbt-drop-files { list-style:none; padding:0; margin:.7rem 0 0; text-align:left; }
+.qbt-drop-files li { font-size:.74rem; padding:3px 8px; background:var(--tblr-bg-surface); border-radius:4px; margin-top:3px; display:flex; align-items:center; gap:6px; }
+.qbt-drop-files li .remove { margin-left:auto; color:var(--tblr-text-secondary); cursor:pointer; font-size:.9rem; line-height:1; padding:0 4px; }
+.qbt-drop-files li .remove:hover { color:#ef4444; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Modal détail
+   ══════════════════════════════════════════════════════════════════════════ */
+.qbt-detail-tab { border-bottom:1px solid var(--tblr-border-color); }
+.qbt-detail-tab .nav-link { padding:.5rem 1rem; font-size:.82rem; color:var(--tblr-text-secondary); border:none; border-bottom:2px solid transparent; }
+.qbt-detail-tab .nav-link.active { color:#2f67ba; border-bottom-color:#2f67ba; background:transparent; font-weight:600; }
+
+.qbt-file-row { font-size:.78rem; }
+.qbt-file-row:hover { background:rgba(47,103,186,.04); }
+.qbt-tracker-row { font-size:.78rem; }
+.qbt-peer-row { font-size:.75rem; }
+
+.qbt-prop-card { padding:.6rem .85rem; background:var(--tblr-bg-surface-secondary); border-radius:8px; }
+.qbt-prop-label { font-size:.68rem; color:var(--tblr-text-secondary); text-transform:uppercase; letter-spacing:.3px; font-weight:600; margin-bottom:3px; }
+.qbt-prop-value { font-size:.85rem; font-weight:600; color:var(--tblr-body-color); }
+
+/* mini progress bar dans fichiers */
+.qbt-mini-bar { width:70px; height:5px; background:rgba(0,0,0,.08); border-radius:3px; overflow:hidden; }
+body[data-bs-theme="dark"] .qbt-mini-bar { background:rgba(255,255,255,.08); }
+.qbt-mini-bar > div { height:100%; background:linear-gradient(90deg, #3b82f6, #60a5fa); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Empty state
+   ══════════════════════════════════════════════════════════════════════════ */
+.qbt-empty { padding:3rem 1rem; text-align:center; }
+.qbt-empty svg { opacity:.25; margin-bottom:.6rem; }
+.qbt-empty p { color:var(--tblr-text-secondary); font-size:.9rem; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Sélecteur de vue
+   ══════════════════════════════════════════════════════════════════════════ */
+.qbt-view-switcher { display:inline-flex; background:rgba(0,0,0,.04); border-radius:6px; padding:2px; gap:1px; }
+body[data-bs-theme="dark"] .qbt-view-switcher { background:rgba(255,255,255,.05); }
+.qbt-view-btn { border:none !important; background:transparent; padding:3px 9px; border-radius:4px; font-size:.72rem; font-weight:500; color:var(--tblr-text-secondary); display:inline-flex; align-items:center; gap:4px; transition:all .12s; cursor:pointer; }
+.qbt-view-btn:hover { background:rgba(47,103,186,.08); color:#2f67ba; }
+.qbt-view-btn.active { background:#2f67ba; color:#fff; box-shadow:0 1px 3px rgba(47,103,186,.3); }
+.qbt-view-btn.active:hover { background:#2f67ba; color:#fff; }
+.qbt-view-btn svg { width:13px; height:13px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Mode COMPACT
+   ══════════════════════════════════════════════════════════════════════════ */
+.qbt-torrent-list[data-view="compact"] { gap:2px; }
+.qbt-torrent-list[data-view="compact"] .qbt-torrent { grid-template-columns: 18px 22px 1fr 55px auto; padding:.25rem .55rem; gap:.5rem; }
+.qbt-torrent-list[data-view="compact"] .qbt-ico { width:22px; height:22px; border-radius:5px; }
+.qbt-torrent-list[data-view="compact"] .qbt-ico svg { width:12px; height:12px; }
+.qbt-torrent-list[data-view="compact"] .qbt-name-row { margin-bottom:2px; }
+.qbt-torrent-list[data-view="compact"] .qbt-name { font-size:.73rem; }
+.qbt-torrent-list[data-view="compact"] .qbt-tag:not(.qbt-tag-radarr):not(.qbt-tag-sonarr) { display:none; }
+.qbt-torrent-list[data-view="compact"] .qbt-tag-radarr,
+.qbt-torrent-list[data-view="compact"] .qbt-tag-sonarr { font-size:.52rem; padding:0 4px; }
+.qbt-torrent-list[data-view="compact"] .qbt-tag-radarr svg,
+.qbt-torrent-list[data-view="compact"] .qbt-tag-sonarr svg { width:8px; height:8px; }
+.qbt-torrent-list[data-view="compact"] .qbt-bar-wrap { height:3px; }
+.qbt-torrent-list[data-view="compact"] .qbt-stats-line { display:none; }
+.qbt-torrent-list[data-view="compact"] .qbt-compact-pct { font-size:.7rem; font-weight:600; font-family:'SF Mono', Menlo, monospace; color:var(--tblr-text-secondary); text-align:right; align-self:center; }
+.qbt-torrent-list[data-view="compact"] .qbt-row-actions .btn { padding:2px 4px; }
+.qbt-torrent-list[data-view="compact"] .qbt-row-actions .btn svg { width:11px; height:11px; }
+.qbt-torrent-list:not([data-view="compact"]) .qbt-compact-pct { display:none; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Mode TABLEAU
+   ══════════════════════════════════════════════════════════════════════════ */
+#qbt-table-header { display:none; grid-template-columns: 22px 26px 1fr 80px 70px 85px 85px 70px 75px 95px 90px; gap:.6rem; align-items:center; padding:.5rem .7rem; background:var(--tblr-bg-surface-secondary); border:1px solid var(--tblr-border-color); border-radius:6px 6px 0 0; font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--tblr-text-secondary); position:sticky; top:0; z-index:5; margin-bottom:-1px; }
+#qbt-table-header.show { display:grid; }
+#qbt-table-header .qbt-sort { cursor:pointer; user-select:none; display:flex; align-items:center; gap:3px; }
+#qbt-table-header .qbt-sort:hover { color:#2f67ba; }
+#qbt-table-header .qbt-sort.active { color:#2f67ba; }
+#qbt-table-header .qbt-sort svg { width:9px; height:9px; opacity:.35; transition:transform .15s; }
+#qbt-table-header .qbt-sort.active svg { opacity:1; }
+#qbt-table-header .qbt-sort.active.desc svg { transform:rotate(180deg); }
+
+.qbt-torrent-list[data-view="table"] { gap:0; border-radius:0 0 6px 6px; overflow:hidden; border:1px solid var(--tblr-border-color); border-top:none; }
+.qbt-torrent-list[data-view="table"] .qbt-torrent {
+    grid-template-columns: 22px 26px 1fr 80px 70px 85px 85px 70px 75px 95px 90px;
+    gap:.6rem;
+    padding:.5rem .7rem;
+    border-radius:0;
+    border:none;
+    border-bottom:1px solid var(--tblr-border-color);
+    border-left:3px solid var(--tblr-border-color);
+}
+.qbt-torrent-list[data-view="table"] .qbt-torrent:last-child { border-bottom:none; }
+.qbt-torrent-list[data-view="table"] .qbt-torrent[data-state="downloading"] { border-left-color:#3b82f6; }
+.qbt-torrent-list[data-view="table"] .qbt-torrent[data-state="seeding"] { border-left-color:#22c55e; }
+.qbt-torrent-list[data-view="table"] .qbt-torrent[data-state="paused"] { border-left-color:#f59e0b; }
+.qbt-torrent-list[data-view="table"] .qbt-torrent[data-state="completed"] { border-left-color:#14b8a6; }
+.qbt-torrent-list[data-view="table"] .qbt-torrent[data-state="error"] { border-left-color:#ef4444; }
+.qbt-torrent-list[data-view="table"] .qbt-ico { width:26px; height:26px; border-radius:5px; }
+.qbt-torrent-list[data-view="table"] .qbt-ico svg { width:13px; height:13px; }
+.qbt-torrent-list[data-view="table"] .qbt-main { display:contents; }
+.qbt-torrent-list[data-view="table"] .qbt-name-row { margin:0; min-width:0; }
+.qbt-torrent-list[data-view="table"] .qbt-name { font-size:.74rem; font-weight:500; }
+.qbt-torrent-list[data-view="table"] .qbt-tag:not(.qbt-tag-radarr):not(.qbt-tag-sonarr) { display:none; }
+.qbt-torrent-list[data-view="table"] .qbt-bar-wrap { display:none; }
+.qbt-torrent-list[data-view="table"] .qbt-stats-line { display:none; }
+.qbt-torrent-list[data-view="table"] .qbt-table-cell { font-size:.72rem; font-family:'SF Mono', Menlo, monospace; text-align:right; color:var(--tblr-body-color); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qbt-torrent-list[data-view="table"] .qbt-cell-progress { position:relative; background:rgba(0,0,0,.06); border-radius:3px; overflow:hidden; text-align:center; color:var(--tblr-body-color); font-weight:600; font-family:'SF Mono', Menlo, monospace; font-size:.7rem; padding:2px 0; }
+body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progress { background:rgba(255,255,255,.06); }
+.qbt-torrent-list[data-view="table"] .qbt-cell-progress-fill { position:absolute; inset:0; width:0; background:rgba(59,130,246,.3); transition:width .4s; }
+.qbt-torrent-list[data-view="table"] .qbt-torrent[data-state="seeding"] .qbt-cell-progress-fill { background:rgba(34,197,94,.3); }
+.qbt-torrent-list[data-view="table"] .qbt-torrent[data-state="paused"] .qbt-cell-progress-fill { background:rgba(245,158,11,.3); }
+.qbt-torrent-list[data-view="table"] .qbt-torrent[data-state="completed"] .qbt-cell-progress-fill { background:rgba(20,184,166,.3); }
+.qbt-torrent-list[data-view="table"] .qbt-cell-progress > span { position:relative; z-index:1; }
+.qbt-torrent-list[data-view="table"] .qbt-cell-dl { color:#3b82f6; }
+.qbt-torrent-list[data-view="table"] .qbt-cell-up { color:#22c55e; }
+.qbt-torrent-list[data-view="table"] .qbt-row-actions .btn { padding:3px 5px; }
+.qbt-torrent-list[data-view="table"] .qbt-row-actions .btn svg { width:12px; height:12px; }
+.qbt-torrent-list:not([data-view="table"]) .qbt-table-cell,
+.qbt-torrent-list:not([data-view="table"]) .qbt-cell-progress { display:none; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636-2.871l-8.106-13.534a1.914 1.914 0 0 0-3.274 0z"/><path d="M12 16h.01"/></svg>
+    Impossible de contacter qBittorrent. Vérifiez que le service est en ligne.
+</div>
+{% endif %}
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Stats cards — ligne 1 : états torrents
+   ══════════════════════════════════════════════════════════════════════════ #}
+<div class="row g-2 mb-2">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-sm qbt-stat-card"><div class="card-body">
+            <div class="d-flex align-items-center gap-2">
+                <span class="qbt-connection" id="qbt-conn-dot"></span>
+                <span class="stat-val text-secondary" id="qbt-stat-total">{{ stats.total ?? 0 }}</span>
+            </div>
+            <div class="stat-lbl mt-1">Total</div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.5"><circle cx="12" cy="12" r="9"/></svg>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-sm qbt-stat-card"><div class="card-body">
+            <span class="stat-val" style="color:#3b82f6" id="qbt-stat-dl">{{ stats.downloading ?? 0 }}</span>
+            <div class="stat-lbl mt-1">En cours</div>
+            <div class="stat-speed" style="color:#3b82f6" id="qbt-speed-dl">&nbsp;</div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5"><path d="M12 3v13m-5-5l5 5 5-5"/></svg>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-sm qbt-stat-card"><div class="card-body">
+            <span class="stat-val" style="color:#22c55e" id="qbt-stat-seed">{{ stats.seeding ?? 0 }}</span>
+            <div class="stat-lbl mt-1">Partage</div>
+            <div class="stat-speed" style="color:#22c55e" id="qbt-speed-up">&nbsp;</div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5"><path d="M12 21V8m-5 5l5-5 5 5"/></svg>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-sm qbt-stat-card"><div class="card-body">
+            <span class="stat-val" style="color:#f97316" id="qbt-stat-stalled">0</span>
+            <div class="stat-lbl mt-1">En attente</div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-sm qbt-stat-card"><div class="card-body">
+            <span class="stat-val" style="color:#f59e0b" id="qbt-stat-paused">{{ stats.paused ?? 0 }}</span>
+            <div class="stat-lbl mt-1">Pause</div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+        </div></div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="card card-sm qbt-stat-card"><div class="card-body">
+            <span class="stat-val" style="color:#ef4444" id="qbt-stat-error">{{ stats.errored ?? 0 }}</span>
+            <div class="stat-lbl mt-1">Erreurs</div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
+        </div></div>
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Stats cards — ligne 2 : totaux + VPN + Session
+   ══════════════════════════════════════════════════════════════════════════ #}
+<div class="row g-2 mb-3">
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="card card-sm qbt-stat-card qbt-total-card"><div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-lbl">Téléchargé total</div>
+                    <span class="stat-val" style="color:#3b82f6" id="qbt-total-dl">{{ ((stats.dl_alltime ?? 0) / 1073741824)|number_format(1) }} Go</span>
+                </div>
+                <div class="text-end" style="font-size:.68rem;color:var(--tblr-text-secondary);line-height:1.3;">
+                    <div>Session</div>
+                    <strong id="qbt-session-dl" style="color:#3b82f6;font-family:'SF Mono',Menlo,monospace;">{{ ((stats.dl_session ?? 0) / 1073741824)|number_format(1) }} Go</strong>
+                </div>
+            </div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5"><path d="M12 3v13m-5-5l5 5 5-5"/><path d="M4 20h16"/></svg>
+        </div></div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="card card-sm qbt-stat-card qbt-total-card"><div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-lbl">Uploadé total</div>
+                    <span class="stat-val" style="color:#22c55e" id="qbt-total-up">{{ ((stats.up_alltime ?? 0) / 1073741824)|number_format(1) }} Go</span>
+                </div>
+                <div class="text-end" style="font-size:.68rem;color:var(--tblr-text-secondary);line-height:1.3;">
+                    <div>Session</div>
+                    <strong id="qbt-session-up" style="color:#22c55e;font-family:'SF Mono',Menlo,monospace;">{{ ((stats.up_session ?? 0) / 1073741824)|number_format(1) }} Go</strong>
+                </div>
+            </div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5"><path d="M12 21V8m-5 5l5-5 5 5"/><path d="M4 4h16"/></svg>
+        </div></div>
+    </div>
+    {# Card VPN Gluetun + Ports #}
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="card card-sm qbt-stat-card qbt-vpn-card"><div class="card-body">
+            <div class="d-flex align-items-start justify-content-between">
+                <div style="min-width:0;flex:1;">
+                    <div class="stat-lbl d-flex align-items-center gap-1">
+                        <span class="qbt-vpn-dot" id="qbt-vpn-dot"></span>
+                        <span>VPN</span>
+                        <span class="qbt-vpn-provider" id="qbt-vpn-provider" style="font-size:.6rem;color:var(--tblr-text-secondary);text-transform:none;letter-spacing:0;font-weight:500;">{{ vpn.organization ?? '—' }}</span>
+                    </div>
+                    <span class="stat-val" style="color:#14b8a6;font-size:1.05rem;font-family:'SF Mono',Menlo,monospace;" id="qbt-vpn-ip">{{ vpn.public_ip ?? '—' }}</span>
+                    <div style="font-size:.66rem;margin-top:4px;color:var(--tblr-text-secondary);">
+                        <span id="qbt-vpn-country">{{ vpn.country ?? '—' }}</span>
+                        · <strong id="qbt-vpn-city" style="color:var(--tblr-body-color);">{{ vpn.city ?? '' }}</strong>
+                    </div>
+                </div>
+                <div class="text-end" style="font-size:.66rem;color:var(--tblr-text-secondary);line-height:1.4;white-space:nowrap;">
+                    <div>Port VPN <strong id="qbt-vpn-port" style="color:#14b8a6;font-family:'SF Mono',Menlo,monospace;">{{ vpn.forwarded_port ?? '—' }}</strong></div>
+                    <div>Port qBit <strong id="qbt-qbt-port" style="color:var(--tblr-body-color);font-family:'SF Mono',Menlo,monospace;">{{ vpn.qbt_port ?? '—' }}</strong></div>
+                    <div id="qbt-port-sync-wrap" style="margin-top:2px;">
+                        <span id="qbt-port-sync" class="qbt-port-badge"></span>
+                    </div>
+                </div>
+            </div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="1.5"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div></div>
+    </div>
+    {# Card Session #}
+    <div class="col-12 col-md-6 col-lg-3">
+        <div class="card card-sm qbt-stat-card qbt-session-card"><div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-lbl d-flex align-items-center gap-1">
+                        <span>Session</span>
+                        <span id="qbt-session-uptime" style="font-size:.6rem;color:var(--tblr-text-secondary);text-transform:none;letter-spacing:0;font-weight:500;">·&nbsp;—</span>
+                    </div>
+                    <span class="stat-val" style="color:#a259ff;font-size:1.05rem;">Ratio <span id="qbt-total-ratio" style="font-family:'SF Mono',Menlo,monospace;">{{ (stats.global_ratio ?? 0)|number_format(2) }}</span></span>
+                </div>
+                <div class="text-end" style="font-size:.68rem;color:var(--tblr-text-secondary);line-height:1.3;white-space:nowrap;">
+                    <div>Pic ↓ <strong id="qbt-peak-dl" style="color:#3b82f6;font-family:'SF Mono',Menlo,monospace;">—</strong></div>
+                    <div>Pic ↑ <strong id="qbt-peak-up" style="color:#22c55e;font-family:'SF Mono',Menlo,monospace;">—</strong></div>
+                    <div>Dispo <strong id="qbt-free-space" style="color:var(--tblr-body-color);font-family:'SF Mono',Menlo,monospace;">{{ ((stats.free_space ?? 0) / 1073741824)|number_format(0) }} Go</strong></div>
+                </div>
+            </div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div></div>
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Barre filtres + recherche + actions
+   ══════════════════════════════════════════════════════════════════════════ #}
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="input-icon" style="max-width:240px;">
+                <span class="input-icon-addon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
+                </span>
+                <input type="text" id="qbt-search" class="form-control form-control-sm" placeholder="Rechercher..." autocomplete="off">
+            </div>
+            <div class="d-flex gap-1 flex-wrap">
+                <button class="btn btn-sm qbt-filter-btn active" data-filter="all">Tous</button>
+                <button class="btn btn-sm qbt-filter-btn" data-filter="active" title="Torrents avec vitesse &gt; 0">⚡ Actifs</button>
+                <button class="btn btn-sm qbt-filter-btn" data-filter="downloading">En cours</button>
+                <button class="btn btn-sm qbt-filter-btn" data-filter="seeding">Partage</button>
+                <button class="btn btn-sm qbt-filter-btn" data-filter="stalled">En attente</button>
+                <button class="btn btn-sm qbt-filter-btn" data-filter="paused">Pause</button>
+                <button class="btn btn-sm qbt-filter-btn" data-filter="completed">Terminés</button>
+                <button class="btn btn-sm qbt-filter-btn" data-filter="error">Erreurs</button>
+            </div>
+            <span class="text-muted small ms-auto" id="qbt-count">{{ torrents|length }} torrents</span>
+            <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-primary" id="qbt-btn-add" title="Ajouter un torrent" style="background:#2f67ba;border-color:#2f67ba;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    Ajouter
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" id="qbt-btn-pause-all" title="Tout mettre en pause">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" id="qbt-btn-resume-all" title="Tout reprendre">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4v16l13-8z"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 mt-2 pt-2 flex-wrap" style="border-top:1px solid var(--tblr-border-color);">
+            <label class="form-check mb-0" style="font-size:.75rem;">
+                <input type="checkbox" class="form-check-input" id="qbt-select-all">
+                <span class="form-check-label">Tout sélectionner</span>
+            </label>
+            <div class="d-flex align-items-center gap-2" style="font-size:.72rem;">
+                <span class="text-muted" style="white-space:nowrap;font-weight:500;">Catégorie :</span>
+                <select id="qbt-cat-filter" class="form-select form-select-sm" style="min-width:140px;font-size:.75rem;padding:3px 24px 3px 8px;">
+                    <option value="">Toutes</option>
+                    {% for key, cat in categories %}<option value="{{ key }}">{{ cat.name ?? key }}</option>{% endfor %}
+                </select>
+            </div>
+            {% if tags is not empty %}
+            <div class="d-flex align-items-center gap-2" style="font-size:.72rem;">
+                <span class="text-muted" style="white-space:nowrap;font-weight:500;">Tag :</span>
+                <select id="qbt-tag-filter" class="form-select form-select-sm" style="min-width:120px;font-size:.75rem;padding:3px 24px 3px 8px;">
+                    <option value="">Tous</option>
+                    {% for tag in tags %}<option value="{{ tag }}">{{ tag }}</option>{% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="ms-auto d-flex align-items-center gap-2 flex-shrink-0" id="qbt-list-sort-wrap">
+                <span class="text-muted" style="font-size:.78rem;white-space:nowrap;font-weight:500;">Tri :</span>
+                <select id="qbt-list-sort" class="form-select form-select-sm" style="min-width:210px;font-size:.78rem;padding:4px 28px 4px 10px;">
+                    <option value="added|1">Ajout (récent → ancien)</option>
+                    <option value="added|0">Ajout (ancien → récent)</option>
+                    <option value="name|0">Nom (A → Z)</option>
+                    <option value="name|1">Nom (Z → A)</option>
+                    <option value="size|1">Taille (↓)</option>
+                    <option value="size|0">Taille (↑)</option>
+                    <option value="progress|1">Progression (↓)</option>
+                    <option value="dlspeed|1">Vitesse DL (↓)</option>
+                    <option value="upspeed|1">Vitesse UP (↓)</option>
+                    <option value="ratio|1">Ratio (↓)</option>
+                    <option value="seeds|1">Seeds (↓)</option>
+                </select>
+            </div>
+            <div class="qbt-view-switcher" role="group" aria-label="Mode d'affichage">
+                <button type="button" class="qbt-view-btn active" data-view="list" title="Vue liste">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    Liste
+                </button>
+                <button type="button" class="qbt-view-btn" data-view="table" title="Vue tableau">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18v14H3zM3 10h18M3 15h18M10 5v14"/></svg>
+                    Tableau
+                </button>
+                <button type="button" class="qbt-view-btn" data-view="compact" title="Vue compacte">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    Compact
+                </button>
+            </div>
+        </div>
+        {# 3e ligne de la card : pagination #}
+        <div id="qbt-pagination-bar" class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 pt-2" style="display:none;border-top:1px solid var(--tblr-border-color);">
+            <div class="d-flex align-items-center gap-2 flex-shrink-0" style="font-size:.78rem;">
+                <span class="text-muted" style="white-space:nowrap;font-weight:500;">Par page :</span>
+                <select id="qbt-per-page" class="form-select form-select-sm" style="min-width:90px;font-size:.78rem;padding:4px 28px 4px 10px;">
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                </select>
+                <span class="text-muted ms-2" id="qbt-page-info" style="white-space:nowrap;">—</span>
+            </div>
+            <ul class="pagination pagination-sm mb-0" id="qbt-pagination-links"></ul>
+        </div>
+    </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Header tableau (visible uniquement en mode table)
+   ══════════════════════════════════════════════════════════════════════════ #}
+<div id="qbt-table-header">
+    <div></div>
+    <div></div>
+    <div class="qbt-sort active" data-sort="name">Nom <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="qbt-sort" data-sort="size" style="justify-content:flex-end">Taille <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="qbt-sort" data-sort="progress" style="justify-content:center">% <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="qbt-sort" data-sort="dlspeed" style="justify-content:flex-end">DL/s <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="qbt-sort" data-sort="upspeed" style="justify-content:flex-end">UP/s <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="qbt-sort" data-sort="num_seeds" style="justify-content:flex-end">Seeds <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="qbt-sort" data-sort="ratio" style="justify-content:flex-end">Ratio <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div class="qbt-sort" data-sort="added" style="justify-content:flex-end">Ajouté <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg></div>
+    <div style="text-align:center">Actions</div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Liste torrents
+   ══════════════════════════════════════════════════════════════════════════ #}
+<div class="qbt-torrent-list" id="qbt-list" data-view="list">
+    {% for t in torrents %}
+    {{ _self.torrent_row(t) }}
+    {% endfor %}
+</div>
+
+<div id="qbt-empty" class="card" style="display:none;"><div class="qbt-empty">
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/></svg>
+    <p>Aucun torrent ne correspond à ces critères.</p>
+</div></div>
+
+{# Barre bulk #}
+<div class="qbt-bulk-bar" id="qbt-bulk-bar">
+    <span class="fw-bold" style="font-size:.82rem;color:#2f67ba;"><span id="qbt-bulk-count">0</span> sélectionné(s)</span>
+    <button class="btn btn-sm btn-outline-primary" id="qbt-bulk-resume">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4v16l13-8z"/></svg> Reprendre
+    </button>
+    <button class="btn btn-sm btn-outline-warning" id="qbt-bulk-pause">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg> Pause
+    </button>
+    <button class="btn btn-sm btn-outline-danger" id="qbt-bulk-delete">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12"/><path d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg> Supprimer
+    </button>
+    <button class="btn btn-sm btn-outline-info" id="qbt-bulk-recheck">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg> Vérifier
+    </button>
+    <select class="form-select form-select-sm" id="qbt-bulk-cat" style="min-width:160px;font-size:.78rem;padding:3px 28px 3px 10px;">
+        <option value="">Catégorie...</option>
+        {% for key, cat in categories %}<option value="{{ key }}">{{ cat.name ?? key }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-sm btn-ghost-secondary ms-auto" id="qbt-bulk-clear">Annuler</button>
+</div>
+
+</div>{# /container-xl #}
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Modal détail torrent
+   ══════════════════════════════════════════════════════════════════════════ #}
+<div class="modal modal-blur fade" id="qbt-modal-detail" tabindex="-1">
+<div class="modal-dialog modal-lg modal-dialog-scrollable">
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title text-truncate" id="qbt-detail-title" style="font-size:.9rem;max-width:90%;"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body p-0">
+        <ul class="nav nav-tabs qbt-detail-tab px-3 pt-2" role="tablist">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#qbt-tab-general">Général</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#qbt-tab-files">Fichiers</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#qbt-tab-trackers">Trackers</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#qbt-tab-peers">Peers</a></li>
+        </ul>
+        <div class="tab-content p-3">
+            <div class="tab-pane active" id="qbt-tab-general">
+                <div class="row g-2" id="qbt-detail-props"></div>
+            </div>
+            <div class="tab-pane" id="qbt-tab-files">
+                <div class="table-responsive">
+                    <table class="table table-vcenter mb-0" style="font-size:.78rem;">
+                        <thead><tr><th>Nom</th><th style="width:80px">Taille</th><th style="width:110px">Progression</th><th style="width:90px">Priorité</th></tr></thead>
+                        <tbody id="qbt-detail-files"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="tab-pane" id="qbt-tab-trackers">
+                <div class="table-responsive">
+                    <table class="table table-vcenter mb-0" style="font-size:.78rem;">
+                        <thead><tr><th>URL</th><th style="width:90px">Statut</th><th style="width:60px">Seeds</th><th style="width:60px">Leechs</th></tr></thead>
+                        <tbody id="qbt-detail-trackers"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="tab-pane" id="qbt-tab-peers">
+                <div class="table-responsive">
+                    <table class="table table-vcenter mb-0" style="font-size:.75rem;">
+                        <thead><tr><th>IP</th><th>Client</th><th style="width:60px">%</th><th style="width:80px">DL</th><th style="width:80px">UP</th></tr></thead>
+                        <tbody id="qbt-detail-peers"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div class="d-flex gap-1 w-100 flex-wrap" id="qbt-detail-actions"></div>
+    </div>
+</div>
+</div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Modal ajout torrent
+   ══════════════════════════════════════════════════════════════════════════ #}
+<div class="modal modal-blur fade" id="qbt-modal-add" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" style="font-size:.9rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2f67ba" stroke-width="2" style="vertical-align:-3px;margin-right:4px;"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            Ajouter un torrent
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <div class="mb-3">
+            <label class="form-label">Lien magnet ou URL .torrent</label>
+            <textarea class="form-control" id="qbt-add-urls" rows="3" wrap="soft" placeholder="magnet:?xt=urn:btih:... ou https://..." style="font-family:'SF Mono',Menlo,monospace;font-size:.78rem;word-break:break-all;"></textarea>
+            <div class="form-hint">Un lien par ligne pour ajouter plusieurs torrents.</div>
+        </div>
+        {# Zone drag-drop fichiers .torrent #}
+        <div class="mb-3">
+            <label class="form-label">Ou fichiers .torrent</label>
+            <div id="qbt-drop-zone" class="qbt-drop-zone">
+                <input type="file" id="qbt-file-input" accept=".torrent" multiple style="display:none;">
+                <div class="qbt-drop-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4l0 12"/></svg>
+                    <div class="qbt-drop-text">Glissez vos fichiers <strong>.torrent</strong> ici<br><span class="text-muted" style="font-size:.72rem;">ou cliquez pour parcourir</span></div>
+                </div>
+                <ul id="qbt-drop-files" class="qbt-drop-files"></ul>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-6">
+                <label class="form-label">Catégorie</label>
+                <select class="form-select form-select-sm" id="qbt-add-category">
+                    <option value="">Aucune</option>
+                    {% for key, cat in categories %}<option value="{{ key }}">{{ cat.name ?? key }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="form-label">Démarrage</label>
+                <select class="form-select form-select-sm" id="qbt-add-paused">
+                    <option value="false">Démarrer immédiatement</option>
+                    <option value="true">Ajouter en pause</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" id="qbt-add-submit" style="background:#2f67ba;border-color:#2f67ba;">Ajouter</button>
+    </div>
+</div>
+</div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Modal supprimer
+   ══════════════════════════════════════════════════════════════════════════ #}
+<div class="modal modal-blur fade" id="qbt-modal-delete" tabindex="-1">
+<div class="modal-dialog modal-sm">
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title text-danger" style="font-size:.9rem;">Supprimer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <p style="font-size:.82rem;" id="qbt-delete-msg">Supprimer ce torrent ?</p>
+        <label class="form-check">
+            <input type="checkbox" class="form-check-input" id="qbt-delete-files">
+            <span class="form-check-label">Supprimer aussi les fichiers</span>
+        </label>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-danger" id="qbt-delete-confirm">Supprimer</button>
+    </div>
+</div>
+</div>
+</div>
+
+{# Triggers Turbo-safe #}
+<button id="qbt-detail-trigger" class="d-none" data-bs-toggle="modal" data-bs-target="#qbt-modal-detail"></button>
+<button id="qbt-add-trigger" class="d-none" data-bs-toggle="modal" data-bs-target="#qbt-modal-add"></button>
+<button id="qbt-delete-trigger" class="d-none" data-bs-toggle="modal" data-bs-target="#qbt-modal-delete"></button>
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Macro torrent row
+   ══════════════════════════════════════════════════════════════════════════ #}
+{% macro torrent_row(t) %}
+{% set state_label = {
+    'downloading': 'Téléchargement', 'seeding': 'Partage', 'paused': 'Pause',
+    'queued': 'File', 'checking': 'Vérification', 'error': 'Erreur',
+    'completed': 'Terminé', 'stalled': 'En attente', 'moving': 'Déplacement',
+    'unknown': 'État inconnu'
+}[t.state] ?? t.state %}
+{% set cat = t.category|lower %}
+{% set ico_type = cat in ['films', 'movies', 'radarr'] ? 'movie' : (cat in ['tv', 'tv-sonarr', 'series', 'sonarr'] ? 'tv' : 'generic') %}
+<div class="qbt-torrent" data-hash="{{ t.hash }}" data-state="{{ t.state }}" data-name="{{ t.name|lower }}" data-cat="{{ cat }}"
+     data-size="{{ t.size }}" data-progress="{{ t.progress }}" data-dlspeed="{{ t.dlspeed }}" data-upspeed="{{ t.upspeed }}" data-seeds="{{ t.num_seeds }}" data-ratio="{{ t.ratio ?? 0 }}" data-added="{{ t.added_on ?? 0 }}">
+    <input type="checkbox" class="form-check-input qbt-check" data-hash="{{ t.hash }}">
+
+    <div class="qbt-ico" title="{{ state_label }}">
+        {% if t.state == 'downloading' %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v13"/><path d="M6 11l6 6 6-6"/></svg>
+        {% elseif t.state == 'seeding' %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V7"/><path d="M6 13l6-6 6 6"/></svg>
+        {% elseif t.state == 'paused' %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        {% elseif t.state == 'completed' %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+        {% elseif t.state == 'stalled' %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        {% elseif t.state == 'error' %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.7 2.983h16.845a1.989 1.989 0 0 0 1.7 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.4 0z"/></svg>
+        {% elseif t.state == 'queued' %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        {% elseif t.state == 'checking' %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
+        {% elseif t.state == 'moving' %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        {% else %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        {% endif %}
+    </div>
+
+    <div class="qbt-main">
+        <div class="qbt-name-row">
+            <div class="qbt-name" title="{{ t.name }}">{{ t.name }}</div>
+            {% if t.category %}
+                {% if cat in ['films', 'movies', 'radarr'] %}
+                <span class="qbt-tag qbt-tag-radarr qbt-cat-link" data-pipeline="radarr" data-name="{{ t.name|e('html_attr') }}" data-hash="{{ t.hash }}" title="Voir dans Radarr">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg>
+                    {{ t.category }}
+                </span>
+                {% elseif cat in ['tv', 'tv-sonarr', 'series', 'sonarr'] %}
+                <span class="qbt-tag qbt-tag-sonarr qbt-cat-link" data-pipeline="sonarr" data-name="{{ t.name|e('html_attr') }}" data-hash="{{ t.hash }}" title="Voir dans Sonarr">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M8 3l4 3 4-3"/></svg>
+                    {{ t.category }}
+                </span>
+                {% else %}
+                <span class="qbt-tag qbt-tag-generic">{{ t.category }}</span>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="qbt-bar-wrap">
+            <div class="qbt-bar qbt-bar-{{ t.state }}" style="width:{{ t.progress }}%"></div>
+        </div>
+        <div class="qbt-stats-line">
+            <span class="item"><strong>{{ t.progress }}%</strong></span>
+            <span class="sep"></span>
+            <span class="item">{{ (t.size / 1073741824)|number_format(2) }} Go</span>
+            <span class="sep"></span>
+            <span class="item">{{ state_label }}</span>
+            {% if t.dlspeed > 0 %}
+            <span class="sep"></span>
+            <span class="item dl-speed">&#8595; {% if t.dlspeed >= 1048576 %}{{ (t.dlspeed / 1048576)|number_format(1) }} Mo/s{% else %}{{ (t.dlspeed / 1024)|number_format(0) }} Ko/s{% endif %}</span>
+            {% endif %}
+            {% if t.upspeed > 0 %}
+            <span class="sep"></span>
+            <span class="item up-speed">&#8593; {% if t.upspeed >= 1048576 %}{{ (t.upspeed / 1048576)|number_format(1) }} Mo/s{% else %}{{ (t.upspeed / 1024)|number_format(0) }} Ko/s{% endif %}</span>
+            {% endif %}
+            {% if t.state == 'downloading' and t.eta < 8640000 %}
+            <span class="sep"></span>
+            <span class="item">⏱ {{ (t.eta / 3600)|round(0,'floor') }}h{{ ((t.eta % 3600) / 60)|round }}m</span>
+            {% endif %}
+            <span class="sep"></span>
+            <span class="item" title="Seeds / Leechers">🌱 {{ t.num_seeds }}/{{ t.num_leechs ?? 0 }}</span>
+            <span class="sep"></span>
+            <span class="item" title="Ratio">⚖ {{ (t.ratio ?? 0)|number_format(2) }}</span>
+            {% if t.added_on %}
+            <span class="sep"></span>
+            <span class="item" title="Ajouté le {{ t.added_on|date('d/m/Y H:i') }}">📅 {{ t.added_on|date('d/m/y') }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Cellules mode tableau #}
+    <div class="qbt-table-cell qbt-cell-size">{{ (t.size / 1073741824)|number_format(2) }} Go</div>
+    <div class="qbt-table-cell qbt-cell-progress"><div class="qbt-cell-progress-fill" style="width:{{ t.progress }}%"></div><span>{{ t.progress }}%</span></div>
+    <div class="qbt-table-cell qbt-cell-dl">{% if t.dlspeed > 0 %}{% if t.dlspeed >= 1048576 %}{{ (t.dlspeed / 1048576)|number_format(1) }} Mo/s{% else %}{{ (t.dlspeed / 1024)|number_format(0) }} Ko/s{% endif %}{% else %}—{% endif %}</div>
+    <div class="qbt-table-cell qbt-cell-up">{% if t.upspeed > 0 %}{% if t.upspeed >= 1048576 %}{{ (t.upspeed / 1048576)|number_format(1) }} Mo/s{% else %}{{ (t.upspeed / 1024)|number_format(0) }} Ko/s{% endif %}{% else %}—{% endif %}</div>
+    <div class="qbt-table-cell">{{ t.num_seeds }}</div>
+    <div class="qbt-table-cell">{{ (t.ratio ?? 0)|number_format(2) }}</div>
+    <div class="qbt-table-cell qbt-cell-added" data-added="{{ t.added_on ?? 0 }}">{% if t.added_on %}{{ t.added_on|date('d/m/y') }}{% else %}—{% endif %}</div>
+
+    {# Cellule mode compact — % seul #}
+    <div class="qbt-compact-pct">{{ t.progress }}%</div>
+
+    <div class="qbt-row-actions">
+        {% if t.state == 'paused' %}
+        <button class="btn btn-sm btn-ghost-success qbt-act" data-action="resume" data-hash="{{ t.hash }}" title="Reprendre"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4v16l13-8z"/></svg></button>
+        {% else %}
+        <button class="btn btn-sm btn-ghost-warning qbt-act" data-action="pause" data-hash="{{ t.hash }}" title="Pause"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg></button>
+        {% endif %}
+        <button class="btn btn-sm btn-ghost-danger qbt-act" data-action="delete" data-hash="{{ t.hash }}" data-name="{{ t.name|e('html_attr') }}" title="Supprimer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12"/><path d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg></button>
+    </div>
+</div>
+{% endmacro %}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+    var BASE = '{{ path("app_qbittorrent_index") }}';
+    var refreshTimer = null;
+    var currentFilter = 'all';
+    var selectedHashes = {};
+    var deleteTarget = { hashes: [], mode: 'single' };
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function fmtSize(bytes) {
+        if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' Go';
+        if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' Mo';
+        if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' Ko';
+        return bytes + ' o';
+    }
+    function fmtSpeed(bytes) {
+        if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' Mo/s';
+        if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' Ko/s';
+        return bytes > 0 ? bytes + ' o/s' : '-';
+    }
+    function fmtEta(sec) {
+        if (!sec || sec >= 8640000) return '∞';
+        var h = Math.floor(sec / 3600);
+        var m = Math.round((sec % 3600) / 60);
+        return h + 'h' + (m < 10 ? '0' : '') + m + 'm';
+    }
+    function fmtDuration(sec) {
+        if (!sec || sec < 0) return '-';
+        var d = Math.floor(sec / 86400);
+        var h = Math.floor((sec % 86400) / 3600);
+        var m = Math.floor((sec % 3600) / 60);
+        if (d > 0) return d + 'j ' + h + 'h';
+        if (h > 0) return h + 'h ' + m + 'm';
+        return m + 'm';
+    }
+    function fmtDate(ts) {
+        if (!ts || ts < 0) return '-';
+        var d = new Date(ts * 1000);
+        return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+    }
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+    var STATE_LABELS = { downloading:'Téléchargement', seeding:'Partage', paused:'Pause', queued:'File', checking:'Vérification', error:'Erreur', completed:'Terminé', stalled:'En attente', moving:'Déplacement', unknown:'État inconnu' };
+    var TRACKER_STATUS = { 0: '<span class="badge bg-secondary-lt">Désactivé</span>', 1: '<span class="badge bg-warning-lt">Non contacté</span>', 2: '<span class="badge bg-success-lt">OK</span>', 3: '<span class="badge bg-info-lt">En cours</span>', 4: '<span class="badge bg-danger-lt">Erreur</span>' };
+
+    var RADARR_CATS = ['films', 'movies', 'radarr'];
+    var SONARR_CATS = ['tv', 'tv-sonarr', 'series', 'sonarr'];
+
+    /** Source unique pour le bouton Pause ou Reprendre d'une row (createRow + updateRow). */
+    function buildPauseResumeBtn(hash, state) {
+        var open = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">';
+        if (state === 'paused') {
+            return '<button class="btn btn-sm btn-ghost-success qbt-act" data-action="resume" data-hash="'+hash+'" title="Reprendre">'+open+'<path d="M7 4v16l13-8z"/></svg></button>';
+        }
+        return '<button class="btn btn-sm btn-ghost-warning qbt-act" data-action="pause" data-hash="'+hash+'" title="Pause">'+open+'<path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg></button>';
+    }
+
+    function buildCatTag(category, torrentName, hash) {
+        var cat = (category || '').toLowerCase();
+        var safeCat  = escapeHtml(category);
+        var safeName = escapeHtml(torrentName || '');
+        if (RADARR_CATS.indexOf(cat) !== -1) {
+            return '<span class="qbt-tag qbt-tag-radarr qbt-cat-link" data-pipeline="radarr" data-name="' + safeName + '" data-hash="' + hash + '" title="Voir dans Radarr">'
+                + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg>'
+                + safeCat + '</span>';
+        }
+        if (SONARR_CATS.indexOf(cat) !== -1) {
+            return '<span class="qbt-tag qbt-tag-sonarr qbt-cat-link" data-pipeline="sonarr" data-name="' + safeName + '" data-hash="' + hash + '" title="Voir dans Sonarr">'
+                + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M8 3l4 3 4-3"/></svg>'
+                + safeCat + '</span>';
+        }
+        return '<span class="qbt-tag qbt-tag-generic">' + safeCat + '</span>';
+    }
+
+    function getIcoType(cat) {
+        cat = (cat || '').toLowerCase();
+        if (['films','movies','radarr'].indexOf(cat) !== -1) return 'movie';
+        if (['tv','tv-sonarr','series','sonarr'].indexOf(cat) !== -1) return 'tv';
+        return 'generic';
+    }
+    function getStateIcoSvg(state) {
+        var open = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">';
+        switch (state) {
+            case 'downloading': return open+'<path d="M12 4v13"/><path d="M6 11l6 6 6-6"/></svg>';
+            case 'seeding':     return open+'<path d="M12 20V7"/><path d="M6 13l6-6 6 6"/></svg>';
+            case 'paused':      return open+'<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+            case 'completed':   return open.replace('2.3','2.5')+'<path d="M5 12l5 5L20 7"/></svg>';
+            case 'stalled':     return open.replace('2.3','2')+'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
+            case 'error':       return open+'<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.24 3.957l-8.422 14.06a1.989 1.989 0 0 0 1.7 2.983h16.845a1.989 1.989 0 0 0 1.7 -2.983l-8.423 -14.06a1.989 1.989 0 0 0 -3.4 0z"/></svg>';
+            case 'queued':      return open.replace('2.3','2')+'<path d="M4 6h16M4 12h16M4 18h10"/></svg>';
+            case 'checking':    return open.replace('2.3','2')+'<path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>';
+            case 'moving':      return open.replace('2.3','2')+'<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>';
+            default:            return open.replace('2.3','2')+'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
+        }
+    }
+
+    // ── API ─────────────────────────────────────────────────────────────────
+    function qbtPost(url, body) {
+        return fetch(url, { method:'POST', headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'}, body: JSON.stringify(body || {}) }).then(function(r){ return r.json(); });
+    }
+
+    // Wrapper avec feedback visuel : désactive le bouton + spinner + toast
+    function qbtAction(btn, url, body, successMsg) {
+        if (btn) {
+            btn.disabled = true;
+            btn.dataset.qbtOriginalHtml = btn.innerHTML;
+            if (btn.offsetWidth > 40) {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            } else {
+                btn.style.opacity = '.55';
+            }
+        }
+        return qbtPost(url, body)
+            .then(function(d){
+                var ok = d && d.ok !== false && !d.error;
+                if (window._argosToast) {
+                    window._argosToast(
+                        ok ? (successMsg || 'Action envoyée') : ('Échec : ' + (d && d.error ? d.error : 'erreur')),
+                        ok ? 'success' : 'danger'
+                    );
+                }
+                return d;
+            })
+            .catch(function(){
+                if (window._argosToast) window._argosToast('Erreur réseau', 'danger');
+            })
+            .finally(function(){
+                if (btn) {
+                    btn.disabled = false;
+                    if (btn.dataset.qbtOriginalHtml !== undefined) {
+                        btn.innerHTML = btn.dataset.qbtOriginalHtml;
+                        delete btn.dataset.qbtOriginalHtml;
+                    }
+                    btn.style.opacity = '';
+                }
+            });
+    }
+
+    // ── Helper Turbo-safe : remplace au lieu d'empiler ──────────────────────
+    function bindDoc(event, key, handler) {
+        var fullKey = '_argosQbt_' + key;
+        if (window[fullKey]) document.removeEventListener(event, window[fullKey]);
+        window[fullKey] = handler;
+        document.addEventListener(event, handler);
+    }
+
+    // ── Pagination / tri / filtre — état partagé ───────────────────────────
+    var pagState = {
+        page:     1,
+        perPage:  parseInt(localStorage.getItem('qbt_per_page') || '50', 10),
+        sort:     localStorage.getItem('qbt_sort_field') || 'added',
+        desc:     localStorage.getItem('qbt_sort_desc') !== '0',
+        filter:   'all',
+        search:   '',
+        category: '',
+        tag:      '',
+    };
+
+    // ── Refresh temps réel ──────────────────────────────────────────────────
+    var REFRESH_INTERVAL = 3000; // 3s — compromis entre fluidité et charge qBit
+
+    function startRefresh() {
+        if (refreshTimer) clearInterval(refreshTimer);
+        if (document.hidden) return;  // pas de poll si onglet masqué
+        refreshTimer = setInterval(refreshData, REFRESH_INTERVAL);
+    }
+    function stopRefresh() {
+        if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+        if (refreshCtrl) { refreshCtrl.abort(); refreshCtrl = null; }
+    }
+
+    // Pause/reprend le polling selon la visibilité de l'onglet (Page Visibility API)
+    bindDoc('visibilitychange', 'visibility', function() {
+        if (document.hidden) {
+            stopRefresh();
+        } else {
+            refreshData();   // rattrape un fetch à l'instant où on revient
+            startRefresh();
+        }
+    });
+
+    var refreshCtrl = null;
+    function refreshData() {
+        // Annule le fetch précédent s'il est encore en vol (évite empilement)
+        if (refreshCtrl) refreshCtrl.abort();
+        refreshCtrl = new AbortController();
+        var q = new URLSearchParams({
+            page: pagState.page,
+            perPage: pagState.perPage,
+            sort: pagState.sort,
+            desc: pagState.desc ? '1' : '0',
+            filter: pagState.filter,
+            search: pagState.search,
+            category: pagState.category,
+            tag: pagState.tag,
+        }).toString();
+        fetch(BASE + '/api/torrents?' + q, { signal: refreshCtrl.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) return;
+            updateStats(data.stats);
+            updateList(data.torrents);
+            updatePagination(data.pagination);
+        })
+        .catch(function() {});
+    }
+
+    // ── Tracking session ────────────────────────────────────────────────────
+    var sessionStartTs = Date.now();
+    var peakDl = 0, peakUp = 0;
+
+    function fmtUptime(ms) {
+        var s = Math.floor(ms / 1000);
+        var h = Math.floor(s / 3600);
+        var m = Math.floor((s % 3600) / 60);
+        if (h > 0) return h + 'h ' + m + 'm';
+        if (m > 0) return m + ' min';
+        return s + 's';
+    }
+
+    function updateStats(s) {
+        function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+        set('qbt-stat-total', s.total); set('qbt-stat-dl', s.downloading); set('qbt-stat-seed', s.seeding);
+        set('qbt-stat-paused', s.paused); set('qbt-stat-error', s.errored);
+        set('qbt-stat-stalled', s.stalled || 0);
+        var dlEl = document.getElementById('qbt-speed-dl'); if (dlEl) dlEl.innerHTML = s.dl_speed > 0 ? ('&#8595; ' + fmtSpeed(s.dl_speed)) : '&nbsp;';
+        var upEl = document.getElementById('qbt-speed-up'); if (upEl) upEl.innerHTML = s.up_speed > 0 ? ('&#8593; ' + fmtSpeed(s.up_speed)) : '&nbsp;';
+        var dot = document.getElementById('qbt-conn-dot');
+        if (dot) dot.className = 'qbt-connection ' + (s.connection === 'connected' ? 'connected' : s.connection === 'firewalled' ? 'firewalled' : 'disconnected');
+        // Totaux globaux
+        function fmtGo(bytes) { return (bytes / 1073741824).toFixed(1) + ' Go'; }
+        set('qbt-total-dl', fmtGo(s.dl_alltime || 0));
+        set('qbt-total-up', fmtGo(s.up_alltime || 0));
+        set('qbt-session-dl', fmtGo(s.dl_session || 0));
+        set('qbt-session-up', fmtGo(s.up_session || 0));
+        set('qbt-total-ratio', (s.global_ratio || 0).toFixed(2));
+        set('qbt-free-space', ((s.free_space || 0) / 1073741824).toFixed(0) + ' Go');
+        // Pics DL/UP
+        if (s.dl_speed > peakDl) { peakDl = s.dl_speed; set('qbt-peak-dl', fmtSpeed(peakDl)); }
+        if (s.up_speed > peakUp) { peakUp = s.up_speed; set('qbt-peak-up', fmtSpeed(peakUp)); }
+        // Uptime session
+        set('qbt-session-uptime', '· ' + fmtUptime(Date.now() - sessionStartTs));
+    }
+
+    // ── VPN (Gluetun) ───────────────────────────────────────────────────────
+    function applyPortSync(portSync, vpnPort, qbtPort) {
+        var badge = document.getElementById('qbt-port-sync');
+        if (!badge) return;
+        if (portSync === true) {
+            badge.className = 'qbt-port-badge match';
+            badge.textContent = '✓ Sync';
+            badge.title = 'qBit écoute bien sur le port forwarded Gluetun';
+        } else if (portSync === false) {
+            badge.className = 'qbt-port-badge desync';
+            badge.textContent = '✗ Désync';
+            badge.title = 'port-update Gluetun n\'a pas poussé le port ' + vpnPort + ' vers qBit (actuellement ' + qbtPort + ')';
+        } else {
+            badge.className = 'qbt-port-badge unknown';
+            badge.textContent = '—';
+            badge.title = 'Port forwarding ou qBit indisponible';
+        }
+    }
+
+    function refreshVpn() {
+        fetch(BASE + '/api/vpn', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (!d) return;
+                var dot = document.getElementById('qbt-vpn-dot');
+                if (dot) dot.className = 'qbt-vpn-dot ' + (d.ok ? 'connected' : 'disconnected');
+                function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = (val === null || val === undefined || val === '') ? '—' : val; }
+                set('qbt-vpn-ip', d.public_ip);
+                set('qbt-vpn-country', d.country);
+                set('qbt-vpn-city', d.city || '');
+                set('qbt-vpn-provider', d.organization || '—');
+                set('qbt-vpn-port', d.forwarded_port);
+                set('qbt-qbt-port', d.qbt_port);
+                applyPortSync(d.port_sync, d.forwarded_port, d.qbt_port);
+            })
+            .catch(function(){});
+    }
+
+    function updateList(torrents) {
+        var list = document.getElementById('qbt-list');
+        if (!list) return;
+
+        var existing = {};
+        var rows = list.querySelectorAll('.qbt-torrent');
+        for (var i = 0; i < rows.length; i++) existing[rows[i].dataset.hash] = rows[i];
+
+        var keep = {};
+        // 1) MAJ ou création en préservant l'ordre serveur
+        var fragments = [];
+        for (var j = 0; j < torrents.length; j++) {
+            var t = torrents[j];
+            keep[t.hash] = true;
+            var row = existing[t.hash];
+            if (row) {
+                updateRow(row, t);
+            } else {
+                row = createRow(t);
+            }
+            var cb = row.querySelector('.qbt-check');
+            if (cb) cb.checked = !!selectedHashes[t.hash];
+            row.classList.toggle('selected', !!selectedHashes[t.hash]);
+            fragments.push(row);
+        }
+        // 2) Supprimer ceux qui ne sont plus dans la page
+        for (var hash in existing) {
+            if (!keep[hash]) existing[hash].remove();
+        }
+        // 3) Réordonner en respectant l'ordre serveur (sans flash visuel)
+        //    Optimisation : skip si l'ordre est déjà bon (zéro mutation DOM, zéro reflow)
+        var needsReorder = false;
+        for (var check = 0; check < fragments.length; check++) {
+            if (list.children[check] !== fragments[check]) { needsReorder = true; break; }
+        }
+        if (needsReorder) {
+            for (var k = 0; k < fragments.length; k++) list.appendChild(fragments[k]);
+        }
+        // Empty state
+        var empty = document.getElementById('qbt-empty');
+        if (empty) empty.style.display = torrents.length === 0 ? '' : 'none';
+    }
+
+    function updatePagination(p) {
+        if (!p) return;
+        var bar = document.getElementById('qbt-pagination-bar');
+        var links = document.getElementById('qbt-pagination-links');
+        var info = document.getElementById('qbt-page-info');
+        var cnt  = document.getElementById('qbt-count');
+        if (!bar || !links) return;
+
+        pagState.page = p.page;
+        bar.style.display = p.total > 0 ? 'flex' : 'none';
+
+        var from = p.total === 0 ? 0 : ((p.page - 1) * p.perPage + 1);
+        var to   = Math.min(p.page * p.perPage, p.total);
+        if (info) info.textContent = from + '–' + to + ' / ' + p.total;
+        if (cnt)  cnt.textContent  = p.total + ' torrent' + (p.total !== 1 ? 's' : '');
+
+        // Construction des liens avec ellipses
+        var html = '';
+        function liBtn(pg, label, opts) {
+            opts = opts || {};
+            var cls = 'page-item' + (opts.disabled ? ' disabled' : '') + (opts.active ? ' active' : '');
+            var lbl = (label === undefined || label === null) ? pg : label;
+            // <button> au lieu de <a> : pas d'interception Turbo
+            return '<li class="' + cls + '"><button type="button" class="page-link" data-page="' + pg + '"' + (opts.disabled ? ' disabled' : '') + '>' + lbl + '</button></li>';
+        }
+        html += liBtn(Math.max(1, p.page - 1), '‹', { disabled: p.page <= 1 });
+        var pages = [];
+        var tp = p.totalPages;
+        var cp = p.page;
+        var push = function(n) { if (pages.indexOf(n) === -1 && n >= 1 && n <= tp) pages.push(n); };
+        push(1); push(2); push(tp - 1); push(tp); push(cp - 1); push(cp); push(cp + 1);
+        pages.sort(function(a,b){return a-b;});
+        var prev = 0;
+        for (var i = 0; i < pages.length; i++) {
+            if (pages[i] - prev > 1) html += '<li class="page-item disabled"><span class="page-link">…</span></li>';
+            html += liBtn(pages[i], null, { active: pages[i] === cp });
+            prev = pages[i];
+        }
+        html += liBtn(Math.min(tp, p.page + 1), '›', { disabled: p.page >= tp });
+        links.innerHTML = html;
+    }
+
+    function updateRow(row, t) {
+        row.dataset.state = t.state;
+        row.dataset.name = (t.name || '').toLowerCase();
+        row.dataset.size = t.size;
+        row.dataset.progress = t.progress;
+        row.dataset.dlspeed = t.dlspeed;
+        row.dataset.upspeed = t.upspeed;
+        row.dataset.seeds = t.num_seeds;
+        row.dataset.ratio = t.ratio || 0;
+        row.dataset.added = t.added_on || 0;
+
+        // icône de statut
+        var ico = row.querySelector('.qbt-ico');
+        if (ico && ico.dataset.state !== t.state) {
+            ico.innerHTML = getStateIcoSvg(t.state);
+            ico.title = STATE_LABELS[t.state] || t.state;
+            ico.dataset.state = t.state;
+        }
+
+        // bar
+        var bar = row.querySelector('.qbt-bar');
+        if (bar) { bar.style.width = t.progress + '%'; bar.className = 'qbt-bar qbt-bar-' + t.state; }
+
+        // stats line
+        var statsLine = row.querySelector('.qbt-stats-line');
+        if (statsLine) statsLine.innerHTML = buildStatsLine(t);
+
+        // cellules mode tableau
+        var cSize = row.querySelector('.qbt-cell-size'); if (cSize) cSize.textContent = fmtSize(t.size);
+        var cProg = row.querySelector('.qbt-cell-progress'); if (cProg) cProg.innerHTML = '<div class="qbt-cell-progress-fill" style="width:' + t.progress + '%"></div><span>' + t.progress + '%</span>';
+        var cDl   = row.querySelector('.qbt-cell-dl'); if (cDl) cDl.textContent = t.dlspeed > 0 ? fmtSpeed(t.dlspeed) : '—';
+        var cUp   = row.querySelector('.qbt-cell-up'); if (cUp) cUp.textContent = t.upspeed > 0 ? fmtSpeed(t.upspeed) : '—';
+        var cells = row.querySelectorAll('.qbt-table-cell');
+        if (cells.length >= 6) {
+            cells[4].textContent = t.num_seeds;
+            cells[5].textContent = (t.ratio || 0).toFixed(2);
+        }
+
+        // cellule compact
+        var cPct = row.querySelector('.qbt-compact-pct'); if (cPct) cPct.textContent = t.progress + '%';
+
+        // action button — remplace le 1er .qbt-act par le bon (Pause ou Reprendre) via source unique
+        var actions = row.querySelector('.qbt-row-actions');
+        if (actions) {
+            var firstBtn = actions.querySelector('.qbt-act');
+            var currentAction = firstBtn ? firstBtn.dataset.action : null;
+            var expectedAction = t.state === 'paused' ? 'resume' : 'pause';
+            if (firstBtn && currentAction !== expectedAction) {
+                firstBtn.outerHTML = buildPauseResumeBtn(t.hash, t.state);
+            }
+        }
+    }
+
+    function fmtRelativeDate(ts) {
+        if (!ts) return '—';
+        var diff = Math.floor(Date.now() / 1000) - ts;
+        if (diff < 60) return 'à l\'instant';
+        if (diff < 3600) return 'il y a ' + Math.floor(diff / 60) + 'min';
+        if (diff < 86400) return 'il y a ' + Math.floor(diff / 3600) + 'h';
+        if (diff < 2592000) return 'il y a ' + Math.floor(diff / 86400) + 'j';
+        if (diff < 31536000) return 'il y a ' + Math.floor(diff / 2592000) + ' mois';
+        return 'il y a ' + Math.floor(diff / 31536000) + ' an' + (Math.floor(diff / 31536000) > 1 ? 's' : '');
+    }
+    function fmtShortDate(ts) {
+        if (!ts) return '—';
+        var d = new Date(ts * 1000);
+        return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + String(d.getFullYear()).slice(-2);
+    }
+    function fmtLongDate(ts) {
+        if (!ts) return '—';
+        var d = new Date(ts * 1000);
+        return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + '/' + d.getFullYear()
+            + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    }
+
+    function buildStatsLine(t) {
+        var ratio = (t.ratio || 0).toFixed(2);
+        var leech = t.num_leechs || 0;
+        var html = '<span class="item"><strong>' + t.progress + '%</strong></span>'
+            + '<span class="sep"></span>'
+            + '<span class="item">' + fmtSize(t.size) + '</span>'
+            + '<span class="sep"></span>'
+            + '<span class="item">' + (STATE_LABELS[t.state] || t.state) + '</span>';
+        if (t.dlspeed > 0) html += '<span class="sep"></span><span class="item dl-speed">&#8595; ' + fmtSpeed(t.dlspeed) + '</span>';
+        if (t.upspeed > 0) html += '<span class="sep"></span><span class="item up-speed">&#8593; ' + fmtSpeed(t.upspeed) + '</span>';
+        if (t.state === 'downloading' && t.eta < 8640000) html += '<span class="sep"></span><span class="item">⏱ ' + fmtEta(t.eta) + '</span>';
+        html += '<span class="sep"></span><span class="item" title="Seeds / Leechers">🌱 ' + t.num_seeds + '/' + leech + '</span>';
+        html += '<span class="sep"></span><span class="item" title="Ratio">⚖ ' + ratio + '</span>';
+        if (t.added_on) html += '<span class="sep"></span><span class="item" title="Ajouté le ' + fmtLongDate(t.added_on) + '">📅 ' + fmtRelativeDate(t.added_on) + '</span>';
+        return html;
+    }
+
+    function createRow(t) {
+        var div = document.createElement('div');
+        div.className = 'qbt-torrent';
+        div.dataset.hash = t.hash;
+        div.dataset.state = t.state;
+        div.dataset.name = (t.name || '').toLowerCase();
+        div.dataset.cat = (t.category || '').toLowerCase();
+        div.dataset.size = t.size;
+        div.dataset.progress = t.progress;
+        div.dataset.dlspeed = t.dlspeed;
+        div.dataset.upspeed = t.upspeed;
+        div.dataset.seeds = t.num_seeds;
+        div.dataset.ratio = t.ratio || 0;
+        div.dataset.added = t.added_on || 0;
+
+        var ico = getStateIcoSvg(t.state);
+        var catTag = t.category ? buildCatTag(t.category, t.name, t.hash) : '';
+        var pauseResume = buildPauseResumeBtn(t.hash, t.state);
+
+        div.innerHTML = '<input type="checkbox" class="form-check-input qbt-check" data-hash="'+t.hash+'">'
+            + '<div class="qbt-ico" title="'+(STATE_LABELS[t.state]||t.state)+'">'+ico+'</div>'
+            + '<div class="qbt-main">'
+            +   '<div class="qbt-name-row"><div class="qbt-name" title="'+escapeHtml(t.name)+'">'+escapeHtml(t.name)+'</div>'+catTag+'</div>'
+            +   '<div class="qbt-bar-wrap"><div class="qbt-bar qbt-bar-'+t.state+'" style="width:'+t.progress+'%"></div></div>'
+            +   '<div class="qbt-stats-line">' + buildStatsLine(t) + '</div>'
+            + '</div>'
+            + '<div class="qbt-table-cell qbt-cell-size">' + fmtSize(t.size) + '</div>'
+            + '<div class="qbt-table-cell qbt-cell-progress"><div class="qbt-cell-progress-fill" style="width:' + t.progress + '%"></div><span>' + t.progress + '%</span></div>'
+            + '<div class="qbt-table-cell qbt-cell-dl">' + (t.dlspeed > 0 ? fmtSpeed(t.dlspeed) : '—') + '</div>'
+            + '<div class="qbt-table-cell qbt-cell-up">' + (t.upspeed > 0 ? fmtSpeed(t.upspeed) : '—') + '</div>'
+            + '<div class="qbt-table-cell">' + t.num_seeds + '</div>'
+            + '<div class="qbt-table-cell">' + (t.ratio || 0).toFixed(2) + '</div>'
+            + '<div class="qbt-table-cell qbt-cell-added" title="' + fmtShortDate(t.added_on) + '">' + fmtShortDate(t.added_on) + '</div>'
+            + '<div class="qbt-compact-pct">' + t.progress + '%</div>'
+            + '<div class="qbt-row-actions">'+pauseResume
+            +   '<button class="btn btn-sm btn-ghost-danger qbt-act" data-action="delete" data-hash="'+t.hash+'" data-name="'+escapeHtml(t.name)+'" title="Supprimer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12"/><path d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg></button>'
+            + '</div>';
+        return div;
+    }
+
+    // ── Vue & tri ───────────────────────────────────────────────────────────
+    var currentView = localStorage.getItem('qbt_view') || 'list';
+
+    function applyView(view) {
+        currentView = view;
+        localStorage.setItem('qbt_view', view);
+        var list = document.getElementById('qbt-list');
+        if (list) list.dataset.view = view;
+        var hdr = document.getElementById('qbt-table-header');
+        if (hdr) hdr.classList.toggle('show', view === 'table');
+        var btns = document.querySelectorAll('.qbt-view-btn');
+        for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', btns[i].dataset.view === view);
+        syncSortUI();
+    }
+
+    function syncSortUI() {
+        // Header tableau
+        var sortBtns = document.querySelectorAll('#qbt-table-header .qbt-sort');
+        for (var j = 0; j < sortBtns.length; j++) {
+            sortBtns[j].classList.toggle('active', sortBtns[j].dataset.sort === pagState.sort);
+            sortBtns[j].classList.toggle('desc', sortBtns[j].dataset.sort === pagState.sort && pagState.desc);
+        }
+        // Dropdown liste
+        var sel = document.getElementById('qbt-list-sort');
+        if (sel) sel.value = pagState.sort + '|' + (pagState.desc ? '1' : '0');
+        // Dropdown perPage
+        var pp = document.getElementById('qbt-per-page');
+        if (pp) pp.value = String(pagState.perPage);
+    }
+
+    function setSort(field, desc) {
+        pagState.sort = field;
+        pagState.desc = !!desc;
+        pagState.page = 1;
+        localStorage.setItem('qbt_sort_field', field);
+        localStorage.setItem('qbt_sort_desc', desc ? '1' : '0');
+        syncSortUI();
+        refreshData();
+    }
+
+    bindDoc('click', 'viewSortPag', function(e) {
+        var vb = e.target.closest('.qbt-view-btn');
+        if (vb) { applyView(vb.dataset.view); return; }
+        var sb = e.target.closest('#qbt-table-header .qbt-sort');
+        if (sb) {
+            var f = sb.dataset.sort;
+            if (pagState.sort === f) setSort(f, !pagState.desc);
+            else setSort(f, f !== 'name');
+            return;
+        }
+        var pg = e.target.closest('#qbt-pagination-links .page-link');
+        if (pg) {
+            var li = pg.closest('.page-item');
+            if (!li || li.classList.contains('disabled') || li.classList.contains('active')) return;
+            var n = parseInt(pg.dataset.page, 10);
+            if (n > 0 && n !== pagState.page) { pagState.page = n; refreshData(); window.scrollTo({top:0, behavior:'smooth'}); }
+        }
+    });
+
+    bindDoc('change', 'listSort', function(e) {
+        if (e.target && e.target.id === 'qbt-list-sort') {
+            var parts = e.target.value.split('|');
+            setSort(parts[0], parts[1] === '1');
+        }
+    });
+
+    // ── Filtres ─────────────────────────────────────────────────────────────
+    var filterBtns = document.querySelectorAll('.qbt-filter-btn');
+    for (var i = 0; i < filterBtns.length; i++) {
+        // onclick (pas addEventListener) — évite les doublons après re-exec Turbo
+        filterBtns[i].onclick = function(){
+            for (var j = 0; j < filterBtns.length; j++) filterBtns[j].classList.remove('active');
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            pagState.filter = currentFilter;
+            pagState.page = 1;
+            refreshData();
+        };
+    }
+
+    var searchInput = document.getElementById('qbt-search');
+    if (searchInput) {
+        var searchTimeout;
+        searchInput.oninput = function() {
+            clearTimeout(searchTimeout);
+            var val = searchInput.value;
+            searchTimeout = setTimeout(function(){
+                pagState.search = val;
+                pagState.page = 1;
+                refreshData();
+            }, 250);
+        };
+    }
+
+    // Sélecteur perPage + filtres catégorie/tag
+    bindDoc('change', 'perPage', function(e) {
+        if (!e.target) return;
+        if (e.target.id === 'qbt-per-page') {
+            pagState.perPage = parseInt(e.target.value, 10) || 50;
+            pagState.page = 1;
+            localStorage.setItem('qbt_per_page', String(pagState.perPage));
+            refreshData();
+        } else if (e.target.id === 'qbt-cat-filter') {
+            pagState.category = e.target.value;
+            pagState.page = 1;
+            refreshData();
+        } else if (e.target.id === 'qbt-tag-filter') {
+            pagState.tag = e.target.value;
+            pagState.page = 1;
+            refreshData();
+        }
+    });
+
+    // ── Actions par torrent ─────────────────────────────────────────────────
+    bindDoc('click', 'torrentActs', function(e) {
+        var btn = e.target.closest('.qbt-act');
+        if (!btn) return;
+        e.stopPropagation();
+        var action = btn.dataset.action;
+        var hash = btn.dataset.hash;
+
+        if (action === 'pause') qbtAction(btn, BASE + '/api/torrent/' + hash + '/pause', null, 'Torrent mis en pause').then(refreshData);
+        else if (action === 'resume') qbtAction(btn, BASE + '/api/torrent/' + hash + '/resume', null, 'Torrent repris').then(refreshData);
+        else if (action === 'delete') {
+            deleteTarget = { hashes: [hash], mode: 'single' };
+            var msg = document.getElementById('qbt-delete-msg');
+            if (msg) msg.textContent = 'Supprimer "' + (btn.dataset.name || hash).substring(0, 60) + '" ?';
+            document.getElementById('qbt-delete-files').checked = false;
+            document.getElementById('qbt-delete-trigger').click();
+        }
+    });
+
+    // ── Badge Radarr/Sonarr : résolution + redirection ──────────────────────
+    bindDoc('click', 'catLink', function(e) {
+        var tag = e.target.closest('.qbt-cat-link');
+        if (!tag) return;
+        e.stopPropagation();
+        e.preventDefault();
+        var pipeline = tag.dataset.pipeline;
+        var hash = tag.dataset.hash;
+        var name = tag.dataset.name;
+        if (!pipeline || !hash) return;
+        // Feedback visuel
+        var original = tag.innerHTML;
+        tag.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:10px;height:10px;border-width:1px;"></span> Recherche...';
+        fetch(BASE + '/api/resolve/' + pipeline + '/' + hash, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (d && d.found && d.url) {
+                    window.location.href = d.url;
+                } else {
+                    tag.innerHTML = original;
+                    if (window._argosToast) window._argosToast('Aucun match trouvé pour "' + (name || '').substring(0, 50) + '"', 'warning');
+                }
+            })
+            .catch(function(){
+                tag.innerHTML = original;
+                if (window._argosToast) window._argosToast('Erreur de résolution', 'danger');
+            });
+    });
+
+    // ── Clic ligne = modal détail ───────────────────────────────────────────
+    bindDoc('click', 'rowDetail', function(e) {
+        var row = e.target.closest('.qbt-torrent');
+        if (!row) return;
+        if (e.target.closest('.qbt-act') || e.target.closest('.qbt-check') || e.target.closest('.qbt-cat-link') || e.target.tagName === 'INPUT') return;
+        openDetail(row.dataset.hash);
+    });
+
+    function openDetail(hash) {
+        document.getElementById('qbt-detail-title').textContent = 'Chargement...';
+        document.getElementById('qbt-detail-props').innerHTML = '<div class="col-12 text-center text-muted py-3">Chargement...</div>';
+        document.getElementById('qbt-detail-files').innerHTML = '';
+        document.getElementById('qbt-detail-trackers').innerHTML = '';
+        document.getElementById('qbt-detail-peers').innerHTML = '';
+        document.getElementById('qbt-detail-actions').innerHTML = '';
+        document.getElementById('qbt-detail-trigger').click();
+
+        fetch(BASE + '/api/torrent/' + hash, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.json(); })
+        .then(function(data) { renderDetail(hash, data); })
+        .catch(function() { document.getElementById('qbt-detail-props').innerHTML = '<div class="col-12 text-center text-danger py-3">Erreur de chargement</div>'; });
+    }
+
+    function renderDetail(hash, data) {
+        var p = data.properties || {};
+        document.getElementById('qbt-detail-title').textContent = p.name || hash;
+
+        // ── Propriétés simplifiées ──
+        var props = [
+            ['Téléchargé', fmtSize(p.total_downloaded || 0)],
+            ['Envoyé', fmtSize(p.total_uploaded || 0)],
+            ['Ratio', (p.share_ratio || 0).toFixed(2)],
+            ['Vitesse DL', fmtSpeed(p.dl_speed || 0)],
+            ['Vitesse UP', fmtSpeed(p.up_speed || 0)],
+            ['Temps restant', (p.eta || 0) >= 8640000 ? '-' : fmtDuration(p.eta)],
+            ['Seeds', (p.seeds || 0) + ' / ' + (p.seeds_total || 0)],
+            ['Peers', (p.peers || 0) + ' / ' + (p.peers_total || 0)],
+            ['Taille totale', fmtSize(p.total_size || 0)],
+            ['Ajouté', fmtDate(p.addition_date)],
+            ['Complété', fmtDate(p.completion_date)],
+        ];
+        var html = '';
+        for (var i = 0; i < props.length; i++) {
+            html += '<div class="col-6 col-md-4"><div class="qbt-prop-card"><div class="qbt-prop-label">' + props[i][0] + '</div><div class="qbt-prop-value">' + props[i][1] + '</div></div></div>';
+        }
+        if (p.save_path) {
+            html += '<div class="col-12"><div class="qbt-prop-card"><div class="qbt-prop-label">Dossier de sauvegarde</div><div class="qbt-prop-value" style="font-family:monospace;font-size:.75rem;word-break:break-all;">' + escapeHtml(p.save_path) + '</div></div></div>';
+        }
+        document.getElementById('qbt-detail-props').innerHTML = html;
+
+        // ── Fichiers ──
+        var filesEl = document.getElementById('qbt-detail-files');
+        if (data.files && data.files.length) {
+            var fhtml = '';
+            for (var fi = 0; fi < data.files.length; fi++) {
+                var f = data.files[fi];
+                var fprog = Math.round((f.progress || 0) * 100);
+                var fname = (f.name || '').split('/').pop();
+                fhtml += '<tr class="qbt-file-row" data-file-id="' + f.index + '">'
+                    + '<td title="' + escapeHtml(f.name || '') + '">' + escapeHtml(fname) + '</td>'
+                    + '<td>' + fmtSize(f.size || 0) + '</td>'
+                    + '<td><div class="d-flex align-items-center gap-2"><div class="qbt-mini-bar"><div style="width:' + fprog + '%"></div></div><span style="font-size:.7rem;">' + fprog + '%</span></div></td>'
+                    + '<td><select class="form-select form-select-sm qbt-file-prio" data-hash="' + hash + '" data-id="' + (f.index !== undefined ? f.index : fi) + '" style="min-width:110px;font-size:.75rem;padding:3px 24px 3px 8px;height:auto;">'
+                    + '<option value="0"' + (f.priority === 0 ? ' selected' : '') + '>Ignorer</option>'
+                    + '<option value="1"' + (f.priority === 1 ? ' selected' : '') + '>Normal</option>'
+                    + '<option value="6"' + (f.priority === 6 ? ' selected' : '') + '>Haute</option>'
+                    + '<option value="7"' + (f.priority === 7 ? ' selected' : '') + '>Max</option>'
+                    + '</select></td></tr>';
+            }
+            filesEl.innerHTML = fhtml;
+        } else {
+            filesEl.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Aucun fichier</td></tr>';
+        }
+
+        // ── Trackers ──
+        var trackersEl = document.getElementById('qbt-detail-trackers');
+        // TRACKER_STATUS hissé au module-level (éviter redéclaration à chaque ouverture de modal)
+        if (data.trackers && data.trackers.length) {
+            var thtml = '';
+            for (var ti = 0; ti < data.trackers.length; ti++) {
+                var tr = data.trackers[ti];
+                if (tr.url === '** [DHT] **' || tr.url === '** [PeX] **' || tr.url === '** [LSD] **') continue;
+                thtml += '<tr class="qbt-tracker-row">'
+                    + '<td class="text-truncate" style="max-width:320px;" title="' + escapeHtml(tr.url) + '">' + escapeHtml(tr.url) + '</td>'
+                    + '<td>' + (TRACKER_STATUS[tr.status] || tr.status) + '</td>'
+                    + '<td>' + (tr.num_seeds || 0) + '</td>'
+                    + '<td>' + (tr.num_leeches || 0) + '</td>'
+                    + '</tr>';
+            }
+            trackersEl.innerHTML = thtml || '<tr><td colspan="4" class="text-center text-muted">Aucun tracker</td></tr>';
+        }
+
+        // ── Peers ──
+        var peersEl = document.getElementById('qbt-detail-peers');
+        if (data.peers && data.peers.length) {
+            var phtml = '';
+            for (var pi = 0; pi < data.peers.length; pi++) {
+                var peer = data.peers[pi];
+                var ipPort = escapeHtml((peer.ip || '') + ':' + (peer.port || ''));
+                var cc     = escapeHtml(peer.country_code || '');
+                var prog   = parseFloat(peer.progress) || 0;
+                phtml += '<tr class="qbt-peer-row">'
+                    + '<td>' + ipPort + (cc ? ' <span class="text-muted">(' + cc + ')</span>' : '') + '</td>'
+                    + '<td class="text-truncate" style="max-width:180px;">' + escapeHtml(peer.client || '-') + '</td>'
+                    + '<td>' + prog + '%</td>'
+                    + '<td>' + fmtSpeed(peer.dl_speed) + '</td>'
+                    + '<td>' + fmtSpeed(peer.up_speed) + '</td>'
+                    + '</tr>';
+            }
+            peersEl.innerHTML = phtml;
+        } else {
+            peersEl.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun peer connecté</td></tr>';
+        }
+
+        // ── Actions — boutons conditionnés selon l'état du torrent ──
+        var row = document.querySelector('.qbt-torrent[data-hash="'+hash+'"]');
+        var state = row ? row.dataset.state : '';
+        var pauseResumeBtn = state === 'paused'
+            ? '<button class="btn btn-sm btn-outline-success qbt-detail-act" data-action="resume" data-hash="'+hash+'"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4v16l13-8z"/></svg> Reprendre</button>'
+            : '<button class="btn btn-sm btn-outline-warning qbt-detail-act" data-action="pause" data-hash="'+hash+'"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h4v16H6z"/><path d="M14 4h4v16h-4z"/></svg> Pause</button>';
+        document.getElementById('qbt-detail-actions').innerHTML = ''
+            + pauseResumeBtn
+            + '<button class="btn btn-sm btn-outline-info qbt-detail-act" data-action="recheck" data-hash="'+hash+'"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg> Vérifier</button>'
+            + '<button class="btn btn-sm btn-outline-secondary qbt-detail-act" data-action="reannounce" data-hash="'+hash+'"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9 -9m-9 9l3 -3m-3 3l3 3"/></svg> Réannoncer</button>'
+            + '<button class="btn btn-sm btn-outline-danger qbt-detail-act ms-auto" data-action="delete" data-hash="'+hash+'"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12"/></svg> Supprimer</button>';
+    }
+
+    // ── Actions modal détail ────────────────────────────────────────────────
+    bindDoc('click', 'detailActs', function(e) {
+        var btn = e.target.closest('.qbt-detail-act');
+        if (!btn) return;
+        var action = btn.dataset.action;
+        var hash = btn.dataset.hash;
+
+        if (action === 'delete') {
+            deleteTarget = { hashes: [hash], mode: 'single' };
+            document.getElementById('qbt-delete-msg').textContent = 'Supprimer ce torrent ?';
+            document.getElementById('qbt-delete-files').checked = false;
+            document.getElementById('qbt-delete-trigger').click();
+            return;
+        }
+        var labels = { pause:'Torrent mis en pause', resume:'Torrent repris', recheck:'Vérification lancée', reannounce:'Réannonce envoyée' };
+        qbtAction(btn, BASE + '/api/torrent/' + hash + '/' + action, null, labels[action] || 'Action envoyée').then(refreshData);
+    });
+
+    // ── Priorité fichier ────────────────────────────────────────────────────
+    bindDoc('change', 'filePrio', function(e) {
+        if (!e.target.classList.contains('qbt-file-prio')) return;
+        var sel = e.target;
+        qbtPost(BASE + '/api/torrent/' + sel.dataset.hash + '/files/priority', {
+            fileIds: [parseInt(sel.dataset.id)],
+            priority: parseInt(sel.value)
+        });
+    });
+
+    // ── Sélection multiple ──────────────────────────────────────────────────
+    var selectAll = document.getElementById('qbt-select-all');
+    if (selectAll) selectAll.onchange = function() {
+        var checked = this.checked;
+        var cbs = document.querySelectorAll('.qbt-check');
+        selectedHashes = {};
+        for (var i = 0; i < cbs.length; i++) {
+            var row = cbs[i].closest('.qbt-torrent');
+            if (row && row.style.display !== 'none') {
+                cbs[i].checked = checked;
+                if (checked) selectedHashes[cbs[i].dataset.hash] = true;
+                row.classList.toggle('selected', checked);
+            }
+        }
+        updateBulkBar();
+    };
+
+    bindDoc('change', 'rowCheck', function(e) {
+        if (!e.target.classList.contains('qbt-check')) return;
+        var hash = e.target.dataset.hash;
+        if (e.target.checked) selectedHashes[hash] = true; else delete selectedHashes[hash];
+        var row = e.target.closest('.qbt-torrent');
+        if (row) row.classList.toggle('selected', e.target.checked);
+        updateBulkBar();
+    });
+
+    function updateBulkBar() {
+        var count = Object.keys(selectedHashes).length;
+        var bar = document.getElementById('qbt-bulk-bar');
+        var cnt = document.getElementById('qbt-bulk-count');
+        if (cnt) cnt.textContent = count;
+        if (bar) bar.classList.toggle('show', count > 0);
+    }
+
+    function getSelectedHashes() { return Object.keys(selectedHashes); }
+
+    function bindBulk(id, fn) { var el = document.getElementById(id); if (el) el.onclick = function(e){ fn(e.currentTarget); }; }
+    bindBulk('qbt-bulk-resume', function(btn){ var h = getSelectedHashes(); qbtAction(btn, BASE + '/api/bulk/resume',  { hashes: h }, h.length + ' torrent(s) repris').then(refreshData); });
+    bindBulk('qbt-bulk-pause',  function(btn){ var h = getSelectedHashes(); qbtAction(btn, BASE + '/api/bulk/pause',   { hashes: h }, h.length + ' torrent(s) en pause').then(refreshData); });
+    bindBulk('qbt-bulk-recheck',function(btn){ var h = getSelectedHashes(); qbtAction(btn, BASE + '/api/bulk/recheck', { hashes: h }, 'Vérification de ' + h.length + ' torrent(s)').then(refreshData); });
+    bindBulk('qbt-bulk-delete', function(){
+        deleteTarget = { hashes: getSelectedHashes(), mode: 'bulk' };
+        document.getElementById('qbt-delete-msg').textContent = 'Supprimer ' + deleteTarget.hashes.length + ' torrent(s) ?';
+        document.getElementById('qbt-delete-files').checked = false;
+        document.getElementById('qbt-delete-trigger').click();
+    });
+    bindBulk('qbt-bulk-clear', function(){
+        selectedHashes = {};
+        var cbs = document.querySelectorAll('.qbt-check');
+        for (var i = 0; i < cbs.length; i++) { cbs[i].checked = false; cbs[i].closest('.qbt-torrent').classList.remove('selected'); }
+        if (selectAll) selectAll.checked = false;
+        updateBulkBar();
+    });
+
+    var bulkCat = document.getElementById('qbt-bulk-cat');
+    if (bulkCat) bulkCat.onchange = function() {
+        if (!this.value) return;
+        qbtPost(BASE + '/api/bulk/category', { hashes: getSelectedHashes(), category: this.value }).then(refreshData);
+        this.value = '';
+    };
+
+    // ── Delete confirm ──────────────────────────────────────────────────────
+    var deleteConfirm = document.getElementById('qbt-delete-confirm');
+    if (deleteConfirm) deleteConfirm.onclick = function(e) {
+        var btn = e.currentTarget;
+        var deleteFiles = document.getElementById('qbt-delete-files').checked;
+        var url = deleteTarget.mode === 'bulk' ? BASE + '/api/bulk/delete' : BASE + '/api/torrent/' + deleteTarget.hashes[0] + '/delete';
+        var body = deleteTarget.mode === 'bulk' ? { hashes: deleteTarget.hashes, deleteFiles: deleteFiles } : { deleteFiles: deleteFiles };
+        var msg = deleteTarget.hashes.length + ' torrent(s) supprimé(s)' + (deleteFiles ? ' + fichiers' : '');
+
+        qbtAction(btn, url, body, msg).then(function() {
+            document.querySelector('#qbt-modal-delete .btn-close').click();
+            for (var i = 0; i < deleteTarget.hashes.length; i++) {
+                var row = document.querySelector('.qbt-torrent[data-hash="' + deleteTarget.hashes[i] + '"]');
+                if (row) row.style.opacity = '0';
+                delete selectedHashes[deleteTarget.hashes[i]];
+            }
+            updateBulkBar();
+            setTimeout(function() {
+                for (var i = 0; i < deleteTarget.hashes.length; i++) {
+                    var row = document.querySelector('.qbt-torrent[data-hash="' + deleteTarget.hashes[i] + '"]');
+                    if (row) row.remove();
+                }
+                refreshData();
+            }, 300);
+        });
+    };
+
+    // ── Pause all / Resume all ──────────────────────────────────────────────
+    bindBulk('qbt-btn-pause-all',  function(btn){ qbtAction(btn, BASE + '/api/bulk/pause',  { hashes: ['all'] }, 'Tous les torrents en pause').then(refreshData); });
+    bindBulk('qbt-btn-resume-all', function(btn){ qbtAction(btn, BASE + '/api/bulk/resume', { hashes: ['all'] }, 'Tous les torrents repris').then(refreshData); });
+
+    // ── Ajout torrent ───────────────────────────────────────────────────────
+    // ── Ajouter torrent : reset URL + fichiers ──
+    bindBulk('qbt-btn-add', function(){
+        document.getElementById('qbt-add-urls').value = '';
+        pendingTorrentFiles = [];
+        renderPendingFiles();
+        document.getElementById('qbt-add-trigger').click();
+    });
+
+    // ── Drag-drop + input file (pattern Turbo-safe : re-bind à chaque exec) ──
+    var pendingTorrentFiles = [];
+    var dropZone = document.getElementById('qbt-drop-zone');
+    var fileInput = document.getElementById('qbt-file-input');
+
+    function renderPendingFiles() {
+        var ul = document.getElementById('qbt-drop-files');
+        if (!ul) return;
+        if (!pendingTorrentFiles.length) { ul.innerHTML = ''; return; }
+        var html = '';
+        pendingTorrentFiles.forEach(function(f, i){
+            html += '<li>📄 <strong>' + escapeHtml(f.name) + '</strong> <span class="text-muted" style="font-size:.7rem;">(' + fmtSize(f.size) + ')</span><span class="remove" data-i="' + i + '" title="Retirer">×</span></li>';
+        });
+        ul.innerHTML = html;
+    }
+
+    function addFiles(fileList) {
+        for (var i = 0; i < fileList.length; i++) {
+            var f = fileList[i];
+            if (f.name.toLowerCase().endsWith('.torrent')) pendingTorrentFiles.push(f);
+            else if (window._argosToast) window._argosToast('Ignoré (pas .torrent) : ' + f.name, 'warning');
+        }
+        renderPendingFiles();
+    }
+
+    if (dropZone && fileInput) {
+        dropZone.onclick = function(e) { if (!e.target.classList.contains('remove')) fileInput.click(); };
+        fileInput.onchange = function() { addFiles(fileInput.files); fileInput.value = ''; };
+        dropZone.ondragover = function(e) { e.preventDefault(); dropZone.classList.add('drag-over'); };
+        dropZone.ondragleave = function() { dropZone.classList.remove('drag-over'); };
+        dropZone.ondrop = function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+        };
+    }
+    bindDoc('click', 'dropFileRemove', function(e) {
+        var rm = e.target.closest('#qbt-drop-files .remove');
+        if (!rm) return;
+        pendingTorrentFiles.splice(parseInt(rm.dataset.i, 10), 1);
+        renderPendingFiles();
+    });
+
+    var addSubmitInFlight = false;
+    bindBulk('qbt-add-submit', function(btn){
+        if (addSubmitInFlight) return;  // garde anti double-submit globale
+
+        var urls = document.getElementById('qbt-add-urls').value.trim();
+        var cat = document.getElementById('qbt-add-category').value;
+        var paused = document.getElementById('qbt-add-paused').value === 'true';
+        var hasFiles = pendingTorrentFiles.length > 0;
+        var hasUrls = urls.length > 0;
+
+        if (!hasFiles && !hasUrls) {
+            if (window._argosToast) window._argosToast('Ajoute un magnet/URL ou un fichier .torrent', 'warning');
+            return;
+        }
+
+        addSubmitInFlight = true;
+        if (btn) { btn.disabled = true; btn.dataset.qbtOriginalHtml = btn.innerHTML; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; }
+
+        var restoreBtn = function() {
+            addSubmitInFlight = false;
+            if (btn) { btn.disabled = false; if (btn.dataset.qbtOriginalHtml) { btn.innerHTML = btn.dataset.qbtOriginalHtml; delete btn.dataset.qbtOriginalHtml; } }
+        };
+
+        var closeAndRefresh = function() {
+            document.querySelector('#qbt-modal-add .btn-close').click();
+            pendingTorrentFiles = []; renderPendingFiles();
+            setTimeout(refreshData, 1000);
+        };
+
+        // 1) Envoi des fichiers d'abord si présents
+        var filesDone = Promise.resolve(true);
+        if (hasFiles) {
+            var fd = new FormData();
+            pendingTorrentFiles.forEach(function(f){ fd.append('torrents[]', f); });
+            if (cat)    fd.append('category', cat);
+            if (paused) fd.append('paused', 'true');
+            filesDone = fetch(BASE + '/api/add-file', { method: 'POST', body: fd })
+                .then(function(r){ return r.json(); })
+                .then(function(d){
+                    if (window._argosToast) window._argosToast(d && d.ok ? (d.count + ' fichier(s) ajouté(s)') : 'Échec upload fichier', d && d.ok ? 'success' : 'danger');
+                    return d && d.ok;
+                })
+                .catch(function(){ return false; });
+        }
+
+        filesDone.then(function(filesOk){
+            // 2) Puis les URLs si présentes
+            if (hasUrls) {
+                return qbtPost(BASE + '/api/add', { urls: urls, category: cat || null, paused: paused })
+                    .then(function(d){
+                        var ok = d && d.ok;
+                        if (window._argosToast) window._argosToast(ok ? 'Torrent(s) ajouté(s)' : 'Échec ajout URL', ok ? 'success' : 'danger');
+                        return ok;
+                    })
+                    .catch(function(){ return false; });
+            }
+            return filesOk;
+        }).then(function(ok){
+            restoreBtn();
+            if (ok) closeAndRefresh();
+        });
+    });
+
+    // ── Init ────────────────────────────────────────────────────────────────
+    applyView(currentView);
+    syncSortUI();
+    // Aligne l'état avec le filtre actif (.qbt-filter-btn.active)
+    var activeFilter = document.querySelector('.qbt-filter-btn.active');
+    if (activeFilter) pagState.filter = activeFilter.dataset.filter || 'all';
+    refreshData();    // premier fetch immédiat (applique pagination+tri+filtre serveur)
+    startRefresh();
+    // Init dot VPN + badge port sync selon rendu serveur
+    (function(){
+        var dot = document.getElementById('qbt-vpn-dot');
+        var ip = document.getElementById('qbt-vpn-ip');
+        if (dot && ip) dot.className = 'qbt-vpn-dot ' + (ip.textContent && ip.textContent !== '—' ? 'connected' : 'disconnected');
+        {% if vpn is defined and vpn is not null %}
+        applyPortSync(
+            {{ vpn.port_sync is same as(true) ? 'true' : (vpn.port_sync is same as(false) ? 'false' : 'null') }},
+            {{ vpn.forwarded_port ?? 'null' }},
+            {{ vpn.qbt_port ?? 'null' }}
+        );
+        {% else %}
+        applyPortSync(null, null, null);
+        {% endif %}
+    })();
+    // Refresh VPN toutes les 30s (ne change pas vite) — protégé contre les fuites Turbo
+    if (window._argosQbtVpnTimer) clearInterval(window._argosQbtVpnTimer);
+    window._argosQbtVpnTimer = setInterval(refreshVpn, 30000);
+    var initDl = {{ (stats.dl_speed ?? 0)|json_encode|raw }};
+    var initUp = {{ (stats.up_speed ?? 0)|json_encode|raw }};
+    var speedDl = document.getElementById('qbt-speed-dl');
+    var speedUp = document.getElementById('qbt-speed-up');
+    if (speedDl && initDl > 0) speedDl.innerHTML = '&#8595; ' + fmtSpeed(initDl);
+    if (speedUp && initUp > 0) speedUp.innerHTML = '&#8593; ' + fmtSpeed(initUp);
+    var connDot = document.getElementById('qbt-conn-dot');
+    var connStatus = {{ (stats.connection ?? "unknown")|json_encode|raw }};
+    if (connDot) connDot.className = 'qbt-connection ' + (connStatus === 'connected' ? 'connected' : connStatus === 'firewalled' ? 'firewalled' : 'disconnected');
+})();
+</script>
+{% endblock %}

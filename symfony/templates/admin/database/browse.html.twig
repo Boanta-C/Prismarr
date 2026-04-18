@@ -1,0 +1,171 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ table }} — BDD{% endblock %}
+{% block page_title %}<code>{{ table }}</code>{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb" aria-label="breadcrumbs">
+    <li class="breadcrumb-item"><a href="{{ path('admin_db_index') }}">Base de données</a></li>
+    <li class="breadcrumb-item active">{{ table }}</li>
+  </ol>
+{% endblock %}
+
+{% block body %}
+<div class="container-xl py-2">
+  <div class="d-flex align-items-center justify-content-end gap-2">
+    <a href="{{ path('admin_db_index') }}" class="btn btn-sm btn-ghost-secondary">← Tables</a>
+    <a href="{{ path('admin_db_insert_row', {table: table}) }}" class="btn btn-sm btn-ghost-secondary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 5v14m-7-7h14"/></svg>
+      Insérer
+    </a>
+    <a href="{{ path('admin_db_query') }}" class="btn btn-sm btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M7 7h10m-10 4h10m-5 4h5M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      Query runner
+    </a>
+  </div>
+</div>
+<div class="page-body">
+  <div class="container-xl">
+
+    {% for type, messages in app.flashes %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ type == 'success' ? 'success' : 'warning' }} mb-3">{{ msg }}</div>
+      {% endfor %}
+    {% endfor %}
+
+    {# Filtres #}
+    <div class="card mb-3">
+      <div class="card-body py-2">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center" data-turbo="false">
+          <span class="text-secondary small me-2">Filtres :</span>
+          {% for col in columns %}
+            <div style="max-width:160px;">
+              <input type="text" name="filter[{{ col }}]"
+                     value="{{ filters[col] ?? '' }}"
+                     placeholder="{{ col }}"
+                     class="form-control form-control-sm"
+                     style="font-size:.78rem;">
+            </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-sm btn-primary">Filtrer</button>
+          {% if filters %}
+            <a href="{{ path('admin_db_browse', {table: table}) }}" class="btn btn-sm btn-ghost-secondary">Effacer</a>
+          {% endif %}
+          <span class="ms-auto text-secondary small">{{ total|number_format(0, ',', ' ') }} ligne{{ total > 1 ? 's' : '' }}</span>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-sm table-vcenter table-hover card-table" style="font-size:.82rem;">
+          <thead>
+            <tr>
+              {% for col in columns %}
+                {% set is_sorted = sort_col == col %}
+                {% set next_dir  = (is_sorted and sort_dir == 'ASC') ? 'DESC' : 'ASC' %}
+                <th style="white-space:nowrap;">
+                  <a href="{{ path('admin_db_browse', {table: table, sort: col, dir: next_dir}|merge(filters ? {filter: filters} : {})) }}"
+                     class="text-reset text-decoration-none d-inline-flex align-items-center gap-1">
+                    {{ col }}
+                    {% if is_sorted %}
+                      {% if sort_dir == 'ASC' %}↑{% else %}↓{% endif %}
+                    {% else %}
+                      <span class="text-muted" style="font-size:.7rem;">⇅</span>
+                    {% endif %}
+                  </a>
+                </th>
+              {% endfor %}
+              {% if has_simple_pk %}
+                <th class="w-1"></th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% set back = app.request.queryString %}
+            {% for row in rows %}
+              {% set pk_val = has_simple_pk ? row[pk_columns[0]] : null %}
+              <tr>
+                {% for col in columns %}
+                  <td class="text-secondary" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ row[col] }}">
+                    {% if row[col] is null %}
+                      <span class="text-muted fst-italic">null</span>
+                    {% elseif row[col]|length > 60 %}
+                      {{ row[col]|slice(0, 60) }}…
+                    {% else %}
+                      {{ row[col] }}
+                    {% endif %}
+                  </td>
+                {% endfor %}
+                {% if has_simple_pk %}
+                  <td class="text-end" style="white-space:nowrap;">
+                    <a href="{{ path('admin_db_edit_row', {table: table, id: pk_val, _back: back}) }}"
+                       class="btn btn-xs btn-ghost-secondary me-1" title="Éditer">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"/><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"/></svg>
+                    </a>
+                    <button type="button"
+                            class="btn btn-xs btn-ghost-danger"
+                            title="Supprimer"
+                            onclick="confirmDelete('{{ table }}', '{{ pk_val }}', '{{ csrf_token('delete_' ~ table ~ '_' ~ pk_val) }}', '{{ back|e('html_attr') }}')">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16m-10 4v6m4-6v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+                    </button>
+                  </td>
+                {% endif %}
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="{{ columns|length + (has_simple_pk ? 1 : 0) }}" class="text-center text-secondary py-4">
+                  Aucune donnée{% if filters %} pour ce filtre{% endif %}.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {# Pagination #}
+      {% if pages > 1 %}
+        <div class="card-footer d-flex align-items-center justify-content-between">
+          <span class="text-secondary small">Page {{ page }} / {{ pages }}</span>
+          <ul class="pagination pagination-sm m-0">
+            {% set sort_params = sort_col ? {sort: sort_col, dir: sort_dir} : {} %}
+            {% if page > 1 %}
+              <li class="page-item">
+                <a class="page-link" href="{{ path('admin_db_browse', {table: table, page: page - 1}|merge(sort_params)|merge(filters ? {filter: filters} : {})) }}">‹</a>
+              </li>
+            {% endif %}
+            {% for p in max(1, page - 3)..min(pages, page + 3) %}
+              <li class="page-item {{ p == page ? 'active' }}">
+                <a class="page-link" href="{{ path('admin_db_browse', {table: table, page: p}|merge(sort_params)|merge(filters ? {filter: filters} : {})) }}">{{ p }}</a>
+              </li>
+            {% endfor %}
+            {% if page < pages %}
+              <li class="page-item">
+                <a class="page-link" href="{{ path('admin_db_browse', {table: table, page: page + 1}|merge(sort_params)|merge(filters ? {filter: filters} : {})) }}">›</a>
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+
+    {# Form caché pour la suppression #}
+    <form id="delete-form" method="post" style="display:none;" data-turbo="false">
+      <input type="hidden" name="_token" id="delete-token">
+      <input type="hidden" name="_back"  id="delete-back">
+    </form>
+
+  </div>
+</div>
+
+<script>
+function confirmDelete(table, id, token, back) {
+  if (!confirm('Supprimer la ligne #' + id + ' de "' + table + '" ?\nCette action est irréversible.')) return;
+  var form = document.getElementById('delete-form');
+  document.getElementById('delete-token').value = token;
+  document.getElementById('delete-back').value  = back || '';
+  form.action = '/admin/database/' + table + '/' + id + '/delete';
+  form.submit();
+}
+</script>
+{% endblock %}

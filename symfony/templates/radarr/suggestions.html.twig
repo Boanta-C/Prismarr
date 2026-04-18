@@ -1,0 +1,264 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Suggestions d'import Radarr{% endblock %}
+
+{% block stylesheets %}
+<style>
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: .75rem;
+}
+.media-card {
+  position: relative;
+  border-radius: .5rem;
+  overflow: hidden;
+  background: var(--tblr-bg-surface);
+  border: 1px solid var(--tblr-border-color);
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+}
+.media-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.media-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+.media-card .no-poster {
+  width: 100%; aspect-ratio: 2/3;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--tblr-bg-surface-secondary);
+  color: var(--tblr-muted); font-size: .7rem; text-align: center; padding: .5rem;
+}
+.media-card .card-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,.85));
+  padding: .5rem .4rem .4rem;
+}
+.media-card .card-title-text {
+  font-size: .72rem; font-weight: 600; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.media-card .card-year { font-size: .62rem; color: rgba(255,255,255,.55); }
+.already-badge {
+  position: absolute; top: .4rem; right: .4rem;
+  font-size: .6rem; font-weight: 700; padding: .1rem .3rem;
+  border-radius: .25rem; background: rgba(0,128,0,.75); color: #fff;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Suggestions d'import</h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Radarr.</div>
+{% endif %}
+
+<div id="suggest-feedback" class="alert d-none mb-3"></div>
+
+{% if movies is empty %}
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">Aucune suggestion disponible.</div>
+  </div>
+{% else %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <span class="text-muted small">{{ movies|length }} film(s) suggéré(s)</span>
+</div>
+<div class="media-grid">
+  {% for movie in movies %}
+  {% set isInLib = movie.id is defined and movie.id > 0 %}
+  <div class="media-card js-suggest-card"
+       data-bs-toggle="modal" data-bs-target="#modal-add"
+       data-idx="{{ loop.index0 }}"
+       data-in-lib="{{ isInLib ? '1' : '0' }}">
+    {% set poster = movie.remotePoster ?? (movie.images is defined and movie.images|length > 0 ? movie.images[0].remoteUrl ?? null : null) %}
+    {% if poster %}
+      <img src="{{ poster }}" alt="{{ movie.title ?? '' }}" loading="lazy">
+    {% else %}
+      <div class="no-poster">{{ movie.title ?? '—' }}</div>
+    {% endif %}
+    {% if isInLib %}
+      <span class="already-badge">Deja ajouté</span>
+    {% endif %}
+    <div class="card-overlay">
+      <div class="card-title-text">{{ movie.title ?? '—' }}</div>
+      <div class="card-year">{{ movie.year ?? '' }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{# Modal ajout #}
+<div class="modal modal-blur fade" id="modal-add" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width:800px;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-add-title">Ajouter un film</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-already-in-lib" class="alert alert-info d-none">
+          Ce film est déjà dans votre bibliothèque.
+        </div>
+
+        {# Détail film #}
+        <div class="d-flex gap-3 mb-3">
+          <img id="modal-poster" src="" alt="" style="width:120px;border-radius:.5rem;object-fit:cover;aspect-ratio:2/3;background:var(--tblr-bg-surface-secondary);" class="d-none">
+          <div class="flex-fill">
+            <div id="modal-meta" class="d-flex flex-wrap gap-2 mb-2"></div>
+            <p id="modal-overview" class="small text-muted mb-0" style="max-height:120px;overflow-y:auto;"></p>
+          </div>
+        </div>
+
+        {# Options d'ajout #}
+        <div class="p-2 rounded mb-2" style="background:var(--tblr-bg-surface-secondary);">
+          <div class="row g-2 align-items-end">
+            <div class="col-sm-4">
+              <label class="form-label small mb-1">Profil de qualité</label>
+              <select class="form-select form-select-sm" id="add-quality">
+                {% for qp in qualityProfiles %}
+                <option value="{{ qp.id }}">{{ qp.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label small mb-1">Dossier racine</label>
+              <select class="form-select form-select-sm" id="add-folder">
+                {% for rf in rootFolders %}
+                <option value="{{ rf.path }}">{{ rf.path }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-sm-4 d-flex align-items-center gap-3">
+              <label class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="add-monitored" checked>
+                <span class="form-check-label small">Rechercher auto</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-success" id="btn-confirm-add">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+          Ajouter
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+var allMovies = {{ movies|json_encode|raw }};
+var currentMovie = null;
+var modalEl = document.getElementById('modal-add');
+var feedback = document.getElementById('suggest-feedback');
+var addUrl = {{ path('app_media_films_add')|json_encode|raw }};
+
+function showFeedback(msg, type) {
+  feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
+  feedback.textContent = msg;
+  feedback.classList.remove('d-none');
+  setTimeout(function(){ feedback.classList.add('d-none'); }, 5000);
+}
+
+function fmtRuntime(min) {
+  if (!min) return '';
+  var h = Math.floor(min / 60);
+  var m = min % 60;
+  return h > 0 ? h + 'h ' + (m > 0 ? m + 'min' : '') : m + ' min';
+}
+
+modalEl.addEventListener('show.bs.modal', function(e) {
+  var card = e.relatedTarget;
+  if (!card || card.dataset.idx === undefined) return;
+  var m = allMovies[parseInt(card.dataset.idx)];
+  if (!m) return;
+  var inLib = card.dataset.inLib === '1';
+  currentMovie = { tmdbId: m.tmdbId, title: m.title, year: m.year || 0, inLib: inLib };
+
+  document.getElementById('modal-add-title').textContent = m.title + (m.year ? ' (' + m.year + ')' : '');
+  document.getElementById('modal-already-in-lib').classList.toggle('d-none', !inLib);
+  document.getElementById('btn-confirm-add').disabled = inLib;
+
+  // Poster
+  var posterEl = document.getElementById('modal-poster');
+  var poster = m.remotePoster || '';
+  if (!poster) (m.images || []).forEach(function(img) { if (img.coverType === 'poster') poster = img.remoteUrl || ''; });
+  if (poster) { posterEl.src = poster; posterEl.classList.remove('d-none'); }
+  else { posterEl.classList.add('d-none'); }
+
+  // Overview
+  document.getElementById('modal-overview').textContent = m.overview || 'Aucun synopsis disponible.';
+
+  // Meta badges
+  var meta = '';
+  if (m.year) meta += '<span class="badge bg-secondary-lt">' + m.year + '</span>';
+  if (m.runtime) meta += '<span class="badge bg-secondary-lt">' + fmtRuntime(m.runtime) + '</span>';
+  if (m.studio) meta += '<span class="badge bg-blue-lt">' + m.studio + '</span>';
+  var imdb = m.ratings && m.ratings.imdb ? m.ratings.imdb.value : null;
+  var tmdb = m.ratings && m.ratings.tmdb ? m.ratings.tmdb.value : null;
+  if (imdb) meta += '<span class="badge bg-warning-lt">IMDb ' + imdb + '</span>';
+  if (tmdb) meta += '<span class="badge bg-green-lt">TMDB ' + tmdb + '</span>';
+  (m.genres || []).forEach(function(g) { meta += '<span class="badge bg-purple-lt">' + g + '</span>'; });
+  if (m.isRecommendation) meta += '<span class="badge bg-cyan-lt">Recommandé</span>';
+  if (m.isTrending) meta += '<span class="badge bg-orange-lt">Tendance</span>';
+  if (m.isPopular) meta += '<span class="badge bg-red-lt">Populaire</span>';
+  document.getElementById('modal-meta').innerHTML = meta;
+});
+
+document.getElementById('btn-confirm-add').addEventListener('click', function() {
+  if (!currentMovie) return;
+  var body = {
+    tmdbId: currentMovie.tmdbId,
+    title: currentMovie.title,
+    year: currentMovie.year,
+    qualityProfileId: parseInt(document.getElementById('add-quality').value),
+    rootFolderPath: document.getElementById('add-folder').value,
+    monitored: document.getElementById('add-monitored').checked,
+  };
+  var btn = document.getElementById('btn-confirm-add');
+  btn.disabled = true;
+
+  fetch(addUrl, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+    body: JSON.stringify(body),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.ok) {
+      showFeedback('"' + currentMovie.title + '" ajouté avec succès.');
+      location.reload();
+    } else {
+      showFeedback('Erreur lors de l\'ajout.', 'danger');
+      btn.disabled = false;
+    }
+  })
+  .catch(function() {
+    showFeedback('Erreur réseau.', 'danger');
+    btn.disabled = false;
+  });
+});
+})();
+</script>
+{% endblock %}

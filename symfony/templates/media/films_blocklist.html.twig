@@ -1,0 +1,199 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Blocklist Films — IH-ARGOS{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Blocklist
+          {% if blocklist.totalRecords is defined %}
+            <span class="badge bg-secondary-lt ms-2">{{ blocklist.totalRecords }}</span>
+          {% endif %}
+        </h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2">
+        <button id="btn-bulk-delete" class="btn btn-danger btn-sm" style="display:none">
+          Supprimer la sélection (<span id="selected-count">0</span>)
+        </button>
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% set records = blocklist.records ?? [] %}
+{% set total = blocklist.totalRecords ?? records|length %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-vcenter table-sm card-table">
+      <thead>
+        <tr>
+          <th style="width:32px">
+            <input type="checkbox" id="check-all" class="form-check-input m-0">
+          </th>
+          <th>Date</th>
+          <th>Film</th>
+          <th>Source / Titre</th>
+          <th>Qualité</th>
+          <th>Protocole</th>
+          <th>Indexeur</th>
+          <th>Raison</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for item in records %}
+        {% set movie = item.movie ?? null %}
+        <tr data-id="{{ item.id }}">
+          <td>
+            <input type="checkbox" class="form-check-input m-0 row-check" value="{{ item.id }}">
+          </td>
+          <td class="text-muted small text-nowrap">
+            {% if item.date is defined %}
+              {{ item.date|date('d/m/Y H:i') }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            {% if movie %}
+              <span class="fw-medium">{{ movie.title ?? '—' }}</span>
+              {% if movie.year is defined %}<span class="text-muted small ms-1">({{ movie.year }})</span>{% endif %}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small" style="max-width:220px">
+            <div class="text-truncate" title="{{ item.sourceTitle ?? '' }}">
+              {{ item.sourceTitle ?? '—' }}
+            </div>
+          </td>
+          <td>
+            {% set quality = item.quality.quality.name ?? null %}
+            {% if quality %}
+              <span class="badge bg-blue-lt">{{ quality }}</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small">{{ item.protocol ?? '—' }}</td>
+          <td class="text-muted small">{{ item.indexer ?? '—' }}</td>
+          <td class="text-muted small">
+            {% if item.message is defined and item.message %}
+              <span title="{{ item.message }}">{{ item.message|length > 40 ? item.message|slice(0,40) ~ '…' : item.message }}</span>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            <button class="btn btn-sm btn-ghost-danger py-0 px-2 btn-delete-one" data-id="{{ item.id }}" title="Supprimer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="9" class="text-center text-muted py-4">Blocklist vide</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if total > 50 %}
+  <div class="card-footer d-flex align-items-center justify-content-between">
+    <p class="m-0 text-muted small">Page {{ page }} — {{ records|length }} entrées sur {{ total }}</p>
+    <div class="d-flex gap-2">
+      {% if page > 1 %}
+        <a href="{{ path('app_media_films_blocklist', {page: page - 1}) }}" class="btn btn-sm btn-ghost-secondary">Précédent</a>
+      {% endif %}
+      {% if records|length == 50 %}
+        <a href="{{ path('app_media_films_blocklist', {page: page + 1}) }}" class="btn btn-sm btn-ghost-secondary">Suivant</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+  var checkAll    = document.getElementById('check-all');
+  var bulkBtn     = document.getElementById('btn-bulk-delete');
+  var countSpan   = document.getElementById('selected-count');
+  var rowChecks   = document.querySelectorAll('.row-check');
+
+  function updateBulkBtn() {
+    var checked = document.querySelectorAll('.row-check:checked');
+    countSpan.textContent = checked.length;
+    bulkBtn.style.display = checked.length > 0 ? '' : 'none';
+  }
+
+  checkAll.addEventListener('change', function () {
+    rowChecks.forEach(function (c) { c.checked = checkAll.checked; });
+    updateBulkBtn();
+  });
+
+  rowChecks.forEach(function (c) {
+    c.addEventListener('change', updateBulkBtn);
+  });
+
+  function postJson(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify(body || {}),
+    }).then(function (r) { return r.json(); });
+  }
+
+  // Suppression individuelle
+  document.querySelectorAll('.btn-delete-one').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id  = this.dataset.id;
+      var row = this.closest('tr');
+      if (!confirm('Supprimer cet élément de la blocklist ?')) return;
+      btn.disabled = true;
+      postJson('/medias/films/blocklist/' + id + '/delete')
+      .then(function (data) {
+        if (data.ok) row.remove();
+        else { alert('Erreur.'); btn.disabled = false; }
+      })
+      .catch(function () { btn.disabled = false; });
+    });
+  });
+
+  // Suppression en masse
+  bulkBtn.addEventListener('click', function () {
+    var checked = document.querySelectorAll('.row-check:checked');
+    if (!checked.length) return;
+    if (!confirm('Supprimer ' + checked.length + ' élément(s) de la blocklist ?')) return;
+    var ids = Array.from(checked).map(function (c) { return parseInt(c.value); });
+    bulkBtn.disabled = true;
+    postJson('/medias/films/blocklist/bulk-delete', { ids: ids })
+    .then(function (data) {
+      if (data.ok) {
+        ids.forEach(function (id) {
+          var row = document.querySelector('tr[data-id="' + id + '"]');
+          if (row) row.remove();
+        });
+        updateBulkBtn();
+      } else {
+        alert('Erreur lors de la suppression.');
+      }
+      bulkBtn.disabled = false;
+    })
+    .catch(function () { bulkBtn.disabled = false; });
+  });
+})();
+</script>
+{% endblock %}

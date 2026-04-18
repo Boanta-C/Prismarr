@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+{% block title %}Logs — Jellyseerr — IH-ARGOS{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> Logs{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block body %}
+<div class="container-xl py-2">
+    <div class="d-flex align-items-center justify-content-end">{% include 'jellyseerr/_nav.html.twig' %}</div>
+</div>
+<div class="page-body"><div class="container-xl">
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Logs recents</h3>
+        <div class="card-options d-flex gap-2 align-items-center">
+            <input type="text" id="log-search" class="form-control form-control-sm" placeholder="Rechercher…" style="width:200px;">
+            <select id="log-level-filter" class="form-select form-select-sm" style="width:120px;">
+                <option value="">Tous</option>
+                <option value="debug" {{ filter == 'debug' ? 'selected' }}>Debug</option>
+                <option value="info" {{ filter == 'info' ? 'selected' }}>Info</option>
+                <option value="warn" {{ filter == 'warn' ? 'selected' }}>Warning</option>
+                <option value="error" {{ filter == 'error' ? 'selected' }}>Error</option>
+            </select>
+            <span class="badge bg-secondary-lt" id="log-count">{{ logs|length }}</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if logs is empty %}
+            <div class="text-muted text-center py-5">Aucun log.</div>
+        {% else %}
+        <div class="table-responsive">
+            <table class="table table-vcenter table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:150px;">Date</th>
+                        <th style="width:80px;">Niveau</th>
+                        <th style="width:120px;">Module</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody id="log-tbody">
+                    {% for log in logs %}
+                    {% set lvl = log.level is defined ? log.level|lower : 'info' %}
+                    <tr data-level="{{ lvl }}">
+                        <td class="text-muted small" style="font-family:monospace;font-size:.72rem;">
+                            {% if log.timestamp is defined %}
+                                {{ log.timestamp|date('d/m H:i:s') }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            {% if lvl == 'error' %}
+                                <span class="badge bg-danger-lt text-danger">{{ lvl }}</span>
+                            {% elseif lvl == 'warn' or lvl == 'warning' %}
+                                <span class="badge bg-warning-lt text-warning">{{ lvl }}</span>
+                            {% elseif lvl == 'debug' %}
+                                <span class="badge bg-info-lt text-info">{{ lvl }}</span>
+                            {% else %}
+                                <span class="badge bg-success-lt text-success">{{ lvl }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ log.label ?? '' }}</td>
+                        <td class="small" style="max-width:500px;word-break:break-word;">{{ log.message ?? '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# ── Pagination ── #}
+{% set totalPages = pageInfo.pages ?? 1 %}
+{% if totalPages > 1 %}
+<nav class="mt-3">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {{ page <= 1 ? 'disabled' }}">
+            <a class="page-link" href="{{ path('jellyseerr_settings_logs', {page: page - 1, filter: filter}) }}">Prec.</a>
+        </li>
+        {% for p in max(1, page - 3)..min(totalPages, page + 3) %}
+            <li class="page-item {{ p == page ? 'active' }}">
+                <a class="page-link" href="{{ path('jellyseerr_settings_logs', {page: p, filter: filter}) }}"
+                   style="{{ p == page ? 'background:#a259ff;border-color:#a259ff;' : '' }}">{{ p }}</a>
+            </li>
+        {% endfor %}
+        <li class="page-item {{ page >= totalPages ? 'disabled' }}">
+            <a class="page-link" href="{{ path('jellyseerr_settings_logs', {page: page + 1, filter: filter}) }}">Suiv.</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+</div></div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+    var search = document.getElementById('log-search');
+    var levelFilter = document.getElementById('log-level-filter');
+    var tbody = document.getElementById('log-tbody');
+    var countBadge = document.getElementById('log-count');
+    if (!tbody) return;
+
+    function filterLogs() {
+        var query = (search.value || '').toLowerCase();
+        var level = levelFilter.value;
+        var rows = tbody.querySelectorAll('tr');
+        var visible = 0;
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var rowLevel = row.getAttribute('data-level') || '';
+            var text = row.textContent.toLowerCase();
+            var matchLevel = !level || rowLevel === level || (level === 'warn' && rowLevel === 'warning');
+            var matchSearch = !query || text.indexOf(query) !== -1;
+            if (matchLevel && matchSearch) {
+                row.style.display = '';
+                visible++;
+            } else {
+                row.style.display = 'none';
+            }
+        }
+        countBadge.textContent = visible;
+    }
+
+    search.addEventListener('input', filterLogs);
+
+    // Level filter: server-side reload (like Prowlarr)
+    levelFilter.addEventListener('change', function(){
+        var url = new URL(window.location.href);
+        url.searchParams.set('filter', this.value);
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    });
+})();
+</script>
+{% endblock %}

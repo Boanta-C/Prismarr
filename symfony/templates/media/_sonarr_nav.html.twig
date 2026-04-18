@@ -1,0 +1,111 @@
+{#
+  Barre de navigation Sonarr — icônes avec tooltip natif (title=).
+  Utilise data-argos-dropdown (handler custom Turbo-safe).
+#}
+{% set _route = app.request.attributes.get('_route') %}
+{% set _activity = ['app_media_series_history_page','app_media_series_blocklist','sonarr_commands'] %}
+{% set _wanted   = ['app_media_series_missing','app_media_series_cutoff','sonarr_sonarr_library_import'] %}
+{% set _discover = ['sonarr_calendar','sonarr_exclusions'] %}
+{% set _settings = ['sonarr_quality','sonarr_delay_profiles','sonarr_custom_formats',
+                    'sonarr_indexers','sonarr_download_clients','sonarr_import_lists',
+                    'sonarr_notifications','sonarr_auto_tags','sonarr_tags',
+                    'sonarr_media_management','sonarr_settings','sonarr_ui','sonarr_root_folders',
+                    'sonarr_remote_path_mappings','sonarr_metadata','sonarr_custom_filters',
+                    'app_media_series_system',
+                    'sonarr_backups','sonarr_updates','sonarr_tasks','sonarr_logs',
+                    'sonarr_stats','sonarr_parse'] %}
+
+<div class="d-flex gap-2 align-items-center" style="position:relative;">
+
+  <a href="{{ path('app_media_series') }}"
+     class="btn btn-sm btn-primary"
+     title="Bibliothèque Séries">
+    Séries
+  </a>
+
+  {# ── Activité (horloge) ── #}
+  <div style="position:relative;">
+    <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _activity ? 'btn-secondary' : 'btn-ghost-secondary' }}"
+            type="button" data-argos-dropdown="snav-activity" title="Activité">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dropdown-menu" id="snav-activity">
+      <span class="dropdown-header">Activité</span>
+      <a class="dropdown-item {{ _route == 'app_media_series_history_page' ? 'active' }}" href="{{ path('app_media_series_history_page') }}">Historique</a>
+      <a class="dropdown-item {{ _route == 'app_media_series_blocklist' ? 'active' }}" href="{{ path('app_media_series_blocklist') }}">Blocklist</a>
+      <a class="dropdown-item {{ _route == 'sonarr_commands'  ? 'active' }}" href="{{ path('sonarr_commands') }}">Commandes</a>
+    </div>
+  </div>
+
+  {# ── Recherché (loupe) ── #}
+  <div style="position:relative;">
+    <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _wanted ? 'btn-warning' : 'btn-ghost-secondary' }}"
+            type="button" data-argos-dropdown="snav-wanted" title="Recherché">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dropdown-menu" id="snav-wanted">
+      <span class="dropdown-header">Recherché</span>
+      <a class="dropdown-item {{ _route == 'app_media_series_missing' ? 'active' }}" href="{{ path('app_media_series_missing') }}">Manquants</a>
+      <a class="dropdown-item {{ _route == 'app_media_series_cutoff'  ? 'active' }}" href="{{ path('app_media_series_cutoff') }}">Cutoff qualité</a>
+      <a class="dropdown-item {{ _route == 'sonarr_sonarr_library_import'    ? 'active' }}" href="{{ path('sonarr_sonarr_library_import') }}">Import bibliothèque</a>
+    </div>
+  </div>
+
+  {# ── Découverte (étoile) ── #}
+  <div style="position:relative;">
+    <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _discover ? 'btn-secondary' : 'btn-ghost-secondary' }}"
+            type="button" data-argos-dropdown="snav-discover" title="Découverte">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dropdown-menu" id="snav-discover">
+      <span class="dropdown-header">Découverte</span>
+      <a class="dropdown-item {{ _route == 'sonarr_calendar'    ? 'active' }}" href="{{ path('sonarr_calendar') }}">Calendrier</a>
+      <a class="dropdown-item {{ _route == 'sonarr_exclusions'  ? 'active' }}" href="{{ path('sonarr_exclusions') }}">Exclusions</a>
+    </div>
+  </div>
+
+  {# ── Paramètres (engrenage) ── #}
+  <div style="position:relative;">
+    <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _settings ? 'btn-secondary' : 'btn-ghost-secondary' }}"
+            type="button" data-argos-dropdown="snav-settings" title="Paramètres">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dropdown-menu" id="snav-settings" style="min-width:200px;right:0;left:auto;">
+      <span class="dropdown-header">Profils</span>
+      <a class="dropdown-item {{ _route == 'sonarr_quality'          ? 'active' }}" href="{{ path('sonarr_quality') }}">Qualité</a>
+      <a class="dropdown-item {{ _route == 'sonarr_delay_profiles'   ? 'active' }}" href="{{ path('sonarr_delay_profiles') }}">Profils délai</a>
+      <a class="dropdown-item {{ _route == 'sonarr_custom_formats'   ? 'active' }}" href="{{ path('sonarr_custom_formats') }}">Formats custom</a>
+      <a class="dropdown-item {{ _route == 'sonarr_custom_filters'  ? 'active' }}" href="{{ path('sonarr_custom_filters') }}">Filtres personnalisés</a>
+      <div class="dropdown-divider"></div>
+      <span class="dropdown-header">Intégrations</span>
+      <a class="dropdown-item {{ _route == 'sonarr_indexers'         ? 'active' }}" href="{{ path('sonarr_indexers') }}">Indexeurs</a>
+      <a class="dropdown-item {{ _route == 'sonarr_download_clients' ? 'active' }}" href="{{ path('sonarr_download_clients') }}">Clients téléch.</a>
+      <a class="dropdown-item {{ _route == 'sonarr_import_lists'     ? 'active' }}" href="{{ path('sonarr_import_lists') }}">Listes import</a>
+      <a class="dropdown-item {{ _route == 'sonarr_notifications'    ? 'active' }}" href="{{ path('sonarr_notifications') }}">Notifications</a>
+      <div class="dropdown-divider"></div>
+      <span class="dropdown-header">Général</span>
+      <a class="dropdown-item {{ _route == 'sonarr_auto_tags'        ? 'active' }}" href="{{ path('sonarr_auto_tags') }}">Auto-tags</a>
+      <a class="dropdown-item {{ _route == 'sonarr_tags'             ? 'active' }}" href="{{ path('sonarr_tags') }}">Tags</a>
+      <a class="dropdown-item {{ _route == 'sonarr_media_management'  ? 'active' }}" href="{{ path('sonarr_media_management') }}">Gestion des médias</a>
+      <a class="dropdown-item {{ _route == 'sonarr_ui'              ? 'active' }}" href="{{ path('sonarr_ui') }}">Interface (UI)</a>
+      <a class="dropdown-item {{ _route == 'sonarr_root_folders'     ? 'active' }}" href="{{ path('sonarr_root_folders') }}">Dossiers racine</a>
+      <a class="dropdown-item {{ _route == 'sonarr_remote_path_mappings' ? 'active' }}" href="{{ path('sonarr_remote_path_mappings') }}">Chemins distants</a>
+      <a class="dropdown-item {{ _route == 'sonarr_metadata'        ? 'active' }}" href="{{ path('sonarr_metadata') }}">Metadata</a>
+      <div class="dropdown-divider"></div>
+      <span class="dropdown-header">Système</span>
+      <a class="dropdown-item {{ _route == 'app_media_series_system' ? 'active' }}" href="{{ path('app_media_series_system') }}">Statut</a>
+      <a class="dropdown-item {{ _route == 'sonarr_settings'         ? 'active' }}" href="{{ path('sonarr_settings') }}">Général</a>
+      <a class="dropdown-item {{ _route == 'sonarr_tasks'            ? 'active' }}" href="{{ path('sonarr_tasks') }}">Tâches</a>
+      <a class="dropdown-item {{ _route == 'sonarr_logs'             ? 'active' }}" href="{{ path('sonarr_logs') }}">Logs</a>
+      <a class="dropdown-item {{ _route == 'sonarr_stats'            ? 'active' }}" href="{{ path('sonarr_stats') }}">Stats</a>
+      <a class="dropdown-item {{ _route == 'sonarr_parse'            ? 'active' }}" href="{{ path('sonarr_parse') }}">Parser titre</a>
+      <a class="dropdown-item {{ _route == 'sonarr_backups'          ? 'active' }}" href="{{ path('sonarr_backups') }}">Sauvegardes</a>
+      <a class="dropdown-item {{ _route == 'sonarr_updates'          ? 'active' }}" href="{{ path('sonarr_updates') }}">Mises à jour</a>
+    </div>
+  </div>
+
+</div>

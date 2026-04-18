@@ -1,0 +1,52 @@
+{#
+  Barre de navigation Jellyseerr — style identique Sonarr/Radarr/Prowlarr.
+  Utilise data-argos-dropdown (handler custom Turbo-safe).
+#}
+{% set _route = app.request.attributes.get('_route') %}
+{% set _isUsers = _route == 'jellyseerr_users' or _route == 'jellyseerr_user_detail' %}
+{% set _isSettings = _route starts with 'jellyseerr_settings' and _route != 'jellyseerr_settings_tasks_cache' %}
+{% set _isTasks = _route == 'jellyseerr_settings_tasks_cache' %}
+
+<div class="d-flex gap-2 align-items-center" style="position:relative;">
+
+  <a href="{{ path('jellyseerr_index') }}"
+     class="btn btn-sm {{ _route == 'jellyseerr_index' ? 'btn-primary' : 'btn-ghost-primary' }}"
+     title="Requêtes"
+     style="{{ _route == 'jellyseerr_index' ? 'background:#a259ff;border-color:#a259ff;' : '' }}">
+    Requêtes
+  </a>
+
+  <a href="{{ path('jellyseerr_users') }}"
+     class="btn btn-sm {{ _isUsers ? 'btn-secondary' : 'btn-ghost-secondary' }}"
+     title="Utilisateurs">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/></svg>
+  </a>
+
+  <a href="{{ path('jellyseerr_settings_tasks_cache') }}"
+     class="btn btn-sm {{ _isTasks ? 'btn-secondary' : 'btn-ghost-secondary' }}"
+     title="Tâches & Cache">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M10 9l5 3l-5 3z"/></svg>
+  </a>
+
+  {# Paramètres — dropdown style Sonarr/Prowlarr #}
+  <div style="position:relative;">
+    <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _isSettings ? 'btn-secondary' : 'btn-ghost-secondary' }}"
+            type="button" data-argos-dropdown="jnav-settings" title="Paramètres">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dropdown-menu" id="jnav-settings" style="min-width:180px;">
+      <span class="dropdown-header">Paramètres</span>
+      <a class="dropdown-item {{ _route == 'jellyseerr_settings' ? 'active' }}" href="{{ path('jellyseerr_settings') }}">Général</a>
+      <a class="dropdown-item {{ _route == 'jellyseerr_settings_users' ? 'active' }}" href="{{ path('jellyseerr_settings_users') }}">Utilisateurs par défaut</a>
+      <a class="dropdown-item {{ _route == 'jellyseerr_settings_jellyfin' ? 'active' }}" href="{{ path('jellyseerr_settings_jellyfin') }}">Jellyfin</a>
+      <a class="dropdown-item {{ _route == 'jellyseerr_settings_services' ? 'active' }}" href="{{ path('jellyseerr_settings_services') }}">Services</a>
+      <div class="dropdown-divider"></div>
+      <span class="dropdown-header">Système</span>
+      <a class="dropdown-item {{ _route == 'jellyseerr_settings_about' ? 'active' }}" href="{{ path('jellyseerr_settings_about') }}">À propos</a>
+      <a class="dropdown-item {{ _route == 'jellyseerr_settings_logs' ? 'active' }}" href="{{ path('jellyseerr_settings_logs') }}">Logs</a>
+      <a class="dropdown-item {{ _route == 'jellyseerr_settings_updates' ? 'active' }}" href="{{ path('jellyseerr_settings_updates') }}">Mises à jour</a>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,364 @@
+{#
+  Template réutilisable pour les pages schema Prowlarr (Apps, Download Clients, Notifications).
+  Variables attendues : section, sectionLabel, items, error, schemaUrl, getUrl, addUrl, updateUrl, deleteUrl, testUrl, columns
+#}
+{% extends 'base.html.twig' %}
+{% block title %}{{ sectionLabel }} — Prowlarr{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block stylesheets %}
+<style>
+.pw-schema-card:hover { border-color:#E88D1A !important; background:rgba(232,141,26,.05) !important; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title d-flex align-items-center gap-2">
+                    <svg width="28" height="28" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32zm0 400c-97 0-176-79-176-176S159 80 256 80s176 79 176 176-79 176-176 176z" fill="#E88D1A"/><path d="M256 120c-75 0-136 61-136 136s61 136 136 136 136-61 136-136-61-136-136-136zm0 224c-48.6 0-88-39.4-88-88s39.4-88 88-88 88 39.4 88 88-39.4 88-88 88z" fill="#E88D1A"/><circle cx="256" cy="256" r="48" fill="#E88D1A"/></svg>
+                    {{ sectionLabel }} <span class="badge bg-secondary-lt ms-1">{{ items|length }}</span>
+                </h2>
+            </div>
+            <div class="col-auto ms-auto">{% include 'prowlarr/_prowlarr_nav.html.twig' %}</div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+    <div class="alert alert-danger">Impossible de contacter Prowlarr.</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">{{ sectionLabel }}</h3>
+        <div class="card-options">
+            <button class="btn btn-sm btn-primary pw-add-btn" style="background:#E88D1A;border-color:#E88D1A;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 5v14M5 12h14"/></svg>
+                Ajouter
+            </button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table table-sm">
+            <thead><tr>
+                <th>Nom</th>
+                <th>Type</th>
+                {% block extra_headers %}{% endblock %}
+                <th>Statut</th>
+                <th class="text-end">Actions</th>
+            </tr></thead>
+            <tbody>
+                {% if items is empty %}
+                    <tr><td colspan="10" class="text-center text-secondary py-3">Aucun élément configuré.</td></tr>
+                {% else %}
+                    {% for item in items %}
+                    <tr>
+                        <td class="fw-medium">{{ item.name ?? '—' }}</td>
+                        <td><span class="badge bg-secondary-lt" style="font-size:.6rem;">{{ item.implementationName ?? item.implementation ?? '—' }}</span></td>
+                        {% block extra_columns %}{% endblock %}
+                        <td>
+                            {% if item.enable is defined and item.enable %}
+                                <span class="badge bg-green-lt" style="font-size:.55rem;">Actif</span>
+                            {% else %}
+                                <span class="badge bg-secondary-lt" style="font-size:.55rem;">Désactivé</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex gap-1 justify-content-end">
+                                <button class="btn btn-sm btn-ghost-secondary p-1 pw-edit-btn" data-id="{{ item.id }}" title="Modifier">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l10.5-10.5a2.828 2.828 0 10-4-4L4 16v4M13.5 6.5l4 4"/></svg>
+                                </button>
+                                <button class="btn btn-sm btn-ghost-secondary p-1 pw-test-btn" data-id="{{ item.id }}" title="Tester">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg>
+                                </button>
+                                <button class="btn btn-sm btn-ghost-danger p-1 pw-del-btn" data-id="{{ item.id }}" data-name="{{ item.name ?? '' }}" title="Supprimer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Modal Ajouter #}
+<div class="modal modal-blur fade" id="pw-modal-add" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
+        <div class="modal-content" style="background:var(--tblr-bg-surface);">
+            <div class="modal-header">
+                <h4 class="modal-title">Ajouter — {{ sectionLabel }}</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="pw-add-filters">
+                    <input type="text" id="pw-add-search" class="form-control mb-3" placeholder="Rechercher…" autocomplete="off">
+                </div>
+                <div id="pw-add-list" class="row g-2" style="max-height:400px;overflow-y:auto;"></div>
+                <div id="pw-add-form" style="display:none;" class="mt-3 p-3 border border-primary rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 id="pw-add-form-title" class="mb-0"></h5>
+                        <button id="pw-add-back" class="btn btn-sm btn-ghost-secondary">Retour</button>
+                    </div>
+                    <div id="pw-add-fields"></div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button id="pw-add-test" class="btn btn-sm btn-outline-secondary">Tester</button>
+                        <button id="pw-add-save" class="btn btn-sm btn-primary" style="background:#E88D1A;border-color:#E88D1A;">Ajouter</button>
+                    </div>
+                    <div id="pw-add-result" class="mt-2 alert d-none" style="font-size:.85rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal Éditer #}
+<div class="modal modal-blur fade" id="pw-modal-edit" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
+        <div class="modal-content" style="background:var(--tblr-bg-surface);">
+            <div class="modal-header">
+                <h4 class="modal-title" id="pw-edit-title">Modifier</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="pw-edit-fields"></div>
+                <div class="d-flex gap-2 mt-3">
+                    <button id="pw-edit-test" class="btn btn-sm btn-outline-secondary">Tester</button>
+                    <button id="pw-edit-save" class="btn btn-sm btn-primary" style="background:#E88D1A;border-color:#E88D1A;">Sauvegarder</button>
+                </div>
+                <div id="pw-edit-result" class="mt-2 alert d-none" style="font-size:.85rem;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+</div>
+
+{% block extra_content %}{% endblock %}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+    var SCHEMA_URL = '{{ schemaUrl }}';
+    var GET_URL = '{{ getUrl }}';
+    var ADD_URL = '{{ addUrl }}';
+    var UPDATE_URL = '{{ updateUrl }}';
+    var DELETE_URL = '{{ deleteUrl }}';
+    var TEST_URL = '{{ testUrl }}';
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    function showAlert(el, cls, msg) { el.className = 'mt-2 alert ' + cls; el.textContent = msg; }
+
+    function openModal(id) { var m = document.getElementById(id); m.classList.add('show'); m.style.display = 'block'; document.body.classList.add('modal-open'); document.body.style.overflow = 'hidden'; if (!document.querySelector('.modal-backdrop')) { var b = document.createElement('div'); b.className = 'modal-backdrop fade show'; document.body.appendChild(b); } }
+    function closeModal(id) { var m = document.getElementById(id); m.classList.remove('show'); m.style.display = 'none'; document.body.classList.remove('modal-open'); document.body.style.overflow = ''; var b = document.querySelector('.modal-backdrop'); if (b) b.remove(); }
+
+    function cleanPayload(data) {
+        var c = JSON.parse(JSON.stringify(data));
+        if (c.fields) c.fields.forEach(function(f) { delete f.selectOptions; delete f._injectedOptions; delete f.selectOptionsProviderAction; });
+        return c;
+    }
+
+    function renderFields(fields, container, topLevel) {
+        var h = '';
+        if (topLevel) {
+            h += '<div class="row g-2 mb-3 pb-3" style="border-bottom:1px solid var(--tblr-border-color);">';
+            h += '<div class="col-12 col-sm-6"><label class="form-label small mb-1">Nom</label><input type="text" class="form-control form-control-sm pw-top" data-top="name" value="' + esc(topLevel.name || '') + '"></div>';
+            h += '<div class="col-6 col-sm-3 d-flex align-items-end"><label class="form-check form-switch mb-1"><input class="form-check-input pw-top" data-top="enable" type="checkbox"' + (topLevel.enable !== false ? ' checked' : '') + '><span class="form-check-label small">Activé</span></label></div>';
+            h += '</div>';
+        }
+        h += '<div class="row g-2">';
+        fields.forEach(function(f) {
+            if (f.type === 'info') { h += '<div class="col-12"><div class="small text-secondary" style="font-size:.75rem;padding:.5rem .7rem;background:rgba(255,255,255,.03);border-radius:.35rem;">' + (f.label ? '<strong>' + esc(f.label) + '</strong><br>' : '') + (f.value || f.helpText || '') + '</div></div>'; return; }
+            if (f.name === 'definitionFile') return;
+            var label = esc(f.label || f.name);
+            var name = esc(f.name);
+            h += '<div class="col-12 col-sm-6"><label class="form-label small mb-1">' + label + '</label>';
+            if (f.type === 'checkbox') h += '<div><label class="form-check form-switch"><input class="form-check-input pw-field" data-name="' + name + '" type="checkbox"' + (f.value ? ' checked' : '') + '><span class="form-check-label small">' + label + '</span></label></div>';
+            else if (f.type === 'select' && f.selectOptions && f.selectOptions.length) {
+                h += '<select class="form-select form-select-sm pw-field" data-name="' + name + '">';
+                f.selectOptions.forEach(function(o) { h += '<option value="' + esc(String(o.value)) + '"' + (String(o.value) === String(f.value) ? ' selected' : '') + '>' + esc(o.name || o.value) + '</option>'; });
+                h += '</select>';
+            }
+            else if (f.type === 'number') h += '<input type="number" class="form-control form-control-sm pw-field" data-name="' + name + '" value="' + (f.value ?? '') + '">';
+            else if (f.type === 'password') h += '<input type="password" class="form-control form-control-sm pw-field" data-name="' + name + '" value="' + esc(f.value ?? '') + '" autocomplete="off">';
+            else h += '<input type="text" class="form-control form-control-sm pw-field" data-name="' + name + '" value="' + esc(String(f.value ?? '')) + '">';
+            if (f.helpText) h += '<div class="form-text" style="font-size:.6rem;">' + esc(f.helpText) + '</div>';
+            h += '</div>';
+        });
+        h += '</div>';
+        container.innerHTML = h;
+    }
+
+    function collectFields(container, baseFields) {
+        var fields = JSON.parse(JSON.stringify(baseFields));
+        container.querySelectorAll('.pw-field').forEach(function(el) {
+            var f = fields.find(function(x) { return x.name === el.dataset.name; });
+            if (!f) return;
+            if (el.type === 'checkbox') f.value = el.checked;
+            else if (el.type === 'number') f.value = el.value !== '' ? parseFloat(el.value) : null;
+            else f.value = el.value;
+        });
+        return fields;
+    }
+
+    function collectTopLevel(container, base) {
+        var d = JSON.parse(JSON.stringify(base));
+        container.querySelectorAll('.pw-top').forEach(function(el) {
+            if (el.type === 'checkbox') d[el.dataset.top] = el.checked;
+            else d[el.dataset.top] = el.value;
+        });
+        return d;
+    }
+
+    // ── Supprimer ──
+    document.querySelectorAll('.pw-del-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            if (!confirm('Supprimer « ' + btn.dataset.name + ' » ?')) return;
+            fetch(DELETE_URL.replace('{id}', btn.dataset.id), { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) { if (d.ok) btn.closest('tr').remove(); });
+        });
+    });
+
+    // ── Test ──
+    document.querySelectorAll('.pw-test-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var orig = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.7rem;height:.7rem;"></span>';
+            btn.disabled = true;
+            fetch(GET_URL.replace('{id}', btn.dataset.id))
+                .then(function(r) { return r.json(); })
+                .then(function(raw) { return fetch(TEST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(raw)) }); })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    btn.disabled = false;
+                    btn.innerHTML = d.ok ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+                    setTimeout(function() { btn.innerHTML = orig; }, 3000);
+                });
+        });
+    });
+
+    // ── Modal Ajouter ──
+    var schemaCache = null;
+    var selectedSchema = null;
+
+    document.querySelector('.pw-add-btn').addEventListener('click', function() {
+        document.getElementById('pw-add-form').style.display = 'none';
+        document.getElementById('pw-add-filters').style.display = '';
+        document.getElementById('pw-add-list').style.display = '';
+        document.getElementById('pw-add-search').value = '';
+        openModal('pw-modal-add');
+        if (!schemaCache) {
+            document.getElementById('pw-add-list').innerHTML = '<div class="col-12 text-center py-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>';
+            fetch(SCHEMA_URL).then(function(r) { return r.json(); }).then(function(d) { schemaCache = d; renderList(''); });
+        } else { renderList(''); }
+    });
+
+    document.getElementById('pw-add-search').addEventListener('input', function() { if (schemaCache) renderList(this.value.trim().toLowerCase()); });
+
+    function renderList(q) {
+        var c = document.getElementById('pw-add-list');
+        var filtered = schemaCache.filter(function(s) {
+            if (!q) return true;
+            var h = ((s.name||'') + ' ' + (s.implementationName||'') + ' ' + (s.description||'')).toLowerCase();
+            return q.split(/\s+/).every(function(w) { return h.includes(w); });
+        }).slice(0, 40);
+        if (!filtered.length) { c.innerHTML = '<div class="col-12 text-center text-secondary small py-2">Aucun résultat</div>'; return; }
+        c.innerHTML = filtered.map(function(s, i) {
+            var name = esc(s.name || s.implementationName || '—');
+            return '<div class="col-12 col-sm-6 col-md-4"><div class="card pw-schema-card" data-idx="' + schemaCache.indexOf(s) + '" style="cursor:pointer;"><div class="card-body py-2 px-3"><div class="fw-semibold small">' + name + '</div>' + (s.infoLink ? '<div class="text-secondary" style="font-size:.6rem;">' + esc(s.implementationName || '') + '</div>' : '') + '</div></div></div>';
+        }).join('');
+        c.querySelectorAll('.pw-schema-card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                selectedSchema = JSON.parse(JSON.stringify(schemaCache[parseInt(card.dataset.idx)]));
+                document.getElementById('pw-add-form-title').textContent = selectedSchema.name || selectedSchema.implementationName || '—';
+                document.getElementById('pw-add-filters').style.display = 'none';
+                document.getElementById('pw-add-list').style.display = 'none';
+                document.getElementById('pw-add-form').style.display = '';
+                document.getElementById('pw-add-result').className = 'mt-2 alert d-none';
+                renderFields(selectedSchema.fields || [], document.getElementById('pw-add-fields'), selectedSchema);
+            });
+        });
+    }
+
+    document.getElementById('pw-add-back').addEventListener('click', function() {
+        document.getElementById('pw-add-form').style.display = 'none';
+        document.getElementById('pw-add-filters').style.display = '';
+        document.getElementById('pw-add-list').style.display = '';
+    });
+
+    document.getElementById('pw-add-test').addEventListener('click', function() {
+        var btn = this, r = document.getElementById('pw-add-result');
+        var p = collectTopLevel(document.getElementById('pw-add-fields'), selectedSchema);
+        p.fields = collectFields(document.getElementById('pw-add-fields'), selectedSchema.fields || []);
+        btn.disabled = true; btn.textContent = 'Test…';
+        fetch(TEST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(p)) })
+            .then(function(res) { return res.json(); })
+            .then(function(d) { btn.disabled = false; btn.textContent = 'Tester'; showAlert(r, d.ok ? 'alert-success' : 'alert-danger', d.ok ? 'Connexion réussie !' : 'Échec : ' + (d.error || '—')); });
+    });
+
+    document.getElementById('pw-add-save').addEventListener('click', function() {
+        var btn = this, r = document.getElementById('pw-add-result');
+        var p = collectTopLevel(document.getElementById('pw-add-fields'), selectedSchema);
+        p.fields = collectFields(document.getElementById('pw-add-fields'), selectedSchema.fields || []);
+        btn.disabled = true; btn.textContent = 'Ajout…';
+        fetch(ADD_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(p)) })
+            .then(function(res) { return res.json(); })
+            .then(function(d) { btn.disabled = false; btn.textContent = 'Ajouter'; if (d.ok) { showAlert(r, 'alert-success', 'Ajouté !'); setTimeout(function() { window.location.reload(); }, 800); } else showAlert(r, 'alert-danger', 'Erreur : ' + (d.error || '—')); });
+    });
+
+    // ── Modal Éditer ──
+    var editRaw = null;
+
+    document.querySelectorAll('.pw-edit-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.getElementById('pw-edit-fields').innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>';
+            document.getElementById('pw-edit-result').className = 'mt-2 alert d-none';
+            openModal('pw-modal-edit');
+            fetch(GET_URL.replace('{id}', btn.dataset.id))
+                .then(function(r) { return r.json(); })
+                .then(function(raw) {
+                    editRaw = raw;
+                    document.getElementById('pw-edit-title').textContent = 'Modifier — ' + (raw.name || '—');
+                    renderFields(raw.fields || [], document.getElementById('pw-edit-fields'), raw);
+                });
+        });
+    });
+
+    document.getElementById('pw-edit-test').addEventListener('click', function() {
+        var btn = this, r = document.getElementById('pw-edit-result');
+        var p = collectTopLevel(document.getElementById('pw-edit-fields'), editRaw);
+        p.fields = collectFields(document.getElementById('pw-edit-fields'), editRaw.fields || []);
+        btn.disabled = true; btn.textContent = 'Test…';
+        fetch(TEST_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(p)) })
+            .then(function(res) { return res.json(); })
+            .then(function(d) { btn.disabled = false; btn.textContent = 'Tester'; showAlert(r, d.ok ? 'alert-success' : 'alert-danger', d.ok ? 'Connexion réussie !' : 'Échec : ' + (d.error || '—')); });
+    });
+
+    document.getElementById('pw-edit-save').addEventListener('click', function() {
+        var btn = this, r = document.getElementById('pw-edit-result');
+        var p = collectTopLevel(document.getElementById('pw-edit-fields'), editRaw);
+        p.fields = collectFields(document.getElementById('pw-edit-fields'), editRaw.fields || []);
+        btn.disabled = true; btn.textContent = 'Sauvegarde…';
+        fetch(UPDATE_URL.replace('{id}', editRaw.id), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(p)) })
+            .then(function(res) { return res.json(); })
+            .then(function(d) { btn.disabled = false; btn.textContent = 'Sauvegarder'; if (d.ok) { showAlert(r, 'alert-success', 'Sauvegardé !'); setTimeout(function() { window.location.reload(); }, 800); } else showAlert(r, 'alert-danger', 'Erreur : ' + (d.error || '—')); });
+    });
+
+    // Fermer modals
+    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function(b) { b.addEventListener('click', function() { var m = b.closest('.modal'); if (m) closeModal(m.id); }); });
+    ['pw-modal-add', 'pw-modal-edit'].forEach(function(id) { var m = document.getElementById(id); if (m) m.addEventListener('click', function(e) { if (e.target === m) closeModal(id); }); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { ['pw-modal-add','pw-modal-edit'].forEach(function(id) { var m = document.getElementById(id); if (m && m.classList.contains('show')) closeModal(id); }); } });
+})();
+</script>
+{% endblock %}

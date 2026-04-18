@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Blocklist séries — IH-ARGOS{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Blocklist
+          {% if blocklist.totalRecords is defined and blocklist.totalRecords > 0 %}
+            <span class="badge bg-danger-lt text-danger ms-2">{{ blocklist.totalRecords }}</span>
+          {% endif %}
+        </h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        <button id="btn-bulk-del-blocklist" class="btn btn-sm btn-danger" style="display:none;">Supprimer la sélection</button>
+        {% include 'media/_sonarr_nav.html.twig' ignore missing %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% set records = blocklist.records ?? [] %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-vcenter table-hover card-table mb-0" style="font-size:.82rem;">
+      <thead>
+        <tr>
+          <th style="width:30px"><input type="checkbox" class="form-check-input" id="blocklist-check-all"></th>
+          <th>Série</th>
+          <th>Source</th>
+          <th>Qualité</th>
+          <th>Date</th>
+          <th class="text-end" style="width:80px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in records %}
+        <tr>
+          <td><input type="checkbox" class="form-check-input blocklist-cb" data-id="{{ b.id }}"></td>
+          <td class="fw-medium">{{ b.series.title ?? (b.seriesId ?? '—') }}</td>
+          <td class="text-muted text-truncate" style="max-width:300px;" title="{{ b.sourceTitle ?? '' }}">{{ b.sourceTitle ?? '—' }}</td>
+          <td>
+            {% if b.quality and b.quality.quality %}
+              <span class="badge bg-blue-lt">{{ b.quality.quality.name }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-muted">{{ b.date ? b.date|date('d/m/Y H:i', 'Europe/Paris') : '—' }}</td>
+          <td class="text-end">
+            <button class="btn btn-ghost-danger btn-icon btn-sm btn-blocklist-del" data-id="{{ b.id }}" title="Supprimer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-4">Aucun élément dans la blocklist.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if blocklist.totalRecords is defined and blocklist.totalRecords > 50 %}
+<div class="d-flex justify-content-center gap-2 mt-3">
+  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">← Précédent</a>{% endif %}
+  <span class="text-muted small align-self-center">Page {{ page }} / {{ (blocklist.totalRecords / 50)|round(0, 'ceil') }}</span>
+  {% if page * 50 < blocklist.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">Suivant →</a>{% endif %}
+</div>
+{% endif %}
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+  var bulkBtn = document.getElementById('btn-bulk-del-blocklist');
+  var checkAll = document.getElementById('blocklist-check-all');
+
+  function updateBulkBtn() {
+    var checked = document.querySelectorAll('.blocklist-cb:checked');
+    bulkBtn.style.display = checked.length > 0 ? '' : 'none';
+    bulkBtn.textContent = 'Supprimer ' + checked.length + ' élément(s)';
+  }
+
+  checkAll.addEventListener('change', function() {
+    document.querySelectorAll('.blocklist-cb').forEach(function(cb) { cb.checked = checkAll.checked; });
+    updateBulkBtn();
+  });
+
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('blocklist-cb')) updateBulkBtn();
+  });
+
+  bulkBtn.addEventListener('click', function() {
+    var ids = [];
+    document.querySelectorAll('.blocklist-cb:checked').forEach(function(cb) { ids.push(parseInt(cb.dataset.id)); });
+    if (!ids.length || !confirm('Supprimer ' + ids.length + ' élément(s) de la blocklist ?')) return;
+    bulkBtn.disabled = true;
+    fetch('/medias/series/blocklist/bulk-delete', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+      body: JSON.stringify({ids: ids})
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d.ok) {
+        document.querySelectorAll('.blocklist-cb:checked').forEach(function(cb) { cb.closest('tr').remove(); });
+        bulkBtn.style.display = 'none';
+      }
+      bulkBtn.disabled = false;
+    });
+  });
+
+  document.querySelectorAll('.btn-blocklist-del').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (!confirm('Supprimer de la blocklist ?')) return;
+      btn.disabled = true;
+      fetch('/medias/series/blocklist/' + btn.dataset.id + '/delete', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+        body: '{}'
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.ok) btn.closest('tr').remove();
+        else btn.disabled = false;
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

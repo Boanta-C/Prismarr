@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+{% block title %}Statut Système — Prowlarr{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title d-flex align-items-center gap-2">
+                    <svg width="28" height="28" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32zm0 400c-97 0-176-79-176-176S159 80 256 80s176 79 176 176-79 176-176 176z" fill="#E88D1A"/><path d="M256 120c-75 0-136 61-136 136s61 136 136 136 136-61 136-136-61-136-136-136zm0 224c-48.6 0-88-39.4-88-88s39.4-88 88-88 88 39.4 88 88-39.4 88-88 88z" fill="#E88D1A"/><circle cx="256" cy="256" r="48" fill="#E88D1A"/></svg>
+                    Statut Système
+                </h2>
+            </div>
+            <div class="col-auto ms-auto">{% include 'prowlarr/_prowlarr_nav.html.twig' %}</div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+    <div class="alert alert-danger">Impossible de contacter Prowlarr.</div>
+{% endif %}
+
+<div class="row g-3">
+
+    {# ── Infos système ── #}
+    {% if status %}
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Informations</h3></div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table table-sm">
+                        <tbody>
+                            <tr><td class="text-secondary small" style="width:40%;">Version</td><td class="fw-medium">{{ status.version ?? '—' }}</td></tr>
+                            <tr><td class="text-secondary small">Branche</td><td>{{ status.branch ?? '—' }}</td></tr>
+                            <tr><td class="text-secondary small">OS</td><td>{{ status.osName ?? '—' }} {{ status.osVersion ?? '' }}</td></tr>
+                            <tr><td class="text-secondary small">Runtime</td><td>{{ status.runtimeName ?? '—' }} {{ status.runtimeVersion ?? '' }}</td></tr>
+                            <tr><td class="text-secondary small">Démarrage</td><td>{{ status.startTime ? status.startTime|date('d/m/Y H:i') : '—' }}</td></tr>
+                            <tr><td class="text-secondary small">App Data</td><td class="small" style="word-break:break-all;">{{ status.appData ?? '—' }}</td></tr>
+                            <tr><td class="text-secondary small">Migration</td><td>{{ status.migrationVersion ?? '—' }}</td></tr>
+                            <tr><td class="text-secondary small">Authentification</td><td>{{ status.authentication ?? '—' }}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Santé ── #}
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Santé
+                    {% if health is not empty %}
+                        <span class="badge bg-warning-lt ms-1">{{ health|length }}</span>
+                    {% else %}
+                        <span class="badge bg-green-lt ms-1">OK</span>
+                    {% endif %}
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if health is empty %}
+                    <div class="d-flex align-items-center gap-2 text-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 12l2 2l4 -4"/></svg>
+                        Tous les systèmes opérationnels
+                    </div>
+                {% else %}
+                    {% for h in health %}
+                    <div class="d-flex align-items-start gap-2 mb-2 p-2 rounded" style="background:rgba({{ h.type == 'error' ? '239,68,68' : '245,158,11' }},.08);border-left:3px solid {{ h.type == 'error' ? '#ef4444' : '#f59e0b' }};">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ h.type == 'error' ? '#ef4444' : '#f59e0b' }}" stroke-width="2" class="flex-shrink-0" style="margin-top:2px;"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+                        <div>
+                            <div class="small fw-medium">{{ h.message }}</div>
+                            <div class="text-secondary" style="font-size:.7rem;">{{ h.source ?? '' }}</div>
+                            {% if h.wikiUrl is defined and h.wikiUrl %}
+                                <a href="{{ h.wikiUrl }}" target="_blank" class="small" style="font-size:.65rem;">Documentation</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</div>
+</div>
+{% endblock %}

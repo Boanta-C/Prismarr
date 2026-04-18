@@ -1,0 +1,44 @@
+# Surcharges pour le développement local (depuis le Mac via terminal)
+# Usage : docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+services:
+
+  nginx:
+    volumes:
+      - ./symfony/public:/var/www/html/public
+
+  app:
+    environment:
+      - APP_ENV=dev
+      - APP_DEBUG=1
+    volumes:
+      - ./symfony:/var/www/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  worker:
+    user: root
+    environment:
+      - APP_ENV=dev
+      - APP_DEBUG=1
+    command: php bin/console messenger:consume async scheduler_default -vv
+    volumes:
+      - ./symfony:/var/www/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  mercure:
+    environment:
+      SERVER_NAME: ":3000"
+      MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET}
+      MERCURE_EXTRA_DIRECTIVES: |
+        cors_origins "*"
+        anonymous
+        demo
+
+# En dev, symfony_var est inutile — tout symfony/ est bind-monté
+volumes:
+  symfony_var:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs

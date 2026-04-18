@@ -1,0 +1,169 @@
+{% extends 'base.html.twig' %}
+{% block title %}A propos — Jellyseerr — IH-ARGOS{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> A propos{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block stylesheets %}
+<style>
+.js-stat-card { text-align:center; padding:1.25rem .75rem; }
+.js-stat-card .js-val { font-size:2rem; font-weight:700; line-height:1.1; }
+.js-stat-card .js-lbl { font-size:.78rem; color:var(--tblr-text-secondary); margin-top:.25rem; }
+.js-info-row { display:flex; align-items:center; justify-content:space-between; padding:.7rem 1.25rem; font-size:.85rem; }
+.js-info-row:not(:last-child) { border-bottom:1px solid var(--tblr-border-color); }
+.js-info-row .js-key { color:var(--tblr-text-secondary); font-weight:500; }
+.js-info-row .js-value { font-weight:600; text-align:right; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-xl py-2">
+    <div class="d-flex align-items-center justify-content-end">{% include 'jellyseerr/_nav.html.twig' %}</div>
+</div>
+<div class="page-body"><div class="container-xl">
+
+{# ── Version & Statut ── #}
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h3 class="card-title d-flex align-items-center gap-2">
+            <svg width="22" height="22" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg>
+            Jellyseerr
+        </h3>
+        <a href="http://192.168.10.220:5055" target="_blank" class="btn btn-sm btn-outline-purple" style="border-color:#a259ff;color:#a259ff;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>
+            Ouvrir Jellyseerr
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="js-info-row">
+            <span class="js-key">Version</span>
+            <span class="js-value">
+                <span style="color:#a259ff;">{{ status.version ?? '?' }}</span>
+                {% if status.updateAvailable ?? false %}
+                    <span class="badge bg-warning-lt text-warning ms-2" style="font-size:.65rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+                        Mise a jour disponible
+                    </span>
+                {% endif %}
+            </span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Commit</span>
+            <span class="js-value" style="font-family:monospace;font-size:.78rem;color:var(--tblr-text-secondary);">{{ status.commitTag ?? '?' }}</span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Fuseau horaire</span>
+            <span class="js-value">{{ about.tz ?? '?' }}</span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Chemin des donnees</span>
+            <span class="js-value" style="font-family:monospace;font-size:.78rem;">{{ about.appDataPath ?? '?' }}</span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Redemarrage requis</span>
+            <span class="js-value">
+                {% if status.restartRequired ?? false %}
+                    <span class="badge bg-warning-lt text-warning">Oui</span>
+                {% else %}
+                    <span class="badge bg-green-lt text-green">Non</span>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+
+{# ── Statistiques ── #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-sm-4 col-lg-2">
+        <div class="card js-stat-card">
+            <div class="js-val" style="color:#a259ff;">{{ about.totalMediaItems ?? 0 }}</div>
+            <div class="js-lbl">Medias</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+        <div class="card js-stat-card">
+            <div class="js-val" style="color:#6366f1;">{{ requestCounts.total ?? 0 }}</div>
+            <div class="js-lbl">Requetes</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+        <div class="card js-stat-card">
+            <div class="js-val" style="color:#ef4444;">{{ requestCounts.movie ?? 0 }}</div>
+            <div class="js-lbl">Films</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+        <div class="card js-stat-card">
+            <div class="js-val" style="color:#38bdf8;">{{ requestCounts.tv ?? 0 }}</div>
+            <div class="js-lbl">Series</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+        <div class="card js-stat-card">
+            <div class="js-val" style="color:#22c55e;">{{ totalUsers ?? 0 }}</div>
+            <div class="js-lbl">Utilisateurs</div>
+        </div>
+    </div>
+    <div class="col-6 col-sm-4 col-lg-2">
+        <div class="card js-stat-card">
+            <div class="js-val" style="color:#f59e0b;">{{ issueCounts.total ?? 0 }}</div>
+            <div class="js-lbl">Signalements</div>
+        </div>
+    </div>
+</div>
+
+{# ── Detail requetes ── #}
+<div class="card mb-4">
+    <div class="card-header"><h3 class="card-title">Detail des requetes</h3></div>
+    <div class="card-body p-0">
+        <div class="js-info-row">
+            <span class="js-key">Total</span>
+            <span class="js-value"><span class="badge bg-secondary-lt">{{ requestCounts.total ?? 0 }}</span></span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Films</span>
+            <span class="js-value"><span class="badge bg-red-lt text-red">{{ requestCounts.movie ?? 0 }}</span></span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Series</span>
+            <span class="js-value"><span class="badge bg-cyan-lt text-cyan">{{ requestCounts.tv ?? 0 }}</span></span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">En attente</span>
+            <span class="js-value"><span class="badge bg-yellow-lt text-yellow">{{ requestCounts.pending ?? 0 }}</span></span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">En cours</span>
+            <span class="js-value"><span class="badge bg-blue-lt text-blue">{{ requestCounts.processing ?? 0 }}</span></span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Approuvees</span>
+            <span class="js-value"><span class="badge bg-green-lt text-green">{{ requestCounts.approved ?? 0 }}</span></span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Disponibles</span>
+            <span class="js-value"><span class="badge bg-purple-lt text-purple">{{ requestCounts.available ?? 0 }}</span></span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Refusees</span>
+            <span class="js-value"><span class="badge bg-red-lt text-red">{{ requestCounts.declined ?? 0 }}</span></span>
+        </div>
+    </div>
+</div>
+
+{# ── Signalements ── #}
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Signalements</h3></div>
+    <div class="card-body p-0">
+        <div class="js-info-row">
+            <span class="js-key">Ouverts</span>
+            <span class="js-value"><span class="badge bg-yellow-lt text-yellow">{{ issueCounts.open ?? 0 }}</span></span>
+        </div>
+        <div class="js-info-row">
+            <span class="js-key">Fermes</span>
+            <span class="js-value"><span class="badge bg-green-lt text-green">{{ issueCounts.closed ?? 0 }}</span></span>
+        </div>
+    </div>
+</div>
+
+</div></div>
+{% endblock %}

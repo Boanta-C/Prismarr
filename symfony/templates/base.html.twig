@@ -1,0 +1,1766 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+  <title>{% block title %}IH-ARGOS{% endblock %} — IH-ARGOS</title>
+  {% block head_meta %}{% endblock %}
+
+  <style>
+    @import url("https://rsms.me/inter/inter.css");
+    :root {
+      --tblr-primary: #6366f1;
+      --tblr-primary-rgb: 99, 102, 241;
+      --tblr-font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* ── Transitions Turbo ── */
+    .turbo-progress-bar { background:#6366f1; height:2px; }
+    body { transition: opacity 50ms ease-in-out; }
+    body.turbo-loading { opacity: 0; }
+
+    /* ── Skeleton loaders ── */
+    .skeleton { background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.04) 75%); background-size: 200% 100%; animation: skeleton-shimmer 1.5s infinite; border-radius: .35rem; }
+    @keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .skeleton-text { height: .85rem; margin-bottom: .4rem; }
+    .skeleton-text-sm { height: .65rem; margin-bottom: .3rem; width: 60%; }
+    .skeleton-card { height: 120px; }
+    .skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+    .skeleton-bar { height: 8px; border-radius: 4px; }
+
+    /* ── Toasts SSE ── */
+    #argos-toasts { position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column-reverse; gap: .5rem; max-width: 360px; pointer-events: none; }
+    .argos-toast { pointer-events: auto; padding: .6rem 1rem; border-radius: .5rem; font-size: .8rem; box-shadow: 0 4px 16px rgba(0,0,0,.3); display: flex; align-items: center; gap: .5rem; animation: toast-in .3s ease-out; backdrop-filter: blur(8px); }
+    .argos-toast-success { background: rgba(34,197,94,.9); color: #fff; }
+    .argos-toast-warning { background: rgba(245,158,11,.9); color: #000; }
+    .argos-toast-danger { background: rgba(239,68,68,.9); color: #fff; }
+    .argos-toast-info { background: rgba(99,102,241,.9); color: #fff; }
+    @keyframes toast-in { from { opacity:0; transform:translateX(100px); } to { opacity:1; transform:translateX(0); } }
+    .argos-toast.toast-out { animation: toast-out .3s ease-in forwards; }
+    @keyframes toast-out { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(100px); } }
+
+    /* ── Badge DL sidebar (visible sur Médias + Téléchargements) ── */
+    .sidebar-dl-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; padding: 0 6px;
+      margin-left: 8px;
+      font-size: .68rem; font-weight: 700; line-height: 1;
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      color: #fff; border-radius: 9px;
+      box-shadow: 0 0 10px rgba(59,130,246,.55);
+      animation: dl-pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes dl-pulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(59,130,246,.45); transform: scale(1); }
+      50%      { box-shadow: 0 0 14px rgba(59,130,246,.9);  transform: scale(1.08); }
+    }
+
+    /* ── Command center fixe (dans page-wrapper, à droite de la sidebar) ── */
+    #argos-command-center { position: fixed; top: 0; left: 15rem; right: 0; z-index: 50; background: rgba(30,30,46,.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,.06); padding: .35rem 0; min-height: 32px; }
+    @media (max-width: 991px) { #argos-command-center { left: 0; } }
+
+    /* ── Header fixe (recherche, cloche, profil) sous le command center ── */
+    .page-wrapper { padding-top: 32px; }
+    .page-header:has(#topbar-actions) { position: sticky; top: 32px; z-index: 40; background: rgba(17,17,17,.95); backdrop-filter: blur(12px); margin: 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .page-header:has(#topbar-actions) .container-xl { padding-top: .5rem; padding-bottom: .5rem; }
+    .page-header:has(#topbar-actions) .page-title { margin: 0; padding: 0; line-height: 1; }
+    .page-header:has(#topbar-actions) .row { margin: 0; align-items: center; }
+    /* ── Mode clair global — plus de profondeur et contraste ── */
+    [data-bs-theme="light"] #argos-command-center { background: rgba(255,255,255,.97); border-bottom: 1px solid rgba(0,0,0,.1); box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    [data-bs-theme="light"] .page-header:has(#topbar-actions) { background: rgba(250,250,252,.97); border-bottom: 1px solid rgba(0,0,0,.1); box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    [data-bs-theme="light"] .cc-metric-label { color: rgba(0,0,0,.45); }
+    [data-bs-theme="light"] .cc-metric-value { color: #1a1a2e; font-weight: 800; }
+    :root[data-bs-theme="light"] .card { border-color: rgba(0,0,0,.1); box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+    :root[data-bs-theme="light"] .card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.1); }
+    :root[data-bs-theme="light"] .card-header { border-color: rgba(0,0,0,.08); background: rgba(0,0,0,.015); }
+    :root[data-bs-theme="light"] .page-wrapper { background: #f0f2f7; }
+    :root[data-bs-theme="light"] body:has(.wp-bg) .page-wrapper { background: transparent !important; }
+    :root[data-bs-theme="light"] .page-body { background: transparent; }
+    :root[data-bs-theme="light"] .table { --tblr-table-striped-bg: rgba(0,0,0,.02); }
+    :root[data-bs-theme="light"] .table thead th { background: rgba(0,0,0,.03); color: #444; font-weight: 600; border-bottom: 2px solid rgba(0,0,0,.1); }
+    :root[data-bs-theme="light"] .navbar-vertical { background: #fff !important; border-right: 1px solid rgba(0,0,0,.08); box-shadow: 2px 0 8px rgba(0,0,0,.04); }
+    :root[data-bs-theme="light"] .badge.bg-secondary-lt { background: rgba(0,0,0,.06) !important; color: #555 !important; }
+    :root[data-bs-theme="light"] .text-secondary { color: #5a5a6e !important; }
+    :root[data-bs-theme="light"] .btn-ghost-secondary:hover { background: rgba(0,0,0,.05) !important; }
+    .cc-metric { display: flex; align-items: center; gap: .35rem; font-size: .7rem; white-space: nowrap; }
+    .cc-metric-value { font-weight: 700; font-size: .75rem; }
+    .cc-metric-label { color: rgba(255,255,255,.4); }
+    .cc-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .cc-dot-ok { background: #22c55e; box-shadow: 0 0 4px rgba(34,197,94,.5); }
+    .cc-dot-warn { background: #f59e0b; box-shadow: 0 0 4px rgba(245,158,11,.5); }
+    .cc-dot-err { background: #ef4444; box-shadow: 0 0 4px rgba(239,68,68,.5); }
+  </style>
+
+  {# Gestion thème clair/sombre — tout dans le <head> pour survivre aux navigations Turbo #}
+  <script>
+    /* Données Command Center — localStorage pour survivre à Turbo */
+    window._argosCCData = JSON.parse(localStorage.getItem('argos_cc') || '{}');
+    window._argosCCSave = function() { localStorage.setItem('argos_cc', JSON.stringify(window._argosCCData)); };
+  </script>
+  <script>
+    (function () {
+      // 1. Applique le thème immédiatement (avant CSS) pour éviter tout flash
+      var t = localStorage.getItem('tablerTheme') || 'dark';
+      document.documentElement.setAttribute('data-bs-theme', t);
+
+      // 2. Sync les icônes moon/sun après chaque chargement/navigation
+      function syncIcons() {
+        var theme = document.documentElement.getAttribute('data-bs-theme') || 'dark';
+        var isDark = theme === 'dark';
+        var moon  = document.getElementById('icon-moon');
+        var sun   = document.getElementById('icon-sun');
+        var label = document.getElementById('theme-label');
+        if (moon) moon.style.display = isDark ? '' : 'none';
+        if (sun)  sun.style.display  = isDark ? 'none' : '';
+        if (label) label.textContent = isDark ? 'Thème clair' : 'Thème sombre';
+        var moonT = document.getElementById('icon-moon-top');
+        var sunT  = document.getElementById('icon-sun-top');
+        if (moonT) moonT.style.display = isDark ? '' : 'none';
+        if (sunT)  sunT.style.display  = isDark ? 'none' : '';
+      }
+
+      // 3. Click handler via event delegation sur document
+      //    → survit aux navigations Turbo, jamais dupliqué car dans le <head>
+      document.addEventListener('click', function (e) {
+        if (e.target.closest('#theme-toggle') || e.target.closest('#theme-toggle-top')) {
+          e.preventDefault();
+          var next = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-bs-theme', next);
+          localStorage.setItem('tablerTheme', next);
+          syncIcons();
+        }
+      });
+
+      // 4. Sync icônes au premier chargement et après chaque navigation Turbo
+      document.addEventListener('DOMContentLoaded', syncIcons);
+      document.addEventListener('turbo:load', syncIcons);
+
+    })();
+
+    // Nettoyage backdrops et modals
+    (function() {
+      // Avant chaque ouverture de modal : nettoyer les backdrops en trop
+      document.addEventListener('show.bs.modal', function() {
+        var backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(function(b) { b.remove(); });
+      });
+
+      // Après chaque fermeture de modal
+      document.addEventListener('hidden.bs.modal', function() {
+        var openModals = document.querySelectorAll('.modal.show');
+        if (openModals.length === 0) {
+          document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
+          document.body.classList.remove('modal-open');
+          document.body.style.removeProperty('overflow');
+          document.body.style.removeProperty('padding-right');
+        }
+      });
+
+      // Nettoyage complet à chaque navigation Turbo
+      document.addEventListener('turbo:before-render', function() {
+        document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
+        document.querySelectorAll('.modal.show').forEach(function(m) { m.classList.remove('show'); m.style.display = 'none'; });
+        document.querySelectorAll('.tooltip, .popover').forEach(function(t) { t.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+        // Stopper les iframes YouTube
+        document.querySelectorAll('iframe[src*="youtube"]').forEach(function(f) { f.src = ''; });
+      });
+
+    })();
+  </script>
+
+  <link rel="stylesheet" href="{{ asset('static/tabler/css/tabler.min.css') }}"/>
+  <link rel="stylesheet" href="{{ asset('static/tabler/css/tabler-themes.min.css') }}"/>
+
+  {# Override fond bleu Tabler dark + améliorations visuelles #}
+  <style>
+    [data-bs-theme="dark"] {
+      --tblr-body-bg:       #111111;
+      --tblr-secondary-bg:  #1a1a1a;
+      --tblr-tertiary-bg:   #1a1a1a;
+      --tblr-card-bg:       #1c1c1c;
+      --tblr-border-color:  rgba(255, 255, 255, 0.08);
+    }
+
+    /* Ciblage direct — évite tout conflit de variable */
+    [data-bs-theme="dark"] body          { background-color: #111111 !important; }
+    [data-bs-theme="dark"] .page-wrapper { background-color: #111111 !important; }
+    [data-bs-theme="dark"] .page-body    { background-color: #111111 !important; }
+
+    /* Sidebar fond neutre */
+    [data-bs-theme="dark"] .navbar-vertical {
+      background-color: #0d0d0d !important;
+      border-right: 1px solid rgba(255,255,255,0.07) !important;
+    }
+    [data-bs-theme="light"] body          { background-color: #f4f6fb !important; }
+    [data-bs-theme="light"] .page-wrapper { background-color: #f4f6fb !important; }
+    [data-bs-theme="light"] .page-body    { background-color: #f4f6fb !important; }
+    [data-bs-theme="light"] .navbar-vertical {
+      background-color: #ffffff !important;
+      border-right: 1px solid rgba(0,0,0,0.08) !important;
+    }
+
+    /* Cards : fond légèrement surélevé + ombre douce */
+    [data-bs-theme="dark"] .card {
+      background-color: #1c1c1c !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.35) !important;
+    }
+    [data-bs-theme="dark"] .card-footer  {
+      background-color: #161616 !important;
+      border-top: 1px solid rgba(255,255,255,0.06) !important;
+    }
+    [data-bs-theme="light"] .card {
+      box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+    }
+
+    /* Transition douce au changement de thème */
+    body, .card, .navbar, .page-wrapper, .page-body, .card-footer, .card-header, .progress-bar {
+      transition: background-color .2s ease, border-color .2s ease, color .1s ease;
+    }
+
+    /* Progress bars arrondies */
+    .progress { border-radius: 99px; overflow: hidden; }
+    .progress-bar { border-radius: 99px; }
+
+    /* Status dot légèrement plus gros */
+    .status-dot { width: 9px; height: 9px; }
+
+    /* Scrollbar discrète */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+    [data-bs-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
+
+    /* Sous-menu Infrastructure — décalé + plus petit */
+    #infra-submenu .nav-link {
+      padding-left: 2.8rem;
+      font-size: 0.78rem;
+    }
+    #infra-submenu .nav-link-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Barre bleue active dans la sidebar */
+    .navbar-vertical .navbar-nav .nav-link {
+      position: relative;
+    }
+    .navbar-vertical .navbar-nav .nav-link.active {
+      color: var(--tblr-primary) !important;
+      background-color: rgba(var(--tblr-primary-rgb), 0.07) !important;
+    }
+    .navbar-vertical .navbar-nav .nav-link.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 4px;
+      bottom: 4px;
+      width: 3px;
+      background-color: var(--tblr-primary);
+      border-radius: 0 3px 3px 0;
+    }
+    /* nav-link-title prend toute la largeur disponible */
+    .navbar-vertical .navbar-nav .nav-link .nav-link-title {
+      flex: 1;
+    }
+    /* Icônes plus petites dans les sous-menus */
+    .nav-collapse .navbar-nav .nav-link .nav-link-icon .icon {
+      width: 16px !important;
+      height: 16px !important;
+    }
+    /* Sous-items dans nav-collapse — indentés sous le parent */
+    .nav-collapse .navbar-nav .nav-link {
+      position: relative;
+      padding-left: 2.5rem !important;
+    }
+    .nav-collapse .navbar-nav .nav-link.active {
+      color: var(--tblr-primary) !important;
+      background-color: rgba(var(--tblr-primary-rgb), 0.07) !important;
+    }
+    .nav-collapse .navbar-nav .nav-link.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 4px;
+      bottom: 4px;
+      width: 3px;
+      background-color: var(--tblr-primary);
+      border-radius: 0 3px 3px 0;
+    }
+  </style>
+
+  {% block stylesheets %}{% endblock %}
+  {{ importmap('app') }}
+</head>
+<body>
+
+  {# ── Toasts SSE ── #}
+  <div id="argos-toasts"></div>
+
+  <div class="page">
+
+    {# ===================== SIDEBAR ===================== #}
+    <aside class="navbar navbar-vertical navbar-expand-lg">
+      <div class="container-fluid">
+
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#sidebar-menu"
+                aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="navbar-brand navbar-brand-autodark">
+          <a href="{{ path('app_dashboard') }}" class="d-flex align-items-center gap-2 text-decoration-none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                 fill="none" stroke="var(--tblr-primary)" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="4"/>
+              <line x1="12" y1="2" x2="12" y2="6"/>
+              <line x1="12" y1="18" x2="12" y2="22"/>
+              <line x1="2" y1="12" x2="6" y2="12"/>
+              <line x1="18" y1="12" x2="22" y2="12"/>
+            </svg>
+            <span class="fw-bold fs-4" style="color: var(--tblr-primary)">IH-ARGOS</span>
+          </a>
+        </div>
+
+        {# User menu mobile #}
+        <div class="navbar-nav flex-row d-lg-none">
+          <div class="nav-item">
+            <a href="{{ path('app_logout') }}" class="nav-link px-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" class="icon">
+                <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/>
+                <path d="M9 12h12l-3 -3m0 6l3 -3"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        {# Menu principal #}
+        <div class="collapse navbar-collapse" id="sidebar-menu">
+          <ul class="navbar-nav pt-lg-3">
+
+            <li class="nav-item">
+              <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_dashboard' ? 'active' }}"
+                 href="{{ path('app_dashboard') }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <path d="M5 12l-2 0l9 -9l9 9l-2 0"/>
+                    <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/>
+                    <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/>
+                  </svg>
+                </span>
+                <span class="nav-link-title">Dashboard</span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link {{ app.request.attributes.get('_route') == 'app_calendrier' ? 'active' }}"
+                 href="{{ path('app_calendrier') }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </span>
+                <span class="nav-link-title">Calendrier</span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link {{ app.request.attributes.get('_route') == 'app_infrastructure_docker' ? 'active' }}"
+                 href="{{ path('app_infrastructure_docker') }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <path d="M22 12.54c-1.804-.345-2.701-1.08-3.523-2.94c-.487.696-1.317 1.264-2.674 1.4a3.07 3.07 0 0 1-2.984-2c-.85.82-1.758 1-2.485 1c-.728 0-1.635-.18-2.485-1a3.07 3.07 0 0 1-2.984 2c-1.357-.136-2.187-.704-2.674-1.4C1.7 11.46.803 12.195-1 12.54"/>
+                    <path d="M5 12.54V18a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5.46"/>
+                    <path d="M9 18v-3h6v3"/>
+                    <path d="M2 9h20M2 6h20M5 9V6M9 9V6M13 9V6M17 9V6M19 9V6"/>
+                  </svg>
+                </span>
+                <span class="nav-link-title">Docker</span>
+              </a>
+            </li>
+
+            {% set is_infra = app.request.attributes.get('_route') starts with 'app_infrastructure' %}
+            {% set infra_devices = infrastructure_nav_devices() %}
+            {% set current_hostname = app.request.attributes.get('hostname') %}
+
+            <li class="nav-item">
+              <a class="nav-link"
+                 href="#"
+                 data-argos-collapse="infra-submenu"
+                 role="button"
+                 aria-expanded="{{ is_infra ? 'true' : 'false' }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <path d="M3 5m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"/>
+                    <path d="M3 13m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"/>
+                    <path d="M7 8v1m0 4v1m4 -5v1m0 4v1m4 -5v1m0 4v1"/>
+                  </svg>
+                </span>
+                <span class="nav-link-title">Infrastructure</span>
+                <span class="nav-link-toggle"></span>
+              </a>
+
+              <div class="nav-collapse collapse {{ is_infra ? 'show' }}" id="infra-submenu">
+                <ul class="navbar-nav">
+                  {% for dev in infra_devices %}
+                    <li class="nav-item">
+                      <a class="nav-link {{ current_hostname == dev.hostname ? 'active' }}"
+                         href="{{ path('app_infrastructure_device', {hostname: dev.hostname}) }}">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+
+                          {# Icône selon le type du device #}
+                          {% if dev.type == 'server' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/>
+                            </svg>
+                          {% elseif dev.type == 'nas' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                              <path d="M3 5m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"/>
+                              <path d="M3 13m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"/>
+                              <path d="M7 8l.01 0m0 8l.01 0"/>
+                            </svg>
+                          {% elseif dev.type == 'ap' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                              <path d="M12 18l.01 0"/><path d="M9.172 15.172a4 4 0 0 1 5.656 0"/>
+                              <path d="M6.343 12.343a8 8 0 0 1 11.314 0"/>
+                              <path d="M3.515 9.515a12 12 0 0 1 16.97 0"/>
+                            </svg>
+                          {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                              <path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/>
+                            </svg>
+                          {% endif %}
+
+                        </span>
+                        <span class="nav-link-title d-flex align-items-center justify-content-between">
+                          <span>— {{ dev.name }}</span>
+                          <span class="status-dot ms-2 flex-shrink-0 {% if dev.status == 'online' %}status-dot-animated bg-success{% else %}bg-danger{% endif %}"></span>
+                        </span>
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </li>
+
+            {% set alert_count = alert_active_count() %}
+
+            <li class="nav-item">
+              <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_weather' ? 'active' }}"
+                 href="{{ path('app_weather') }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <path d="M3 17h1m16 0h1m-9 -13v1m-6.364 2.636l.707 .707m11.314 -.707l-.707 .707"/>
+                    <path d="M9 17a3 3 0 1 1 6 0"/>
+                    <path d="M4 17a5 5 0 0 1 9.9 -1"/>
+                    <path d="M12 9a3 3 0 0 1 2.83 4"/>
+                    <path d="M17 17a5 5 0 0 0 -4.9 -6"/>
+                  </svg>
+                </span>
+                <span class="nav-link-title">Météo</span>
+              </a>
+            </li>
+
+            {% set is_media = app.request.attributes.get('_route') starts with 'app_media' or app.request.attributes.get('_route') starts with 'radarr_' or app.request.attributes.get('_route') starts with 'sonarr_' or app.request.attributes.get('_route') starts with 'prowlarr_' or app.request.attributes.get('_route') starts with 'jellyseerr_' or app.request.attributes.get('_route') starts with 'app_qbittorrent_' or app.request.attributes.get('_route') starts with 'tmdb_' %}
+            <li class="nav-item">
+              <a class="nav-link"
+                 href="#"
+                 data-argos-collapse="media-submenu"
+                 role="button"
+                 aria-expanded="{{ is_media ? 'true' : 'false' }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <path d="M7 4v16l13 -8z"/>
+                  </svg>
+                </span>
+                <span class="nav-link-title">Médias
+                  <span id="sidebar-media-badge" class="sidebar-dl-badge" style="display:none;">0</span>
+                </span>
+                <span class="nav-link-toggle"></span>
+              </a>
+              <div class="nav-collapse collapse {{ is_media ? 'show' }}" id="media-submenu">
+                <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link {{ app.request.attributes.get('_route') starts with 'tmdb_' ? 'active' }}"
+                       href="{{ path('tmdb_index') }}">
+                      <span class="nav-link-icon d-md-none d-lg-inline-block">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 2l2.4 7.4h7.6l-6.2 4.5l2.4 7.4l-6.2 -4.6l-6.2 4.6l2.4 -7.4l-6.2 -4.5h7.6z"/></svg>
+                      </span>
+                      <span class="nav-link-title d-flex align-items-center">— Découverte</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_media_films' or app.request.attributes.get('_route') starts with 'radarr_' or app.request.attributes.get('_route') starts with 'app_media_radarr' ? 'active' }}"
+                       href="{{ path('app_media_films') }}">
+                      <span class="nav-link-icon d-md-none d-lg-inline-block">
+                        <svg width="20" height="20" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><g transform="translate(70 21)"><path d="M105.3 154.9L112.8 869.5C52.7 877 7.5 846.9 7.5 786.8L0 192.6C0 4.5 173-40.6 278.3 34.6L812.3 343C887.5 395.6 902.6 493.4 865 561.1C857.5 508.5 834.9 478.4 789.8 448.3L188 109.8C142.9 79.7 105.3 87.2 105.3 154.9Z" fill="#FFC230"/><path d="M0 376.1C45.1 391.1 90.3 383.6 127.9 361L744.6 0C782.2 52.7 774.7 105.3 729.6 135.4L210.6 436.3C135.4 473.9 37.6 436.3 0 376.1Z" transform="translate(60.2 531)" fill="#FFC230"/><path d="M0 413.7L368.6 203.1L7.5 0L0 413.7Z" transform="translate(240.7 282.8)" fill="#FFC230"/></g></svg>
+                      </span>
+                      <span class="nav-link-title d-flex align-items-center">— Films</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_media_series' or app.request.attributes.get('_route') starts with 'sonarr_' ? 'active' }}"
+                       href="{{ path('app_media_series') }}">
+                      <span class="nav-link-icon d-md-none d-lg-inline-block">
+                        <svg width="20" height="20" viewBox="0 0 216.7 216.9" xmlns="http://www.w3.org/2000/svg"><path d="M194.65 42.5l-22.4 22.4C159.15 78 158 89.4 158 109.5c0 17.93 2.85 34.35 16.2 47.7l19 18.95c-2.5 3.07-5.2 6.07-8.1 9-.7.83-1.48 1.6-2.35 2.3-2.53 2.5-5.17 4.82-7.9 6.95l-17.55-17.55c-15.6-15.6-28-17.1-48.6-17.1-19.77 0-33.22 1.82-47.7 16.3l-18.55 18.6c-3.77-2.87-7.33-6.03-10.7-9.5-2.8-2.8-5.42-5.67-7.85-8.6l19.15-19.2c13.85-13.85 16.1-29.92 16.1-47.85 0-17.5-2.87-33.82-15.6-46.55L22.45 43.85c2.83-3.6 5.92-7.07 9.25-10.4 2.93-2.87 5.93-5.55 9-8.05L61.1 43.85C74.1 56.85 90.77 60.2 108.7 60.2c18.47 0 35.08-3.58 48.6-17.1l19.3-19.25c2.9 2.37 5.73 4.93 8.5 7.7 3.47 3.53 6.65 7.18 9.55 10.95z" fill="#0CF"/><circle cx="108.35" cy="108.45" r="29.5" fill="#0CF" opacity=".8"/></svg>
+                      </span>
+                      <span class="nav-link-title d-flex align-items-center">— Séries</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link {{ app.request.attributes.get('_route') starts with 'prowlarr_' ? 'active' }}"
+                       href="{{ path('prowlarr_index') }}">
+                      <span class="nav-link-icon d-md-none d-lg-inline-block">
+                        <svg width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32zm0 400c-97 0-176-79-176-176S159 80 256 80s176 79 176 176-79 176-176 176z" fill="#E88D1A"/><path d="M256 120c-75 0-136 61-136 136s61 136 136 136 136-61 136-136-61-136-136-136zm0 224c-48.6 0-88-39.4-88-88s39.4-88 88-88 88 39.4 88 88-39.4 88-88 88z" fill="#E88D1A"/><circle cx="256" cy="256" r="48" fill="#E88D1A"/></svg>
+                      </span>
+                      <span class="nav-link-title d-flex align-items-center">— Prowlarr</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link {{ app.request.attributes.get('_route') starts with 'jellyseerr_' ? 'active' }}"
+                       href="{{ path('jellyseerr_index') }}">
+                      <span class="nav-link-icon d-md-none d-lg-inline-block">
+                        <svg width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/><path d="M256 176c-44.2 0-80 35.8-80 80s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80zm0 120c-22.1 0-40-17.9-40-40s17.9-40 40-40 40 17.9 40 40-17.9 40-40 40z" fill="#c084fc" opacity=".6"/></svg>
+                      </span>
+                      <span class="nav-link-title d-flex align-items-center">— Jellyseerr</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_qbittorrent_' ? 'active' }}"
+                       href="{{ path('app_qbittorrent_index') }}">
+                      <span class="nav-link-icon d-md-none d-lg-inline-block">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                             fill="none" stroke="#2f67ba" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" class="icon">
+                          <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/>
+                          <path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/>
+                        </svg>
+                      </span>
+                      <span class="nav-link-title d-flex align-items-center">— Téléchargements
+                        <span id="sidebar-qbt-badge" class="sidebar-dl-badge" style="display:none;">0</span>
+                      </span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_notif' ? 'active' }}"
+                 href="#">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/>
+                    <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+                  </svg>
+                </span>
+                <span class="nav-link-title">Notifications</span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_todo' ? 'active' }}"
+                 href="#">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/>
+                    <path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"/>
+                    <path d="M9 12l.01 0"/><path d="M13 12l2 0"/>
+                    <path d="M9 16l.01 0"/><path d="M13 16l2 0"/>
+                  </svg>
+                </span>
+                <span class="nav-link-title">Productivité</span>
+              </a>
+            </li>
+
+          </ul>
+
+          <div class="mt-auto">
+            <ul class="navbar-nav">
+
+              <li class="nav-item">
+                <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_tasks' ? 'active' }}"
+                   href="{{ path('app_tasks') }}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" class="icon">
+                      <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+                      <path d="M12 7a5 5 0 1 0 5 5"/>
+                      <path d="M15 3.223a9 9 0 1 1 -8.408 14.84"/>
+                      <path d="M15 8v-5h5"/>
+                    </svg>
+                  </span>
+                  <span class="nav-link-title">Tâches</span>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_alertes' ? 'active' }}"
+                   href="{{ path('app_alertes') }}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" class="icon">
+                      <path d="M12 9v4m0 4l.01 0"/>
+                      <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/>
+                    </svg>
+                  </span>
+                  <span class="nav-link-title d-flex align-items-center justify-content-between">
+                    Alertes
+                    <span id="sse-alert-badge" class="badge bg-danger ms-auto{% if alert_count == 0 %} d-none{% endif %}">{{ alert_count > 0 ? alert_count : '' }}</span>
+                  </span>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_integrity' ? 'active' }}"
+                   href="{{ path('app_integrity') }}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" class="icon">
+                      <path d="M12 3l9 4-9 4-9-4 9-4z"/>
+                      <path d="M3 12l9 4 9-4"/>
+                      <path d="M3 17l9 4 9-4"/>
+                    </svg>
+                  </span>
+                  <span class="nav-link-title">Intégrité</span>
+                </a>
+              </li>
+
+              {% if is_granted('ROLE_ADMIN') %}
+              <li class="nav-item">
+                <a class="nav-link {{ app.request.attributes.get('_route') starts with 'admin_db' ? 'active' }}"
+                   href="{{ path('admin_db_index') }}">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" class="icon">
+                      <ellipse cx="12" cy="6" rx="8" ry="3"/>
+                      <path d="M4 6v6a8 3 0 0 0 16 0v-6"/>
+                      <path d="M4 12v6a8 3 0 0 0 16 0v-6"/>
+                    </svg>
+                  </span>
+                  <span class="nav-link-title">Base de données</span>
+                </a>
+              </li>
+              {% endif %}
+
+            </ul>
+          </div>
+        </div>
+      </div>
+    </aside>
+    {# ===================== FIN SIDEBAR ===================== #}
+
+    {# ===================== CONTENU PRINCIPAL ===================== #}
+    <div class="page-wrapper">
+
+      {# ── Command Center fixe ── #}
+      <div id="argos-command-center">
+        <div class="container-xl px-3">
+          <div class="d-flex align-items-center gap-3 flex-wrap" style="min-height:26px;">
+            <div class="cc-metric">
+              <span class="cc-dot cc-dot-ok" id="cc-status-dot"></span>
+              <span class="cc-metric-label">Argos</span>
+            </div>
+            <div class="cc-metric">
+              <span class="cc-metric-label">CPU</span>
+              <span class="cc-metric-value" id="cc-mac-cpu">—</span>
+            </div>
+            <div class="cc-metric">
+              <span class="cc-metric-label">RAM</span>
+              <span class="cc-metric-value" id="cc-mac-ram">—</span>
+            </div>
+            <div class="cc-metric">
+              <span class="cc-metric-label">Disque</span>
+              <span class="cc-metric-value" id="cc-mac-disk">—</span>
+            </div>
+            <div class="cc-metric">
+              <span class="cc-metric-label">NAS</span>
+              <span class="cc-metric-value" id="cc-nas-temp">—</span>
+            </div>
+            <div class="cc-metric">
+              <span class="cc-metric-label">Docker</span>
+              <span class="cc-metric-value" id="cc-docker">—</span>
+            </div>
+            <div class="cc-metric">
+              <span class="cc-metric-label">Réseau</span>
+              <span class="cc-metric-value" id="cc-clients">—</span>
+            </div>
+            <div class="cc-metric ms-auto">
+              <span class="cc-metric-label" id="cc-alerts">0 alertes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-header d-print-none">
+        <div class="container-xl">
+          <div class="row g-2 align-items-center">
+            <div class="col">
+              <h2 class="page-title">{% block page_title '' %}</h2>
+              {% block breadcrumb %}{% endblock %}
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+              {% block page_actions %}{% endblock %}
+            </div>
+            <div class="col-auto d-print-none" id="topbar-actions">
+              <div class="d-flex align-items-center gap-1">
+
+                {# Recherche globale #}
+                <div class="position-relative" id="global-search-wrap" style="width:240px;">
+                  <input type="text" id="global-search-input" class="form-control form-control-sm"
+                         placeholder="Rechercher… (Ctrl+K)" autocomplete="off"
+                         style="padding-left:2rem;padding-right:2rem;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#e2e8f0;">
+                  <svg id="global-search-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       style="position:absolute;left:.5rem;top:50%;transform:translateY(-50%);opacity:.5;pointer-events:none;">
+                    <circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/>
+                  </svg>
+                  <div id="global-search-spinner" style="display:none;position:absolute;right:.5rem;top:50%;transform:translateY(-50%);pointer-events:none;">
+                    <div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div>
+                  </div>
+                  <div id="global-search-results" class="dropdown-menu" style="width:380px;max-height:440px;overflow-y:auto;position:absolute;right:0;left:auto;top:100%;display:none;"></div>
+                </div>
+
+                {# Thème #}
+                <a href="#" id="theme-toggle-top" class="btn btn-icon btn-ghost-secondary" title="Changer le thème">
+                  <svg id="icon-moon-top" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
+                  </svg>
+                  <svg id="icon-sun-top" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+                  </svg>
+                </a>
+
+                {# Cloche alertes #}
+                <div class="dropdown" style="position:relative;">
+                  <button type="button" class="btn btn-icon btn-ghost-secondary position-relative" data-argos-dropdown="bell-menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/>
+                      <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+                    </svg>
+                    <span id="sse-alert-badge-top" class="badge bg-danger{% if alert_count == 0 %} d-none{% endif %}"
+                          style="position:absolute;top:2px;right:2px;font-size:0.6rem;min-width:1.1em;padding:0.15em 0.3em;line-height:1;">
+                      {{ alert_count > 0 ? alert_count : '' }}
+                    </span>
+                  </button>
+                  <div class="dropdown-menu" id="bell-menu" style="min-width:300px;position:absolute;right:0;left:auto;top:100%;">
+                    <div class="dropdown-header d-flex align-items-center justify-content-between">
+                      <span class="fw-semibold">Alertes actives</span>
+                      {% if alert_count > 0 %}
+                        <span class="badge bg-danger">{{ alert_count }}</span>
+                      {% endif %}
+                    </div>
+                    {% set latest_alerts = alert_latest() %}
+                    {% if latest_alerts is empty %}
+                      <div class="py-3 text-center text-secondary small">Aucune alerte active</div>
+                    {% else %}
+                      {% for alert in latest_alerts %}
+                        <a href="{{ path('app_alertes') }}" class="dropdown-item py-2">
+                          <div class="d-flex gap-2 align-items-start">
+                            <span class="badge {{ alert.severity == 'critical' ? 'bg-danger' : 'bg-warning text-dark' }} flex-shrink-0" style="margin-top:2px;">
+                              {{ alert.severity == 'critical' ? '!' : '▲' }}
+                            </span>
+                            <div class="overflow-hidden flex-grow-1">
+                              <div class="small fw-medium text-truncate">{{ alert.message }}</div>
+                              <div class="text-secondary" style="font-size:0.7rem;">
+                                {{ alert.device ? alert.device.name : '—' }} · {{ alert.createdAt|date('H:i') }}
+                              </div>
+                            </div>
+                          </div>
+                        </a>
+                      {% endfor %}
+                    {% endif %}
+                    <div class="dropdown-divider"></div>
+                    <a href="{{ path('app_alertes') }}" class="dropdown-item text-center small text-secondary">
+                      Voir toutes les alertes →
+                    </a>
+                  </div>
+                </div>
+
+                {# Profil #}
+                <div class="dropdown" style="position:relative;">
+                  <button type="button" class="btn btn-icon btn-ghost-secondary" data-argos-dropdown="profile-menu">
+                    <span style="display:inline-flex;width:1.375rem;height:1.375rem;border-radius:50%;background-image:url(https://ui-avatars.com/api/?name={{ app.user ? app.user.email|url_encode : 'U' }}&background=6366f1&color=fff&size=64);background-size:cover;background-position:center;flex-shrink:0;"></span>
+                  </button>
+                  <div class="dropdown-menu" id="profile-menu" style="min-width:220px;position:absolute;right:0;left:auto;top:100%;">
+                    <div class="dropdown-header">
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="avatar" style="width:2rem;height:2rem;background-image:url(https://ui-avatars.com/api/?name={{ app.user ? app.user.email|url_encode : 'U' }}&background=6366f1&color=fff&size=64);background-size:cover;background-position:center;border-radius:50%;flex-shrink:0;"></span>
+                        <div class="overflow-hidden">
+                          <div class="small fw-semibold text-truncate">{{ app.user ? app.user.email : '' }}</div>
+                          <div class="small text-secondary">{% if is_granted('ROLE_ADMIN') %}Administrateur{% else %}Utilisateur{% endif %}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-secondary">
+                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
+                        <path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/>
+                      </svg>
+                      Mon profil
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{{ path('app_logout') }}" class="dropdown-item text-danger">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2">
+                        <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/>
+                        <path d="M9 12h12l-3 -3m0 6l3 -3"/>
+                      </svg>
+                      Déconnexion
+                    </a>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-body">
+        <div class="container-xl">
+          {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible js-autohide" role="alert">
+              <div class="d-flex"><div>{{ message }}</div></div>
+              <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+            </div>
+          {% endfor %}
+          {% for message in app.flashes('error') %}
+            <div class="alert alert-danger alert-dismissible js-autohide" role="alert">
+              <div class="d-flex"><div>{{ message }}</div></div>
+              <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+            </div>
+          {% endfor %}
+
+          {% block body %}{% endblock %}
+        </div>
+      </div>
+
+      <footer class="footer footer-transparent d-print-none">
+        <div class="container-xl">
+          <div class="row text-center align-items-center">
+            <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+              <ul class="list-inline list-inline-dots mb-0">
+                <li class="list-inline-item text-secondary">
+                  IH-ARGOS &copy; {{ "now"|date("Y") }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+    {# ===================== FIN CONTENU PRINCIPAL ===================== #}
+
+    {# ── Modal ajout rapide (recherche globale) ── #}
+    <div class="modal modal-blur fade" id="modal-quick-add" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document" style="margin-top:3rem">
+        <div class="modal-content" style="background:var(--tblr-bg-surface)">
+          <div class="modal-header">
+            <div class="d-flex align-items-center gap-3 w-100">
+              <img id="qa-poster" src="" alt="" style="width:40px;height:60px;object-fit:cover;border-radius:4px;display:none;">
+              <div class="overflow-hidden">
+                <h5 class="modal-title mb-0" id="qa-title"></h5>
+                <div class="text-secondary small" id="qa-subtitle"></div>
+              </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          </div>
+          <div class="modal-body">
+            <div id="qa-already" class="alert alert-success d-flex align-items-center gap-2" style="display:none !important;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 12l2 2l4 -4"/></svg>
+              Déjà en bibliothèque
+            </div>
+
+            {# ── Formulaire FILM (Radarr) ── #}
+            <div id="qa-form-film" style="display:none">
+              <div class="row g-2">
+                <div class="col-12 col-sm-4">
+                  <label class="form-label small mb-1">Profil de qualité</label>
+                  <select id="qa-film-quality" class="form-select form-select-sm"></select>
+                </div>
+                <div class="col-12 col-sm-4">
+                  <label class="form-label small mb-1">Dossier racine</label>
+                  <select id="qa-film-folder" class="form-select form-select-sm"></select>
+                </div>
+                <div class="col-12 col-sm-4">
+                  <label class="form-label small mb-1">Disponibilité minimum</label>
+                  <select id="qa-film-availability" class="form-select form-select-sm">
+                    <option value="announced">Annoncé</option>
+                    <option value="inCinemas">En salles</option>
+                    <option value="released" selected>Sorti</option>
+                  </select>
+                </div>
+              </div>
+              <div class="d-flex align-items-center justify-content-between mt-3">
+                <label class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" id="qa-film-search" checked>
+                  <span class="form-check-label small">Rechercher automatiquement</span>
+                </label>
+                <button id="qa-film-confirm" class="btn btn-success">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
+                  Ajouter à Radarr
+                </button>
+              </div>
+            </div>
+
+            {# ── Formulaire SÉRIE (Sonarr) ── #}
+            <div id="qa-form-serie" style="display:none">
+              <div class="row g-2">
+                <div class="col-6 col-sm-3">
+                  <label class="form-label small mb-1">Profil de qualité</label>
+                  <select id="qa-serie-quality" class="form-select form-select-sm"></select>
+                </div>
+                <div class="col-6 col-sm-3">
+                  <label class="form-label small mb-1">Dossier racine</label>
+                  <select id="qa-serie-folder" class="form-select form-select-sm"></select>
+                </div>
+                <div class="col-6 col-sm-3">
+                  <label class="form-label small mb-1">Type de série</label>
+                  <select id="qa-serie-type" class="form-select form-select-sm">
+                    <option value="standard">Standard</option>
+                    <option value="daily">Quotidienne</option>
+                    <option value="anime">Anime</option>
+                  </select>
+                </div>
+                <div class="col-6 col-sm-3">
+                  <label class="form-label small mb-1">Surveiller</label>
+                  <select id="qa-serie-monitor" class="form-select form-select-sm">
+                    <option value="all">Tous les épisodes</option>
+                    <option value="future">Futurs uniquement</option>
+                    <option value="missing">Manquants</option>
+                    <option value="firstSeason">1ère saison</option>
+                    <option value="lastSeason">Dernière saison</option>
+                    <option value="pilot">Pilote</option>
+                    <option value="none">Aucun</option>
+                  </select>
+                </div>
+              </div>
+              <div class="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                  <label class="form-check mb-0">
+                    <input type="checkbox" class="form-check-input" id="qa-serie-season-folder" checked>
+                    <span class="form-check-label small">Dossiers par saison</span>
+                  </label>
+                  <label class="form-check mb-0">
+                    <input type="checkbox" class="form-check-input" id="qa-serie-search-missing">
+                    <span class="form-check-label small">Rechercher les manquants</span>
+                  </label>
+                </div>
+                <button id="qa-serie-confirm" class="btn btn-success">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
+                  Ajouter à Sonarr
+                </button>
+              </div>
+            </div>
+
+            <div id="qa-result" class="mt-3 alert d-none"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="{{ asset('static/tabler/js/tabler.min.js') }}"></script>
+
+  {% block javascripts %}{% endblock %}
+  <script>
+  (function () {
+    function initAlertSSE() {
+      if (window._argosAlertSrc) { window._argosAlertSrc.close(); window._argosAlertSrc = null; }
+      var u = new URL('/.well-known/mercure', window.location.origin);
+      u.searchParams.append('topic', '/argos/alerts');
+      window._argosAlertSrc = new EventSource(u.toString());
+      window._argosAlertSrc.onmessage = function (e) {
+        var d = JSON.parse(e.data);
+        [document.getElementById('sse-alert-badge'), document.getElementById('sse-alert-badge-top')].forEach(function (b) {
+          if (!b) return;
+          if (d.count > 0) { b.textContent = d.count; b.classList.remove('d-none'); }
+          else { b.textContent = ''; b.classList.add('d-none'); }
+        });
+        var pageBadge = document.getElementById('sse-alert-page-badge');
+        if (pageBadge) { pageBadge.textContent = d.count > 0 ? d.count : '0'; }
+        document.dispatchEvent(new CustomEvent('argos:alerts', { detail: d }));
+      };
+    }
+    window._argosResolveAlert = function (e, id, token, btn) {
+      e.stopPropagation();
+      // Mise à jour optimiste : retire la ligne immédiatement
+      var row = btn.closest('.dropdown-item');
+      if (row) row.remove();
+      [document.getElementById('sse-alert-badge'), document.getElementById('sse-alert-badge-top')].forEach(function (b) {
+        if (!b) return;
+        var n = Math.max(0, (parseInt(b.textContent, 10) || 0) - 1);
+        if (n > 0) { b.textContent = n; } else { b.textContent = ''; b.classList.add('d-none'); }
+      });
+      // Confirmation serveur en arrière-plan
+      fetch('/alertes/' + id + '/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: '_token=' + encodeURIComponent(token),
+      }).then(function () {
+        window._argosRefreshBell();
+      });
+    };
+
+    window._argosRefreshBell = function () {
+      var menu = document.getElementById('bell-menu');
+      if (!menu) return;
+      fetch('/alertes/latest')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var alerts = data.alerts;
+          var count  = data.count;
+          [document.getElementById('sse-alert-badge'), document.getElementById('sse-alert-badge-top')].forEach(function (b) {
+            if (!b) return;
+            if (count > 0) { b.textContent = count; b.classList.remove('d-none'); }
+            else { b.textContent = ''; b.classList.add('d-none'); }
+          });
+          var header = '<div class="dropdown-header d-flex align-items-center justify-content-between">'
+            + '<span class="fw-semibold">Alertes actives</span>'
+            + (count > 0 ? '<span class="badge bg-danger">' + count + '</span>' : '')
+            + '</div>';
+          var body = alerts.length === 0
+            ? '<div class="py-3 text-center text-secondary small">Aucune alerte active</div>'
+            : alerts.map(function (a) {
+                return '<div class="dropdown-item py-2 d-flex gap-2 align-items-start">'
+                  + '<a href="/alertes" class="d-flex gap-2 align-items-start flex-grow-1 overflow-hidden text-decoration-none">'
+                  + '<span class="badge ' + (a.severity === 'critical' ? 'bg-danger' : 'bg-warning text-dark') + ' flex-shrink-0" style="margin-top:2px;">'
+                  + (a.severity === 'critical' ? '!' : '▲') + '</span>'
+                  + '<div class="overflow-hidden flex-grow-1">'
+                  + '<div class="small fw-medium text-truncate">' + a.message + '</div>'
+                  + '<div class="text-secondary" style="font-size:0.7rem;">' + (a.device || '—') + ' · ' + a.date + '</div>'
+                  + '</div></a>'
+                  + '<button class="btn btn-sm btn-ghost-secondary p-0 ms-1 flex-shrink-0" style="width:1.25rem;height:1.25rem;line-height:1;" '
+                  + 'onclick="window._argosResolveAlert(event,' + a.id + ',\'' + a.token + '\',this)" title="Résoudre">'
+                  + '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12m0 -12l12 12"/></svg>'
+                  + '</button>'
+                  + '</div>';
+              }).join('');
+          var footer = '<div class="dropdown-divider"></div>'
+            + '<a href="/alertes" class="dropdown-item text-center small text-secondary">Voir toutes les alertes →</a>';
+          menu.innerHTML = header + body + footer;
+        });
+    }
+
+    if (!window._argosAlertListeners) {
+      window._argosAlertListeners = true;
+      document.addEventListener('turbo:load', initAlertSSE);
+      document.addEventListener('DOMContentLoaded', initAlertSSE);
+      document.addEventListener('turbo:before-cache', function () {
+        if (window._argosAlertSrc) { window._argosAlertSrc.close(); window._argosAlertSrc = null; }
+      });
+    }
+    initAlertSSE();
+
+    function initAutohide() {
+      document.querySelectorAll('.js-autohide').forEach(function (el) {
+        if (el.dataset.autohideInit) return;
+        el.dataset.autohideInit = '1';
+        setTimeout(function () {
+          if (!document.body.contains(el)) return;
+          if (typeof bootstrap === 'undefined') return;
+          var bsAlert = bootstrap.Alert.getOrCreateInstance(el);
+          if (bsAlert) bsAlert.close();
+        }, 3000);
+      });
+    }
+    document.addEventListener('turbo:load', initAutohide);
+    document.addEventListener('DOMContentLoaded', initAutohide);
+
+    /* ── Recherche globale ── */
+    function initGlobalSearch() {
+      var input = document.getElementById('global-search-input');
+      var resultsDiv = document.getElementById('global-search-results');
+      var spinner = document.getElementById('global-search-spinner');
+      if (!input || !resultsDiv) return;
+      if (input.dataset.init) return;
+      input.dataset.init = '1';
+      var timer = null;
+      var currentReq = null;
+
+      function showSpinner() { if (spinner) spinner.style.display = ''; }
+      function hideSpinner() { if (spinner) spinner.style.display = 'none'; }
+
+      function renderItem(item) {
+        var icon = item.type === 'film'
+          ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFC230" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>'
+          : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0CF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>';
+        var badge = item.inLibrary
+          ? '<span class="badge bg-green-lt ms-auto flex-shrink-0" style="font-size:.6rem;">En bibliothèque</span>'
+          : '<span class="badge bg-secondary-lt ms-auto flex-shrink-0" style="font-size:.6rem;">Non ajouté</span>';
+        var poster = item.poster ? '<img src="' + item.poster + '" style="width:30px;height:45px;object-fit:cover;border-radius:4px;" class="flex-shrink-0" loading="lazy">' : '<div style="width:30px;height:45px;background:rgba(255,255,255,.05);border-radius:4px;display:flex;align-items:center;justify-content:center;" class="flex-shrink-0">' + icon + '</div>';
+        var dataAttr = ' data-quick-add=\'' + JSON.stringify(item).replace(/'/g, '&#39;') + '\'';
+        return '<a href="#" class="dropdown-item py-2 d-flex align-items-center gap-2"' + dataAttr + '>'
+          + poster
+          + '<div class="overflow-hidden flex-grow-1">'
+          + '<div class="d-flex align-items-center gap-1">' + icon + ' <span class="small fw-medium text-truncate" style="color:#e2e8f0;">' + item.title + '</span></div>'
+          + '<div class="text-secondary" style="font-size:.7rem;">' + (item.year || '') + '</div>'
+          + '</div>'
+          + badge
+          + '</a>';
+      }
+
+      var onlineReq = null;
+
+      input.addEventListener('input', function () {
+        clearTimeout(timer);
+        if (currentReq) { currentReq.abort(); currentReq = null; }
+        if (onlineReq) { onlineReq.abort(); onlineReq = null; }
+        var q = input.value.trim();
+        if (q.length < 2) { resultsDiv.style.display = 'none'; hideSpinner(); return; }
+        showSpinner();
+        timer = setTimeout(function () {
+          // 1) Résultats locaux instantanés
+          var ctrl = new AbortController();
+          currentReq = ctrl;
+          fetch('/medias/search?q=' + encodeURIComponent(q), { signal: ctrl.signal })
+            .then(function (r) { return r.json(); })
+            .then(function (localItems) {
+              hideSpinner();
+              currentReq = null;
+              // Stocker les IDs locaux pour marquer "En bibliothèque" dans les résultats en ligne
+              var localIds = {};
+              localItems.forEach(function (item) { localIds[item.type + '_' + (item.title || '')] = true; });
+              window._argosLocalIds = localIds;
+
+              resultsDiv.innerHTML = '<div id="search-online-section"><div class="py-2 text-center"><div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div><span class="small text-secondary ms-2">Recherche en ligne…</span></div></div>';
+              resultsDiv.style.display = 'block';
+
+              // 2) Résultats en ligne en parallèle
+              var ctrl2 = new AbortController();
+              onlineReq = ctrl2;
+              fetch('/medias/search/online?q=' + encodeURIComponent(q), { signal: ctrl2.signal })
+                .then(function (r) { return r.json(); })
+                .then(function (onlineItems) {
+                  onlineReq = null;
+                  var section = document.getElementById('search-online-section');
+                  if (!section) return;
+                  if (!onlineItems.length) {
+                    section.innerHTML = '<div class="py-2 text-center text-secondary small">Aucun résultat en ligne</div>';
+                    return;
+                  }
+                  var oHtml = '<div class="dropdown-header py-1"><span class="small" style="color:#6366f1;">Découvrir (TMDb / TheTVDB)</span></div>';
+                  oHtml += onlineItems.map(function (item) { return renderItem(item); }).join('');
+                  section.innerHTML = oHtml;
+                })
+                .catch(function (err) {
+                  if (err.name === 'AbortError') return;
+                  var section = document.getElementById('search-online-section');
+                  if (section) section.innerHTML = '<div class="py-2 text-center text-secondary small">Erreur recherche en ligne</div>';
+                });
+            })
+            .catch(function (err) {
+              if (err.name !== 'AbortError') { hideSpinner(); }
+            });
+        }, 300);
+      });
+
+      input.addEventListener('focus', function () {
+        input.style.background = 'rgba(255,255,255,.1)';
+        input.style.borderColor = '#6366f1';
+      });
+      input.addEventListener('blur', function () {
+        input.style.background = 'rgba(255,255,255,.06)';
+        input.style.borderColor = 'rgba(255,255,255,.15)';
+      });
+
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { resultsDiv.style.display = 'none'; input.blur(); }
+      });
+
+      // Raccourci Ctrl+K / Cmd+K
+      document.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          input.focus();
+          input.select();
+        }
+      });
+    }
+    document.addEventListener('turbo:load', initGlobalSearch);
+    document.addEventListener('DOMContentLoaded', initGlobalSearch);
+    initGlobalSearch();
+
+    /* ── Quick Add modal ── */
+    function initQuickAdd() {
+      if (window._argosQAInit) return;
+      window._argosQAInit = true;
+
+      var qaItem  = null;
+      var qaCache = {};
+      function getQaModal() { return document.getElementById('modal-quick-add'); }
+
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest('[data-quick-add]');
+        if (!el) return;
+        var qaModal = getQaModal();
+        if (!qaModal) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        qaItem = JSON.parse(el.dataset.quickAdd);
+        var isFilm = qaItem.type === 'film';
+
+        // Header
+        var poster = document.getElementById('qa-poster');
+        if (qaItem.poster) { poster.src = qaItem.poster; poster.style.display = ''; }
+        else { poster.style.display = 'none'; }
+        document.getElementById('qa-title').textContent = qaItem.title || '—';
+        document.getElementById('qa-subtitle').innerHTML = (isFilm
+          ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFC230" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg> Film'
+          : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0CF" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg> Série')
+          + (qaItem.year ? ' · ' + qaItem.year : '');
+
+        // Afficher le bon formulaire
+        document.getElementById('qa-form-film').style.display = isFilm ? '' : 'none';
+        document.getElementById('qa-form-serie').style.display = isFilm ? 'none' : '';
+
+        // Bibliothèque ?
+        var alreadyEl = document.getElementById('qa-already');
+        if (qaItem.inLibrary) {
+          alreadyEl.style.cssText = '';
+          document.getElementById('qa-form-film').style.display = 'none';
+          document.getElementById('qa-form-serie').style.display = 'none';
+        } else {
+          alreadyEl.style.cssText = 'display:none !important';
+        }
+
+        // Reset
+        document.getElementById('qa-result').className = 'mt-3 alert d-none';
+        var confirmBtn = document.getElementById(isFilm ? 'qa-film-confirm' : 'qa-serie-confirm');
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg> Ajouter à ' + (isFilm ? 'Radarr' : 'Sonarr');
+
+        // Charger profils/dossiers
+        var cacheKey = isFilm ? 'film' : 'serie';
+        if (qaCache[cacheKey]) {
+          fillSelects(isFilm, qaCache[cacheKey]);
+        } else {
+          var profileUrl = isFilm ? '/medias/films/quality-profiles' : '/medias/sonarr/quality-profiles';
+          var folderUrl = isFilm ? '/medias/films/root-folders' : '/medias/sonarr/root-folders';
+          Promise.all([
+            fetch(profileUrl).then(function (r) { return r.json(); }),
+            fetch(folderUrl).then(function (r) { return r.json(); })
+          ]).then(function (results) {
+            qaCache[cacheKey] = { profiles: results[0], folders: results[1] };
+            fillSelects(isFilm, qaCache[cacheKey]);
+          });
+        }
+
+        // Auto-détection anime
+        if (!isFilm && qaItem.seriesType === 'anime') {
+          document.getElementById('qa-serie-type').value = 'anime';
+        }
+
+        // Ouvrir modal
+        var searchResults = document.getElementById('global-search-results');
+        if (searchResults) searchResults.style.display = 'none';
+        qaModal.classList.add('show');
+        qaModal.style.display = 'block';
+        document.body.classList.add('modal-open');
+        if (!document.querySelector('.modal-backdrop')) {
+          var bd = document.createElement('div');
+          bd.className = 'modal-backdrop fade show';
+          document.body.appendChild(bd);
+        }
+      });
+
+      function fillSelects(isFilm, data) {
+        var prefix = isFilm ? 'qa-film' : 'qa-serie';
+        var qSel = document.getElementById(prefix + '-quality');
+        var fSel = document.getElementById(prefix + '-folder');
+        qSel.innerHTML = (data.profiles || []).map(function (p) {
+          return '<option value="' + p.id + '">' + (p.name || p.id) + '</option>';
+        }).join('');
+        fSel.innerHTML = (data.folders || []).map(function (f) {
+          return '<option value="' + (f.path || f) + '">' + (f.path || f) + '</option>';
+        }).join('');
+      }
+
+      // Fermer modal (Turbo-safe : relire le DOM)
+      document.addEventListener('click', function(e) {
+        var m = getQaModal();
+        if (!m) return;
+        if (e.target.closest('#modal-quick-add [data-bs-dismiss="modal"]')) { closeQA(); return; }
+        if (e.target === m) closeQA();
+      });
+      document.addEventListener('keydown', function (e) {
+        var m = getQaModal();
+        if (e.key === 'Escape' && m && m.classList.contains('show')) closeQA();
+      });
+
+      function closeQA() {
+        var m = getQaModal();
+        if (!m) return;
+        m.classList.remove('show');
+        m.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        var bd = document.querySelector('.modal-backdrop');
+        if (bd) bd.remove();
+        // Reset boutons confirm pour le prochain usage
+        ['qa-film-confirm', 'qa-serie-confirm'].forEach(function(id) {
+          var btn = document.getElementById(id);
+          if (btn) {
+            btn.disabled = false;
+            btn.className = 'btn btn-success';
+            var label = id === 'qa-film-confirm' ? 'Radarr' : 'Sonarr';
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg> Ajouter à ' + label;
+          }
+        });
+        var result = document.getElementById('qa-result');
+        if (result) result.className = 'mt-3 alert d-none';
+      }
+
+      function doAdd(isFilm) {
+        if (!qaItem || qaItem.inLibrary) return;
+        var prefix = isFilm ? 'qa-film' : 'qa-serie';
+        var btn = document.getElementById(prefix + '-confirm');
+        var result = document.getElementById('qa-result');
+        var qualVal = document.getElementById(prefix + '-quality').value;
+        var folderVal = document.getElementById(prefix + '-folder').value;
+
+        if (!qualVal || !folderVal) {
+          result.className = 'mt-3 alert alert-warning';
+          result.textContent = 'Sélectionnez un profil et un dossier.';
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Ajout…';
+
+        var url, payload;
+        if (isFilm) {
+          url = '/medias/films/add';
+          payload = {
+            tmdbId: qaItem.id, title: qaItem.title, year: qaItem.year || 0,
+            qualityProfileId: parseInt(qualVal), rootFolderPath: folderVal,
+            monitored: true,
+            minimumAvailability: document.getElementById('qa-film-availability').value,
+            searchForMovie: document.getElementById('qa-film-search').checked
+          };
+        } else {
+          url = '/medias/series/add';
+          payload = {
+            tvdbId: qaItem.id, title: qaItem.title,
+            qualityProfileId: parseInt(qualVal), rootFolderPath: folderVal,
+            monitored: true,
+            seriesType: document.getElementById('qa-serie-type').value,
+            monitor: document.getElementById('qa-serie-monitor').value,
+            seasonFolder: document.getElementById('qa-serie-season-folder').checked,
+            searchForMissing: document.getElementById('qa-serie-search-missing').checked
+          };
+        }
+
+        fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok) {
+              result.className = 'mt-3 alert alert-success';
+              result.textContent = (isFilm ? 'Film' : 'Série') + ' ajouté(e) avec succès !';
+              btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg> Ajouté !';
+              btn.className = 'btn btn-outline-success';
+              if (window._argosToast) window._argosToast((isFilm ? 'Film' : 'Série') + ' ajouté(e) à ' + (isFilm ? 'Radarr' : 'Sonarr'), 'success');
+              setTimeout(function () {
+                closeQA();
+              }, 1000);
+            } else {
+              result.className = 'mt-3 alert alert-danger';
+              result.textContent = 'Erreur : ' + (data.error || 'Ajout impossible');
+              btn.disabled = false;
+              btn.innerHTML = 'Réessayer';
+            }
+          })
+          .catch(function () {
+            result.className = 'mt-3 alert alert-danger';
+            result.textContent = 'Erreur réseau';
+            btn.disabled = false;
+            btn.innerHTML = 'Réessayer';
+          });
+      }
+
+      document.addEventListener('click', function(e) {
+        if (e.target.closest('#qa-film-confirm')) doAdd(true);
+        if (e.target.closest('#qa-serie-confirm')) doAdd(false);
+      });
+    }
+    initQuickAdd();
+
+    if (!window._argosDD) {
+      window._argosDD = true;
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-argos-dropdown]');
+        if (btn) {
+          var menuId = btn.getAttribute('data-argos-dropdown');
+          var menu = document.getElementById(menuId);
+          if (!menu) return;
+          var open = menu.classList.contains('show');
+          document.querySelectorAll('.dropdown-menu.show').forEach(function (m) { m.classList.remove('show'); });
+          if (!open) {
+            menu.classList.add('show');
+            if (menuId === 'bell-menu' && window._argosRefreshBell) { window._argosRefreshBell(); }
+            e.stopPropagation();
+          }
+          return;
+        }
+        // Fermer aussi la recherche globale si clic dehors
+        var searchWrap = document.getElementById('global-search-wrap');
+        var searchResults = document.getElementById('global-search-results');
+        if (searchResults && searchWrap && !searchWrap.contains(e.target)) {
+          searchResults.style.display = 'none';
+        }
+        document.querySelectorAll('.dropdown-menu.show').forEach(function (m) { m.classList.remove('show'); });
+      });
+    }
+  })();
+  </script>
+
+  <script>
+  /* ── Collapse sidebar custom (indépendant de Bootstrap/Turbo) ── */
+  (function () {
+    function syncCollapses() {
+      document.querySelectorAll('[data-argos-collapse]').forEach(function (toggle) {
+        var targetId = toggle.getAttribute('data-argos-collapse');
+        var target = document.getElementById(targetId);
+        if (!target) return;
+        var open = toggle.getAttribute('aria-expanded') === 'true';
+        if (open) { target.classList.add('show'); } else { target.classList.remove('show'); }
+      });
+    }
+    if (!window._argosCollapseInit) {
+      window._argosCollapseInit = true;
+      document.addEventListener('click', function (e) {
+        var toggle = e.target.closest('[data-argos-collapse]');
+        if (!toggle) return;
+        e.preventDefault();
+        var targetId = toggle.getAttribute('data-argos-collapse');
+        var target = document.getElementById(targetId);
+        if (!target) return;
+        var open = target.classList.contains('show');
+        target.classList.toggle('show', !open);
+        toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+      });
+      document.addEventListener('turbo:load', syncCollapses);
+      document.addEventListener('DOMContentLoaded', syncCollapses);
+    }
+    syncCollapses();
+  })();
+  </script>
+
+  <script>
+  /* ── Vidéos autoplay après navigation Turbo ou retour d'onglet ── */
+  (function () {
+    function resumeVideos() {
+      document.querySelectorAll('video[autoplay]').forEach(function (v) {
+        if (v.paused) { v.play().catch(function () {}); }
+      });
+    }
+    document.addEventListener('turbo:load', resumeVideos);
+    document.addEventListener('turbo:render', resumeVideos);
+    /* Reprendre quand l'onglet redevient visible */
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) { resumeVideos(); }
+    });
+    /* Mettre en pause avant mise en cache Turbo pour éviter les glitches */
+    document.addEventListener('turbo:before-cache', function () {
+      document.querySelectorAll('video').forEach(function (v) { v.pause(); });
+    });
+  })();
+  </script>
+
+  <script>
+  /* ══════════════════════════════════════════════════════════════════
+     Phase 4 — UI Improvements
+     ══════════════════════════════════════════════════════════════════ */
+  (function () {
+
+    /* ── 1. Transitions Turbo (fade) ── */
+    document.addEventListener('turbo:before-render', function () {
+      document.body.classList.add('turbo-loading');
+    });
+    document.addEventListener('turbo:render', function () {
+      document.body.classList.remove('turbo-loading');
+    });
+
+    /* ── 1bis. Cleanup timers globaux à la navigation (évite les timers orphelins
+       sur les pages où le script qBit n'est pas ré-injecté). Ils seront recréés
+       par la page suivante si elle est une page média. ── */
+    if (!window._argosQbtCleanupBound) {
+      window._argosQbtCleanupBound = true;
+      document.addEventListener('turbo:before-render', function () {
+        ['_argosQbtPollTimer', '_argosQbtVpnTimer'].forEach(function (key) {
+          if (window[key]) { clearInterval(window[key]); window[key] = null; }
+        });
+      });
+    }
+
+    /* ── 2. Toasts SSE ── */
+    window._argosToast = function (msg, type, duration) {
+      var container = document.getElementById('argos-toasts');
+      if (!container) return;
+      var toast = document.createElement('div');
+      toast.className = 'argos-toast argos-toast-' + (type || 'info');
+      var icons = {
+        success: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg>',
+        warning: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 16h.01"/></svg>',
+        danger: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+        info: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+      };
+      // Icône via innerHTML (contenu figé), message via textContent (XSS-safe même si msg contient du HTML)
+      toast.innerHTML = (icons[type] || icons.info) + '<span></span>';
+      toast.querySelector('span').textContent = String(msg == null ? '' : msg);
+      container.appendChild(toast);
+      setTimeout(function () {
+        toast.classList.add('toast-out');
+        setTimeout(function () { toast.remove(); }, 300);
+      }, duration || 4000);
+    };
+
+    /* ── 3. Command Center — SSE global ── */
+    /* _argosCCData déclaré dans le <head> pour survivre à Turbo */
+
+    function restoreCCData() {
+      var d = window._argosCCData;
+      if (d.cpu !== undefined) { var el = document.getElementById('cc-mac-cpu'); if (el) { el.textContent = d.cpu.toFixed(1) + '%'; el.style.color = d.cpu > 85 ? '#ef4444' : (d.cpu > 70 ? '#f59e0b' : '#22c55e'); } }
+      if (d.mem_percent !== undefined) { var el = document.getElementById('cc-mac-ram'); if (el) { el.textContent = d.mem_percent.toFixed(1) + '%'; el.style.color = d.mem_percent > 85 ? '#ef4444' : (d.mem_percent > 70 ? '#f59e0b' : '#6366f1'); } }
+      if (d.disk_percent !== undefined) { var el = document.getElementById('cc-mac-disk'); if (el) { el.textContent = d.disk_percent.toFixed(1) + '%'; el.style.color = d.disk_percent > 90 ? '#ef4444' : (d.disk_percent > 75 ? '#f59e0b' : '#22c55e'); } }
+      if (d.docker_up !== undefined) { var el = document.getElementById('cc-docker'); if (el) { el.textContent = d.docker_up + '/' + d.docker_total; el.style.color = d.docker_up === d.docker_total ? '#22c55e' : '#f59e0b'; } }
+      if (d.nas_temp !== undefined) { var el = document.getElementById('cc-nas-temp'); if (el) { el.textContent = d.nas_temp.toFixed(1) + '°C'; el.style.color = d.nas_temp > 70 ? '#ef4444' : (d.nas_temp > 55 ? '#f59e0b' : '#22c55e'); } }
+      if (d.clients_total !== undefined) { var el = document.getElementById('cc-clients'); if (el) el.textContent = d.clients_total + ' clients'; }
+      if (d.alert_count !== undefined) { var el = document.getElementById('cc-alerts'); if (el) { el.textContent = d.alert_count + ' alerte' + (d.alert_count > 1 ? 's' : ''); el.style.color = d.alert_critical > 0 ? '#ef4444' : (d.alert_count > 0 ? '#f59e0b' : 'rgba(255,255,255,.4)'); } var dot = document.getElementById('cc-status-dot'); if (dot) dot.className = 'cc-dot ' + (d.alert_critical > 0 ? 'cc-dot-err' : (d.alert_count > 0 ? 'cc-dot-warn' : 'cc-dot-ok')); }
+    }
+
+    function initCommandCenter() {
+      // Restaurer les dernières valeurs
+      restoreCCData();
+
+      if (window._argosCCSrc) return; // SSE déjà connecté, pas besoin de reconnecter
+      var u = new URL('/.well-known/mercure', window.location.origin);
+      ['/argos/metrics/mac', '/argos/containers', '/argos/metrics/nas', '/argos/alerts', '/argos/metrics/unifi'].forEach(function (t) {
+        u.searchParams.append('topic', t);
+      });
+      var es = new EventSource(u.toString());
+      window._argosCCSrc = es;
+
+      es.onmessage = function (e) {
+        var d = JSON.parse(e.data);
+        var cc = window._argosCCData;
+        // Mac metrics
+        if ('mem_percent' in d) {
+          if (d.cpu !== undefined) cc.cpu = d.cpu;
+          if (d.mem_percent !== undefined) cc.mem_percent = d.mem_percent;
+          if (d.disk_percent !== undefined) cc.disk_percent = d.disk_percent;
+        }
+        // Docker
+        if ('containers' in d || ('up' in d && 'total' in d)) {
+          cc.docker_up = d.up; cc.docker_total = d.total;
+        }
+        // NAS
+        if ('temp' in d) {
+          if (d.temp !== undefined) cc.nas_temp = d.temp;
+        }
+        // Alertes
+        if ('critical' in d || ('count' in d && !('clients_total' in d))) {
+          cc.alert_count = d.count || 0;
+          cc.alert_critical = d.critical || 0;
+          // Toast pour nouvelles alertes critiques
+          if (cc.alert_critical > 0 && cc._lastCritical !== cc.alert_critical) {
+            window._argosToast(cc.alert_critical + ' alerte' + (cc.alert_critical > 1 ? 's' : '') + ' critique' + (cc.alert_critical > 1 ? 's' : ''), 'danger', 6000);
+          }
+          cc._lastCritical = cc.alert_critical;
+        }
+        // UniFi
+        if ('clients_total' in d) {
+          cc.clients_total = d.clients_total || 0;
+        }
+        // Sauvegarder + mettre à jour l'UI
+        window._argosCCSave();
+        restoreCCData();
+      };
+    }
+
+    // Restaurer immédiatement + après chaque render Turbo
+    restoreCCData();
+    if (!window._argosCCSrc) initCommandCenter();
+    if (!window._argosCCRenderBound) {
+      window._argosCCRenderBound = true;
+      document.addEventListener('turbo:render', function () { setTimeout(restoreCCData, 0); });
+      document.addEventListener('turbo:load', function () { setTimeout(restoreCCData, 0); });
+    }
+
+  })();
+  </script>
+
+  {# ══════════════════════════════════════════════════════════════════════════
+     Poll qBittorrent global — toasts fin DL / erreurs + badge sidebar
+     Actif uniquement sur les pages média (évite de charger qBit partout)
+     ══════════════════════════════════════════════════════════════════════════ #}
+  {% set route = app.request.attributes.get('_route') ?? '' %}
+  {% if route starts with 'app_qbittorrent_'
+     or route starts with 'app_media'
+     or route starts with 'radarr_'
+     or route starts with 'sonarr_'
+     or route starts with 'prowlarr_'
+     or route starts with 'jellyseerr_'
+     or route starts with 'tmdb_' %}
+  <script>
+  (function () {
+    var QBT_POLL_URL = '{{ path('app_qbittorrent_api_poll_summary') }}';
+    var QBT_POLL_INTERVAL = 15000; // 15s : pas besoin de plus, évite la charge NAS
+    var STATE_KEY = 'argos_qbt_last_state';
+    var NOTIFIED_KEY = 'argos_qbt_notified';  // hashs déjà notifiés (dédup cross-tab)
+    var NOTIFIED_TTL = 60 * 60 * 1000; // 1h — au-delà on réautorise la notif (torrent re-DL par ex)
+
+    // Canal cross-tab pour synchroniser les notifs entre plusieurs onglets ouverts
+    var bchan = null;
+    try { if (typeof BroadcastChannel !== 'undefined') bchan = new BroadcastChannel('argos-qbt-toasts'); } catch (e) {}
+    if (bchan && !window._argosQbtBchanBound) {
+      window._argosQbtBchanBound = true;
+      bchan.onmessage = function (e) {
+        // Un autre onglet a déjà notifié ce hash → on marque localement pour skip
+        if (e.data && e.data.type === 'notified' && e.data.hash) markNotified(e.data.hash);
+      };
+    }
+
+    function loadNotified() { try { return JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '{}'); } catch (e) { return {}; } }
+    function markNotified(hash) {
+      var n = loadNotified();
+      n[hash] = Date.now();
+      // Purge des entrées trop vieilles pour éviter de gonfler
+      var cutoff = Date.now() - NOTIFIED_TTL;
+      Object.keys(n).forEach(function (k) { if (n[k] < cutoff) delete n[k]; });
+      try { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(n)); } catch (e) {}
+      if (bchan) try { bchan.postMessage({ type: 'notified', hash: hash }); } catch (e) {}
+    }
+    function alreadyNotified(hash) {
+      var n = loadNotified();
+      return n[hash] && (Date.now() - n[hash]) < NOTIFIED_TTL;
+    }
+
+    function loadPrev() { try { return JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); } catch (e) { return {}; } }
+    function savePrev(map) { try { localStorage.setItem(STATE_KEY, JSON.stringify(map)); } catch (e) {} }
+
+    function fmtGo(bytes) { return (bytes / 1073741824).toFixed(1) + ' Go'; }
+
+    function updateBadge(active) {
+      var label = active > 99 ? '99+' : String(active);
+      ['sidebar-qbt-badge', 'sidebar-media-badge'].forEach(function (id) {
+        var badge = document.getElementById(id);
+        if (!badge) return;
+        if (active > 0) {
+          badge.textContent = label;
+          badge.style.display = '';
+        } else {
+          badge.style.display = 'none';
+        }
+      });
+    }
+
+    function pollQbt() {
+      fetch(QBT_POLL_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d || d.error) return;
+          updateBadge(d.active || 0);
+
+          // Détection transitions (vs snapshot précédent)
+          var prev = loadPrev();
+          var next = {};
+          var justCompleted = [];
+          var justErrored = [];
+          (d.items || []).forEach(function (it) {
+            next[it.hash] = it.state;
+            var was = prev[it.hash];
+            // downloading → completed/seeding = DL terminé
+            if (was === 'downloading' && (it.state === 'completed' || it.state === 'seeding')) {
+              justCompleted.push(it);
+            }
+            // any → error = nouvelle erreur
+            if (was && was !== 'error' && it.state === 'error') {
+              justErrored.push(it);
+            }
+          });
+
+          if (window._argosToast) {
+            justCompleted.forEach(function (it) {
+              if (alreadyNotified(it.hash)) return;  // dédup cross-tab
+              var truncated = (it.name || '').length > 60 ? it.name.substring(0, 60) + '…' : it.name;
+              window._argosToast('✅ ' + truncated + ' — ' + fmtGo(it.size), 'success', 6000);
+              markNotified(it.hash);
+            });
+            justErrored.forEach(function (it) {
+              if (alreadyNotified(it.hash)) return;
+              var truncated = (it.name || '').length > 60 ? it.name.substring(0, 60) + '…' : it.name;
+              window._argosToast('⚠ Erreur sur : ' + truncated, 'danger', 8000);
+              markNotified(it.hash);
+            });
+          }
+
+          savePrev(next);
+        })
+        .catch(function () {});
+    }
+
+    // Pattern singleton Turbo-safe : un seul poll global même avec re-exec
+    if (window._argosQbtPollTimer) clearInterval(window._argosQbtPollTimer);
+    pollQbt();
+    window._argosQbtPollTimer = setInterval(pollQbt, QBT_POLL_INTERVAL);
+
+    // Pause quand onglet caché, reprise au retour
+    if (!window._argosQbtVisibilityBound) {
+      window._argosQbtVisibilityBound = true;
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          if (window._argosQbtPollTimer) { clearInterval(window._argosQbtPollTimer); window._argosQbtPollTimer = null; }
+        } else {
+          pollQbt();
+          window._argosQbtPollTimer = setInterval(pollQbt, QBT_POLL_INTERVAL);
+        }
+      });
+    }
+  })();
+  </script>
+  {% endif %}
+
+</body>
+</html>

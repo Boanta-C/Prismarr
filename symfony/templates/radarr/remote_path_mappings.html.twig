@@ -1,0 +1,175 @@
+{% extends 'base.html.twig' %}
+{% block title %}Chemins distants — Radarr{% endblock %}
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Chemins distants</h2></div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-rpm" id="btn-rpm-add">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+          Ajouter
+        </button>
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="page-body"><div class="container-xl">
+{% if error %}<div class="alert alert-danger">Impossible de joindre Radarr.</div>{% endif %}
+<div id="rpm-feedback" class="alert d-none mb-3"></div>
+
+<div class="card">
+  <div class="card-header"><h3 class="card-title">Mappings configurés</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ mappings|length }}</span></div></div>
+  <div class="card-body p-0">
+    {% if mappings is empty %}
+      <div class="text-muted text-center py-5">Aucun chemin distant configuré.</div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-vcenter table-sm mb-0">
+          <thead><tr><th>Hote</th><th>Chemin distant</th><th>Chemin local</th><th class="text-end">Actions</th></tr></thead>
+          <tbody>
+            {% for m in mappings %}
+            <tr>
+              <td class="fw-medium">{{ m.host ?? '—' }}</td>
+              <td class="font-monospace small">{{ m.remotePath ?? '—' }}</td>
+              <td class="font-monospace small">{{ m.localPath ?? '—' }}</td>
+              <td class="text-end">
+                <button class="btn btn-ghost-primary btn-sm btn-rpm-edit"
+                        data-id="{{ m.id }}"
+                        data-host="{{ m.host ?? '' }}"
+                        data-remote="{{ m.remotePath ?? '' }}"
+                        data-local="{{ m.localPath ?? '' }}"
+                        title="Modifier">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                </button>
+                <button class="btn btn-ghost-danger btn-sm btn-rpm-delete"
+                        data-id="{{ m.id }}"
+                        data-host="{{ m.host ?? '' }}"
+                        title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+</div></div>
+
+{# ── Modal ajout / édition ── #}
+<div class="modal modal-blur fade" id="modal-rpm" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="rpm-modal-title">Ajouter un chemin distant</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="rpm-edit-id" value="">
+        <div class="mb-3">
+          <label class="form-label fw-medium">Hote <span class="text-danger">*</span></label>
+          <input type="text" id="rpm-host" class="form-control form-control-sm" placeholder="localhost">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium">Chemin distant <span class="text-danger">*</span></label>
+          <input type="text" id="rpm-remote" class="form-control form-control-sm font-monospace" placeholder="/download/">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium">Chemin local <span class="text-danger">*</span></label>
+          <input type="text" id="rpm-local" class="form-control form-control-sm font-monospace" placeholder="/data/download/">
+        </div>
+        <div id="rpm-modal-feedback" class="alert d-none mt-3"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-success" id="btn-rpm-save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+  var feedback = document.getElementById('rpm-feedback');
+  var mfb = document.getElementById('rpm-modal-feedback');
+  function showFeedback(msg, type) {
+    feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
+    feedback.textContent = msg;
+    feedback.classList.remove('d-none');
+    setTimeout(function(){ feedback.classList.add('d-none'); }, 4000);
+  }
+  function showModalFeedback(msg, type) {
+    mfb.className = 'alert alert-' + (type || 'danger') + ' mt-3';
+    mfb.textContent = msg;
+    mfb.classList.remove('d-none');
+  }
+
+  var modalEl = document.getElementById('modal-rpm');
+  var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+  document.getElementById('btn-rpm-add').addEventListener('click', function() {
+    document.getElementById('rpm-modal-title').textContent = 'Ajouter un chemin distant';
+    document.getElementById('rpm-edit-id').value = '';
+    document.getElementById('rpm-host').value = '';
+    document.getElementById('rpm-remote').value = '';
+    document.getElementById('rpm-local').value = '';
+    mfb.classList.add('d-none');
+  });
+
+  document.querySelectorAll('.btn-rpm-edit').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.getElementById('rpm-modal-title').textContent = 'Modifier le chemin distant';
+      document.getElementById('rpm-edit-id').value = btn.dataset.id;
+      document.getElementById('rpm-host').value = btn.dataset.host;
+      document.getElementById('rpm-remote').value = btn.dataset.remote;
+      document.getElementById('rpm-local').value = btn.dataset.local;
+      mfb.classList.add('d-none');
+      modal.show();
+    });
+  });
+
+  document.getElementById('btn-rpm-save').addEventListener('click', async function() {
+    var id = document.getElementById('rpm-edit-id').value;
+    var host = document.getElementById('rpm-host').value.trim();
+    var remotePath = document.getElementById('rpm-remote').value.trim();
+    var localPath = document.getElementById('rpm-local').value.trim();
+    if (!host || !remotePath || !localPath) {
+      showModalFeedback('Tous les champs sont obligatoires.', 'warning');
+      return;
+    }
+    var payload = {host: host, remotePath: remotePath, localPath: localPath};
+    var url = id ? '/radarr/chemins-distants/' + id + '/modifier' : '{{ path("radarr_remote_path_mapping_add") }}';
+    if (id) payload.id = parseInt(id, 10);
+    var r = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+      body: JSON.stringify(payload),
+    });
+    var data = await r.json();
+    if (data.ok !== false) { location.reload(); }
+    else { showModalFeedback(data.error || 'Erreur lors de l\'enregistrement.', 'danger'); }
+  });
+
+  document.querySelectorAll('.btn-rpm-delete').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      if (!confirm('Supprimer le mapping pour "' + btn.dataset.host + '" ?')) return;
+      var r = await fetch('/radarr/chemins-distants/' + btn.dataset.id + '/supprimer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        body: '{}',
+      });
+      var data = await r.json();
+      if (data.ok) location.reload();
+      else showFeedback('Erreur lors de la suppression.', 'danger');
+    });
+  });
+})();
+</script>
+{% endblock %}

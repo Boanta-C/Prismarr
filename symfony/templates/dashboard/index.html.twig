@@ -1,0 +1,797 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="row row-deck row-cards">
+
+  {# ===== BANNIÈRE SANTÉ ===== #}
+
+  {% set criticalCount = active_alerts|filter(a => a.severity == 'critical')|length %}
+  {% set warningCount  = active_alerts|filter(a => a.severity == 'warning')|length %}
+
+  <div class="col-12">
+    {% if active_alerts is empty %}
+      <div class="alert alert-success d-flex align-items-center gap-2 mb-0 py-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 12l2 2l4 -4"/></svg>
+        <strong>Tous les systèmes opérationnels</strong>
+      </div>
+    {% elseif criticalCount > 0 %}
+      <div class="alert alert-danger d-flex align-items-center justify-content-between gap-2 mb-0 py-2" id="health-banner">
+        <div class="d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+          <strong>{{ criticalCount }} alerte{{ criticalCount > 1 ? 's' : '' }} critique{{ criticalCount > 1 ? 's' : '' }}{% if warningCount > 0 %} + {{ warningCount }} avertissement{{ warningCount > 1 ? 's' : '' }}{% endif %}</strong>
+        </div>
+        <a href="{{ path('app_alertes') }}" class="btn btn-sm btn-danger">Voir les alertes</a>
+      </div>
+    {% else %}
+      <div class="alert alert-warning d-flex align-items-center justify-content-between gap-2 mb-0 py-2" id="health-banner">
+        <div class="d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+          <strong>{{ warningCount }} avertissement{{ warningCount > 1 ? 's' : '' }}</strong>
+        </div>
+        <a href="{{ path('app_alertes') }}" class="btn btn-sm btn-warning">Voir les alertes</a>
+      </div>
+    {% endif %}
+  </div>
+
+  {# ===== MÉTÉO ===== #}
+  {% if weather_current is not null %}
+  {% set wxType = weather_current.type %}
+  {% set isDay  = weather_current.is_day %}
+  {% set wpVideo = 'clear-night' %}
+  {% if wxType == 'clear' %}             {% set wpVideo = isDay ? 'clear-day'    : 'clear-night' %}
+  {% elseif wxType == 'partly_cloudy' %} {% set wpVideo = 'partly-cloudy' %}
+  {% elseif wxType == 'cloudy' %}        {% set wpVideo = 'cloudy' %}
+  {% elseif wxType == 'rain' %}          {% set wpVideo = 'rain' %}
+  {% elseif wxType == 'heavy_rain' %}    {% set wpVideo = 'heavy-rain' %}
+  {% elseif wxType == 'storm' %}         {% set wpVideo = 'storm' %}
+  {% elseif wxType in ['snow','sleet'] %}{% set wpVideo = 'snow' %}
+  {% elseif wxType == 'fog' %}           {% set wpVideo = 'fog' %}
+  {% endif %}
+  <div class="col-12">
+    <div class="card card-sm overflow-hidden" style="position:relative">
+      <video autoplay muted loop playsinline disablepictureinpicture preload="auto"
+             style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(2px);transform:scale(1.06);z-index:0">
+        <source src="{{ asset('img/weather/' ~ wpVideo ~ '.mp4') }}" type="video/mp4">
+      </video>
+      <div style="position:absolute;inset:0;background:rgba(8,14,28,.62);z-index:1"></div>
+      <div class="card-body py-2 px-3" style="position:relative;z-index:2">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <span style="font-size:2.2rem;line-height:1;flex-shrink:0"
+                title="{{ weather_current.label }}" data-bs-toggle="tooltip">{{ weather_current.emoji }}</span>
+          <div class="d-flex align-items-baseline gap-2 flex-wrap">
+            <span class="h2 mb-0" style="color:#fff"
+                  title="Température actuelle" data-bs-toggle="tooltip">{{ weather_current.temp }}°</span>
+            <span style="color:rgba(255,255,255,.7)">{{ weather_current.label }}</span>
+            {% if weather_current.temp_max is not null %}
+            <span class="badge" style="background:rgba(239,68,68,.25);color:#fca5a5"
+                  title="Max. du jour" data-bs-toggle="tooltip">↑{{ weather_current.temp_max }}°</span>
+            <span class="badge" style="background:rgba(96,165,250,.25);color:#93c5fd"
+                  title="Min. du jour" data-bs-toggle="tooltip">↓{{ weather_current.temp_min }}°</span>
+            {% endif %}
+          </div>
+          <div class="vr d-none d-sm-block" style="border-color:rgba(255,255,255,.2)"></div>
+          <div class="small" style="color:rgba(255,255,255,.6)"
+               title="Température ressentie" data-bs-toggle="tooltip">Ressenti <strong style="color:#fff">{{ weather_current.feels_like }}°</strong></div>
+          {% if weather_current.precip_prob > 0 %}
+          <div class="small" style="color:rgba(255,255,255,.6)"
+               title="Probabilité de précipitation" data-bs-toggle="tooltip">💧 <strong style="color:#93c5fd">{{ weather_current.precip_prob }}%</strong></div>
+          {% endif %}
+          <div class="small" style="color:rgba(255,255,255,.6)"
+               title="Vitesse du vent" data-bs-toggle="tooltip">💨 <strong style="color:#fff">{{ weather_current.wind }} km/h</strong></div>
+          <div class="small d-none d-lg-block" style="color:rgba(255,255,255,.6)"
+               title="Humidité relative" data-bs-toggle="tooltip">💧 <strong style="color:#fff">{{ weather_current.humidity }}%</strong></div>
+          {% if weather_current.uv > 0 %}
+          <div class="small d-none d-lg-block" style="color:rgba(255,255,255,.6)"
+               title="Indice UV" data-bs-toggle="tooltip">☀️ UV <strong style="color:#fde047">{{ weather_current.uv }}</strong></div>
+          {% endif %}
+          {% if moon_current is not null %}
+          <div class="vr d-none d-lg-block" style="border-color:rgba(255,255,255,.2)"></div>
+          <div class="small d-none d-lg-flex align-items-center gap-1"
+               title="{{ moon_current.label }} · {{ moon_current.illumination }}% illuminée" data-bs-toggle="tooltip">
+            <span style="font-size:1.2rem;line-height:1">{{ moon_current.emoji }}</span>
+            <span style="color:rgba(255,255,255,.6)">{{ moon_current.label }}</span>
+          </div>
+          {% endif %}
+          <div class="ms-auto d-flex align-items-center gap-2">
+            <span class="small d-none d-md-inline" style="color:rgba(255,255,255,.45)">{{ weather_current.location }}</span>
+            <a href="{{ path('app_weather') }}" class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2)">Météo complète →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ===== LIGNE 1 — 4 stat cards ===== #}
+
+  {# Mac Mini — CPU / RAM #}
+  <div class="col-sm-6 col-lg-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <div class="subheader">Mac Mini — CPU / RAM</div>
+          <div class="ms-auto">
+            {% if macMini %}
+              <span class="badge {{ macMini.status == 'online' ? 'bg-success-lt' : 'bg-danger-lt' }}" id="sse-mac-status-badge">
+                {{ macMini.status == 'online' ? 'En ligne' : 'Hors ligne' }}
+              </span>
+            {% else %}
+              <span class="badge bg-secondary-lt">Inconnu</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="d-flex align-items-baseline gap-2">
+          <div class="h1 mb-0" id="sse-mac-cpu-stat">{{ mac_cpu is not null ? mac_cpu|round(1) ~ '%' : '—' }}</div>
+          <div class="text-secondary">CPU</div>
+        </div>
+        <div class="mt-2">
+          <div class="d-flex justify-content-between small text-secondary mb-1">
+            <span>RAM</span>
+            <span id="sse-mac-ram-stat">{{ mac_ram is not null ? mac_ram|round(1) ~ '%' : '—' }}</span>
+          </div>
+          <div class="progress" style="height: 4px;">
+            <div id="sse-mac-ram-bar-stat"
+                 class="progress-bar {{ mac_ram is not null and mac_ram > 85 ? 'bg-danger' : (mac_ram is not null and mac_ram > 70 ? 'bg-warning' : 'bg-primary') }}"
+                 style="width: {{ mac_ram is not null ? mac_ram : 0 }}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Mac Mini — Disque #}
+  <div class="col-sm-6 col-lg-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <div class="subheader">Mac Mini — Disque</div>
+        </div>
+        <div class="d-flex align-items-baseline gap-2">
+          <div class="h1 mb-0" id="sse-mac-disk-stat">{{ mac_disk is not null ? mac_disk|round(1) ~ '%' : '—' }}</div>
+          <div class="text-secondary">utilisé</div>
+        </div>
+        <div class="mt-2">
+          <div class="progress mb-1" style="height: 4px;">
+            <div id="sse-mac-disk-bar-stat"
+                 class="progress-bar {{ mac_disk is not null and mac_disk > 90 ? 'bg-danger' : (mac_disk is not null and mac_disk > 75 ? 'bg-warning' : 'bg-teal') }}"
+                 style="width: {{ mac_disk is not null ? mac_disk : 0 }}%"></div>
+          </div>
+          <div class="d-flex justify-content-between small text-secondary mt-1">
+            <span>Containers</span>
+            <span><span id="sse-docker-up">{{ containers_up }}</span>/<span id="sse-docker-total-stat">{{ containers_total }}</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# NAS Température #}
+  <div class="col-sm-6 col-lg-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <div class="subheader">NAS — Température</div>
+          <div class="ms-auto">
+            {% if nas %}
+              <span class="badge {{ nas.status == 'online' ? 'bg-success-lt' : 'bg-danger-lt' }}">
+                {{ nas.status == 'online' ? 'En ligne' : 'Hors ligne' }}
+              </span>
+            {% else %}
+              <span class="badge bg-secondary-lt">Inconnu</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="d-flex align-items-baseline gap-2">
+          <div class="h1 mb-0" id="sse-nas-temp"
+               style="color: {{ nas_temp is not null and nas_temp > 70 ? 'var(--tblr-danger)' : (nas_temp is not null and nas_temp > 55 ? 'var(--tblr-warning)' : 'var(--tblr-success)') }}">
+            {{ nas_temp is not null ? nas_temp|round(1) ~ '°C' : '—' }}
+          </div>
+        </div>
+        <div class="mt-2">
+          <div class="d-flex justify-content-between small text-secondary mb-1">
+            <span>CPU</span>
+            <span id="sse-nas-cpu">{{ nas_cpu is not null ? nas_cpu|round(1) ~ '%' : '—' }}</span>
+          </div>
+          <div class="progress" style="height: 4px;">
+            <div id="sse-nas-cpu-bar"
+                 class="progress-bar {{ nas_cpu is not null and nas_cpu > 85 ? 'bg-danger' : (nas_cpu is not null and nas_cpu > 70 ? 'bg-warning' : 'bg-cyan') }}"
+                 style="width: {{ nas_cpu is not null ? nas_cpu : 0 }}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Clients réseau UniFi #}
+  <div class="col-sm-6 col-lg-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <div class="subheader">Clients réseau</div>
+          <div class="ms-auto">
+            {% if ap %}
+              <span class="badge {{ ap.status == 'online' ? 'bg-success-lt' : 'bg-danger-lt' }}">
+                {{ ap.status == 'online' ? 'En ligne' : 'Hors ligne' }}
+              </span>
+            {% else %}
+              <span class="badge bg-secondary-lt">Inconnu</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="d-flex align-items-baseline gap-2">
+          <div class="h1 mb-0" id="sse-unifi-total">{{ clients_total is not null ? clients_total|round(0)|number_format : '—' }}</div>
+          <div class="text-secondary">connectés</div>
+        </div>
+        <div class="mt-2 d-flex gap-3 text-secondary small">
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18l.01 0"/><path d="M9.172 15.172a4 4 0 0 1 5.656 0"/><path d="M6.343 12.343a8 8 0 0 1 11.314 0"/></svg>
+            <span id="sse-unifi-wifi">{{ clients_wifi is not null ? clients_wifi|round(0) : '—' }}</span> WiFi
+          </span>
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M12 3v6"/><path d="M5 7h14"/><path d="M7 10l-2 8h14l-2 -8"/></svg>
+            <span id="sse-unifi-wired">{{ clients_wired is not null ? clients_wired|round(0) : '—' }}</span> filaires
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ===== LIGNE 2 — 3 device cards ===== #}
+
+  {# Mac Mini M4 #}
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+          <span class="status-dot {{ macMini and macMini.status == 'online' ? 'status-dot-animated bg-success' : 'bg-danger' }}" id="sse-mac-dot"></span>
+          <h3 class="card-title mb-0">Mac Mini M4</h3>
+          <div class="ms-auto d-flex align-items-center gap-2">
+            <span class="text-secondary small">192.168.10.220</span>
+            {% if macMini %}<a href="{{ path('app_infrastructure_device', {hostname: macMini.hostname}) }}" class="btn btn-sm btn-ghost-primary p-1" title="Voir la page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </a>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        {# CPU #}
+        <div class="d-flex justify-content-between small text-secondary mb-1">
+          <span>CPU</span><span id="sse-mac-cpu">{{ mac_cpu is not null ? mac_cpu|round(1) ~ '%' : '—' }}</span>
+        </div>
+        <div class="progress mb-2" style="height: 5px;">
+          <div id="sse-mac-cpu-bar" class="progress-bar {{ mac_cpu is not null and mac_cpu > 85 ? 'bg-danger' : (mac_cpu is not null and mac_cpu > 70 ? 'bg-warning' : 'bg-primary') }}"
+               style="width: {{ mac_cpu is not null ? mac_cpu : 0 }}%"></div>
+        </div>
+
+        {# RAM #}
+        <div class="d-flex justify-content-between small text-secondary mb-1">
+          <span>RAM</span><span id="sse-mac-ram">{{ mac_ram is not null ? mac_ram|round(1) ~ '%' : '—' }}</span>
+        </div>
+        <div class="progress mb-2" style="height: 5px;">
+          <div id="sse-mac-ram-bar" class="progress-bar {{ mac_ram is not null and mac_ram > 85 ? 'bg-danger' : (mac_ram is not null and mac_ram > 70 ? 'bg-warning' : 'bg-indigo') }}"
+               style="width: {{ mac_ram is not null ? mac_ram : 0 }}%"></div>
+        </div>
+
+        {# Disque #}
+        <div class="d-flex justify-content-between small text-secondary mb-1">
+          <span>Disque</span><span id="sse-mac-disk">{{ mac_disk is not null ? mac_disk|round(1) ~ '%' : '—' }}</span>
+        </div>
+        <div class="progress mb-3" style="height: 5px;">
+          <div id="sse-mac-disk-bar" class="progress-bar {{ mac_disk is not null and mac_disk > 90 ? 'bg-danger' : (mac_disk is not null and mac_disk > 75 ? 'bg-warning' : 'bg-teal') }}"
+               style="width: {{ mac_disk is not null ? mac_disk : 0 }}%"></div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge {{ containers_up == containers_total and containers_total > 0 ? 'bg-success-lt' : (containers_up == 0 and containers_total > 0 ? 'bg-danger-lt' : 'bg-warning-lt') }}" id="sse-docker-badge"><span id="sse-docker-up-2">{{ containers_up }}</span>/<span id="sse-docker-total">{{ containers_total }}</span> containers</span>
+          </div>
+          <span id="sse-mac-agent-badge" class="badge bg-success-lt small">Agent actif</span>
+        </div>
+
+        <div class="text-secondary small mt-2" id="sse-mac-sync">
+          {% if macMini and macMini.lastSeenAt %}Sync {{ macMini.lastSeenAt|date('H:i:s') }}{% else %}Jamais synchronisé{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# NAS DS-MEDUSA #}
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+          <span class="status-dot {{ nas and nas.status == 'online' ? 'status-dot-animated bg-success' : 'bg-danger' }}"></span>
+          <h3 class="card-title mb-0">DS-MEDUSA</h3>
+          <div class="ms-auto d-flex align-items-center gap-2">
+            <span class="text-secondary small">192.168.10.230</span>
+            {% if nas %}<a href="{{ path('app_infrastructure_device', {hostname: nas.hostname}) }}" class="btn btn-sm btn-ghost-primary p-1" title="Voir la page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </a>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+
+        {% if nas_cpu is not null %}
+          <div class="d-flex justify-content-between small text-secondary mb-1">
+            <span>CPU</span><span id="sse-nas-cpu-2">{{ nas_cpu|round(1) }}%</span>
+          </div>
+          <div class="progress mb-2" style="height: 5px;">
+            <div id="sse-nas-cpu-bar-2" class="progress-bar {{ nas_cpu > 85 ? 'bg-danger' : (nas_cpu > 70 ? 'bg-warning' : 'bg-cyan') }}"
+                 style="width: {{ nas_cpu }}%"></div>
+          </div>
+        {% endif %}
+
+        {% if nas_ram is not null %}
+          <div class="d-flex justify-content-between small text-secondary mb-1">
+            <span>RAM</span><span id="sse-nas-ram">{{ nas_ram|round(1) }}%</span>
+          </div>
+          <div class="progress mb-3" style="height: 5px;">
+            <div id="sse-nas-ram-bar" class="progress-bar {{ nas_ram > 85 ? 'bg-danger' : (nas_ram > 70 ? 'bg-warning' : 'bg-indigo') }}"
+                 style="width: {{ nas_ram }}%"></div>
+          </div>
+        {% endif %}
+
+        {# Volumes #}
+        {% if nas_volumes is not empty %}
+          <div class="text-secondary small fw-medium mb-1">Volumes</div>
+          <div id="sse-nas-volumes">
+            {% for vol in nas_volumes %}
+              <div class="d-flex justify-content-between small text-secondary mb-1" data-vol="{{ vol.id }}">
+                <span>{{ vol.id|upper }}</span>
+                <span class="{{ vol.used_pct >= 90 ? 'text-danger' : (vol.used_pct >= 80 ? 'text-warning' : '') }} fw-medium sse-vol-pct">{{ vol.used_pct|round(1) }}%{% if vol.used_gb is not null and vol.total_gb is not null %} <span class="text-secondary fw-normal">({{ vol.used_gb|round(0) }}/{{ vol.total_gb|round(0) }} GB)</span>{% endif %}</span>
+              </div>
+              <div class="progress mb-2" style="height: 4px;">
+                <div class="progress-bar sse-vol-bar {{ vol.used_pct >= 90 ? 'bg-danger' : (vol.used_pct >= 80 ? 'bg-warning' : 'bg-teal') }}"
+                     data-vol="{{ vol.id }}" style="width: {{ vol.used_pct }}%"></div>
+              </div>
+            {% endfor %}
+          </div>
+        {% elseif nas_cpu is null and nas_ram is null %}
+          <div class="text-secondary small">Aucune donnée disponible</div>
+        {% endif %}
+
+        <div class="text-secondary small mt-2" id="sse-nas-sync">
+          {% if nas and nas.lastSeenAt %}Sync {{ nas.lastSeenAt|date('H:i:s') }}{% else %}Jamais synchronisé{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# UniFi Express #}
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+          <span class="status-dot {{ ap and ap.status == 'online' ? 'status-dot-animated bg-success' : 'bg-danger' }}"></span>
+          <h3 class="card-title mb-0">UniFi Express</h3>
+          <div class="ms-auto d-flex align-items-center gap-2">
+            <span class="text-secondary small">192.168.10.254</span>
+            {% if ap %}<a href="{{ path('app_infrastructure_device', {hostname: ap.hostname}) }}" class="btn btn-sm btn-ghost-primary p-1" title="Voir la page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </a>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row g-2 text-center mb-3">
+          <div class="col-4">
+            <div class="text-secondary small">Total</div>
+            <div class="fw-bold fs-3" id="sse-unifi-total-2">{{ clients_total is not null ? clients_total|round(0) : '—' }}</div>
+          </div>
+          <div class="col-4">
+            <div class="text-secondary small">WiFi</div>
+            <div class="fw-bold fs-3" id="sse-unifi-wifi-2" style="color: var(--tblr-primary)">{{ clients_wifi is not null ? clients_wifi|round(0) : '—' }}</div>
+          </div>
+          <div class="col-4">
+            <div class="text-secondary small">Filaires</div>
+            <div class="fw-bold fs-3" id="sse-unifi-wired-2" style="color: var(--tblr-cyan)">{{ clients_wired is not null ? clients_wired|round(0) : '—' }}</div>
+          </div>
+        </div>
+        <div class="text-secondary small mt-2" id="sse-unifi-sync">
+          {% if ap and ap.lastSeenAt %}Sync {{ ap.lastSeenAt|date('H:i:s') }}{% else %}Jamais synchronisé{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ===== LIGNE 3 — Widgets Médias (chargés en AJAX) ===== #}
+
+  <div class="col-lg-4" id="widget-recent">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Derniers ajouts
+        </h3>
+        <div class="card-options">
+          <a href="{{ path('app_media_films') }}" class="btn btn-sm btn-ghost-primary p-1">Films</a>
+          <a href="{{ path('app_media_series') }}" class="btn btn-sm btn-ghost-primary p-1">Séries</a>
+        </div>
+      </div>
+      <div class="card-body p-0" id="widget-recent-body">
+        <div class="py-3 text-center"><div class="spinner-border spinner-border-sm text-secondary" role="status"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4" id="widget-calendar">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Prochaines sorties
+        </h3>
+        <div class="card-options">
+          <a href="{{ path('app_calendrier') }}" class="btn btn-sm btn-ghost-primary p-1">Calendrier</a>
+        </div>
+      </div>
+      <div class="card-body p-0" id="widget-calendar-body">
+        <div class="py-3 text-center"><div class="spinner-border spinner-border-sm text-secondary" role="status"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4" id="widget-queue">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12"/></svg>
+          Queue active
+        </h3>
+        <div class="card-options">
+          <a href="{{ path('app_qbittorrent_index') }}" class="btn btn-sm btn-ghost-primary p-1">Voir tout</a>
+        </div>
+      </div>
+      <div class="card-body p-0" id="widget-queue-body">
+        <div class="py-3 text-center"><div class="spinner-border spinner-border-sm text-secondary" role="status"></div></div>
+      </div>
+    </div>
+  </div>
+
+  {# ===== LIGNE 4 — Containers + Alertes ===== #}
+
+  {% if services is not empty %}
+  <div class="{{ active_alerts is not empty ? 'col-lg-8' : 'col-12' }}" id="dashboard-docker-table">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Containers Docker — Mac Mini</h3>
+        <div class="card-options d-flex align-items-center gap-3">
+          <span class="text-secondary small"><span id="sse-docker-up-3">{{ containers_up }}</span>/{{ containers_total }} actifs</span>
+          {% if macMini %}<a href="{{ path('app_infrastructure_device', {hostname: macMini.hostname}) }}" class="btn btn-sm btn-ghost-primary p-1" title="Voir tous les containers">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+          </a>{% endif %}
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-vcenter table-sm card-table">
+            <thead>
+              <tr>
+                <th>Nom</th><th>Statut</th><th>Uptime</th><th class="text-end">Sync</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for service in services|sort((a, b) => a.name <=> b.name) %}
+              <tr data-container="{{ service.name }}" data-status="{{ service.status }}">
+                <td><span class="fw-medium">{{ service.name }}</span></td>
+                <td>
+                  {% if service.status == 'up' %}<span class="badge bg-success-lt">Actif</span>
+                  {% elseif service.status == 'down' %}<span class="badge bg-danger-lt">Arrêté</span>
+                  {% elseif service.status == 'degraded' %}<span class="badge bg-warning-lt">Dégradé</span>
+                  {% else %}<span class="badge bg-secondary-lt">Inconnu</span>{% endif %}
+                </td>
+                <td class="text-secondary small">
+                  {% if service.responseTimeMs is not null and service.status == 'up' %}
+                    {% set s = service.responseTimeMs %}
+                    {% if s > 86400 %}{{ (s / 86400)|round(0, 'floor') }}j {{ ((s % 86400) / 3600)|round(0, 'floor') }}h
+                    {% elseif s > 3600 %}{{ (s / 3600)|round(0, 'floor') }}h {{ ((s % 3600) / 60)|round(0, 'floor') }}m
+                    {% elseif s > 60 %}{{ (s / 60)|round(0, 'floor') }}m
+                    {% else %}{{ s }}s{% endif %}
+                  {% else %}—{% endif %}
+                </td>
+                <td class="text-secondary small text-end js-docker-sync-time">{{ service.checkedAt ? service.checkedAt|date('H:i:s') : '—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# Alertes actives #}
+  {% if active_alerts is not empty %}
+  <div class="{{ services is not empty ? 'col-lg-4' : 'col-12' }}">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Alertes actives</h3>
+        <div class="card-options">
+          <a href="{{ path('app_alertes') }}" class="btn btn-sm btn-ghost-primary">Tout voir</a>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          {% for alert in active_alerts|slice(0, 8) %}
+          <div class="list-group-item py-2">
+            <div class="row align-items-center g-2">
+              <div class="col-auto">
+                {% if alert.severity == 'critical' %}
+                  <span class="badge bg-danger">!</span>
+                {% elseif alert.severity == 'warning' %}
+                  <span class="badge bg-warning">⚠</span>
+                {% else %}
+                  <span class="badge bg-info">i</span>
+                {% endif %}
+              </div>
+              <div class="col">
+                <div class="small fw-medium lh-sm">{{ alert.message }}</div>
+                <div class="text-secondary" style="font-size: 0.7rem;">
+                  {% if alert.device %}{{ alert.device.hostname }} · {% endif %}{{ alert.createdAt|date('d/m H:i') }}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          {% if active_alerts|length > 8 %}
+          <div class="list-group-item py-2 text-center text-secondary small">
+            + {{ active_alerts|length - 8 }} alerte{{ active_alerts|length - 8 > 1 ? 's' : '' }} supplémentaire{{ active_alerts|length - 8 > 1 ? 's' : '' }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+  /* ── Widgets médias AJAX ── */
+  function loadMediaWidgets() {
+    fetch('/dashboard/media-widgets')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var filmIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFC230" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>';
+        var serieIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0CF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>';
+
+        // Derniers ajouts
+        var rb = document.getElementById('widget-recent-body');
+        if (rb) {
+          if (!d.recent || !d.recent.length) { rb.innerHTML = '<div class="py-3 text-center text-secondary small">Aucun média</div>'; }
+          else {
+            rb.innerHTML = '<div class="list-group list-group-flush">' + d.recent.map(function (item) {
+              var poster = item.poster ? '<img src="' + item.poster + '" style="width:24px;height:36px;object-fit:cover;border-radius:3px;" loading="lazy">' : '<div style="width:24px;height:36px;background:var(--tblr-bg-surface-secondary);border-radius:3px;"></div>';
+              var icon = item.type === 'film' ? filmIcon + ' Film' : serieIcon + ' Série';
+              var badge = item.hasFile ? '<span class="badge bg-green-lt" style="font-size:.6rem;">Dispo</span>' : '';
+              return '<div class="list-group-item py-2"><div class="d-flex align-items-center gap-2">' + poster + '<div class="overflow-hidden flex-grow-1"><div class="small fw-medium text-truncate">' + item.title + '</div><div class="text-secondary" style="font-size:.65rem;">' + icon + (item.year ? ' · ' + item.year : '') + '</div></div>' + badge + '</div></div>';
+            }).join('') + '</div>';
+          }
+        }
+
+        // Prochaines sorties
+        var cb = document.getElementById('widget-calendar-body');
+        if (cb) {
+          if (!d.calendar || !d.calendar.length) { cb.innerHTML = '<div class="py-3 text-center text-secondary small">Aucune sortie prévue</div>'; }
+          else {
+            cb.innerHTML = '<div class="list-group list-group-flush">' + d.calendar.map(function (item) {
+              var poster = item.poster ? '<img src="' + item.poster + '" style="width:24px;height:36px;object-fit:cover;border-radius:3px;" loading="lazy">' : '<div style="width:24px;height:36px;background:var(--tblr-bg-surface-secondary);border-radius:3px;"></div>';
+              var icon = item.type === 'film' ? filmIcon : serieIcon;
+              return '<div class="list-group-item py-2"><div class="d-flex align-items-center gap-2">' + poster + '<div class="overflow-hidden flex-grow-1"><div class="small fw-medium text-truncate">' + item.title + '</div><div class="text-secondary" style="font-size:.65rem;">' + icon + ' ' + (item.date || 'Date inconnue') + '</div></div></div></div>';
+            }).join('') + '</div>';
+          }
+        }
+
+        // Queue active
+        var qb = document.getElementById('widget-queue-body');
+        if (qb) {
+          if (!d.queue || !d.queue.length) { qb.innerHTML = '<div class="py-3 text-center text-secondary small">Aucun téléchargement</div>'; }
+          else {
+            qb.innerHTML = '<div class="list-group list-group-flush">' + d.queue.map(function (item) {
+              return '<div class="list-group-item py-2"><div class="overflow-hidden"><div class="d-flex align-items-center justify-content-between mb-1"><span class="small fw-medium text-truncate" style="max-width:70%;">' + item.title + '</span><span class="text-secondary" style="font-size:.65rem;">' + item.progress.toFixed(1) + '%</span></div><div class="progress progress-sm"><div class="progress-bar bg-indigo" style="width:' + item.progress.toFixed(1) + '%"></div></div></div></div>';
+            }).join('') + '</div>';
+          }
+        }
+      })
+      .catch(function () {
+        ['widget-recent-body', 'widget-calendar-body', 'widget-queue-body'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.innerHTML = '<div class="py-3 text-center text-secondary small">Erreur chargement</div>';
+        });
+      });
+  }
+  loadMediaWidgets();
+  function mercureUrl(topic) {
+    var u = new URL('/.well-known/mercure', window.location.origin);
+    u.searchParams.append('topic', topic);
+    return u.toString();
+  }
+  function set(id, val) {
+    var el = document.getElementById(id);
+    if (el && val !== null && val !== undefined) el.textContent = val;
+  }
+  function setBar(id, pct, cls) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.width = Math.min(Math.max(pct, 0), 100) + '%';
+    if (cls) el.className = 'progress-bar ' + cls;
+  }
+  function barColor(v, warn, danger, ok) {
+    return v > danger ? 'bg-danger' : (v > warn ? 'bg-warning' : ok);
+  }
+  function fmtPct(v) { return v !== null && v !== undefined ? v.toFixed(1) + '%' : '—'; }
+
+  // Handlers par topic (même logique qu'avant, regroupés)
+  var topicHandlers = {
+    '/argos/metrics/mac': function (d) {
+      if (d.cpu !== undefined && d.cpu !== null) {
+        var cpuT = fmtPct(d.cpu);
+        set('sse-mac-cpu', cpuT); set('sse-mac-cpu-stat', cpuT);
+        setBar('sse-mac-cpu-bar', d.cpu, barColor(d.cpu, 70, 85, 'bg-primary'));
+      }
+      if (d.mem_percent !== undefined && d.mem_percent !== null) {
+        var ramT = fmtPct(d.mem_percent);
+        set('sse-mac-ram', ramT); set('sse-mac-ram-stat', ramT);
+        setBar('sse-mac-ram-bar', d.mem_percent, barColor(d.mem_percent, 70, 85, 'bg-indigo'));
+        setBar('sse-mac-ram-bar-stat', d.mem_percent, barColor(d.mem_percent, 70, 85, 'bg-primary'));
+      }
+      if (d.disk_percent !== undefined && d.disk_percent !== null) {
+        var diskT = fmtPct(d.disk_percent);
+        set('sse-mac-disk', diskT); set('sse-mac-disk-stat', diskT);
+        setBar('sse-mac-disk-bar', d.disk_percent, barColor(d.disk_percent, 75, 90, 'bg-teal'));
+        setBar('sse-mac-disk-bar-stat', d.disk_percent, barColor(d.disk_percent, 75, 90, 'bg-teal'));
+      }
+      var agentBadge = document.getElementById('sse-mac-agent-badge');
+      if (agentBadge) {
+        agentBadge.textContent = d.agent_active ? 'Agent actif' : 'Agent arrêté';
+        agentBadge.className = 'badge ' + (d.agent_active ? 'bg-success-lt' : 'bg-danger-lt') + ' small';
+      }
+      set('sse-mac-sync', 'Sync ' + d.last_seen);
+    },
+    '/argos/containers': function (d) {
+      set('sse-docker-up', d.up); set('sse-docker-up-2', d.up); set('sse-docker-up-3', d.up);
+      set('sse-docker-total', d.total); set('sse-docker-total-stat', d.total);
+      set('sse-mac-sync', 'Sync ' + d.last_seen);
+      var badge = document.getElementById('sse-docker-badge');
+      if (badge) {
+        badge.className = 'badge ' + (d.up === d.total && d.total > 0 ? 'bg-success-lt' : (d.up === 0 ? 'bg-danger-lt' : 'bg-warning-lt'));
+      }
+      var statusChanged = false;
+      (d.containers || []).forEach(function (c) {
+        var row = document.querySelector('[data-container="' + c.name + '"]');
+        if (!row || row.dataset.status !== c.status) { statusChanged = true; }
+      });
+      if (statusChanged) {
+        fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(function (r) { return r.text(); })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var newTable = doc.getElementById('dashboard-docker-table');
+            var oldTable = document.getElementById('dashboard-docker-table');
+            if (newTable && oldTable) { oldTable.replaceWith(newTable); }
+          });
+      }
+      document.querySelectorAll('.js-docker-sync-time').forEach(function (td) {
+        td.textContent = new Date().toLocaleTimeString('fr-FR');
+      });
+    },
+    '/argos/metrics/nas': function (d) {
+      if (d.cpu !== null && d.cpu !== undefined) {
+        var cpuT = d.cpu.toFixed(1) + '%';
+        set('sse-nas-cpu', cpuT); set('sse-nas-cpu-2', cpuT);
+        setBar('sse-nas-cpu-bar', d.cpu, barColor(d.cpu, 70, 85, 'bg-cyan'));
+        setBar('sse-nas-cpu-bar-2', d.cpu, barColor(d.cpu, 70, 85, 'bg-cyan'));
+      }
+      if (d.mem !== null && d.mem !== undefined) {
+        var memT = d.mem.toFixed(1) + '%';
+        set('sse-nas-ram', memT);
+        setBar('sse-nas-ram-bar', d.mem, barColor(d.mem, 70, 85, 'bg-indigo'));
+      }
+      if (d.temp !== null && d.temp !== undefined) {
+        var tempEl = document.getElementById('sse-nas-temp');
+        if (tempEl) {
+          tempEl.textContent = d.temp.toFixed(1) + '°C';
+          tempEl.style.color = d.temp > 70 ? 'var(--tblr-danger)' : (d.temp > 55 ? 'var(--tblr-warning)' : 'var(--tblr-success)');
+        }
+      }
+      if (d.volumes && d.volumes.length) {
+        d.volumes.forEach(function (vol) {
+          var volId = vol.id.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+          var row = document.querySelector('[data-vol="' + volId + '"] .sse-vol-pct');
+          if (row) {
+            var txt = vol.percent.toFixed(1) + '%';
+            if (vol.used_gb !== null && vol.total_gb !== null) txt += ' (' + Math.round(vol.used_gb) + '/' + Math.round(vol.total_gb) + ' GB)';
+            row.textContent = txt;
+          }
+          var bar = document.querySelector('.sse-vol-bar[data-vol="' + volId + '"]');
+          if (bar) {
+            bar.style.width = Math.min(vol.percent, 100) + '%';
+            bar.className = 'progress-bar sse-vol-bar ' + (vol.percent >= 90 ? 'bg-danger' : (vol.percent >= 80 ? 'bg-warning' : 'bg-teal'));
+          }
+        });
+      }
+      set('sse-nas-sync', 'Sync ' + d.last_seen);
+    },
+    '/argos/alerts': function (d) {
+      var banner = document.getElementById('health-banner');
+      var critical = d.critical || 0;
+      var warning  = d.warning  || 0;
+      var total    = d.count    || 0;
+      if (total === 0) {
+        var okHtml = '<div class="col-12"><div class="alert alert-success d-flex align-items-center gap-2 mb-0 py-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 12l2 2l4 -4"/></svg><strong>Tous les systèmes opérationnels</strong></div></div>';
+        var wrap = banner ? banner.closest('.col-12') : null;
+        if (wrap) wrap.outerHTML = okHtml;
+        return;
+      }
+      var alertesUrl = '{{ path('app_alertes') }}';
+      var txt, cls, btnCls;
+      if (critical > 0) {
+        txt = critical + ' alerte' + (critical > 1 ? 's' : '') + ' critique' + (critical > 1 ? 's' : '') + (warning > 0 ? ' + ' + warning + ' avertissement' + (warning > 1 ? 's' : '') : '');
+        cls = 'alert-danger'; btnCls = 'btn-danger';
+      } else {
+        txt = warning + ' avertissement' + (warning > 1 ? 's' : '');
+        cls = 'alert-warning'; btnCls = 'btn-warning';
+      }
+      var newHtml = '<div class="col-12"><div id="health-banner" class="alert ' + cls + ' d-flex align-items-center justify-content-between gap-2 mb-0 py-2"><div class="d-flex align-items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg><strong>' + txt + '</strong></div><a href="' + alertesUrl + '" class="btn btn-sm ' + btnCls + '">Voir les alertes</a></div></div>';
+      var wrap = banner ? banner.closest('.col-12') : null;
+      if (wrap) wrap.outerHTML = newHtml;
+    },
+    '/argos/metrics/unifi': function (d) {
+      set('sse-unifi-total', d.clients_total); set('sse-unifi-total-2', d.clients_total);
+      set('sse-unifi-wifi', d.clients_wifi); set('sse-unifi-wifi-2', d.clients_wifi);
+      set('sse-unifi-wired', d.clients_wired); set('sse-unifi-wired-2', d.clients_wired);
+      set('sse-unifi-sync', 'Sync ' + d.last_seen);
+    }
+  };
+
+  function init() {
+    // Fermer l'ancienne connexion unique
+    if (window._argosDashSrc) { window._argosDashSrc.close(); window._argosDashSrc = null; }
+
+    // UNE SEULE connexion SSE multi-topics (au lieu de 5 séparées)
+    var u = new URL('/.well-known/mercure', window.location.origin);
+    ['/argos/metrics/mac', '/argos/containers', '/argos/metrics/nas', '/argos/alerts', '/argos/metrics/unifi'].forEach(function (t) {
+      u.searchParams.append('topic', t);
+    });
+    var es = new EventSource(u.toString());
+    window._argosDashSrc = es;
+
+    es.onmessage = function (e) {
+      var d = JSON.parse(e.data);
+      // Router par champs uniques (chaque topic a des champs distincts)
+      if ('mem_percent' in d || 'disk_percent' in d || 'agent_active' in d) {
+        topicHandlers['/argos/metrics/mac'](d);
+      } else if ('containers' in d || ('up' in d && 'total' in d)) {
+        topicHandlers['/argos/containers'](d);
+      } else if ('temp' in d || 'volumes' in d) {
+        topicHandlers['/argos/metrics/nas'](d);
+      } else if ('critical' in d || ('count' in d && !('clients_total' in d))) {
+        topicHandlers['/argos/alerts'](d);
+      } else if ('clients_total' in d) {
+        topicHandlers['/argos/metrics/unifi'](d);
+      }
+    };
+  }
+
+  if (!window._argosDashListeners) {
+    window._argosDashListeners = true;
+    document.addEventListener('turbo:load', init);
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('turbo:before-cache', function () {
+      if (window._argosDashSrc) { window._argosDashSrc.close(); window._argosDashSrc = null; }
+    });
+  }
+  init();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Suggestions — Sonarr{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Suggestions de séries</h2></div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_sonarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+{% endif %}
+
+{% if series is empty %}
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">
+      <div style="font-size:2.5rem;">📺</div>
+      <div class="mt-2">Aucune suggestion disponible.</div>
+      <div class="small mt-1">Sonarr ne propose pas de recommandations via les listes d'import comme Radarr. Utilisez le bouton "Ajouter" sur la page Séries pour rechercher manuellement.</div>
+    </div>
+  </div>
+{% else %}
+  <div class="text-muted small mb-3">{{ series|length }} série(s) suggérée(s)</div>
+  <div class="row g-3">
+    {% for s in series %}
+    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+      <div class="card h-100" style="cursor:pointer;">
+        {% if s.poster %}
+          <img src="{{ s.poster }}" alt="{{ s.title }}" class="card-img-top" style="aspect-ratio:2/3;object-fit:cover;" loading="lazy">
+        {% else %}
+          <div style="aspect-ratio:2/3;background:var(--tblr-bg-surface-secondary);display:flex;align-items:center;justify-content:center;" class="card-img-top">
+            <span class="text-muted small">{{ s.title }}</span>
+          </div>
+        {% endif %}
+        <div class="card-body p-2">
+          <div class="fw-medium small">{{ s.title }}</div>
+          <div class="text-muted" style="font-size:.7rem;">{{ s.year ?? '' }}{% if s.network %} · {{ s.network }}{% endif %}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+</div>
+</div>
+{% endblock %}

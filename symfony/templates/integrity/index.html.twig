@@ -1,0 +1,390 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Intégrité — IH-ARGOS{% endblock %}
+{% block page_title %}<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4-9 4-9-4 9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg> Intégrité système{% endblock %}
+
+{% block body %}
+<div class="container-xl">
+
+  {# ═════════════════════════════════════════════════════════════════════
+     Section 1 — Mounts NFS du Mac host
+     ═════════════════════════════════════════════════════════════════════ #}
+  <div class="card mb-3" id="mounts-card">
+    <div class="card-header py-2 d-flex align-items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tblr-indigo)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M5 16m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M19 8m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M19 16m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M7 8h10M7 16h10M5 10v4M19 10v4"/></svg>
+      <h3 class="card-title mb-0">Mounts NFS</h3>
+      <span class="ms-auto text-secondary small">
+        {% set up_count = mount_services|filter(m => m.service.status == 'up')|length %}
+        <span id="mounts-up-count">{{ up_count }}</span> / <span id="mounts-total-count">{{ mount_services|length }}</span> actifs
+      </span>
+    </div>
+    <div class="card-body py-3">
+      {% if mount_services is empty %}
+        <div class="text-secondary small fst-italic text-center py-2">
+          Aucun mount détecté — en attente du premier polling (toutes les 60s).
+        </div>
+      {% else %}
+        <div class="row g-3" id="mounts-grid">
+          {% for m in mount_services %}
+            {% set is_up = m.service.status == 'up' %}
+            {% set free_gb = m.free_gb %}
+            {% set size_gb = m.size_gb %}
+            {% set used_pct = m.used_percent ?? 0 %}
+            {% set bar_color = used_pct > 90 ? 'bg-danger' : (used_pct > 75 ? 'bg-warning' : 'bg-success') %}
+            <div class="col-md-6 col-lg-4 col-xl" data-mount-name="{{ m.short }}">
+              <div class="p-3 rounded" style="background:rgba(99,102,241,.05); border:1px solid var(--tblr-border-color);">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="status-dot {% if is_up %}status-dot-animated bg-success{% else %}bg-danger{% endif %} flex-shrink-0" data-mount-dot></span>
+                  <span class="fw-semibold text-capitalize">{{ m.short|replace({'-': ' '}) }}</span>
+                  <span class="ms-auto badge {% if is_up %}bg-success-lt{% else %}bg-danger-lt{% endif %}" data-mount-badge>
+                    {{ is_up ? 'up' : 'down' }}
+                  </span>
+                </div>
+                <div class="text-secondary small text-truncate mb-2" title="{{ m.service.url }}">
+                  <code style="font-size:.7rem;">{{ m.service.url ?? m.short }}</code>
+                </div>
+                {% if is_up and size_gb %}
+                  <div class="progress mb-1" style="height:6px;">
+                    <div class="progress-bar {{ bar_color }}" data-mount-bar role="progressbar" style="width: {{ used_pct }}%"></div>
+                  </div>
+                  <div class="d-flex justify-content-between small">
+                    <span class="text-secondary"><span data-mount-free>{{ free_gb|number_format(0) }}</span> GB libres</span>
+                    <span class="text-secondary">sur <span data-mount-size>{{ size_gb|number_format(0) }}</span> GB</span>
+                  </div>
+                {% else %}
+                  <div class="text-secondary small fst-italic">Mount indisponible</div>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="mt-3 pt-3 d-flex align-items-center gap-2 small text-secondary" style="border-top:1px solid var(--tblr-border-color);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+          <span>LaunchDaemon <code style="font-size:.7rem;">com.nas.mounts</code></span>
+          {% if mount_log.last_failed is not null %}
+            <span class="ms-2">·</span>
+            <span>
+              Dernier run :
+              {% if mount_log.last_failed > 0 %}
+                <span class="badge bg-danger-lt" id="mount-log-badge">{{ mount_log.last_failed }} échec(s)</span>
+              {% else %}
+                <span class="badge bg-success-lt" id="mount-log-badge">OK</span>
+              {% endif %}
+            </span>
+            {% if mount_log.checked_at %}
+              <span class="text-muted ms-2">· {{ mount_log.checked_at|date('d/m H:i') }}</span>
+            {% endif %}
+          {% else %}
+            <span class="text-muted">· log indisponible</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# ═════════════════════════════════════════════════════════════════════
+     Section 2 — Intégrité bases SQLite
+     ═════════════════════════════════════════════════════════════════════ #}
+  <div class="card mb-3" id="integrity-card">
+    <div class="card-header py-2 d-flex align-items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tblr-indigo)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6a8 3 0 0 0 16 0V6"/><path d="M4 12v6a8 3 0 0 0 16 0v-6"/></svg>
+      <h3 class="card-title mb-0">Intégrité bases SQLite</h3>
+      {% set corrupted_count = integrity_checks|filter(c => c.service.status == 'error')|length %}
+      <span class="ms-auto">
+        {% if corrupted_count > 0 %}
+          <span class="badge bg-danger-lt" id="integrity-global-badge">{{ corrupted_count }} corrompue{{ corrupted_count > 1 ? 's' : '' }}</span>
+        {% elseif integrity_checks is not empty %}
+          <span class="badge bg-success-lt" id="integrity-global-badge">Toutes OK</span>
+        {% else %}
+          <span class="badge bg-secondary-lt" id="integrity-global-badge">Jamais vérifié</span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="card-body py-2">
+      {% if integrity_checks is empty %}
+        <div class="text-secondary small fst-italic text-center py-3">
+          Aucun check effectué — lance manuellement depuis la page <a href="{{ path('app_tasks') }}">Tâches</a> ou attends 3h du matin.
+        </div>
+      {% else %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0" style="font-size:.82rem;">
+            <thead>
+              <tr class="text-secondary" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;">
+                <th style="width:200px">Container</th>
+                <th>Statut</th>
+                <th style="width:140px">Dernier check</th>
+                <th style="width:110px">Durée</th>
+                <th style="width:110px">Taille</th>
+                <th style="width:80px;text-align:right">Détails</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in integrity_checks %}
+                {% set is_ok  = c.service.status == 'up' %}
+                {% set is_err = c.service.status == 'error' %}
+                <tr data-integrity-label="{{ c.label }}">
+                  <td>
+                    <span class="fw-semibold text-capitalize">{{ c.label }}</span>
+                    <div class="text-secondary small">{{ c.service.url ?? '' }}</div>
+                  </td>
+                  <td>
+                    {% if is_ok %}
+                      <span class="badge bg-success-lt">OK</span>
+                    {% elseif is_err %}
+                      <span class="badge bg-danger-lt">Corrompue</span>
+                    {% else %}
+                      <span class="badge bg-warning-lt">{{ c.service.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-secondary small">
+                    {{ c.service.checkedAt ? c.service.checkedAt|date('d/m H:i') : '—' }}
+                  </td>
+                  <td class="font-monospace small">
+                    {{ c.service.responseTimeMs ? (c.service.responseTimeMs / 1000)|number_format(1) ~ ' s' : '—' }}
+                  </td>
+                  <td class="font-monospace small">
+                    {{ c.size_mb ? c.size_mb|number_format(0) ~ ' MB' : '—' }}
+                  </td>
+                  <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-ghost-secondary" data-bs-toggle="modal" data-bs-target="#integrity-modal-{{ c.label }}">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
+                    </button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% for c in integrity_checks %}
+    <div class="modal modal-blur fade" id="integrity-modal-{{ c.label }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title d-flex align-items-center gap-2">
+              <span class="text-capitalize">{{ c.label }}</span>
+              {% if c.service.status == 'up' %}<span class="badge bg-success-lt">OK</span>
+              {% elseif c.service.status == 'error' %}<span class="badge bg-danger-lt">Corrompue</span>
+              {% else %}<span class="badge bg-warning-lt">{{ c.service.status }}</span>
+              {% endif %}
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row mb-3">
+              <div class="col-sm-6">
+                <div class="text-secondary small text-uppercase">Container</div>
+                <div class="fw-semibold">{{ c.service.url ?? '—' }}</div>
+              </div>
+              <div class="col-sm-6">
+                <div class="text-secondary small text-uppercase">Dernier check</div>
+                <div>{{ c.service.checkedAt ? c.service.checkedAt|date('d/m/Y H:i:s') : 'jamais' }}</div>
+              </div>
+            </div>
+            <div class="text-secondary small text-uppercase mb-1">Rapport PRAGMA integrity_check</div>
+            <pre style="max-height:40vh;overflow:auto;background:var(--tblr-bg-surface-secondary);padding:.75rem;border-radius:6px;font-size:.78rem;line-height:1.4;white-space:pre-wrap;word-break:break-word;">{{ c.service.details ?? '(pas de rapport)' }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
+  {# ═════════════════════════════════════════════════════════════════════
+     Section 3 — Nettoyage fichiers macOS
+     ═════════════════════════════════════════════════════════════════════ #}
+  <div class="card mb-3" id="cleanup-card">
+    <div class="card-header py-2 d-flex align-items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tblr-indigo)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+      <h3 class="card-title mb-0">Nettoyage fichiers macOS</h3>
+      <span class="text-secondary small ms-2">.DS_Store et ._* sur les mounts NFS</span>
+      <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="btn-run-cleanup">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M7 4v16l13 -8z"/></svg>
+        Lancer maintenant
+      </button>
+    </div>
+    <div class="card-body py-3">
+      {% if cleanup_run %}
+        <div class="row g-3 mb-3">
+          <div class="col-sm-3">
+            <div class="text-secondary small text-uppercase">Dernier run</div>
+            <div class="fw-semibold">{{ cleanup_run.service.checkedAt ? cleanup_run.service.checkedAt|date('d/m H:i:s') : '—' }}</div>
+          </div>
+          <div class="col-sm-3">
+            <div class="text-secondary small text-uppercase">Fichiers supprimés</div>
+            <div class="fw-semibold h3 mb-0 text-success">{{ cleanup_run.last_total_files|default(0)|number_format(0) }}</div>
+          </div>
+          <div class="col-sm-3">
+            <div class="text-secondary small text-uppercase">Durée</div>
+            <div class="fw-semibold">{{ cleanup_run.last_duration_ms ? (cleanup_run.last_duration_ms / 1000)|number_format(1) ~ ' s' : '—' }}</div>
+          </div>
+          <div class="col-sm-3">
+            <div class="text-secondary small text-uppercase">Statut</div>
+            <div>
+              {% if cleanup_run.service.status == 'up' %}<span class="badge bg-success-lt">OK</span>
+              {% elseif cleanup_run.service.status == 'degraded' %}<span class="badge bg-warning-lt">Avec erreurs</span>
+              {% else %}<span class="badge bg-secondary-lt">{{ cleanup_run.service.status }}</span>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        {% if cleanup_run.report and cleanup_run.report.cleaned %}
+          <div class="text-secondary small text-uppercase mb-2">Ventilation par mount</div>
+          <div class="row g-2 mb-3">
+            {% for name, count in cleanup_run.report.cleaned %}
+              <div class="col-md-6 col-lg">
+                <div class="p-2 rounded text-center" style="background:rgba(99,102,241,.05);border:1px solid var(--tblr-border-color);">
+                  <div class="text-secondary small text-capitalize">{{ name|replace({'-': ' '}) }}</div>
+                  <div class="fw-semibold {% if count > 0 %}text-success{% else %}text-secondary{% endif %}">{{ count }}</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if cleanup_history|length > 1 %}
+          <div class="text-secondary small text-uppercase mb-2">Historique 7 jours</div>
+          <div class="d-flex align-items-end gap-1" style="height:60px;">
+            {% set max_val = cleanup_history|reduce((carry, h) => h.value > carry ? h.value : carry, 1) %}
+            {% for h in cleanup_history %}
+              <div class="flex-grow-1 d-flex flex-column align-items-center" style="min-width:0;">
+                <div style="background:#6366f1;width:100%;border-radius:2px 2px 0 0;height:{{ (h.value / max_val * 50)|round }}px;min-height:2px;" title="{{ h.date }} — {{ h.value }} fichiers"></div>
+                <div class="text-secondary" style="font-size:.6rem;margin-top:2px;">{{ h.date }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if cleanup_run.report and cleanup_run.report.errors|default([]) is not empty %}
+          <div class="alert alert-warning small mb-0 mt-3">
+            <strong>Erreurs :</strong>
+            <ul class="mb-0 mt-1">
+              {% for e in cleanup_run.report.errors %}<li>{{ e }}</li>{% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="text-secondary small fst-italic text-center py-3">
+          Aucun nettoyage exécuté — clique <strong>Lancer maintenant</strong> ou attends 3h30 du matin.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>{# /container-xl #}
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+  function mercureUrl(topic) {
+    var u = new URL('/.well-known/mercure', window.location.origin);
+    u.searchParams.append('topic', topic);
+    return u.toString();
+  }
+
+  function fmtGb(v) {
+    if (v === null || v === undefined) return '—';
+    return Math.round(v).toString();
+  }
+
+  /* ── SSE Mounts NFS ── */
+  function applyMount(m) {
+    var card = document.querySelector('[data-mount-name="' + m.name + '"]');
+    if (!card) return;
+    var isUp = m.status === 'up';
+    var dot   = card.querySelector('[data-mount-dot]');
+    var badge = card.querySelector('[data-mount-badge]');
+    var bar   = card.querySelector('[data-mount-bar]');
+    var free  = card.querySelector('[data-mount-free]');
+    var size  = card.querySelector('[data-mount-size]');
+    if (dot) {
+      dot.classList.remove('bg-success', 'bg-danger', 'status-dot-animated');
+      dot.classList.add(isUp ? 'bg-success' : 'bg-danger');
+      if (isUp) dot.classList.add('status-dot-animated');
+    }
+    if (badge) {
+      badge.classList.remove('bg-success-lt', 'bg-danger-lt');
+      badge.classList.add(isUp ? 'bg-success-lt' : 'bg-danger-lt');
+      badge.textContent = isUp ? 'up' : 'down';
+    }
+    if (bar && m.used_percent !== null && m.used_percent !== undefined) {
+      bar.style.width = m.used_percent + '%';
+      bar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+      var cls = m.used_percent > 90 ? 'bg-danger' : (m.used_percent > 75 ? 'bg-warning' : 'bg-success');
+      bar.classList.add(cls);
+    }
+    if (free) free.textContent = fmtGb(m.free_gb);
+    if (size) size.textContent = fmtGb(m.size_gb);
+  }
+
+  if (window._argosMountsSrc) { window._argosMountsSrc.close(); window._argosMountsSrc = null; }
+  try {
+    window._argosMountsSrc = new EventSource(mercureUrl('/argos/mounts'));
+    window._argosMountsSrc.onmessage = function (e) {
+      try {
+        var data = JSON.parse(e.data);
+        if (!data.mounts) return;
+        var up = document.getElementById('mounts-up-count');
+        var tot = document.getElementById('mounts-total-count');
+        if (up)  up.textContent  = data.up_count;
+        if (tot) tot.textContent = data.total;
+        for (var i = 0; i < data.mounts.length; i++) applyMount(data.mounts[i]);
+        if (data.log) {
+          var badge = document.getElementById('mount-log-badge');
+          if (badge && data.log.last_failed !== null && data.log.last_failed !== undefined) {
+            badge.classList.remove('bg-success-lt', 'bg-danger-lt');
+            if (data.log.last_failed > 0) {
+              badge.classList.add('bg-danger-lt');
+              badge.textContent = data.log.last_failed + ' échec(s)';
+            } else {
+              badge.classList.add('bg-success-lt');
+              badge.textContent = 'OK';
+            }
+          }
+        }
+      } catch (_) {}
+    };
+  } catch (_) {}
+
+  /* ── Bouton "Lancer maintenant" cleanup ── */
+  var btnCleanup = document.getElementById('btn-run-cleanup');
+  if (btnCleanup) {
+    btnCleanup.addEventListener('click', function () {
+      btnCleanup.disabled = true;
+      var origHtml = btnCleanup.innerHTML;
+      btnCleanup.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>En cours…';
+
+      var fd = new FormData();
+      fd.append('_token', '{{ csrf_token('run_job') }}');
+      fetch('{{ path('app_tasks_run', {job: 'clean_crap'}) }}', {
+        method: 'POST',
+        body: fd,
+        credentials: 'same-origin',
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (window._argosToast) {
+          window._argosToast(d.error ? ('Échec : ' + d.error) : 'Nettoyage déclenché — recharge dans ~5s', d.error ? 'danger' : 'success');
+        }
+        setTimeout(function () { window.location.reload(); }, 5000);
+      })
+      .catch(function () {
+        if (window._argosToast) window._argosToast('Erreur réseau', 'danger');
+        btnCleanup.disabled = false;
+        btnCleanup.innerHTML = origHtml;
+      });
+    });
+  }
+
+  document.addEventListener('turbo:before-visit', function () {
+    if (window._argosMountsSrc) { window._argosMountsSrc.close(); window._argosMountsSrc = null; }
+  }, { once: true });
+})();
+</script>
+{% endblock %}

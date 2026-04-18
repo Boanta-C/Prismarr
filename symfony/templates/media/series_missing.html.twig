@@ -1,0 +1,129 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Épisodes manquants — IH-ARGOS{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Épisodes manquants
+          {% if missing.totalRecords is defined %}
+            <span class="badge bg-warning-lt text-warning ms-2">{{ missing.totalRecords }}</span>
+          {% endif %}
+        </h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_sonarr_nav.html.twig' ignore missing %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% set records = missing.records ?? [] %}
+
+<div id="missing-banner" class="alert d-none mb-3"></div>
+
+{% if records is not empty %}
+<div class="d-flex justify-content-end mb-3">
+  <button id="btn-search-all-missing" class="btn btn-primary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    Rechercher tous les manquants
+  </button>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-vcenter table-hover card-table mb-0" style="font-size:.82rem;">
+      <thead>
+        <tr>
+          <th>Série</th>
+          <th>Épisode</th>
+          <th>Titre épisode</th>
+          <th>Date diffusion</th>
+          <th class="text-end" style="width:80px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ep in records %}
+        <tr>
+          <td class="fw-medium">{{ ep.series.title ?? '—' }}</td>
+          <td><span class="badge bg-secondary-lt">S{{ '%02d'|format(ep.seasonNumber ?? 0) }}E{{ '%02d'|format(ep.episodeNumber ?? 0) }}</span></td>
+          <td class="text-muted">{{ ep.title ?? '—' }}</td>
+          <td class="text-muted">{{ ep.airDateUtc ? ep.airDateUtc|date('d/m/Y', 'Europe/Paris') : '—' }}</td>
+          <td class="text-end">
+            <button class="btn btn-ghost-primary btn-icon btn-sm btn-search-ep" data-ep-id="{{ ep.id }}" title="Rechercher">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted py-4">Aucun épisode manquant.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if missing.totalRecords is defined and missing.totalRecords > 50 %}
+<div class="d-flex justify-content-center gap-2 mt-3">
+  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">← Précédent</a>{% endif %}
+  <span class="text-muted small align-self-center">Page {{ page }} / {{ (missing.totalRecords / 50)|round(0, 'ceil') }}</span>
+  {% if page * 50 < missing.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">Suivant →</a>{% endif %}
+</div>
+{% endif %}
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+  function showBanner(msg, type) {
+    var el = document.getElementById('missing-banner');
+    el.className = 'alert alert-' + type + ' mb-3';
+    el.innerHTML = msg;
+    el.classList.remove('d-none');
+    if (type === 'success' || type === 'warning') setTimeout(function() { el.classList.add('d-none'); }, 5000);
+  }
+
+  document.querySelectorAll('.btn-search-ep').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:12px;height:12px;"></span>';
+      fetch('/medias/series/episode/search', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+        body: JSON.stringify({episodeIds: [parseInt(btn.dataset.epId)]})
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        btn.innerHTML = d.ok ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+      });
+    });
+  });
+
+  var btnAll = document.getElementById('btn-search-all-missing');
+  if (btnAll) {
+    btnAll.addEventListener('click', function() {
+      btnAll.disabled = true;
+      btnAll.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Recherche...';
+      showBanner('<span class="spinner-border spinner-border-sm me-2"></span> Recherche de tous les épisodes manquants...', 'info');
+      fetch('/medias/series/command/missing-search', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+        body: '{}'
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        btnAll.disabled = false;
+        btnAll.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Rechercher tous les manquants';
+        if (d.ok) showBanner('✅ Recherche lancée.', 'success');
+        else showBanner('❌ Erreur.', 'danger');
+      });
+    });
+  }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clients de téléchargement — Radarr{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Clients de téléchargement</h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-dc">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+          Ajouter
+        </button>
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Radarr.</div>
+{% endif %}
+
+<div id="dc-feedback" class="alert d-none mb-3"></div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Clients configurés</h3>
+    <div class="card-options">
+      <span class="badge bg-secondary-lt">{{ clients|length }}</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if clients is empty %}
+      <div class="text-muted text-center py-5">Aucun client de téléchargement configuré.</div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-vcenter mb-0">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Type</th>
+              <th>Hôte</th>
+              <th>Port</th>
+              <th>Activé</th>
+              <th>Priorité</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for client in clients %}
+            <tr data-client="{{ client|json_encode|e('html_attr') }}">
+              <td class="fw-medium">{{ client.name ?? '—' }}</td>
+              <td><span class="badge bg-secondary-lt">{{ client.implementation ?? client.implementationName ?? '—' }}</span></td>
+              <td class="text-muted small">
+                {% set host = null %}
+                {% for field in (client.fields ?? []) %}
+                  {% if field.name == 'host' %}{% set host = field.value %}{% endif %}
+                {% endfor %}
+                {{ host ?? '—' }}
+              </td>
+              <td class="text-muted small">
+                {% set port = null %}
+                {% for field in (client.fields ?? []) %}
+                  {% if field.name == 'port' %}{% set port = field.value %}{% endif %}
+                {% endfor %}
+                {{ port ?? '—' }}
+              </td>
+              <td>
+                {% if client.enable ?? client.enabled ?? false %}
+                  <span class="badge bg-success-lt text-success">Oui</span>
+                {% else %}
+                  <span class="badge bg-secondary-lt">Non</span>
+                {% endif %}
+              </td>
+              <td class="text-muted">{{ client.priority ?? '—' }}</td>
+              <td class="text-end d-flex gap-2 justify-content-end">
+                <button class="btn btn-ghost-secondary btn-icon" data-bs-toggle="modal" data-bs-target="#modal-dc" data-edit-item="{{ client|json_encode|e('html_attr') }}" title="Modifier">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                </button>
+                <button class="btn btn-ghost-primary btn-icon btn-dc-test" data-id="{{ client.id }}" title="Tester">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                </button>
+                <button class="btn btn-ghost-danger btn-icon btn-dc-delete" data-id="{{ client.id }}" data-name="{{ client.name ?? '' }}" title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+</div>
+</div>
+
+{% include 'radarr/_schema_modal.html.twig' with {
+  modal_id: 'modal-dc',
+  modal_title_add: 'Ajouter un client de téléchargement',
+  modal_title_edit: 'Modifier le client',
+  schema_url: path('radarr_download_client_schema'),
+  save_url_add: path('radarr_download_client_add'),
+  save_url_edit: '/radarr/clients-telechargement/__ID__/modifier',
+  test_url: path('radarr_download_client_test')
+} %}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+  const feedback = document.getElementById('dc-feedback');
+  function showFeedback(msg, type = 'success') {
+    feedback.className = `alert alert-${type} mb-3`;
+    feedback.textContent = msg;
+    feedback.classList.remove('d-none');
+    setTimeout(() => feedback.classList.add('d-none'), type === 'danger' ? 10000 : 4000);
+  }
+
+  const SVG_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>';
+  const SVG_OK = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  const SVG_FAIL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+  const SVG_SPIN = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span>';
+
+  document.querySelectorAll('.btn-dc-test').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.innerHTML = SVG_SPIN;
+      try {
+        const client = JSON.parse(btn.closest('tr').dataset.client);
+        const name = client.name || 'Client';
+        const r = await fetch('/radarr/clients-telechargement/tester', {
+          method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+          body: JSON.stringify(client),
+        });
+        const data = await r.json();
+        btn.innerHTML = data.ok ? SVG_OK : SVG_FAIL;
+        btn.title = data.ok ? 'Test réussi' : (data.error || 'Échec du test');
+        if (data.ok) {
+          showFeedback('✅ ' + name + ' — test réussi', 'success');
+        } else {
+          showFeedback('❌ ' + name + ' — ' + (data.error || 'Échec du test'), 'danger');
+        }
+      } catch { btn.innerHTML = SVG_FAIL; btn.title = 'Erreur réseau'; showFeedback('❌ Erreur réseau', 'danger'); }
+      finally {
+        btn.disabled = false;
+        setTimeout(() => { btn.innerHTML = SVG_CHECK; btn.title = 'Tester'; }, 3000);
+      }
+    });
+  });
+
+  document.querySelectorAll('.btn-dc-delete').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm(`Supprimer le client "${btn.dataset.name}" ?`)) return;
+      const r = await fetch(`/radarr/clients-telechargement/${btn.dataset.id}/supprimer`, {
+        method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, body: '{}',
+      });
+      const data = await r.json();
+      if (data.ok) location.reload();
+      else showFeedback('Erreur lors de la suppression.', 'danger');
+    });
+  });
+})();
+</script>
+{% endblock %}

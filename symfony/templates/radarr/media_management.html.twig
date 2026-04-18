@@ -1,0 +1,312 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des médias — Radarr{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Gestion des médias</h2>
+      </div>
+      <div class="col-auto ms-auto">
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Radarr.</div>
+{% endif %}
+
+<div id="mm-feedback" class="alert d-none mb-3"></div>
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Section A : Nommage des fichiers
+   ══════════════════════════════════════════════════════════════════════════ #}
+{% if namingConfig %}
+<div class="card mb-4">
+  <div class="card-header">
+    <h3 class="card-title">Nommage des fichiers</h3>
+  </div>
+  <div class="card-body">
+    <form id="form-naming" class="row g-3">
+      <div class="col-sm-6 col-md-3">
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" name="renameMovies" id="renameMovies" {{ namingConfig.renameMovies ?? false ? 'checked' }}>
+          <label class="form-check-label" for="renameMovies">Renommer les films</label>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" name="replaceIllegalCharacters" id="replaceIllegalCharacters" {{ namingConfig.replaceIllegalCharacters ?? false ? 'checked' }}>
+          <label class="form-check-label" for="replaceIllegalCharacters">Remplacer les caractères illégaux</label>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label">Format remplacement deux-points</label>
+        <select name="colonReplacementFormat" class="form-select">
+          <option value="smart" {{ (namingConfig.colonReplacementFormat ?? '') == 'smart' ? 'selected' }}>Smart</option>
+          <option value="dash" {{ (namingConfig.colonReplacementFormat ?? '') == 'dash' ? 'selected' }}>Dash</option>
+          <option value="spaceDash" {{ (namingConfig.colonReplacementFormat ?? '') == 'spaceDash' ? 'selected' }}>Space Dash</option>
+          <option value="spaceDashSpace" {{ (namingConfig.colonReplacementFormat ?? '') == 'spaceDashSpace' ? 'selected' }}>Space Dash Space</option>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Format fichier film</label>
+        <input type="text" name="standardMovieFormat" class="form-control" value="{{ namingConfig.standardMovieFormat ?? '' }}">
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <label class="form-label">Format dossier film</label>
+        <input type="text" name="movieFolderFormat" class="form-control" value="{{ namingConfig.movieFolderFormat ?? '' }}">
+      </div>
+      <div class="col-12">
+        <details class="mt-1">
+          <summary class="text-muted small" style="cursor:pointer">Tokens disponibles</summary>
+          <div class="mt-2 text-muted small font-monospace">
+            {Movie Title} &middot; {Original Title} &middot; {Release Year} &middot; {Quality Full} &middot;
+            {Quality Title} &middot; {MediaInfo VideoCodec} &middot; {MediaInfo AudioCodec} &middot;
+            {MediaInfo AudioChannels} &middot; {MediaInfo VideoBitDepth} &middot; {MediaInfo VideoDynamicRange} &middot;
+            {Release Group} &middot; {Edition Tags} &middot; {Custom Formats} &middot; {Movie CleanTitle}
+          </div>
+        </details>
+      </div>
+      <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary" id="btn-save-naming">Sauvegarder</button>
+        <button type="button" id="btn-naming-preview" class="btn btn-outline-secondary">Prévisualiser</button>
+      </div>
+    </form>
+    <div id="naming-preview" class="mt-3" style="display:none;">
+      <div class="table-responsive">
+        <table class="table table-sm table-vcenter mb-0" style="font-size:.8rem;">
+          <tbody id="naming-preview-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ══════════════════════════════════════════════════════════════════════════
+   Section B : Gestion des médias
+   ══════════════════════════════════════════════════════════════════════════ #}
+{% if mmConfig %}
+<div class="card mb-4">
+  <div class="card-header">
+    <h3 class="card-title">Gestion des médias</h3>
+  </div>
+  <div class="card-body">
+    <form id="form-mm" class="row g-3">
+
+      {# Checkboxes row #}
+      <div class="col-sm-6 col-md-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="autoUnmonitorPreviouslyDownloadedMovies" id="autoUnmonitor" {{ mmConfig.autoUnmonitorPreviouslyDownloadedMovies ?? false ? 'checked' }}>
+          <label class="form-check-label" for="autoUnmonitor">Auto-unmonitor films téléchargés</label>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="createEmptyMovieFolders" id="createEmptyFolders" {{ mmConfig.createEmptyMovieFolders ?? false ? 'checked' }}>
+          <label class="form-check-label" for="createEmptyFolders">Créer des dossiers vides</label>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="deleteEmptyFolders" id="deleteEmptyFolders" {{ mmConfig.deleteEmptyFolders ?? false ? 'checked' }}>
+          <label class="form-check-label" for="deleteEmptyFolders">Supprimer les dossiers vides</label>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="autoRenameFolders" id="autoRenameFolders" {{ mmConfig.autoRenameFolders ?? false ? 'checked' }}>
+          <label class="form-check-label" for="autoRenameFolders">Renommer les dossiers auto</label>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="copyUsingHardlinks" id="copyHardlinks" {{ mmConfig.copyUsingHardlinks ?? false ? 'checked' }}>
+          <label class="form-check-label" for="copyHardlinks">Copie par hardlinks</label>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="importExtraFiles" id="importExtraFiles" {{ mmConfig.importExtraFiles ?? false ? 'checked' }}>
+          <label class="form-check-label" for="importExtraFiles">Importer les fichiers extra</label>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="enableMediaInfo" id="enableMediaInfo" {{ mmConfig.enableMediaInfo ?? false ? 'checked' }}>
+          <label class="form-check-label" for="enableMediaInfo">Activer MediaInfo</label>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="setPermissionsLinux" id="setPerms" {{ mmConfig.setPermissionsLinux ?? false ? 'checked' }}>
+          <label class="form-check-label" for="setPerms">Définir les permissions (Linux)</label>
+        </div>
+      </div>
+
+      {# Text / number inputs #}
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label">Chemin corbeille</label>
+        <input type="text" name="recycleBin" class="form-control" value="{{ mmConfig.recycleBin ?? '' }}">
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label">Nettoyage corbeille (jours)</label>
+        <input type="number" name="recycleBinCleanupDays" class="form-control" value="{{ mmConfig.recycleBinCleanupDays ?? 7 }}">
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label">Espace libre minimum (Mo)</label>
+        <input type="number" name="minimumFreeSpaceWhenImporting" class="form-control" value="{{ mmConfig.minimumFreeSpaceWhenImporting ?? 100 }}">
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label">Extensions fichiers extra</label>
+        <input type="text" name="extraFileExtensions" class="form-control" value="{{ mmConfig.extraFileExtensions ?? '' }}" placeholder="srt,nfo">
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label">chmod Dossier</label>
+        <input type="text" name="chmodFolder" class="form-control" value="{{ mmConfig.chmodFolder ?? '755' }}">
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label">chown Groupe</label>
+        <input type="text" name="chownGroup" class="form-control" value="{{ mmConfig.chownGroup ?? '' }}">
+      </div>
+
+      {# Selects #}
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label">Propers &amp; Repacks</label>
+        <select name="downloadPropersAndRepacks" class="form-select">
+          <option value="preferAndUpgrade" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'preferAndUpgrade' ? 'selected' }}>Préférer et upgrader</option>
+          <option value="doNotUpgrade" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'doNotUpgrade' ? 'selected' }}>Ne pas upgrader</option>
+          <option value="doNotPrefer" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'doNotPrefer' ? 'selected' }}>Ne pas préférer</option>
+        </select>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label">Date du fichier</label>
+        <select name="fileDate" class="form-select">
+          <option value="none" {{ (mmConfig.fileDate ?? '') == 'none' ? 'selected' }}>Aucune</option>
+          <option value="cinemas" {{ (mmConfig.fileDate ?? '') == 'cinemas' ? 'selected' }}>Sortie cinéma</option>
+          <option value="release" {{ (mmConfig.fileDate ?? '') == 'release' ? 'selected' }}>Date de sortie</option>
+        </select>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label">Rescan après refresh</label>
+        <select name="rescanAfterRefresh" class="form-select">
+          <option value="always" {{ (mmConfig.rescanAfterRefresh ?? '') == 'always' ? 'selected' }}>Toujours</option>
+          <option value="afterManual" {{ (mmConfig.rescanAfterRefresh ?? '') == 'afterManual' ? 'selected' }}>Après refresh manuel</option>
+          <option value="never" {{ (mmConfig.rescanAfterRefresh ?? '') == 'never' ? 'selected' }}>Jamais</option>
+        </select>
+      </div>
+
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary" id="btn-save-mm">Sauvegarder</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+  var feedbackEl = document.getElementById('mm-feedback');
+
+  function showFeedback(msg, type) {
+    feedbackEl.className = 'alert alert-' + (type || 'info') + ' mb-3';
+    feedbackEl.textContent = msg;
+    feedbackEl.classList.remove('d-none');
+    if (type === 'success') setTimeout(function () { feedbackEl.classList.add('d-none'); }, 4000);
+  }
+
+  function formToJson(form) {
+    var data = {};
+    var els = form.elements;
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (!el.name) continue;
+      if (el.type === 'checkbox') {
+        data[el.name] = el.checked;
+      } else if (el.type === 'number') {
+        data[el.name] = el.value !== '' ? parseInt(el.value, 10) : 0;
+      } else {
+        data[el.name] = el.value;
+      }
+    }
+    return data;
+  }
+
+  function submitForm(formId, url, btnId) {
+    var form = document.getElementById(formId);
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = document.getElementById(btnId);
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sauvegarde...';
+
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: JSON.stringify(formToJson(form)),
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        btn.disabled = false;
+        btn.textContent = 'Sauvegarder';
+        if (data.ok) {
+          showFeedback('Configuration sauvegardée avec succès.', 'success');
+        } else {
+          showFeedback('Erreur : ' + (data.error || 'Erreur inconnue'), 'danger');
+        }
+      })
+      .catch(function () {
+        btn.disabled = false;
+        btn.textContent = 'Sauvegarder';
+        showFeedback('Erreur réseau.', 'danger');
+      });
+    });
+  }
+
+  submitForm('form-naming', '{{ path("radarr_media_management_naming_save") }}', 'btn-save-naming');
+  submitForm('form-mm', '{{ path("radarr_media_management_mm_save") }}', 'btn-save-mm');
+
+  document.getElementById('btn-naming-preview').addEventListener('click', function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Chargement...';
+    fetch('{{ path("radarr_media_management_naming_examples") }}', {
+      headers: {'X-Requested-With':'XMLHttpRequest'}
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      btn.disabled = false;
+      btn.textContent = 'Prévisualiser';
+      var tbody = document.getElementById('naming-preview-tbody');
+      var rows = '';
+      var labels = {
+        movieExample: 'Fichier film',
+        movieFolderExample: 'Dossier film'
+      };
+      for (var key in labels) {
+        if (data[key]) {
+          rows += '<tr><td class="text-muted" style="width:160px">' + labels[key] + '</td><td class="font-monospace">' + data[key] + '</td></tr>';
+        }
+      }
+      tbody.innerHTML = rows || '<tr><td class="text-muted">Aucun exemple disponible</td></tr>';
+      document.getElementById('naming-preview').style.display = '';
+    }).catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Prévisualiser';
+    });
+  });
+})();
+</script>
+{% endblock %}

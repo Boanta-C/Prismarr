@@ -1,0 +1,847 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ user.displayName ?? user.jellyfinUsername ?? '?' }} — Jellyseerr — IH-ARGOS{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> {{ user.displayName ?? user.jellyfinUsername ?? '?' }}{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% set userName = user.displayName ?? user.jellyfinUsername ?? user.email ?? '?' %}
+{% set userAvatar = user.avatar is defined and user.avatar ? 'http://192.168.10.220:5055' ~ user.avatar : null %}
+{% set role = user._role ?? 'Utilisateur' %}
+{% set roleColor = role == 'Admin' ? 'danger' : (role == 'Gestionnaire' ? 'purple' : 'info') %}
+{% set perms = user.permissions ?? 0 %}
+{% set defPerms = defaultPerms ?? 0 %}
+{% set movieQ = quota.movie ?? {} %}
+{% set tvQ = quota.tv ?? {} %}
+
+{% block stylesheets %}
+<style>
+.js-tab-nav { display:flex; gap:0; border-bottom:2px solid var(--tblr-border-color); margin-bottom:1.25rem; overflow-x:auto; }
+.js-tab-btn { padding:.6rem 1.1rem; font-size:.82rem; font-weight:600; cursor:pointer; border:none; background:none; color:var(--tblr-text-secondary); border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .15s; white-space:nowrap; }
+.js-tab-btn:hover { color:var(--tblr-body-color); }
+.js-tab-btn.active { color:#a259ff; border-bottom-color:#a259ff; }
+.js-tab-panel { display:none; }
+.js-tab-panel.active { display:block; }
+.js-section-title { font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; color:var(--tblr-text-secondary); margin-bottom:.6rem; }
+.js-req-card { display:flex; gap:.75rem; align-items:center; padding:.6rem 0; border-bottom:1px solid var(--tblr-border-color-translucent); }
+.js-req-card:last-child { border-bottom:0; }
+.js-tab-panel[data-tab="perms"] .form-check-input:checked { background-color:#a259ff; border-color:#a259ff; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-xl py-2">
+    <div class="d-flex align-items-center justify-content-end">
+        {% include 'jellyseerr/_nav.html.twig' %}
+    </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+    {# ── Header — style natif Seerr ── #}
+    <div class="card mb-3" style="border:0;overflow:hidden;">
+        <div style="padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;">
+            {% if userAvatar %}
+                <span class="avatar avatar-lg" style="width:56px;height:56px;background-image:url('{{ userAvatar }}');flex-shrink:0;"></span>
+            {% else %}
+                <span class="avatar avatar-lg" style="width:56px;height:56px;flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
+                </span>
+            {% endif %}
+            <div style="min-width:0;">
+                <h3 style="margin:0;font-weight:700;font-size:1.1rem;">{{ userName }}</h3>
+                <div class="text-secondary" style="font-size:.78rem;">
+                    Membre depuis le {{ user.createdAt is defined and user.createdAt ? user.createdAt|slice(0,10) : '?' }}
+                    · {{ user.requestCount ?? 0 }} demande{{ (user.requestCount ?? 0) > 1 ? 's' : '' }}
+                </div>
+            </div>
+            <div class="ms-auto d-flex gap-2 flex-shrink-0">
+                {% if not (perms b-and 2) and not (perms b-and 8) %}
+                    <button class="btn btn-outline-danger btn-sm" id="js-delete-user" data-id="{{ user.id }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
+                        Supprimer
+                    </button>
+                {% endif %}
+                <a href="{{ path('jellyseerr_users') }}" class="btn btn-outline-secondary btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/></svg>
+                    Retour
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# ── Onglets ── #}
+    <div class="js-tab-nav">
+        <button class="js-tab-btn active" data-tab="general">Paramètres généraux</button>
+        <button class="js-tab-btn" data-tab="password">Mot de passe</button>
+        <button class="js-tab-btn" data-tab="perms">Permissions</button>
+        <button class="js-tab-btn" data-tab="notifs">Notifications</button>
+        <button class="js-tab-btn" data-tab="linked">Comptes liés</button>
+        <button class="js-tab-btn" data-tab="requetes">Requêtes <span class="badge bg-purple-lt text-purple ms-1" style="font-size:.55rem;">{{ requests|length }}</span></button>
+    </div>
+
+    {# ══════════ PARAMÈTRES GÉNÉRAUX ══════════ #}
+    <div class="js-tab-panel active" data-tab="general">
+        <div class="row g-4">
+            {# ── Colonne gauche : Compte + Identité ── #}
+            <div class="col-12 col-lg-8">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="2" class="me-2" style="vertical-align:-3px;"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
+                            Profil
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label small">Nom affiché</label>
+                                <input type="text" class="form-control form-control-sm" id="js-set-username" value="{{ settings.username ?? '' }}" placeholder="{{ userName }}">
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label small">E-mail</label>
+                                {% set emailVal = settings.email ?? user.email ?? '' %}
+                                <input type="email" class="form-control form-control-sm" id="js-set-email" value="{{ '@' in emailVal ? emailVal : '' }}" placeholder="email@example.com">
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label small">ID utilisateur Discord</label>
+                                <input type="text" class="form-control form-control-sm" id="js-set-discord" value="{{ settings.discordId ?? '' }}" placeholder="Optionnel">
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label small">Langue d'affichage</label>
+                                <select class="form-select form-select-sm" id="js-set-lang">
+                                    <option value="">Langue par défaut (Français)</option>
+                                    {% for lang in languages %}
+                                        <option value="{{ lang.iso_639_1 ?? '' }}" {{ (settings.locale ?? '') == (lang.iso_639_1 ?? '') ? 'selected' }}>{{ lang.english_name ?? lang.iso_639_1 ?? '?' }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="2" class="me-2" style="vertical-align:-3px;"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M3.6 9h16.8"/><path d="M3.6 15h16.8"/><path d="M12 3a17 17 0 0 1 0 18"/><path d="M12 3a17 17 0 0 0 0 18"/></svg>
+                            Régions & langues
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label small">Pays à découvrir</label>
+                                <select class="form-select form-select-sm" id="js-set-discover">
+                                    <option value="">— Paramètre du serveur —</option>
+                                    {% for region in regions %}
+                                        <option value="{{ region.iso_3166_1 ?? '' }}" {{ (settings.discoverRegion ?? '') == (region.iso_3166_1 ?? '') ? 'selected' }}>{{ region.english_name ?? region.iso_3166_1 ?? '?' }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Filtrer le contenu par disponibilité régionale</div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label small">Langue à découvrir</label>
+                                {% set selectedLangs = (settings.originalLanguage ?? '')|split('|') %}
+                                <div id="js-lang-picker" style="position:relative;">
+                                    <div id="js-lang-toggle" class="form-control form-control-sm d-flex align-items-center justify-content-between" style="cursor:pointer;min-height:31px;">
+                                        <span id="js-lang-display" class="text-truncate" style="font-size:.82rem;">
+                                            {% if selectedLangs|first == '' %}Toutes les langues{% else %}{{ selectedLangs|length }} langue(s){% endif %}
+                                        </span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6l6 -6"/></svg>
+                                    </div>
+                                    <div id="js-lang-dropdown" style="display:none;position:absolute;z-index:100;top:100%;left:0;right:0;max-height:250px;overflow-y:auto;background:var(--tblr-card-bg);border:1px solid var(--tblr-border-color);border-radius:.4rem;margin-top:2px;box-shadow:0 4px 12px rgba(0,0,0,.2);padding:.25rem 0;">
+                                        <div style="padding:.25rem .5rem;position:sticky;top:0;background:var(--tblr-card-bg);z-index:1;">
+                                            <input type="text" class="form-control form-control-sm" id="js-lang-search" placeholder="Rechercher une langue…">
+                                        </div>
+                                        {% for lang in languages %}
+                                            <div class="js-lang-option" data-name="{{ ((lang.english_name ?? '') ~ ' ' ~ (lang.name ?? '') ~ ' ' ~ (lang.iso_639_1 ?? ''))|lower }}">
+                                                <label class="d-flex align-items-center gap-2 px-3 py-1" style="cursor:pointer;font-size:.82rem;">
+                                                    <input type="checkbox" class="form-check-input js-lang-cb" value="{{ lang.iso_639_1 ?? '' }}" {{ (lang.iso_639_1 ?? '') in selectedLangs ? 'checked' }} style="margin:0;">
+                                                    {{ lang.english_name ?? lang.iso_639_1 ?? '?' }}{% if lang.name is defined and lang.name and lang.name != lang.english_name %} <span class="text-secondary">({{ lang.name }})</span>{% endif %}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="form-text">Filtrer le contenu par langue d'origine</div>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label small">Pays de diffusion</label>
+                                <select class="form-select form-select-sm" id="js-set-streaming">
+                                    <option value="">— Paramètre du serveur —</option>
+                                    {% for region in regions %}
+                                        <option value="{{ region.iso_3166_1 ?? '' }}" {{ (settings.streamingRegion ?? '') == (region.iso_3166_1 ?? '') ? 'selected' }}>{{ region.english_name ?? region.iso_3166_1 ?? '?' }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Afficher les sites de streaming par disponibilité</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="2" class="me-2" style="vertical-align:-3px;"><path d="M3 12h4l3 8l4 -16l3 8h4"/></svg>
+                            Quotas
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        {# Films #}
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span style="font-weight:600;font-size:.85rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" style="vertical-align:-2px;" class="me-1"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8" cy="8" r="2"/><path d="M2 14l6 -6l12 12"/></svg>
+                                Limite de demandes de films
+                            </span>
+                            <label class="form-check form-switch mb-0">
+                                <input type="checkbox" class="form-check-input" id="js-mq-enabled" {{ (settings.movieQuotaLimit ?? null) is not null ? 'checked' }} style="cursor:pointer;">
+                                <span class="form-check-label text-secondary" style="font-size:.78rem;">Contourner la limite globale</span>
+                            </label>
+                        </div>
+                        <div id="js-mq-fields" class="mb-3 ps-3" style="{{ (settings.movieQuotaLimit ?? null) is null ? 'display:none;' : '' }}border-left:2px solid #ef444433;padding-top:.25rem;">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="number" class="form-control form-control-sm" id="js-mq-limit" value="{{ settings.movieQuotaLimit ?? settings.globalMovieQuotaLimit ?? 0 }}" min="0" style="width:70px;">
+                                <span class="text-secondary" style="font-size:.82rem;">film(s) tous les</span>
+                                <input type="number" class="form-control form-control-sm" id="js-mq-days" value="{{ settings.movieQuotaDays ?? settings.globalMovieQuotaDays ?? 7 }}" min="1" style="width:70px;">
+                                <span class="text-secondary" style="font-size:.82rem;">jours</span>
+                            </div>
+                        </div>
+
+                        <hr class="my-2" style="opacity:.1;">
+
+                        {# Séries #}
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span style="font-weight:600;font-size:.85rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" style="vertical-align:-2px;" class="me-1"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M17 2l-5 5l-5 -5"/></svg>
+                                Limite de demandes de séries
+                            </span>
+                            <label class="form-check form-switch mb-0">
+                                <input type="checkbox" class="form-check-input" id="js-tq-enabled" {{ (settings.tvQuotaLimit ?? null) is not null ? 'checked' }} style="cursor:pointer;">
+                                <span class="form-check-label text-secondary" style="font-size:.78rem;">Contourner la limite globale</span>
+                            </label>
+                        </div>
+                        <div id="js-tq-fields" class="ps-3" style="{{ (settings.tvQuotaLimit ?? null) is null ? 'display:none;' : '' }}border-left:2px solid #38bdf833;padding-top:.25rem;">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="number" class="form-control form-control-sm" id="js-tq-limit" value="{{ settings.tvQuotaLimit ?? settings.globalTvQuotaLimit ?? 0 }}" min="0" style="width:70px;">
+                                <span class="text-secondary" style="font-size:.82rem;">série(s) tous les</span>
+                                <input type="number" class="form-control form-control-sm" id="js-tq-days" value="{{ settings.tvQuotaDays ?? settings.globalTvQuotaDays ?? 7 }}" min="1" style="width:70px;">
+                                <span class="text-secondary" style="font-size:.82rem;">jours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Colonne droite : Infos compte ── #}
+            <div class="col-12 col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="2" class="me-2" style="vertical-align:-3px;"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>
+                            Informations
+                        </h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-vcenter card-table" style="font-size:.82rem;">
+                            <tr>
+                                <td class="text-secondary" style="width:120px;">Type</td>
+                                <td>
+                                    {% if (user.userType ?? 0) == 3 %}
+                                        <span class="d-inline-flex align-items-center gap-1">
+                                            <svg width="14" height="14" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 96c-88.4 0-160 71.6-160 160s71.6 160 160 160 160-71.6 160-160S344.4 96 256 96z" fill="#00A4DC"/></svg>
+                                            <strong style="color:#00A4DC;">Jellyfin</strong>
+                                        </span>
+                                    {% else %}
+                                        <strong>Local</strong>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Rôle</td>
+                                <td><span class="badge bg-{{ roleColor }}" style="color:#fff !important;">{{ role }}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Requêtes</td>
+                                <td><strong style="color:#a259ff;">{{ user.requestCount ?? 0 }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-secondary">Inscription</td>
+                                <td>{{ user.createdAt is defined and user.createdAt ? user.createdAt|slice(0,10) : '?' }}</td>
+                            </tr>
+                            {% if user.jellyfinUsername is defined and user.jellyfinUsername %}
+                            <tr>
+                                <td class="text-secondary">Jellyfin</td>
+                                <td>{{ user.jellyfinUsername }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if user.jellyfinUserId is defined and user.jellyfinUserId %}
+                            <tr>
+                                <td class="text-secondary">ID Jellyfin</td>
+                                <td style="font-family:monospace;font-size:.72rem;word-break:break-all;">{{ user.jellyfinUserId }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary" id="js-save-settings" style="background:#a259ff;border-color:#a259ff;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10 -10"/></svg>
+                Enregistrer les modifications
+            </button>
+            <span id="js-settings-status" class="ms-2 small d-flex align-items-center"></span>
+        </div>
+    </div>
+
+    {# ══════════ MOT DE PASSE ══════════ #}
+    <div class="js-tab-panel" data-tab="password">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Mot de passe</h3></div>
+            <div class="card-body">
+                {% if (user.userType ?? 0) == 3 %}
+                    <div class="alert alert-info d-flex align-items-start gap-2" style="font-size:.82rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>
+                        <div>Cet utilisateur est connecté via <strong>Jellyfin</strong>. Le mot de passe est géré directement par Jellyfin et ne peut pas être modifié ici.</div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning d-flex align-items-start gap-2" style="font-size:.82rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+                        <div>La modification du mot de passe déconnectera l'utilisateur de toutes ses sessions actives. Il devra se reconnecter avec le nouveau mot de passe.</div>
+                    </div>
+                    <div class="row g-3" style="max-width:500px;">
+                        <div class="col-12">
+                            <label class="form-label">Nouveau mot de passe</label>
+                            <input type="password" class="form-control" id="js-new-password" placeholder="8 caractères minimum">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Confirmer le mot de passe</label>
+                            <input type="password" class="form-control" id="js-confirm-password" placeholder="Confirmer le mot de passe">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-warning" id="js-save-password">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z"/><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"/><path d="M8 11v-4a4 4 0 1 1 8 0v4"/></svg>
+                            Enregistrer le mot de passe
+                        </button>
+                        <span id="js-password-status" class="ms-2 small"></span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# ══════════ PERMISSIONS ══════════ #}
+    <div class="js-tab-panel" data-tab="perms">
+
+        {#
+          Permissions — structure exacte du natif Seerr.
+          parent: bit du parent (enfants disabled+checked quand parent coché)
+          requires: [bits] prérequis (disabled si aucun prérequis coché)
+        #}
+        {% set permList = [
+            {bit: 2,        label: 'Administrateur', desc: 'Accès complet. Toutes les permissions sont automatiquement accordées.', section: 'Général'},
+            {bit: 8,        label: 'Gérer les utilisateurs', desc: 'Autorise à gérer tous les paramètres relatifs aux utilisateurs.'},
+            {bit: 16,       label: 'Gérer les demandes', desc: 'Autorise à gérer les demandes, à les voir, les modifier et les supprimer.'},
+            {bit: 8192,     label: 'Demandes avancées', desc: 'Autorise à modifier les options avancées lors d\'une demande.', parent: 16},
+            {bit: 16384,    label: 'Voir les demandes', desc: 'Autorise à voir les demandes des autres utilisateurs.', parent: 16},
+            {bit: 67108864, label: 'Voir les ajouts récents', desc: 'Autorise à voir les médias récemment ajoutés.', parent: 16},
+            {bit: 134217728,label: 'Voir les listes de lecture Jellyfin', desc: 'Autorise à voir les listes de lecture Jellyfin.', parent: 16},
+            {bit: 32,       label: 'Demander', desc: 'Autorise à faire des demandes de films et séries.'},
+            {bit: 262144,   label: 'Demander des films', desc: 'Autorise à faire des demandes de films.', parent: 32},
+            {bit: 524288,   label: 'Demander des séries', desc: 'Autorise à faire des demandes de séries.', parent: 32},
+
+            {bit: 128,   label: 'Validation automatique', desc: 'Valide automatiquement toutes les demandes.', section: 'Validation automatique', requires: [32]},
+            {bit: 256,   label: 'Validation automatique des films', desc: 'Valide automatiquement les demandes de films.', parent: 128, requires: [32, 262144]},
+            {bit: 512,   label: 'Validation automatique des séries', desc: 'Valide automatiquement les demandes de séries.', parent: 128, requires: [32, 524288]},
+
+            {bit: 8388608,  label: 'Demande automatique', desc: 'Demande automatiquement les médias ajoutés à la liste de surveillance.', section: 'Demande automatique', requires: [32]},
+            {bit: 16777216, label: 'Demande automatique des films', desc: 'Demande automatiquement les films ajoutés à la liste de surveillance.', parent: 8388608, requires: [32, 262144]},
+            {bit: 33554432, label: 'Demande automatique des séries', desc: 'Demande automatiquement les séries ajoutées à la liste de surveillance.', parent: 8388608, requires: [32, 524288]},
+
+            {bit: 1024,  label: 'Demander en 4K', desc: 'Autorise à demander des médias en 4K.', section: 'Demander en 4K', requires: [32], need4k: true},
+            {bit: 2048,  label: 'Demander des films en 4K', desc: 'Autorise à demander des films en 4K.', parent: 1024, requires: [32, 262144], need4k: true},
+            {bit: 4096,  label: 'Demander des séries en 4K', desc: 'Autorise à demander des séries en 4K.', parent: 1024, requires: [32, 524288], need4k: true},
+
+            {bit: 32768,  label: 'Validation automatique 4K', desc: 'Valide automatiquement toutes les demandes en 4K.', section: 'Validation automatique 4K', requires: [1024], need4k: true},
+            {bit: 65536,  label: 'Validation automatique des films 4K', desc: 'Valide automatiquement les demandes de films en 4K.', parent: 32768, requires: [1024, 2048], need4k: true},
+            {bit: 131072, label: 'Validation automatique des séries 4K', desc: 'Valide automatiquement les demandes de séries en 4K.', parent: 32768, requires: [1024, 4096], need4k: true},
+
+            {bit: 1048576,  label: 'Gérer les problèmes', desc: 'Autorise à gérer les signalements de problèmes.', section: 'Signaler des problèmes'},
+            {bit: 4194304,  label: 'Créer des problèmes', desc: 'Autorise à signaler des problèmes sur les médias.', parent: 1048576},
+            {bit: 2097152,  label: 'Voir les problèmes', desc: 'Autorise à voir les signalements des autres utilisateurs.', parent: 1048576},
+
+            {bit: 268435456,  label: 'Gérer la liste de blocage', desc: 'Autorise à gérer la liste de blocage.', section: 'Liste de blocage'},
+            {bit: 1073741824, label: 'Voir la liste de blocage', desc: 'Autorise à voir la liste de blocage.', parent: 268435456}
+        ] %}
+
+        <div class="card">
+            <div class="list-group list-group-flush">
+            {% for p in permList %}
+                {% set is4kDisabled = p.need4k is defined and p.need4k and not (has4k ?? false) %}
+
+                {% if p.section is defined %}
+                    <div class="list-group-item" style="background:var(--tblr-bg-surface-secondary);padding:.5rem 1.25rem;">
+                        <span style="font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:#a259ff;">{{ p.section }}</span>
+                        {% if is4kDisabled and not (p.parent is defined) %}
+                            <span class="text-secondary ms-2" style="font-size:.7rem;font-weight:400;text-transform:none;letter-spacing:0;">Aucun serveur 4K configuré</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% set isUserBit = (perms b-and p.bit) ? true : false %}
+                {% set hasParent = p.parent is defined and p.parent %}
+                <div class="list-group-item d-flex align-items-center justify-content-between gap-3 js-perm-row"
+                     style="padding:.85rem 1.25rem;{{ hasParent ? 'padding-left:2.75rem;' : '' }}{{ is4kDisabled ? 'opacity:.4;' : '' }}"
+                     data-bit="{{ p.bit }}"
+                     {% if hasParent %}data-parent="{{ p.parent }}"{% endif %}
+                     {% if p.requires is defined %}data-requires="{{ p.requires|join(',') }}"{% endif %}
+                     {% if is4kDisabled %}data-disabled4k="1"{% endif %}>
+                    <div style="min-width:0;">
+                        <div style="font-weight:{{ hasParent ? '500' : '600' }};font-size:{{ hasParent ? '.84rem' : '.88rem' }};">{{ p.label }}</div>
+                        <div class="text-secondary" style="font-size:.76rem;line-height:1.4;">{{ p.desc }}</div>
+                    </div>
+                    <label class="form-check form-switch mb-0" style="flex-shrink:0;">
+                        <input type="checkbox" class="form-check-input js-perm-cb" value="{{ p.bit }}"
+                               {{ isUserBit ? 'checked' }}
+                               {{ is4kDisabled ? 'disabled' : '' }}
+                               style="width:2.5rem;height:1.25rem;cursor:pointer;">
+                    </label>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-primary" id="js-save-perms">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10 -10"/></svg>
+                Enregistrer les modifications
+            </button>
+            <span id="js-perms-status" class="ms-2 small"></span>
+        </div>
+
+    </div>
+
+    {# ══════════ NOTIFICATIONS ══════════ #}
+    <div class="js-tab-panel" data-tab="notifs">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".3" class="mb-3">
+                    <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/>
+                    <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+                </svg>
+                <h3 class="text-secondary" style="font-size:.95rem;">Notifications pas encore disponibles</h3>
+                <p class="text-secondary" style="font-size:.82rem;">La configuration des notifications utilisateur sera disponible prochainement.</p>
+            </div>
+        </div>
+    </div>
+
+    {# ══════════ COMPTES LIÉS ══════════ #}
+    <div class="js-tab-panel" data-tab="linked">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Comptes liés</h3></div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 p-3" style="background:var(--tblr-bg-surface-secondary);border-radius:.5rem;">
+                    <svg width="40" height="40" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+                        <path d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32z" fill="#00A4DC" opacity=".15"/>
+                        <path d="M256 96c-88.4 0-160 71.6-160 160s71.6 160 160 160 160-71.6 160-160S344.4 96 256 96zm0 280c-66.3 0-120-53.7-120-120s53.7-120 120-120 120 53.7 120 120-53.7 120-120 120z" fill="#00A4DC"/>
+                    </svg>
+                    <div>
+                        <div style="font-weight:600;font-size:.9rem;">Jellyfin</div>
+                        <div class="text-secondary" style="font-size:.78rem;">
+                            {% if user.jellyfinUsername is defined and user.jellyfinUsername %}
+                                Connecté en tant que <strong>{{ user.jellyfinUsername }}</strong>
+                            {% else %}
+                                Non lié
+                            {% endif %}
+                        </div>
+                        {% if user.jellyfinUserId is defined and user.jellyfinUserId %}
+                            <div class="text-secondary" style="font-size:.68rem;font-family:monospace;margin-top:2px;">ID: {{ user.jellyfinUserId }}</div>
+                        {% endif %}
+                    </div>
+                    {% if user.jellyfinUsername is defined and user.jellyfinUsername %}
+                        <span class="badge bg-success ms-auto">Lié</span>
+                    {% else %}
+                        <span class="badge bg-secondary ms-auto">Non lié</span>
+                    {% endif %}
+                </div>
+
+                <div class="text-secondary mt-3" style="font-size:.78rem;">
+                    <strong>Type de compte :</strong> {{ user.userType is defined and user.userType == 3 ? 'Jellyfin' : (user.userType == 2 ? 'Local' : 'Autre') }}<br>
+                    <strong>Inscrit le :</strong> {{ user.createdAt is defined and user.createdAt ? user.createdAt|slice(0,10) : '?' }}<br>
+                    <strong>Dernière modification :</strong> {{ user.updatedAt is defined and user.updatedAt ? user.updatedAt|slice(0,10) : '?' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ══════════ REQUÊTES ══════════ #}
+    <div class="js-tab-panel" data-tab="requetes">
+        {% if requests|length == 0 %}
+            <div class="card"><div class="card-body text-center text-secondary py-4">Aucune requête</div></div>
+        {% else %}
+            <div class="card">
+                <div class="card-body">
+                    {% for req in requests %}
+                        {% set tmdb = req._tmdb ?? null %}
+                        {% set poster = tmdb and tmdb.posterPath ? 'https://image.tmdb.org/t/p/w92' ~ tmdb.posterPath : null %}
+                        <div class="js-req-card">
+                            {% if poster %}
+                                <img src="{{ poster }}" style="width:50px;height:75px;object-fit:cover;border-radius:.35rem;flex-shrink:0;" alt="" loading="lazy">
+                            {% else %}
+                                <div style="width:50px;height:75px;background:var(--tblr-bg-surface-secondary);border-radius:.35rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"><rect x="2" y="2" width="20" height="20" rx="2"/></svg>
+                                </div>
+                            {% endif %}
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-weight:600;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    {{ tmdb ? tmdb.title : 'TMDb #' ~ (req.media.tmdbId ?? '?') }}
+                                </div>
+                                <div class="text-secondary" style="font-size:.75rem;">
+                                    {{ req.type == 'movie' ? 'Film' : 'Série' }}
+                                    {% if tmdb and tmdb.releaseDate %} · {{ tmdb.releaseDate|slice(0,4) }}{% endif %}
+                                    {% if tmdb and tmdb.genres|length > 0 %} · {{ tmdb.genres|slice(0,2)|join(', ') }}{% endif %}
+                                </div>
+                            </div>
+                            <div class="text-end" style="flex-shrink:0;">
+                                <span class="badge bg-{{ req._statusColor ?? 'secondary' }}-lt text-{{ req._statusColor ?? 'secondary' }}">{{ req._statusLabel ?? '?' }}</span>
+                                <div class="text-secondary" style="font-size:.68rem;margin-top:2px;">{% if req.createdAt is defined and req.createdAt %}{{ req.createdAt|slice(0,10) }}{% endif %}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+    var userId = {{ user.id }};
+
+    // ── Onglets ──
+    document.querySelectorAll('.js-tab-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            document.querySelectorAll('.js-tab-btn').forEach(function(b){ b.classList.remove('active'); });
+            document.querySelectorAll('.js-tab-panel').forEach(function(p){ p.classList.remove('active'); });
+            this.classList.add('active');
+            document.querySelector('.js-tab-panel[data-tab="' + this.dataset.tab + '"]').classList.add('active');
+        });
+    });
+
+    function feedback(el, ok, msg) {
+        el.innerHTML = ok ? '<span class="text-success">' + (msg || 'Enregistré') + '</span>' : '<span class="text-danger">' + (msg || 'Erreur') + '</span>';
+        setTimeout(function(){ el.innerHTML = ''; }, 3000);
+    }
+
+    function postJSON(url, data, btn, statusEl) {
+        btn.disabled = true;
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<div class="spinner-border spinner-border-sm" style="width:16px;height:16px;"></div>';
+        fetch(url, {
+            method:'POST', credentials:'same-origin',
+            headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+            body: JSON.stringify(data)
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){ btn.disabled = false; btn.innerHTML = orig; feedback(statusEl, d.ok, d.error); })
+        .catch(function(){ btn.disabled = false; btn.innerHTML = orig; feedback(statusEl, false); });
+    }
+
+    // ── Save settings (général + quotas) ──
+    // ── Dropdown langues multi-select ──
+    var langToggle = document.getElementById('js-lang-toggle');
+    var langDropdown = document.getElementById('js-lang-dropdown');
+    var langDisplay = document.getElementById('js-lang-display');
+    var langSearch = document.getElementById('js-lang-search');
+
+    if (langToggle) {
+        langToggle.addEventListener('click', function(){
+            langDropdown.style.display = langDropdown.style.display === 'none' ? 'block' : 'none';
+            if (langDropdown.style.display === 'block' && langSearch) langSearch.focus();
+        });
+
+        document.addEventListener('click', function(ev){
+            if (!ev.target.closest('#js-lang-picker')) langDropdown.style.display = 'none';
+        });
+
+        if (langSearch) {
+            langSearch.addEventListener('click', function(ev){ ev.stopPropagation(); });
+            langSearch.addEventListener('keyup', function(){
+                var q = this.value.toLowerCase();
+                document.querySelectorAll('.js-lang-option').forEach(function(opt){
+                    opt.style.display = (!q || opt.dataset.name.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        }
+
+        function updateLangDisplay(){
+            var checked = document.querySelectorAll('.js-lang-cb:checked');
+            if (checked.length === 0) {
+                langDisplay.textContent = 'Toutes les langues';
+            } else if (checked.length <= 3) {
+                var names = [];
+                checked.forEach(function(cb){ names.push(cb.closest('.js-lang-option').textContent.trim()); });
+                langDisplay.textContent = names.join(', ');
+            } else {
+                langDisplay.textContent = checked.length + ' langue(s) sélectionnée(s)';
+            }
+        }
+
+        document.querySelectorAll('.js-lang-cb').forEach(function(cb){
+            cb.addEventListener('change', updateLangDisplay);
+        });
+    }
+
+    // ── Toggles quotas ──
+    var mqEnabled = document.getElementById('js-mq-enabled');
+    var mqFields = document.getElementById('js-mq-fields');
+    if (mqEnabled) mqEnabled.addEventListener('change', function(){ mqFields.style.display = this.checked ? '' : 'none'; });
+
+    var tqEnabled = document.getElementById('js-tq-enabled');
+    var tqFields = document.getElementById('js-tq-fields');
+    if (tqEnabled) tqEnabled.addEventListener('change', function(){ tqFields.style.display = this.checked ? '' : 'none'; });
+
+    var saveSettingsBtn = document.getElementById('js-save-settings');
+    if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', function(){
+        var langVal = document.getElementById('js-set-lang').value;
+        var discoverVal = document.getElementById('js-set-discover').value;
+        var streamingVal = document.getElementById('js-set-streaming').value;
+        // Langues sélectionnées : joindre avec |
+        var discoverLangs = [];
+        document.querySelectorAll('.js-lang-cb:checked').forEach(function(cb){ discoverLangs.push(cb.value); });
+        var discoverLangVal = discoverLangs.join('|');
+        postJSON('/jellyseerr/utilisateurs/' + userId + '/settings', {
+            username: document.getElementById('js-set-username').value.trim() || null,
+            email: document.getElementById('js-set-email').value.trim(),
+            locale: langVal === '' ? '' : langVal,
+            discoverRegion: discoverVal === '' ? '' : discoverVal,
+            originalLanguage: discoverLangVal === '' ? '' : discoverLangVal,
+            streamingRegion: streamingVal === '' ? '' : streamingVal,
+            discordId: document.getElementById('js-set-discord').value.trim() || null,
+            movieQuotaLimit: document.getElementById('js-mq-enabled').checked ? (parseInt(document.getElementById('js-mq-limit').value) || 0) : null,
+            movieQuotaDays: document.getElementById('js-mq-enabled').checked ? (parseInt(document.getElementById('js-mq-days').value) || 7) : null,
+            tvQuotaLimit: document.getElementById('js-tq-enabled').checked ? (parseInt(document.getElementById('js-tq-limit').value) || 0) : null,
+            tvQuotaDays: document.getElementById('js-tq-enabled').checked ? (parseInt(document.getElementById('js-tq-days').value) || 7) : null
+        }, this, document.getElementById('js-settings-status'));
+    });
+
+    // ── Save password ──
+    var savePwBtn = document.getElementById('js-save-password');
+    if (savePwBtn) savePwBtn.addEventListener('click', function(){
+        var pw = document.getElementById('js-new-password').value;
+        var confirm = document.getElementById('js-confirm-password').value;
+        var statusEl = document.getElementById('js-password-status');
+        if (pw.length < 8) { feedback(statusEl, false, '8 caractères minimum'); return; }
+        if (pw !== confirm) { feedback(statusEl, false, 'Les mots de passe ne correspondent pas'); return; }
+        postJSON('/jellyseerr/utilisateurs/' + userId + '/password', {password: pw}, this, statusEl);
+    });
+
+    // ── Permissions — comportement identique au natif Seerr ──
+    // 1. Admin (2) → tout disabled+checked
+    // 2. Parent → enfants disabled+checked
+    // 3. Requires → disabled si prérequis pas cochés
+    // 4. 4K → skip si pas de serveur configuré
+
+    var ADMIN_BIT = 2;
+
+    function getPermCb(bit) { return document.querySelector('.js-perm-cb[value="' + bit + '"]'); }
+
+    function isPermChecked(bit) {
+        var cb = getPermCb(bit);
+        return cb && cb.checked;
+    }
+
+    function updatePermStates() {
+        var isAdmin = isPermChecked(ADMIN_BIT);
+
+        document.querySelectorAll('.js-perm-row').forEach(function(row) {
+            var bit = parseInt(row.dataset.bit);
+            var cb = row.querySelector('.js-perm-cb');
+            var parentBit = row.dataset.parent ? parseInt(row.dataset.parent) : null;
+            var requiresBits = row.dataset.requires ? row.dataset.requires.split(',').map(Number) : [];
+
+            // Skip si désactivé pour raison 4K (pas de serveur configuré)
+            if (row.dataset.disabled4k === '1') return;
+
+            // Reset
+            cb.disabled = false;
+            row.style.opacity = '1';
+
+            // 1. Admin → tout disabled+checked sauf Admin lui-même
+            if (isAdmin && bit !== ADMIN_BIT) {
+                cb.checked = true;
+                cb.disabled = true;
+                row.style.opacity = '.5';
+                return;
+            }
+
+            // 2. Parent coché → enfant disabled+checked
+            if (parentBit && isPermChecked(parentBit)) {
+                cb.checked = true;
+                cb.disabled = true;
+                row.style.opacity = '.5';
+                return;
+            }
+
+            // 3. Requires — au moins un prérequis doit être coché (OR)
+            if (requiresBits.length > 0) {
+                var hasReq = requiresBits.some(function(r) { return isPermChecked(r); });
+                if (!hasReq) {
+                    cb.checked = false;
+                    cb.disabled = true;
+                    row.style.opacity = '.4';
+                    return;
+                }
+            }
+        });
+    }
+
+    // Listener : quand on décoche un parent, décocher ses enfants
+    document.querySelectorAll('.js-perm-cb').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var bit = parseInt(this.value);
+            if (!this.checked) {
+                // Décocher les enfants de ce parent
+                document.querySelectorAll('.js-perm-row[data-parent="' + bit + '"] .js-perm-cb').forEach(function(child) {
+                    child.checked = false;
+                });
+                // Admin décoché → tout décocher
+                if (bit === ADMIN_BIT) {
+                    document.querySelectorAll('.js-perm-cb').forEach(function(c) {
+                        if (parseInt(c.value) !== ADMIN_BIT) c.checked = false;
+                    });
+                }
+            }
+            updatePermStates();
+        });
+    });
+
+    // État initial
+    updatePermStates();
+
+    // ── Save : bits explicitement cochés + préserver les bits 4K existants ──
+    var originalPerms = {{ perms }};
+    var fourKBits = [1024, 2048, 4096, 32768, 65536, 131072];
+    var savePermsBtn = document.getElementById('js-save-perms');
+    if (savePermsBtn) savePermsBtn.addEventListener('click', function(){
+        var newPerms = 0;
+        document.querySelectorAll('.js-perm-cb').forEach(function(cb) {
+            if (cb.checked && !cb.disabled) newPerms |= parseInt(cb.value);
+        });
+        // Préserver les bits 4K existants (disabled car pas de serveur, mais valides)
+        fourKBits.forEach(function(bit) {
+            if (originalPerms & bit) newPerms |= bit;
+        });
+        postJSON('/jellyseerr/utilisateurs/' + userId + '/permissions', {permissions: newPerms}, this, document.getElementById('js-perms-status'));
+    });
+
+    // ── Onglets canaux notifications ──
+    document.querySelectorAll('.js-notif-channel').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var channel = this.dataset.channel;
+            var panel = document.getElementById('js-notif-panel');
+            var isActive = this.classList.contains('btn-primary');
+
+            // Toggle off
+            if (isActive) {
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-outline-secondary');
+                this.style.background = '';
+                this.style.borderColor = '';
+                panel.innerHTML = '<div class="text-secondary text-center py-3" style="font-size:.85rem;">Sélectionnez un canal de notification ci-dessus pour le configurer.</div>';
+                return;
+            }
+
+            // Highlight
+            document.querySelectorAll('.js-notif-channel').forEach(function(b){
+                b.classList.remove('btn-primary');
+                b.classList.add('btn-outline-secondary');
+                b.style.background = '';
+                b.style.borderColor = '';
+            });
+            this.classList.remove('btn-outline-secondary');
+            this.classList.add('btn-primary');
+            this.style.background = '#a259ff';
+            this.style.borderColor = '#a259ff';
+
+            var html = '';
+            if (channel === 'discord') {
+                html += '<label class="form-label small">ID utilisateur Discord</label>';
+                html += '<input type="text" class="form-control form-control-sm" id="js-notif-discord-id" value="{{ notifs.discordId ?? '' }}" placeholder="Entrez votre ID Discord">';
+            } else if (channel === 'telegram') {
+                html += '<label class="form-label small">Chat ID Telegram</label>';
+                html += '<input type="text" class="form-control form-control-sm mb-2" id="js-notif-telegram-id" value="{{ notifs.telegramChatId ?? '' }}" placeholder="Entrez votre Chat ID">';
+                html += '<label class="form-check form-switch"><input type="checkbox" class="form-check-input" id="js-notif-telegram-silent" {{ (notifs.telegramSendSilently ?? false) ? "checked" }}><span class="form-check-label small">Envoyer silencieusement</span></label>';
+            } else if (channel === 'pushbullet') {
+                html += '<label class="form-label small">Jeton d\'accès Pushbullet</label>';
+                html += '<input type="text" class="form-control form-control-sm" id="js-notif-pushbullet" value="{{ notifs.pushbulletAccessToken ?? '' }}" placeholder="Jeton d\'accès">';
+            } else if (channel === 'pushover') {
+                html += '<label class="form-label small">Jeton d\'application Pushover</label>';
+                html += '<input type="text" class="form-control form-control-sm mb-2" id="js-notif-pushover-app" value="{{ notifs.pushoverApplicationToken ?? '' }}" placeholder="Jeton d\'application">';
+                html += '<label class="form-label small">Clé utilisateur Pushover</label>';
+                html += '<input type="text" class="form-control form-control-sm" id="js-notif-pushover-user" value="{{ notifs.pushoverUserKey ?? '' }}" placeholder="Clé utilisateur">';
+            } else if (channel === 'email') {
+                html += '<div class="text-secondary" style="font-size:.85rem;">Les notifications par e-mail seront envoyées à l\'adresse configurée dans le profil de l\'utilisateur.</div>';
+            } else if (channel === 'webpush') {
+                html += '<div class="text-secondary" style="font-size:.85rem;">Les notifications Web Push seront envoyées au navigateur de l\'utilisateur.</div>';
+            }
+
+            panel.innerHTML = html;
+        });
+    });
+
+    // ── Save notifications ──
+    var saveNotifsBtn = document.getElementById('js-save-notifs');
+    if (saveNotifsBtn) saveNotifsBtn.addEventListener('click', function(){
+        var notifBits = 0;
+        document.querySelectorAll('.js-notif-type-cb:checked').forEach(function(cb){ notifBits |= parseInt(cb.value); });
+
+        var payload = {
+            notificationTypes: { email: notifBits, webpush: notifBits, discord: notifBits, telegram: notifBits }
+        };
+
+        // Récupérer les tokens/IDs des canaux (si les champs existent dans le DOM)
+        var el;
+        el = document.getElementById('js-notif-discord-id');
+        if (el) payload.discordId = el.value.trim() || null;
+
+        el = document.getElementById('js-notif-telegram-id');
+        if (el) payload.telegramChatId = el.value.trim() || null;
+
+        el = document.getElementById('js-notif-telegram-silent');
+        if (el) payload.telegramSendSilently = el.checked;
+
+        el = document.getElementById('js-notif-pushbullet');
+        if (el) payload.pushbulletAccessToken = el.value.trim() || null;
+
+        el = document.getElementById('js-notif-pushover-app');
+        if (el) payload.pushoverApplicationToken = el.value.trim() || null;
+
+        el = document.getElementById('js-notif-pushover-user');
+        if (el) payload.pushoverUserKey = el.value.trim() || null;
+
+        postJSON('/jellyseerr/utilisateurs/' + userId + '/notifications', payload, this, document.getElementById('js-notifs-status'));
+    });
+
+    // ── Delete user ──
+    var deleteBtn = document.getElementById('js-delete-user');
+    if (deleteBtn) deleteBtn.addEventListener('click', function(){
+        if (!confirm('Supprimer cet utilisateur ? Cette action est irréversible.')) return;
+        this.disabled = true;
+        fetch('/jellyseerr/utilisateurs/' + userId + '/delete', {
+            method:'POST', credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'}
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if (d.ok) { window.location.href = '/jellyseerr/utilisateurs'; }
+            else { alert(d.error || 'Erreur'); deleteBtn.disabled = false; }
+        });
+    });
+})();
+</script>
+{% endblock %}

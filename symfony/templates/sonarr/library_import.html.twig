@@ -1,0 +1,335 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Import bibliothèque — Sonarr{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Import de bibliothèque</h2></div>
+      <div class="col-auto ms-auto">{% include 'media/_sonarr_nav.html.twig' %}</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+{% endif %}
+
+<div class="card mb-3">
+  <div class="card-header"><h3 class="card-title">Dossier à scanner</h3></div>
+  <div class="card-body">
+    <div class="d-flex gap-2 align-items-end">
+      <div class="flex-grow-1">
+        <select id="scan-folder" class="form-select form-select-sm">
+          {% for folder in rootFolders %}
+          <option value="{{ folder.path }}">{{ folder.path }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button id="btn-scan" class="btn btn-primary btn-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Scanner
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="scan-feedback" class="alert d-none mb-3"></div>
+
+<div id="scan-results" style="display:none;">
+  <div class="card mb-3">
+    <div class="card-header">
+      <h3 class="card-title">Dossiers non importés <span class="badge bg-warning-lt ms-1" id="scan-count"></span></h3>
+      <div class="card-actions">
+        <label class="form-check form-switch mb-0">
+          <input type="checkbox" class="form-check-input" id="show-existing">
+          <span class="form-check-label small">Afficher les existantes</span>
+        </label>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-vcenter table-hover card-table mb-0" style="font-size:.82rem;">
+        <thead>
+          <tr>
+            <th style="width:30px"><input type="checkbox" class="form-check-input" id="import-check-all" title="Tout sélectionner"></th>
+            <th>Dossier</th>
+            <th>Surveiller</th>
+            <th>Profil qualité</th>
+            <th>Type de série</th>
+            <th style="width:30px">Saison</th>
+            <th>Série</th>
+            <th style="width:80px"></th>
+          </tr>
+        </thead>
+        <tbody id="scan-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body d-flex align-items-center gap-3">
+      <div class="d-flex gap-2 align-items-center">
+        <label class="small text-muted text-nowrap">Surveiller :</label>
+        <select id="global-monitor" class="form-select form-select-sm" style="width:auto;">
+          <option value="all">Tous les épisodes</option>
+          <option value="future">Futurs uniquement</option>
+          <option value="missing">Manquants</option>
+          <option value="firstSeason">1ère saison</option>
+          <option value="lastSeason">Dernière saison</option>
+          <option value="none">Aucun</option>
+        </select>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <label class="small text-muted text-nowrap">Profil qualité :</label>
+        <select id="global-quality" class="form-select form-select-sm" style="width:auto;">
+          {% for p in qualityProfiles %}
+          <option value="{{ p.id }}">{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <label class="small text-muted text-nowrap">Type :</label>
+        <select id="global-type" class="form-select form-select-sm" style="width:auto;">
+          <option value="standard">Standard</option>
+          <option value="daily">Quotidienne</option>
+          <option value="anime">Anime</option>
+        </select>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <label class="form-check mb-0">
+          <input type="checkbox" class="form-check-input" id="global-season-folder" checked>
+          <span class="form-check-label small">Dossiers saison</span>
+        </label>
+      </div>
+      <button id="btn-import-all" class="btn btn-success btn-sm ms-auto" disabled>
+        Importer les séries
+      </button>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+  var scanBtn = document.getElementById('btn-scan');
+  var tbody = document.getElementById('scan-tbody');
+  var results = document.getElementById('scan-results');
+  var feedback = document.getElementById('scan-feedback');
+  var scanCount = document.getElementById('scan-count');
+  var importAllBtn = document.getElementById('btn-import-all');
+  var importableSeries = [];
+
+  function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function showFeedback(msg, type) {
+    feedback.className = 'alert alert-' + type + ' mb-3';
+    feedback.innerHTML = msg;
+    feedback.classList.remove('d-none');
+    if (type === 'success') setTimeout(function() { feedback.classList.add('d-none'); }, 5000);
+  }
+
+  var qualityOptions = '';
+  {% for p in qualityProfiles %}
+  qualityOptions += '<option value="{{ p.id }}">{{ p.name }}</option>';
+  {% endfor %}
+
+  scanBtn.addEventListener('click', function() {
+    var folder = document.getElementById('scan-folder').value;
+    if (!folder) return;
+    scanBtn.disabled = true;
+    scanBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Scan...';
+    tbody.innerHTML = '';
+    results.style.display = 'none';
+    importableSeries = [];
+    importAllBtn.disabled = true;
+
+    fetch('/sonarr/import-bibliotheque/scan', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+      body: JSON.stringify({folder: folder})
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      scanBtn.disabled = false;
+      scanBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Scanner';
+
+      if (!data.ok) { showFeedback('❌ ' + (data.error || 'Erreur'), 'danger'); return; }
+      var folders = data.folders || [];
+      if (!folders.length) { showFeedback('✅ Tous les dossiers sont déjà importés.', 'success'); return; }
+
+      scanCount.textContent = folders.length;
+      results.style.display = '';
+
+      // Auto-lookup each folder
+      folders.forEach(function(f, idx) {
+        var tr = document.createElement('tr');
+        tr.dataset.path = f.path;
+        tr.dataset.idx = idx;
+        tr.innerHTML =
+          '<td><input type="checkbox" class="form-check-input import-row-cb" checked></td>' +
+          '<td class="font-monospace small">' + esc(f.name) + '</td>' +
+          '<td><select class="form-select form-select-sm row-monitor"><option value="all">Tous les épisodes</option><option value="future">Futurs</option><option value="missing">Manquants</option><option value="firstSeason">1ère saison</option><option value="lastSeason">Dernière</option><option value="none">Aucun</option></select></td>' +
+          '<td><select class="form-select form-select-sm row-quality">' + qualityOptions + '</select></td>' +
+          '<td><select class="form-select form-select-sm row-type"><option value="standard">Standard</option><option value="daily">Quotidienne</option><option value="anime">Anime</option></select></td>' +
+          '<td class="text-center"><input type="checkbox" class="form-check-input row-season-folder" checked></td>' +
+          '<td class="serie-cell"><span class="spinner-border spinner-border-sm"></span></td>' +
+          '<td class="status-cell"></td>';
+        tbody.appendChild(tr);
+
+        // Auto lookup
+        fetch('/medias/series/lookup?term=' + encodeURIComponent(f.name), {
+          headers: {'X-Requested-With':'XMLHttpRequest'}
+        }).then(function(r) { return r.json(); }).then(function(series) {
+          var serieCell = tr.querySelector('.serie-cell');
+          var statusCell = tr.querySelector('.status-cell');
+          if (!series || !series.length) {
+            serieCell.innerHTML = '<span class="text-danger small">Introuvable</span>';
+            statusCell.innerHTML = '<span class="badge bg-danger-lt">✗</span>';
+            return;
+          }
+          var s = series[0];
+          var existing = !!s.id;
+          serieCell.innerHTML =
+            '<div class="d-flex align-items-center gap-2">' +
+            (s.poster ? '<img src="' + esc(s.poster) + '" style="width:25px;height:38px;object-fit:cover;border-radius:.2rem;">' : '') +
+            '<div><div class="fw-medium small">' + esc(s.title) + (s.year ? ' (' + s.year + ')' : '') + '</div>' +
+            '<div class="text-muted" style="font-size:.65rem;">' + (s.network || '') + '</div></div></div>';
+
+          if (existing) {
+            statusCell.innerHTML = '<span class="badge bg-success-lt">Existante</span>';
+            tr.style.opacity = '.5';
+            tr.classList.add('existing-row');
+            tr.style.display = 'none';
+            var cb = tr.querySelector('.import-row-cb');
+            cb.checked = false;
+            cb.style.display = 'none';
+          } else {
+            statusCell.innerHTML = '<span class="badge bg-warning-lt">À importer</span>';
+            tr.dataset.tvdbId = s.tvdbId || '';
+            tr.dataset.seriesType = s.seriesType || 'standard';
+            // Pre-select type based on lookup
+            if (s.seriesType === 'anime') tr.querySelector('.row-type').value = 'anime';
+            importableSeries.push(tr);
+            tr.querySelector('.import-row-cb').addEventListener('change', updateImportCount);
+            updateImportCount();
+          }
+        }).catch(function() {
+          tr.querySelector('.serie-cell').innerHTML = '<span class="text-danger small">Erreur</span>';
+        });
+      });
+    }).catch(function() {
+      scanBtn.disabled = false;
+      scanBtn.innerHTML = 'Scanner';
+      showFeedback('❌ Erreur réseau.', 'danger');
+    });
+  });
+
+  // Check all toggle
+  document.getElementById('import-check-all').addEventListener('change', function() {
+    var checked = this.checked;
+    document.querySelectorAll('.import-row-cb').forEach(function(cb) {
+      if (cb.closest('tr').style.display !== 'none') cb.checked = checked;
+    });
+    updateImportCount();
+  });
+
+  function updateImportCount() {
+    var count = 0;
+    importableSeries.forEach(function(tr) {
+      var cb = tr.querySelector('.import-row-cb');
+      if (cb && cb.checked) count++;
+    });
+    importAllBtn.disabled = count === 0;
+    importAllBtn.textContent = count > 0 ? 'Importer ' + count + ' série(s)' : 'Importer les séries';
+  }
+
+  // Apply global options to checked rows
+  document.getElementById('global-monitor').addEventListener('change', function() {
+    var v = this.value;
+    importableSeries.forEach(function(tr) { if (tr.querySelector('.import-row-cb').checked) tr.querySelector('.row-monitor').value = v; });
+  });
+  document.getElementById('global-quality').addEventListener('change', function() {
+    var v = this.value;
+    importableSeries.forEach(function(tr) { if (tr.querySelector('.import-row-cb').checked) tr.querySelector('.row-quality').value = v; });
+  });
+  document.getElementById('global-type').addEventListener('change', function() {
+    var v = this.value;
+    importableSeries.forEach(function(tr) { if (tr.querySelector('.import-row-cb').checked) tr.querySelector('.row-type').value = v; });
+  });
+  document.getElementById('global-season-folder').addEventListener('change', function() {
+    var v = this.checked;
+    importableSeries.forEach(function(tr) { if (tr.querySelector('.import-row-cb').checked) tr.querySelector('.row-season-folder').checked = v; });
+  });
+
+  // Toggle existing rows
+  document.getElementById('show-existing').addEventListener('change', function() {
+    var show = this.checked;
+    document.querySelectorAll('.existing-row').forEach(function(tr) {
+      tr.style.display = show ? '' : 'none';
+    });
+  });
+
+  // Import all
+  importAllBtn.addEventListener('click', function() {
+    var checkedRows = importableSeries.filter(function(tr) {
+      var cb = tr.querySelector('.import-row-cb');
+      return cb && cb.checked;
+    });
+    if (!checkedRows.length) return;
+    importAllBtn.disabled = true;
+    importAllBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Import...';
+    var globalMonitor = document.getElementById('global-monitor').value;
+    var globalQuality = parseInt(document.getElementById('global-quality').value);
+    var folder = document.getElementById('scan-folder').value;
+    var done = 0;
+    var total = checkedRows.length;
+
+    checkedRows.forEach(function(tr) {
+      var monitor = tr.querySelector('.row-monitor').value || globalMonitor;
+      var quality = parseInt(tr.querySelector('.row-quality').value) || globalQuality;
+      var seriesType = tr.querySelector('.row-type').value || document.getElementById('global-type').value;
+      var seasonFolder = tr.querySelector('.row-season-folder').checked;
+      var statusCell = tr.querySelector('.status-cell');
+      statusCell.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span>';
+
+      fetch('/medias/series/add', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+        body: JSON.stringify({
+          tvdbId: parseInt(tr.dataset.tvdbId),
+          rootFolderPath: folder,
+          qualityProfileId: quality,
+          seriesType: seriesType,
+          monitor: monitor,
+          monitored: true,
+          seasonFolder: seasonFolder,
+          searchForMissing: false
+        })
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        done++;
+        if (d.ok) {
+          statusCell.innerHTML = '<span class="badge bg-success">✓ Importée</span>';
+          tr.style.opacity = '.5';
+          setTimeout(function() { tr.remove(); }, 1500);
+        } else {
+          statusCell.innerHTML = '<span class="badge bg-danger-lt">✗ Erreur</span>';
+        }
+        if (done >= total) {
+          importAllBtn.innerHTML = 'Import terminé';
+          showFeedback('✅ ' + total + ' série(s) traitée(s).', 'success');
+        }
+      }).catch(function() {
+        done++;
+        statusCell.innerHTML = '<span class="badge bg-danger-lt">✗ Erreur</span>';
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

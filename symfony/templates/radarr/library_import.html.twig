@@ -1,0 +1,350 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Import de bibliothèque — Radarr{% endblock %}
+
+{% block stylesheets %}
+<style>
+.import-row {
+  padding: .5rem .75rem;
+  border-bottom: 1px solid var(--tblr-border-color);
+}
+.import-row:hover { background: var(--tblr-bg-surface-secondary); }
+.search-results {
+  position: absolute; z-index: 10; top: 100%; left: 0; right: 0;
+  background: var(--tblr-bg-surface); border: 1px solid var(--tblr-border-color);
+  border-radius: .25rem; box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  max-height: 200px; overflow-y: auto; display: none;
+}
+.search-results .search-item {
+  padding: .35rem .6rem; cursor: pointer; font-size: .82rem;
+}
+.search-results .search-item:hover { background: var(--tblr-bg-surface-secondary); }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Import de bibliothèque</h2></div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Radarr.</div>
+{% endif %}
+
+<div id="import-feedback" class="alert d-none mb-3"></div>
+
+{# ── Sélection du dossier + scan ───────────────────────────────────── #}
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <div class="d-flex gap-2 align-items-end">
+      <div>
+        <label class="form-label small mb-1">Dossier à scanner</label>
+        <select id="scan-folder" class="form-select form-select-sm" style="width:300px;">
+          {% for rf in rootFolders %}
+          <option value="{{ rf.path }}">{{ rf.path }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-primary btn-sm" id="btn-scan">
+        <span class="spinner-border spinner-border-sm d-none me-1" id="scan-spinner"></span>
+        Scanner
+      </button>
+    </div>
+  </div>
+</div>
+
+{# ── Tableau des dossiers non importés ─────────────────────────────── #}
+<div class="card d-none" id="scan-results-card">
+  <div class="card-header">
+    <h3 class="card-title">Dossiers non importés <span class="badge bg-secondary-lt ms-2" id="files-count">0</span></h3>
+  </div>
+  {# En-tête #}
+  <div class="d-flex align-items-center gap-2 px-3 py-2 fw-medium" style="font-size:.78rem;background:var(--tblr-bg-surface-secondary);border-bottom:1px solid var(--tblr-border-color);">
+    <div style="width:30px;"><input type="checkbox" class="form-check-input" id="check-all"></div>
+    <div style="flex:2;">Dossier</div>
+    <div style="flex:2;">Film</div>
+    <div style="width:140px;">Surveiller</div>
+    <div style="width:130px;">Disponibilité</div>
+    <div style="width:160px;">Profil qualité</div>
+  </div>
+  <div id="scan-results"></div>
+
+  {# Footer global #}
+  <div class="card-footer d-flex gap-3 align-items-center flex-wrap">
+    <div>
+      <label class="form-label small mb-1">Surveiller</label>
+      <select id="global-monitored" class="form-select form-select-sm" style="width:140px;">
+        <option value="movieOnly" selected>Film seulement</option>
+        <option value="none">Non</option>
+      </select>
+    </div>
+    <div>
+      <label class="form-label small mb-1">Disponibilité</label>
+      <select id="global-availability" class="form-select form-select-sm" style="width:130px;">
+        <option value="announced">Annoncé</option>
+        <option value="inCinemas">En salles</option>
+        <option value="released" selected>Sorti</option>
+      </select>
+    </div>
+    <div>
+      <label class="form-label small mb-1">Profil qualité</label>
+      <select id="global-quality" class="form-select form-select-sm" style="width:160px;">
+        {% for qp in qualityProfiles %}
+        <option value="{{ qp.id }}">{{ qp.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="ms-auto">
+      <button class="btn btn-success btn-sm" id="btn-import-all" disabled>
+        <span class="spinner-border spinner-border-sm d-none me-1" id="import-spinner"></span>
+        Importer <span id="import-count">0</span> film(s)
+      </button>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+var feedback = document.getElementById('import-feedback');
+var scanFolders = [];
+var rowData = [];
+var lookupUrl = {{ path('app_media_films_lookup')|json_encode|raw }};
+var addUrl = {{ path('app_media_films_add')|json_encode|raw }};
+var qualityOpts = '';
+{% for qp in qualityProfiles %}
+qualityOpts += '<option value="{{ qp.id }}">{{ qp.name }}</option>';
+{% endfor %}
+
+function showFeedback(msg, type) {
+  feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
+  feedback.textContent = msg;
+  feedback.classList.remove('d-none');
+  setTimeout(function(){ feedback.classList.add('d-none'); }, 6000);
+}
+
+// ── Scan ──────────────────────────────────────────────────────────
+document.getElementById('btn-scan').addEventListener('click', function() {
+  var folder = document.getElementById('scan-folder').value;
+  var spinner = document.getElementById('scan-spinner');
+  spinner.classList.remove('d-none');
+
+  fetch('{{ path('radarr_library_import_scan') }}', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+    body: JSON.stringify({ folder: folder }),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    spinner.classList.add('d-none');
+    if (!data.ok) { showFeedback(data.error || 'Erreur.', 'danger'); return; }
+    scanFolders = data.folders || [];
+    rowData = [];
+    document.getElementById('files-count').textContent = scanFolders.length;
+    document.getElementById('scan-results-card').classList.remove('d-none');
+
+    var container = document.getElementById('scan-results');
+    if (!scanFolders.length) {
+      container.innerHTML = '<div class="text-muted text-center py-4">Tous les dossiers sont déjà importés.</div>';
+      document.getElementById('btn-import-all').disabled = true;
+      return;
+    }
+
+    // Auto-lookup each folder name
+    var html = '';
+    scanFolders.forEach(function(f, i) {
+      rowData[i] = { tmdbId: 0, title: '', year: 0, searching: true };
+
+      html += '<div class="import-row d-flex align-items-center gap-2" data-idx="' + i + '">';
+      html += '<div style="width:30px;"><input type="checkbox" class="form-check-input import-check" data-idx="' + i + '"></div>';
+      html += '<div style="flex:2;overflow:hidden;font-size:.82rem;">';
+      html += '<div class="text-truncate fw-medium" title="' + f.name.replace(/"/g,'&quot;') + '">' + f.name + '</div>';
+      html += '</div>';
+      html += '<div style="flex:2;position:relative;">';
+      html += '<input type="text" class="form-control form-control-sm film-search" data-idx="' + i + '" value="" placeholder="Recherche en cours...">';
+      html += '<div class="search-results" id="sr-' + i + '"></div>';
+      html += '</div>';
+      html += '<div style="width:140px;"><select class="form-select form-select-sm row-monitored"><option value="movieOnly" selected>Film seulement</option><option value="none">Non</option></select></div>';
+      html += '<div style="width:130px;"><select class="form-select form-select-sm row-availability"><option value="announced">Annoncé</option><option value="inCinemas">En salles</option><option value="released" selected>Sorti</option></select></div>';
+      html += '<div style="width:160px;"><select class="form-select form-select-sm row-quality">' + qualityOpts + '</select></div>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+    bindEvents();
+
+    // Auto-lookup: parse folder name to find movie
+    scanFolders.forEach(function(f, i) {
+      var cleanName = f.name.replace(/\s*\(\d{4}\).*$/, '').replace(/\s+(WEBDL|WEBRip|Bluray|HDTV|Remux).*$/i, '').trim();
+      fetch(lookupUrl + '?term=' + encodeURIComponent(cleanName), { headers: {'X-Requested-With':'XMLHttpRequest'} })
+        .then(function(r) { return r.json(); })
+        .then(function(movies) {
+          var input = document.querySelector('.film-search[data-idx="' + i + '"]');
+          if (movies.length > 0) {
+            var m = movies[0];
+            rowData[i] = { tmdbId: m.tmdbId || 0, title: m.title || '', year: m.year || 0 };
+            input.value = m.title + ' (' + (m.year || '') + ')';
+            // Auto-check
+            var cb = document.querySelector('.import-check[data-idx="' + i + '"]');
+            if (cb) { cb.checked = true; updateCount(); }
+          } else {
+            input.value = '';
+            input.placeholder = 'Aucun résultat — chercher manuellement';
+            rowData[i] = { tmdbId: 0, title: '', year: 0 };
+          }
+        })
+        .catch(function() {
+          var input = document.querySelector('.film-search[data-idx="' + i + '"]');
+          input.value = '';
+          input.placeholder = 'Erreur — chercher manuellement';
+        });
+    });
+  })
+  .catch(function() {
+    spinner.classList.add('d-none');
+    showFeedback('Erreur réseau.', 'danger');
+  });
+});
+
+function updateCount() {
+  var count = document.querySelectorAll('.import-check:checked').length;
+  document.getElementById('import-count').textContent = count;
+  document.getElementById('btn-import-all').disabled = count === 0;
+}
+
+function bindEvents() {
+  document.getElementById('check-all').addEventListener('change', function() {
+    var c = this.checked;
+    document.querySelectorAll('.import-check').forEach(function(cb) { cb.checked = c; });
+    updateCount();
+  });
+  document.querySelectorAll('.import-check').forEach(function(cb) {
+    cb.addEventListener('change', updateCount);
+  });
+
+  // Film search with debounce
+  var debounceTimers = {};
+  document.querySelectorAll('.film-search').forEach(function(input) {
+    var idx = parseInt(input.dataset.idx);
+    var sr = document.getElementById('sr-' + idx);
+
+    input.addEventListener('input', function() {
+      clearTimeout(debounceTimers[idx]);
+      var q = input.value.trim();
+      if (q.length < 2) { sr.style.display = 'none'; return; }
+      debounceTimers[idx] = setTimeout(function() {
+        fetch(lookupUrl + '?term=' + encodeURIComponent(q), { headers: {'X-Requested-With':'XMLHttpRequest'} })
+          .then(function(r) { return r.json(); })
+          .then(function(movies) {
+            if (!movies.length) { sr.style.display = 'none'; return; }
+            sr.innerHTML = movies.slice(0, 8).map(function(m) {
+              return '<div class="search-item" data-tmdb="' + (m.tmdbId||0) + '" data-title="' + (m.title||'').replace(/"/g,'&quot;') + '" data-year="' + (m.year||0) + '">' +
+                (m.title||'?') + ' <span class="text-muted">(' + (m.year||'?') + ')</span></div>';
+            }).join('');
+            sr.style.display = 'block';
+            sr.querySelectorAll('.search-item').forEach(function(item) {
+              item.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                rowData[idx] = { tmdbId: parseInt(item.dataset.tmdb), title: item.dataset.title, year: parseInt(item.dataset.year)||0 };
+                input.value = item.dataset.title + ' (' + (item.dataset.year||'') + ')';
+                sr.style.display = 'none';
+                var cb = document.querySelector('.import-check[data-idx="' + idx + '"]');
+                if (cb) { cb.checked = true; updateCount(); }
+              });
+            });
+          });
+      }, 400);
+    });
+    input.addEventListener('blur', function() {
+      setTimeout(function() { sr.style.display = 'none'; }, 200);
+    });
+  });
+
+  // Global selects
+  document.getElementById('global-monitored').addEventListener('change', function() {
+    var v = this.value;
+    document.querySelectorAll('.row-monitored').forEach(function(s) { s.value = v; });
+  });
+  document.getElementById('global-availability').addEventListener('change', function() {
+    var v = this.value;
+    document.querySelectorAll('.row-availability').forEach(function(s) { s.value = v; });
+  });
+  document.getElementById('global-quality').addEventListener('change', function() {
+    var v = this.value;
+    document.querySelectorAll('.row-quality').forEach(function(s) { s.value = v; });
+  });
+}
+
+// ── Import ────────────────────────────────────────────────────────
+document.getElementById('btn-import-all').addEventListener('click', function() {
+  var checked = document.querySelectorAll('.import-check:checked');
+  if (!checked.length) return;
+
+  var btn = document.getElementById('btn-import-all');
+  var spinner = document.getElementById('import-spinner');
+  btn.disabled = true;
+  spinner.classList.remove('d-none');
+
+  var promises = [];
+  checked.forEach(function(cb) {
+    var idx = parseInt(cb.dataset.idx);
+    var rd = rowData[idx];
+    if (!rd || !rd.tmdbId) return;
+    var row = cb.closest('.import-row');
+    var monitored = row.querySelector('.row-monitored').value !== 'none';
+    var availability = row.querySelector('.row-availability').value;
+    var qualityId = parseInt(row.querySelector('.row-quality').value);
+    var folderPath = scanFolders[idx] ? scanFolders[idx].path : '';
+
+    promises.push(
+      fetch(addUrl, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        body: JSON.stringify({
+          tmdbId: rd.tmdbId,
+          title: rd.title,
+          year: rd.year,
+          qualityProfileId: qualityId,
+          rootFolderPath: document.getElementById('scan-folder').value,
+          path: folderPath,
+          monitored: monitored,
+          minimumAvailability: availability,
+          searchForMovie: false,
+        }),
+      }).then(function(r) { return r.json(); })
+    );
+  });
+
+  Promise.all(promises).then(function(results) {
+    spinner.classList.add('d-none');
+    var ok = results.filter(function(r) { return r.ok; }).length;
+    var fail = results.length - ok;
+    if (ok > 0) {
+      showFeedback(ok + ' film(s) importé(s)' + (fail > 0 ? ', ' + fail + ' erreur(s)' : ''));
+      setTimeout(function() { location.reload(); }, 1500);
+    } else {
+      showFeedback('Erreur lors de l\'import.', 'danger');
+      btn.disabled = false;
+    }
+  }).catch(function() {
+    spinner.classList.add('d-none');
+    showFeedback('Erreur réseau.', 'danger');
+    btn.disabled = false;
+  });
+});
+})();
+</script>
+{% endblock %}

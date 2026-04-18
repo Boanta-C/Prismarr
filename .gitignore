@@ -1,0 +1,31 @@
+# Symfony
+symfony/vendor/
+symfony/var/
+symfony/public/bundles/
+
+# Env secrets — jamais dans git
+.env
+.env.local
+.env.*.local
+
+# Assets compilés AssetMapper (régénérés à la compilation)
+symfony/public/assets/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker overrides locaux
+docker-compose.override.yml
+
+# JWT keys
+symfony/config/jwt/
+
+# Claude Code artefacts
+.claude/

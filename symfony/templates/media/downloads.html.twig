@@ -1,0 +1,193 @@
+{% extends 'base.html.twig' %}
+{% block title %}Téléchargements{% endblock %}
+{% block page_title %}<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12"/></svg> Téléchargements{% endblock %}
+
+{% block stylesheets %}
+<style>
+  .torrent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
+  .torrent-card { background: var(--tblr-bg-surface); border: 1px solid var(--tblr-border-color); border-radius: var(--tblr-border-radius); padding: 1rem; }
+  .torrent-progress { height: 5px; border-radius: 3px; background: var(--tblr-bg-surface-secondary); overflow: hidden; margin: .4rem 0; }
+  .torrent-progress-bar { height: 100%; border-radius: 3px; transition: width .3s; }
+  .filter-btn { border-radius: 0 !important; border-bottom: 2px solid transparent !important; background: transparent !important; }
+  .filter-btn.active { background: transparent !important; }
+  .filter-btn[data-filter="all"].active    { color: var(--tblr-secondary) !important; border-bottom-color: var(--tblr-secondary) !important; }
+  .filter-btn[data-filter="downloading"].active { color: var(--tblr-primary) !important; border-bottom-color: var(--tblr-primary) !important; }
+  .filter-btn[data-filter="seeding"].active     { color: var(--tblr-success) !important; border-bottom-color: var(--tblr-success) !important; }
+  .filter-btn[data-filter="paused"].active      { color: var(--tblr-warning) !important; border-bottom-color: var(--tblr-warning) !important; }
+  .filter-btn[data-filter="completed"].active   { color: var(--tblr-teal) !important; border-bottom-color: var(--tblr-teal) !important; }
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% if error %}
+  <div class="alert alert-warning">Impossible de contacter qBittorrent.</div>
+{% endif %}
+
+{# ── Stats ── #}
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-primary fs-2 fw-bold">{{ stats.downloading ?? 0 }}</span>
+          <div class="text-muted small">En cours</div>
+        </div>
+        <div class="text-muted small mt-1">↓ {{ ((stats.dl_speed ?? 0) / 1024 / 1024)|number_format(1) }} Mo/s</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-success fs-2 fw-bold">{{ stats.seeding ?? 0 }}</span>
+          <div class="text-muted small">Partage</div>
+        </div>
+        <div class="text-muted small mt-1">↑ {{ ((stats.up_speed ?? 0) / 1024 / 1024)|number_format(1) }} Mo/s</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-warning fs-2 fw-bold">{{ stats.paused ?? 0 }}</span>
+          <div class="text-muted small">En pause</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-teal fs-2 fw-bold">{{ stats.completed ?? 0 }}</span>
+          <div class="text-muted small">Terminés</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Filtres ── #}
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <input type="text" id="search-input" class="form-control form-control-sm" placeholder="Rechercher…" style="max-width:220px" autocomplete="off">
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-ghost-secondary filter-btn active" data-filter="all">Tous</button>
+        <button class="btn btn-sm btn-ghost-primary filter-btn" data-filter="downloading">En cours</button>
+        <button class="btn btn-sm btn-ghost-success filter-btn" data-filter="seeding">Partage</button>
+        <button class="btn btn-sm btn-ghost-warning filter-btn" data-filter="paused">Pause</button>
+        <button class="btn btn-sm btn-ghost-secondary filter-btn" data-filter="completed">Terminés</button>
+      </div>
+      <span class="text-muted small ms-auto" id="count-label">{{ torrents|length }} torrents</span>
+    </div>
+  </div>
+</div>
+
+{# ── Grille ── #}
+{% if torrents is empty and not error %}
+  <div class="card"><div class="card-body text-center text-muted py-4">Aucun torrent actif.</div></div>
+{% else %}
+  <div class="torrent-grid" id="torrent-grid">
+    {% for t in torrents %}
+      {% set state_color = {
+        'downloading': 'primary',
+        'seeding':     'success',
+        'paused':      'warning',
+        'queued':      'secondary',
+        'checking':    'info',
+        'error':       'danger',
+        'completed':   'teal',
+      }[t.state] ?? 'secondary' %}
+      {% set state_label = {
+        'downloading': 'Téléchargement',
+        'seeding':     'Partage',
+        'paused':      'Pause',
+        'queued':      'File',
+        'checking':    'Vérification',
+        'error':       'Erreur',
+        'completed':   'Terminé',
+      }[t.state] ?? t.state %}
+
+      <div class="torrent-card"
+           data-state="{{ t.state }}"
+           data-name="{{ t.name|lower }}">
+        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+          <div class="fw-medium small text-truncate flex-grow-1" title="{{ t.name }}">{{ t.name }}</div>
+          <span class="badge bg-{{ state_color }}-lt flex-shrink-0">{{ state_label }}</span>
+        </div>
+
+        {% if t.category %}
+          <div class="text-muted" style="font-size:.7rem;">{{ t.category }}</div>
+        {% endif %}
+
+        <div class="torrent-progress">
+          <div class="torrent-progress-bar bg-{{ state_color }}" style="width:{{ t.progress }}%"></div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center" style="font-size:.72rem;">
+          <span class="text-muted">
+            {{ (t.downloaded / 1024 / 1024 / 1024)|number_format(2) }} /
+            {{ (t.size / 1024 / 1024 / 1024)|number_format(2) }} Go
+          </span>
+          <span class="fw-semibold">{{ t.progress }}%</span>
+        </div>
+
+        {% if t.state == 'downloading' %}
+          <div class="d-flex justify-content-between mt-1" style="font-size:.7rem; color: var(--tblr-muted);">
+            <span>↓ {{ (t.dlspeed / 1024 / 1024)|number_format(1) }} Mo/s</span>
+            {% if t.eta < 8640000 %}
+              <span>ETA {{ (t.eta / 3600)|round(0, 'floor') }}h{{ ((t.eta % 3600) / 60)|round }}</span>
+            {% endif %}
+          </div>
+        {% elseif t.state == 'seeding' %}
+          <div class="d-flex justify-content-between mt-1" style="font-size:.7rem; color: var(--tblr-muted);">
+            <span>↑ {{ (t.upspeed / 1024 / 1024)|number_format(1) }} Mo/s</span>
+            <span>Ratio {{ t.ratio }}</span>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+  var cards     = Array.from(document.querySelectorAll('.torrent-card'));
+  var filterBtns = Array.from(document.querySelectorAll('.filter-btn'));
+  var searchInput = document.getElementById('search-input');
+  var countLabel  = document.getElementById('count-label');
+  var currentFilter = 'all';
+
+  function applyFilters() {
+    var q = (searchInput ? searchInput.value.toLowerCase() : '');
+    var shown = 0;
+    cards.forEach(function (c) {
+      var stateOk  = currentFilter === 'all' || c.dataset.state === currentFilter;
+      var searchOk = !q || c.dataset.name.includes(q);
+      var visible  = stateOk && searchOk;
+      c.style.display = visible ? '' : 'none';
+      if (visible) shown++;
+    });
+    if (countLabel) countLabel.textContent = shown + ' torrent' + (shown > 1 ? 's' : '');
+  }
+
+  filterBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      filterBtns.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+})();
+</script>
+{% endblock %}

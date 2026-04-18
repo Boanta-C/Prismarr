@@ -1,0 +1,550 @@
+{% extends 'base.html.twig' %}
+{% block title %}Taches & Cache — Jellyseerr — IH-ARGOS{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> Taches & Cache{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block stylesheets %}
+<style>
+.js-running { animation: js-pulse 1.5s ease-in-out infinite; }
+@keyframes js-pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+.js-cache-row { transition: background .15s; }
+.js-cache-row:hover { background: rgba(162,89,255,.03); }
+.js-hit-bar { height:4px; border-radius:2px; background:var(--tblr-border-color); overflow:hidden; min-width:60px; }
+.js-hit-bar-fill { height:100%; background:#a259ff; border-radius:2px; transition:width .3s; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-xl py-2">
+    <div class="d-flex align-items-center justify-content-end">{% include 'jellyseerr/_nav.html.twig' %}</div>
+</div>
+<div class="page-body"><div class="container-xl">
+
+{# ── Taches ── #}
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h3 class="card-title">Taches planifiees</h3>
+        <span class="badge bg-secondary-lt">{{ jobs|length }} taches</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-vcenter table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>Tache</th>
+                    <th>Frequence</th>
+                    <th>Prochaine execution</th>
+                    <th>Statut</th>
+                    <th class="text-end" style="width:180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr id="job-{{ job.id }}">
+                    <td>
+                        <div style="font-weight:600;font-size:.88rem;">{{ job.name ?? job.id }}</div>
+                        <div style="font-size:.72rem;color:var(--tblr-text-secondary);">{{ job.id }}</div>
+                    </td>
+                    <td>
+                        <code style="font-size:.75rem;" id="cron-{{ job.id }}">{{ job.cronSchedule ?? '?' }}</code>
+                        <button class="btn btn-ghost-secondary btn-sm ms-1 js-edit-cron"
+                                data-job-id="{{ job.id }}"
+                                data-cron="{{ job.cronSchedule ?? '' }}"
+                                data-interval="{{ job.interval ?? '' }}"
+                                title="Modifier">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/><path d="M13.5 6.5l4 4"/></svg>
+                        </button>
+                    </td>
+                    <td class="text-muted small" id="next-{{ job.id }}">
+                        {% if job.nextExecutionTime %}{{ job.nextExecutionTime|date('d/m/Y H:i') }}{% else %}—{% endif %}
+                    </td>
+                    <td>
+                        <span id="status-{{ job.id }}" class="badge {{ job.running ?? false ? 'bg-purple-lt text-purple js-running' : 'bg-green-lt text-green' }}">
+                            {{ job.running ?? false ? 'En cours' : 'Inactif' }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-ghost-primary js-run-job" data-job-id="{{ job.id }}" title="Executer" {{ job.running ?? false ? 'disabled' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        </button>
+                        <button class="btn btn-sm btn-ghost-danger js-cancel-job" data-job-id="{{ job.id }}" title="Annuler" {{ not (job.running ?? false) ? 'disabled' }} style="{{ not (job.running ?? false) ? 'opacity:.3;' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ── Cache API ── #}
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h3 class="card-title">Cache API</h3>
+        <button class="btn btn-sm btn-outline-danger" id="js-flush-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
+            Vider tout
+        </button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-vcenter table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Efficacite</th>
+                    <th class="text-end">En cache</th>
+                    <th class="text-end">Recalcules</th>
+                    <th class="text-end">Cles</th>
+                    <th class="text-end">Taille</th>
+                    <th class="text-end" style="width:80px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for api in cache.apiCaches ?? [] %}
+                {% set total = api.stats.hits + api.stats.misses %}
+                {% set hitRate = total > 0 ? ((api.stats.hits / total) * 100)|round(1) : 0 %}
+                <tr class="js-cache-row" id="cache-{{ api.id }}">
+                    <td>
+                        <span style="font-weight:600;font-size:.85rem;">{{ api.name ?? api.id }}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="js-hit-bar" style="width:80px;">
+                                <div class="js-hit-bar-fill" style="width:{{ hitRate }}%;"></div>
+                            </div>
+                            <span style="font-size:.78rem;font-weight:600;color:{{ hitRate >= 70 ? '#22c55e' : (hitRate >= 30 ? '#f59e0b' : '#ef4444') }};">{{ hitRate }}%</span>
+                        </div>
+                    </td>
+                    <td class="text-end" style="font-size:.82rem;">{{ api.stats.hits|number_format(0, ',', ' ') }}</td>
+                    <td class="text-end" style="font-size:.82rem;">{{ api.stats.misses|number_format(0, ',', ' ') }}</td>
+                    <td class="text-end" style="font-size:.82rem;">{{ api.stats.keys }}</td>
+                    <td class="text-end" style="font-size:.82rem;">{{ ((api.stats.ksize + api.stats.vsize) / 1024)|round(1) }} Ko</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-ghost-danger js-flush-one" data-cache-id="{{ api.id }}" title="Vider ce cache" {{ api.stats.keys == 0 ? 'disabled' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ── Cache Images ── #}
+{% if cache.imageCache is defined %}
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Cache Images</h3></div>
+    <div class="table-responsive">
+        <table class="table table-vcenter table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th class="text-end">Images</th>
+                    <th class="text-end">Taille</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for key, img in cache.imageCache %}
+                <tr>
+                    <td style="font-weight:600;font-size:.85rem;">{{ key|capitalize }}</td>
+                    <td class="text-end" style="font-size:.82rem;">{{ img.imageCount ?? 0 }}</td>
+                    <td class="text-end" style="font-size:.82rem;">{{ ((img.size ?? 0) / 1048576)|round(2) }} Mo</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ── Modal Modifier Planification ── #}
+<div class="modal modal-blur fade" id="modal-edit-cron" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifier la planification</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cron-job-id">
+
+                <label class="form-label">Type de frequence</label>
+                <select class="form-select mb-3" id="cron-type">
+                    <option value="seconds">Toutes les X secondes</option>
+                    <option value="minutes">Toutes les X minutes</option>
+                    <option value="hours">Toutes les X heures</option>
+                    <option value="daily">Chaque jour a</option>
+                    <option value="weekly">Chaque semaine</option>
+                    <option value="custom">Expression cron personnalisee</option>
+                </select>
+
+                <div id="cron-seconds-group" class="d-none">
+                    <label class="form-label">Secondes</label>
+                    <select class="form-select" id="cron-seconds-val">
+                        <option value="15">15 secondes</option>
+                        <option value="30">30 secondes</option>
+                        <option value="45">45 secondes</option>
+                    </select>
+                </div>
+
+                <div id="cron-minutes-group" class="d-none">
+                    <label class="form-label">Minutes</label>
+                    <select class="form-select" id="cron-minutes-val">
+                        <option value="1">1 minute</option>
+                        <option value="2">2 minutes</option>
+                        <option value="5">5 minutes</option>
+                        <option value="10">10 minutes</option>
+                        <option value="15">15 minutes</option>
+                        <option value="30">30 minutes</option>
+                    </select>
+                </div>
+
+                <div id="cron-hours-group" class="d-none">
+                    <label class="form-label">Heures</label>
+                    <select class="form-select" id="cron-hours-val">
+                        <option value="1">1 heure</option>
+                        <option value="2">2 heures</option>
+                        <option value="3">3 heures</option>
+                        <option value="4">4 heures</option>
+                        <option value="6">6 heures</option>
+                        <option value="8">8 heures</option>
+                        <option value="12">12 heures</option>
+                    </select>
+                </div>
+
+                <div id="cron-daily-group" class="d-none">
+                    <label class="form-label">Heure</label>
+                    <div class="d-flex gap-2">
+                        <select class="form-select" id="cron-daily-hour">
+                            {% for h in 0..23 %}
+                            <option value="{{ h }}">{{ '%02d'|format(h) }}h</option>
+                            {% endfor %}
+                        </select>
+                        <select class="form-select" id="cron-daily-min">
+                            <option value="0">00</option>
+                            <option value="15">15</option>
+                            <option value="30">30</option>
+                            <option value="45">45</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="cron-weekly-group" class="d-none">
+                    <label class="form-label">Jour et heure</label>
+                    <select class="form-select mb-2" id="cron-weekly-day">
+                        <option value="1">Lundi</option>
+                        <option value="2">Mardi</option>
+                        <option value="3">Mercredi</option>
+                        <option value="4">Jeudi</option>
+                        <option value="5">Vendredi</option>
+                        <option value="6">Samedi</option>
+                        <option value="0">Dimanche</option>
+                    </select>
+                    <div class="d-flex gap-2">
+                        <select class="form-select" id="cron-weekly-hour">
+                            {% for h in 0..23 %}
+                            <option value="{{ h }}">{{ '%02d'|format(h) }}h</option>
+                            {% endfor %}
+                        </select>
+                        <select class="form-select" id="cron-weekly-min">
+                            <option value="0">00</option>
+                            <option value="15">15</option>
+                            <option value="30">30</option>
+                            <option value="45">45</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="cron-custom-group" class="d-none">
+                    <label class="form-label">Expression Cron (6 champs)</label>
+                    <input type="text" class="form-control font-monospace" id="cron-custom-val" placeholder="0 */5 * * * *">
+                    <div class="form-text mt-1">Sec Min Heure Jour Mois JourSem</div>
+                </div>
+
+                <div class="mt-3 p-2 rounded" style="background:var(--tblr-bg-surface-secondary);font-size:.78rem;">
+                    <span class="text-secondary">Expression cron :</span>
+                    <code id="cron-preview" style="color:#a259ff;">—</code>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="cron-save" style="background:#a259ff;border-color:#a259ff;">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+</div>
+<button id="js-cron-modal-trigger" data-bs-toggle="modal" data-bs-target="#modal-edit-cron" style="display:none;"></button>
+
+</div></div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+    // ── Run job ──
+    document.querySelectorAll('.js-run-job').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var jobId = btn.dataset.jobId;
+            btn.disabled = true;
+            var statusEl = document.getElementById('status-' + jobId);
+            statusEl.className = 'badge bg-purple-lt text-purple js-running';
+            statusEl.textContent = 'En cours';
+            var cancelBtn = btn.parentElement.querySelector('.js-cancel-job');
+            if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.style.opacity = '1'; }
+
+            fetch('/jellyseerr/job/' + jobId + '/run', {
+                method: 'POST', credentials: 'same-origin',
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (d.ok && d.job && d.job.nextExecutionTime) {
+                    var dt = new Date(d.job.nextExecutionTime);
+                    var nextEl = document.getElementById('next-' + jobId);
+                    if (nextEl) nextEl.textContent = dt.toLocaleDateString('fr-FR') + ' ' + dt.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+                }
+                setTimeout(function(){ location.reload(); }, 3000);
+            })
+            .catch(function(){
+                statusEl.className = 'badge bg-red-lt text-red';
+                statusEl.textContent = 'Erreur';
+                btn.disabled = false;
+            });
+        });
+    });
+
+    // ── Cancel job ──
+    document.querySelectorAll('.js-cancel-job').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var jobId = btn.dataset.jobId;
+            fetch('/jellyseerr/job/' + jobId + '/cancel', {
+                method: 'POST', credentials: 'same-origin',
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (d.ok) {
+                    var statusEl = document.getElementById('status-' + jobId);
+                    statusEl.className = 'badge bg-green-lt text-green';
+                    statusEl.textContent = 'Inactif';
+                    btn.disabled = true; btn.style.opacity = '.3';
+                    var runBtn = btn.parentElement.querySelector('.js-run-job');
+                    if (runBtn) runBtn.disabled = false;
+                }
+            });
+        });
+    });
+
+    // ── Flush one cache ──
+    document.querySelectorAll('.js-flush-one').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var cacheId = btn.dataset.cacheId;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner-border spinner-border-sm" style="width:12px;height:12px;"></div>';
+
+            fetch('/jellyseerr/cache/' + cacheId + '/flush', {
+                method: 'POST', credentials: 'same-origin',
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if (d.ok) {
+                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M5 12l5 5l10-10"/></svg>';
+                    setTimeout(function(){ location.reload(); }, 1000);
+                } else {
+                    btn.innerHTML = '<span class="text-danger" style="font-size:.7rem;">Erreur</span>';
+                    btn.disabled = false;
+                }
+            })
+            .catch(function(){
+                btn.innerHTML = '<span class="text-danger" style="font-size:.7rem;">Erreur</span>';
+                btn.disabled = false;
+            });
+        });
+    });
+
+    // ── Flush all ──
+    var flushAll = document.getElementById('js-flush-all');
+    if (flushAll) flushAll.addEventListener('click', function(){
+        if (!confirm('Vider tout le cache Jellyseerr ?')) return;
+        flushAll.disabled = true;
+        flushAll.innerHTML = '<div class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></div> Vidage…';
+        fetch('/jellyseerr/cache/flush', {
+            method: 'POST', credentials: 'same-origin',
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if (d.ok) {
+                flushAll.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" class="me-1"><path d="M5 12l5 5l10-10"/></svg> Cache vide';
+                setTimeout(function(){ location.reload(); }, 1500);
+            } else { flushAll.textContent = 'Erreur'; flushAll.disabled = false; }
+        })
+        .catch(function(){ flushAll.textContent = 'Erreur reseau'; flushAll.disabled = false; });
+    });
+
+    // ── Cron modal ──
+    var groups = ['seconds','minutes','hours','daily','weekly','custom'];
+
+    function showGroup(type) {
+        groups.forEach(function(g){
+            var el = document.getElementById('cron-' + g + '-group');
+            if (el) el.classList.toggle('d-none', g !== type);
+        });
+    }
+
+    function buildCron() {
+        var type = document.getElementById('cron-type').value;
+        var cron = '';
+        if (type === 'seconds') {
+            var s = document.getElementById('cron-seconds-val').value;
+            cron = '*/' + s + ' * * * * *';
+        } else if (type === 'minutes') {
+            var m = document.getElementById('cron-minutes-val').value;
+            cron = '0 */' + m + ' * * * *';
+        } else if (type === 'hours') {
+            var h = document.getElementById('cron-hours-val').value;
+            cron = '0 0 */' + h + ' * * *';
+        } else if (type === 'daily') {
+            var dh = document.getElementById('cron-daily-hour').value;
+            var dm = document.getElementById('cron-daily-min').value;
+            cron = '0 ' + dm + ' ' + dh + ' * * *';
+        } else if (type === 'weekly') {
+            var wd = document.getElementById('cron-weekly-day').value;
+            var wh = document.getElementById('cron-weekly-hour').value;
+            var wm = document.getElementById('cron-weekly-min').value;
+            cron = '0 ' + wm + ' ' + wh + ' * * ' + wd;
+        } else {
+            cron = document.getElementById('cron-custom-val').value || '—';
+        }
+        document.getElementById('cron-preview').textContent = cron;
+        return cron;
+    }
+
+    // Parse existing cron to set UI
+    function parseCronToUI(cronStr) {
+        var parts = cronStr.split(/\s+/);
+        if (parts.length !== 6) {
+            document.getElementById('cron-type').value = 'custom';
+            document.getElementById('cron-custom-val').value = cronStr;
+            showGroup('custom');
+            buildCron();
+            return;
+        }
+        // */X seconds
+        if (parts[0].indexOf('*/') === 0 && parts[1] === '*') {
+            document.getElementById('cron-type').value = 'seconds';
+            var sv = parts[0].replace('*/', '');
+            var sel = document.getElementById('cron-seconds-val');
+            if (sel.querySelector('option[value="' + sv + '"]')) sel.value = sv;
+            showGroup('seconds');
+        }
+        // */X minutes
+        else if (parts[0] === '0' && parts[1].indexOf('*/') === 0 && parts[2] === '*') {
+            document.getElementById('cron-type').value = 'minutes';
+            var mv = parts[1].replace('*/', '');
+            var msel = document.getElementById('cron-minutes-val');
+            if (msel.querySelector('option[value="' + mv + '"]')) msel.value = mv;
+            showGroup('minutes');
+        }
+        // */X hours
+        else if (parts[0] === '0' && parts[1] === '0' && parts[2].indexOf('*/') === 0 && parts[3] === '*') {
+            document.getElementById('cron-type').value = 'hours';
+            var hv = parts[2].replace('*/', '');
+            var hsel = document.getElementById('cron-hours-val');
+            if (hsel.querySelector('option[value="' + hv + '"]')) hsel.value = hv;
+            showGroup('hours');
+        }
+        // daily: 0 M H * * *
+        else if (parts[0] === '0' && parts[3] === '*' && parts[4] === '*' && parts[5] === '*') {
+            document.getElementById('cron-type').value = 'daily';
+            document.getElementById('cron-daily-hour').value = parts[2];
+            document.getElementById('cron-daily-min').value = parts[1];
+            showGroup('daily');
+        }
+        // weekly: 0 M H * * D (D is not *)
+        else if (parts[0] === '0' && parts[3] === '*' && parts[4] === '*' && parts[5] !== '*') {
+            document.getElementById('cron-type').value = 'weekly';
+            document.getElementById('cron-weekly-day').value = parts[5];
+            document.getElementById('cron-weekly-hour').value = parts[2];
+            document.getElementById('cron-weekly-min').value = parts[1];
+            showGroup('weekly');
+        }
+        // fallback custom
+        else {
+            document.getElementById('cron-type').value = 'custom';
+            document.getElementById('cron-custom-val').value = cronStr;
+            showGroup('custom');
+        }
+        buildCron();
+    }
+
+    var cronType = document.getElementById('cron-type');
+    if (cronType) {
+        cronType.addEventListener('change', function(){ showGroup(this.value); buildCron(); });
+    }
+
+    // Update preview on any input change
+    ['cron-seconds-val','cron-minutes-val','cron-hours-val','cron-daily-hour','cron-daily-min','cron-weekly-day','cron-weekly-hour','cron-weekly-min','cron-custom-val'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', buildCron);
+        if (el) el.addEventListener('input', buildCron);
+    });
+
+    // Edit cron — open modal via hidden trigger
+    document.querySelectorAll('.js-edit-cron').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var trigger = document.getElementById('js-cron-modal-trigger');
+            if (trigger) {
+                trigger.dataset.jobId = btn.dataset.jobId;
+                trigger.dataset.cron = btn.dataset.cron;
+                trigger.click();
+            }
+        });
+    });
+
+    // Modal show — parse cron
+    var cronModal = document.getElementById('modal-edit-cron');
+    if (cronModal) cronModal.addEventListener('show.bs.modal', function(e){
+        if (e.relatedTarget && e.relatedTarget.dataset) {
+            document.getElementById('cron-job-id').value = e.relatedTarget.dataset.jobId || '';
+            parseCronToUI(e.relatedTarget.dataset.cron || '');
+        }
+    });
+
+    // Save
+    var cronSave = document.getElementById('cron-save');
+    if (cronSave) cronSave.addEventListener('click', function(){
+        var jobId = document.getElementById('cron-job-id').value;
+        var schedule = buildCron();
+        if (!schedule || schedule === '—') return;
+
+        cronSave.disabled = true;
+        fetch('/jellyseerr/job/' + jobId + '/schedule', {
+            method: 'POST', credentials: 'same-origin',
+            headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+            body: JSON.stringify({schedule: schedule})
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if (d.ok) {
+                var cronEl = document.getElementById('cron-' + jobId);
+                if (cronEl) cronEl.textContent = schedule;
+                var editBtn = document.querySelector('.js-edit-cron[data-job-id="' + jobId + '"]');
+                if (editBtn) editBtn.dataset.cron = schedule;
+                if (d.job && d.job.nextExecutionTime) {
+                    var dt = new Date(d.job.nextExecutionTime);
+                    var nextEl = document.getElementById('next-' + jobId);
+                    if (nextEl) nextEl.textContent = dt.toLocaleDateString('fr-FR') + ' ' + dt.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+                }
+            }
+            cronSave.disabled = false;
+            var closeBtn = cronModal.querySelector('.btn-close');
+            if (closeBtn) closeBtn.click();
+        })
+        .catch(function(){ cronSave.disabled = false; });
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends 'base.html.twig' %}
+{% block title %}Paramètres — Jellyseerr — IH-ARGOS{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> Paramètres généraux{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block stylesheets %}
+<style>
+.js-setting-item { padding:.85rem 1.25rem; }
+.js-setting-item .js-label { font-weight:600; font-size:.88rem; }
+.js-setting-item .js-desc { font-size:.75rem; color:var(--tblr-text-secondary); margin-top:1px; }
+.js-section-header { background:var(--tblr-bg-surface-secondary); padding:.5rem 1.25rem; }
+.js-section-header span { font-weight:700; font-size:.75rem; text-transform:uppercase; letter-spacing:.5px; color:#a259ff; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-xl py-2">
+    <div class="d-flex align-items-center justify-content-end">{% include 'jellyseerr/_nav.html.twig' %}</div>
+</div>
+<div class="page-body"><div class="container-xl">
+
+<h3 style="font-weight:700;font-size:1.1rem;margin-bottom:.25rem;">Paramètres généraux</h3>
+<p class="text-secondary mb-3" style="font-size:.82rem;">Configurez les paramètres généraux de votre instance Jellyseerr.</p>
+
+<div class="card mb-4">
+    <div class="list-group list-group-flush">
+
+        {# ── Application ── #}
+        <div class="list-group-item js-section-header"><span>Application</span></div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Nom de l'application</div></div>
+            <div style="width:45%;"><input type="text" class="form-control form-control-sm js-main-field" data-key="applicationTitle" value="{{ main.applicationTitle ?? '' }}"></div>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">URL de l'application</div></div>
+            <div style="width:45%;"><input type="text" class="form-control form-control-sm js-main-field" data-key="applicationUrl" value="{{ main.applicationUrl ?? '' }}" placeholder="https://jellyseerr.example.com"></div>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Clé API</div></div>
+            <div style="width:45%;">
+                <div class="input-group input-group-sm">
+                    <input type="password" class="form-control form-control-sm" id="js-api-key" value="{{ main.apiKey ?? '' }}" readonly>
+                    <button class="btn btn-outline-secondary btn-sm" id="js-toggle-api" title="Afficher"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4-5.4 6-9 6c-3.6 0-6.6-2-9-6c2.4-4 5.4-6 9-6c3.6 0 6.6 2 9 6"/></svg></button>
+                    <button class="btn btn-outline-secondary btn-sm" id="js-copy-api" title="Copier"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15h-2a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Activer le proxy d'images</div><div class="js-desc">Redirige les images externes via le serveur pour la confidentialité.</div></div>
+            <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="cacheImages" {{ main.cacheImages ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">YouTube URL</div><div class="js-desc">URL personnalisée pour les bandes-annonces.</div></div>
+            <div style="width:45%;"><input type="text" class="form-control form-control-sm js-main-field" data-key="youtubeUrl" value="{{ main.youtubeUrl ?? '' }}" placeholder="https://youtube.com"></div>
+        </div>
+
+        {# ── Régions & Langues ── #}
+        <div class="list-group-item js-section-header"><span>Régions & Langues</span></div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Langue d'affichage</div></div>
+            <div style="width:45%;">
+                <select class="form-select form-select-sm js-main-field" data-key="locale">
+                    <option value="">Par défaut</option>
+                    {% for lang in languages %}<option value="{{ lang.iso_639_1 ?? '' }}" {{ (main.locale ?? '') == (lang.iso_639_1 ?? '') ? 'selected' }}>{{ lang.english_name ?? '?' }}{% if lang.name is defined and lang.name and lang.name != lang.english_name %} ({{ lang.name }}){% endif %}</option>{% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Pays à découvrir</div><div class="js-desc">Filtrer le contenu par disponibilité régionale.</div></div>
+            <div style="width:45%;">
+                <select class="form-select form-select-sm js-main-field" data-key="discoverRegion">
+                    <option value="">Tous les pays</option>
+                    {% for r in regions %}<option value="{{ r.iso_3166_1 ?? '' }}" {{ (main.discoverRegion ?? '') == (r.iso_3166_1 ?? '') ? 'selected' }}>{{ r.english_name ?? '?' }}</option>{% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Langue à découvrir</div><div class="js-desc">Filtrer par langue d'origine. Plusieurs possibles.</div></div>
+            <div style="width:45%;">
+                {% set selectedLangs = (main.originalLanguage ?? '')|split('|') %}
+                <div id="js-lang-picker" style="position:relative;">
+                    <div id="js-lang-toggle" class="form-control form-control-sm d-flex align-items-center justify-content-between" style="cursor:pointer;min-height:31px;">
+                        <span id="js-lang-display" class="text-truncate" style="font-size:.82rem;">{% if selectedLangs|first == '' %}Toutes les langues{% else %}{{ selectedLangs|length }} langue(s){% endif %}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6l6 -6"/></svg>
+                    </div>
+                    <div id="js-lang-dropdown" style="display:none;position:absolute;z-index:100;top:100%;left:0;right:0;max-height:250px;overflow-y:auto;background:var(--tblr-card-bg);border:1px solid var(--tblr-border-color);border-radius:.4rem;margin-top:2px;box-shadow:0 4px 12px rgba(0,0,0,.2);padding:.25rem 0;">
+                        <div style="padding:.25rem .5rem;position:sticky;top:0;background:var(--tblr-card-bg);z-index:1;">
+                            <input type="text" class="form-control form-control-sm" id="js-lang-search" placeholder="Rechercher…">
+                        </div>
+                        {% for lang in languages %}
+                            <div class="js-lang-option" data-name="{{ ((lang.english_name ?? '') ~ ' ' ~ (lang.name ?? '') ~ ' ' ~ (lang.iso_639_1 ?? ''))|lower }}">
+                                <label class="d-flex align-items-center gap-2 px-3 py-1" style="cursor:pointer;font-size:.82rem;">
+                                    <input type="checkbox" class="form-check-input js-lang-cb" value="{{ lang.iso_639_1 ?? '' }}" {{ (lang.iso_639_1 ?? '') in selectedLangs ? 'checked' }} style="margin:0;">
+                                    {{ lang.english_name ?? '?' }}{% if lang.name is defined and lang.name and lang.name != lang.english_name %} <span class="text-secondary">({{ lang.name }})</span>{% endif %}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Pays de diffusion</div><div class="js-desc">Sites de streaming par disponibilité.</div></div>
+            <div style="width:45%;">
+                <select class="form-select form-select-sm js-main-field" data-key="streamingRegion">
+                    <option value="">Tous les pays</option>
+                    {% for r in regions %}<option value="{{ r.iso_3166_1 ?? '' }}" {{ (main.streamingRegion ?? '') == (r.iso_3166_1 ?? '') ? 'selected' }}>{{ r.english_name ?? '?' }}</option>{% endfor %}
+                </select>
+            </div>
+        </div>
+
+        {# ── Filtres & Blocage ── #}
+        <div class="list-group-item js-section-header"><span>Filtres & Blocage</span></div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Tags de blocage</div><div class="js-desc">Les médias avec ces tags seront masqués. Séparés par des virgules.</div></div>
+            <div style="width:45%;"><input type="text" class="form-control form-control-sm js-main-field" data-key="blacklistedTags" value="{{ main.blacklistedTags ?? '' }}" placeholder="tag1, tag2, ..."></div>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Limite de tags</div><div class="js-desc">Nombre maximum de tags de blocage.</div></div>
+            <div style="width:100px;"><input type="number" class="form-control form-control-sm js-main-field" data-key="blacklistedTagsLimit" value="{{ main.blacklistedTagsLimit ?? 50 }}" min="0"></div>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Masquer les médias disponibles</div><div class="js-desc">Masquer les médias déjà disponibles dans la bibliothèque.</div></div>
+            <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="hideAvailable" {{ main.hideAvailable ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Masquer les éléments bloqués</div><div class="js-desc">Masquer les médias présents dans la liste de blocage.</div></div>
+            <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="hideBlacklisted" {{ main.hideBlacklisted ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
+        </div>
+
+        {# ── Demandes ── #}
+        <div class="list-group-item js-section-header"><span>Demandes</span></div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Demandes partielles</div><div class="js-desc">Permet de demander des saisons individuelles.</div></div>
+            <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="partialRequestsEnabled" {{ main.partialRequestsEnabled ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
+        </div>
+
+        <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
+            <div><div class="js-label">Épisodes spéciaux</div><div class="js-desc">Afficher et permettre les demandes d'épisodes spéciaux.</div></div>
+            <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="enableSpecialEpisodes" {{ main.enableSpecialEpisodes ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
+        </div>
+
+    </div>
+</div>
+
+
+{# Save sticky #}
+<div style="position:sticky;bottom:0;z-index:10;padding:.75rem 0;background:var(--tblr-body-bg);border-top:1px solid var(--tblr-border-color);">
+    <div class="d-flex justify-content-end">
+        <button class="btn btn-primary" id="js-save-main" style="background:#a259ff;border-color:#a259ff;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10 -10"/></svg>
+            Sauvegarder les changements
+        </button>
+        <span id="js-save-status" class="ms-2 small d-flex align-items-center"></span>
+    </div>
+</div>
+
+</div></div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+    // API key
+    var apiInput = document.getElementById('js-api-key');
+    var toggleBtn = document.getElementById('js-toggle-api');
+    var copyBtn = document.getElementById('js-copy-api');
+    if (toggleBtn) toggleBtn.addEventListener('click', function(){ apiInput.type = apiInput.type === 'password' ? 'text' : 'password'; });
+    if (copyBtn) copyBtn.addEventListener('click', function(){
+        var orig = apiInput.type; apiInput.type = 'text'; apiInput.select(); document.execCommand('copy'); apiInput.type = orig;
+        this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M5 12l5 5l10 -10"/></svg>';
+        var self = this; setTimeout(function(){ self.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15h-2a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"/></svg>'; }, 2000);
+    });
+
+    // Lang multi-select
+    var langToggle = document.getElementById('js-lang-toggle');
+    var langDropdown = document.getElementById('js-lang-dropdown');
+    var langDisplay = document.getElementById('js-lang-display');
+    var langSearch = document.getElementById('js-lang-search');
+    if (langToggle) {
+        langToggle.addEventListener('click', function(){ langDropdown.style.display = langDropdown.style.display === 'none' ? 'block' : 'none'; if (langDropdown.style.display === 'block' && langSearch) langSearch.focus(); });
+        document.addEventListener('click', function(ev){ if (!ev.target.closest('#js-lang-picker')) langDropdown.style.display = 'none'; });
+        if (langSearch) { langSearch.addEventListener('click', function(ev){ ev.stopPropagation(); }); langSearch.addEventListener('keyup', function(){ var q = this.value.toLowerCase(); document.querySelectorAll('.js-lang-option').forEach(function(opt){ opt.style.display = (!q || opt.dataset.name.indexOf(q) !== -1) ? '' : 'none'; }); }); }
+        function updateLangDisplay(){ var checked = document.querySelectorAll('.js-lang-cb:checked'); if (checked.length === 0) langDisplay.textContent = 'Toutes les langues'; else if (checked.length <= 3) { var n=[]; checked.forEach(function(cb){n.push(cb.closest('.js-lang-option').textContent.trim());}); langDisplay.textContent = n.join(', '); } else langDisplay.textContent = checked.length + ' langue(s)'; }
+        document.querySelectorAll('.js-lang-cb').forEach(function(cb){ cb.addEventListener('change', updateLangDisplay); });
+    }
+
+    // Save
+    var saveBtn = document.getElementById('js-save-main');
+    var statusEl = document.getElementById('js-save-status');
+    if (saveBtn) saveBtn.addEventListener('click', function(){
+        var payload = {};
+        document.querySelectorAll('.js-main-field').forEach(function(el){ payload[el.dataset.key] = el.value; });
+        document.querySelectorAll('.js-main-toggle').forEach(function(el){ payload[el.dataset.key] = el.checked; });
+        var langs = []; document.querySelectorAll('.js-lang-cb:checked').forEach(function(cb){ langs.push(cb.value); }); payload.originalLanguage = langs.join('|');
+        if (payload.blacklistedTagsLimit) payload.blacklistedTagsLimit = parseInt(payload.blacklistedTagsLimit)||50;
+        saveBtn.disabled = true; var orig = saveBtn.innerHTML; saveBtn.innerHTML = '<div class="spinner-border spinner-border-sm" style="width:16px;height:16px;"></div>';
+        fetch('/jellyseerr/parametres/save', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'}, body:JSON.stringify(payload) })
+        .then(function(r){ return r.json(); }).then(function(d){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML=d.ok?'<span class="text-success">Enregistré</span>':'<span class="text-danger">Erreur</span>'; setTimeout(function(){statusEl.innerHTML='';},3000); })
+        .catch(function(){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML='<span class="text-danger">Erreur</span>'; });
+    });
+})();
+</script>
+{% endblock %}

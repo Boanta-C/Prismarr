@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+{% block title %}Statistiques — Sonarr{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Statistiques séries</h2></div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_sonarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+{% endif %}
+
+{% if stats %}
+
+{# ── Cards résumé ── #}
+<div class="row g-3 mb-4">
+  {% set cards = [
+    {label: 'Séries',       value: stats.total,      color: 'primary'},
+    {label: 'En cours',     value: stats.continuing,  color: 'success'},
+    {label: 'Terminées',    value: stats.ended,       color: 'secondary'},
+    {label: 'Suivies',      value: stats.monitored,   color: 'blue'},
+  ] %}
+  {% for c in cards %}
+  <div class="col-6 col-sm-3">
+    <div class="card card-sm text-center">
+      <div class="card-body">
+        <div class="h1 mb-0 text-{{ c.color }}">{{ c.value }}</div>
+        <div class="text-muted small">{{ c.label }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# ── Stockage ── #}
+<div class="card mb-4">
+  <div class="card-header"><h3 class="card-title">Stockage disque</h3></div>
+  <div class="card-body">
+    <div class="h2 mb-3">{{ stats.sizeOnDisk|round(1) }} Go</div>
+    {% for d in stats.disk %}
+    <div class="mb-2">
+      <div class="d-flex justify-content-between small mb-1">
+        <span>{{ d.path }}</span>
+        <span class="text-muted">{{ (d.freeSpace / 1073741824)|round(1) }} Go libres / {{ (d.totalSpace / 1073741824)|round(1) }} Go</span>
+      </div>
+      {% set pct = ((d.totalSpace - d.freeSpace) / d.totalSpace * 100)|round(0) %}
+      <div class="progress progress-sm">
+        <div class="progress-bar bg-{{ pct > 90 ? 'danger' : (pct > 75 ? 'warning' : 'primary') }}" style="width:{{ pct }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  {# ── Genres ── #}
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><h3 class="card-title">Genres</h3></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-vcenter card-table mb-0">
+            <tbody>
+              {% for name, count in stats.genres|slice(0, 15) %}
+              <tr>
+                <td class="fw-medium">{{ name }}</td>
+                <td class="text-end text-muted">{{ count }}</td>
+                <td style="width:40%">
+                  <div class="progress progress-sm">
+                    <div class="progress-bar bg-primary" style="width:{{ (count / stats.total * 100)|round }}%"></div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Réseaux ── #}
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><h3 class="card-title">Réseaux</h3></div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-vcenter card-table mb-0">
+            <tbody>
+              {% for name, count in stats.networks|slice(0, 15) %}
+              <tr>
+                <td class="fw-medium">{{ name }}</td>
+                <td class="text-end text-muted">{{ count }}</td>
+                <td style="width:40%">
+                  <div class="progress progress-sm">
+                    <div class="progress-bar bg-cyan" style="width:{{ (count / stats.total * 100)|round }}%"></div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+</div>
+</div>
+{% endblock %}

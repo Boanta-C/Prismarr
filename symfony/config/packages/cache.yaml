@@ -1,0 +1,5 @@
+framework:
+    cache:
+        # Redis — persiste les checkpoints du Scheduler entre les restarts du worker
+        app: cache.adapter.redis
+        default_redis_provider: 'redis://redis:6379'

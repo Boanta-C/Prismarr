@@ -1,0 +1,220 @@
+{% extends 'base.html.twig' %}
+{% block title %}Statistiques — Radarr{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Statistiques</h2></div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Radarr.</div>
+{% endif %}
+
+{% if stats %}
+
+{# ── Cards résumé ──────────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+  {% set cards = [
+    {label: 'Films',        value: stats.total,    icon: 'movie',   color: 'primary'},
+    {label: 'Téléchargés',  value: stats.hasFile,  icon: 'check',   color: 'success'},
+    {label: 'Suivis',       value: stats.monitored,icon: 'eye',     color: 'blue'},
+    {label: 'Manquants',    value: stats.missing,  icon: 'alert',   color: 'danger'},
+  ] %}
+  {% for card in cards %}
+  <div class="col-6 col-lg-3">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="h1 mb-0 text-{{ card.color }}">{{ card.value }}</div>
+          <div class="ms-auto text-muted small">{{ card.label }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# ── Stockage ──────────────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+  <div class="col-12 col-lg-4">
+    <div class="card card-sm">
+      <div class="card-body text-center">
+        <div class="h2 mb-0 text-orange">{{ (stats.sizeOnDisk / 1073741824)|round(1) }} Go</div>
+        <div class="text-muted small">Taille totale des films</div>
+      </div>
+    </div>
+  </div>
+  {% for d in stats.disk %}
+  <div class="col-12 col-lg-4">
+    <div class="card card-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-1">
+          <span class="small fw-medium">{{ d.path }}</span>
+          <span class="small text-muted">{{ ((d.freeSpace ?? 0) / 1073741824)|round(1) }} Go libres</span>
+        </div>
+        {% set pct = ((1 - (d.freeSpace ?? 0) / (d.totalSpace ?? 1)) * 100)|round(0) %}
+        <div class="progress progress-sm">
+          <div class="progress-bar bg-{{ pct > 90 ? 'danger' : (pct > 75 ? 'warning' : 'primary') }}" style="width:{{ pct }}%"></div>
+        </div>
+        <div class="d-flex justify-content-between mt-1">
+          <span class="small text-muted">{{ ((d.totalSpace ?? 0) / 1073741824)|round(1) }} Go total</span>
+          <span class="small text-muted">{{ pct }}% utilisé</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
+
+{# ── Répartition par qualité ───────────────────────────────────────── #}
+<div class="col-12 col-lg-6">
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">Par qualité</h3></div>
+    <div class="card-body p-0">
+      {% if stats.qualities %}
+      <div class="table-responsive">
+        <table class="table table-vcenter mb-0">
+          <thead><tr><th>Qualité</th><th class="text-end">Films</th><th class="text-end">Taille</th><th style="width:30%"></th></tr></thead>
+          <tbody>
+            {% for name, q in stats.qualities %}
+            {% set pct = (q.count / stats.hasFile * 100)|round(0) %}
+            <tr>
+              <td class="fw-medium">{{ name }}</td>
+              <td class="text-end">{{ q.count }}</td>
+              <td class="text-end text-muted">{{ (q.size / 1073741824)|round(1) }} Go</td>
+              <td>
+                <div class="progress progress-sm">
+                  <div class="progress-bar bg-primary" style="width:{{ pct }}%"></div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-muted text-center py-4">Aucune donnée.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Répartition par genre ─────────────────────────────────────────── #}
+<div class="col-12 col-lg-6">
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">Par genre</h3></div>
+    <div class="card-body p-0">
+      {% if stats.genres %}
+      <div class="table-responsive" style="max-height:400px;overflow-y:auto;">
+        <table class="table table-vcenter mb-0">
+          <thead><tr><th>Genre</th><th class="text-end">Films</th><th style="width:40%"></th></tr></thead>
+          <tbody>
+            {% set maxGenre = stats.genres|first %}
+            {% for name, count in stats.genres %}
+            <tr>
+              <td class="fw-medium">{{ name }}</td>
+              <td class="text-end">{{ count }}</td>
+              <td>
+                <div class="progress progress-sm">
+                  <div class="progress-bar bg-cyan" style="width:{{ (count / maxGenre * 100)|round(0) }}%"></div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-muted text-center py-4">Aucune donnée.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Répartition par décennie ──────────────────────────────────────── #}
+<div class="col-12">
+  <div class="card">
+    <div class="card-header"><h3 class="card-title">Par décennie</h3></div>
+    <div class="card-body">
+      {% if stats.years %}
+      <canvas id="chart-decades" height="180"></canvas>
+      {% else %}
+      <div class="text-muted text-center">Aucune donnée.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+</div>
+
+{% else %}
+<div class="alert alert-info">Aucune statistique disponible.</div>
+{% endif %}
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{% if stats.years is defined and stats.years %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  var ctx = document.getElementById('chart-decades');
+  if (!ctx) return;
+  var labels = {{ stats.years|keys|json_encode|raw }};
+  var yearData = {{ stats.years|json_encode|raw }};
+  var data = labels.map(function(k) { return yearData[k]; });
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Films',
+        data: data,
+        backgroundColor: '#6366f1',
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) { return ctx.parsed.y + ' film(s)'; }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, precision: 0, color: 'rgba(255,255,255,.5)' },
+          grid: { color: 'rgba(255,255,255,.08)' },
+        },
+        x: {
+          ticks: { color: 'rgba(255,255,255,.5)' },
+          grid: { display: false },
+        }
+      }
+    }
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

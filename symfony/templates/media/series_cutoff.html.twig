@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cutoff non atteint — IH-ARGOS{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Cutoff non atteint
+          {% if cutoff.totalRecords is defined %}
+            <span class="badge bg-info-lt text-info ms-2">{{ cutoff.totalRecords }}</span>
+          {% endif %}
+        </h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_sonarr_nav.html.twig' ignore missing %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% set records = cutoff.records ?? [] %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-vcenter table-hover card-table mb-0" style="font-size:.82rem;">
+      <thead>
+        <tr>
+          <th>Série</th>
+          <th>Épisode</th>
+          <th>Titre</th>
+          <th>Qualité actuelle</th>
+          <th>Date diffusion</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ep in records %}
+        <tr>
+          <td class="fw-medium">{{ ep.series.title ?? '—' }}</td>
+          <td><span class="badge bg-secondary-lt">S{{ '%02d'|format(ep.seasonNumber ?? 0) }}E{{ '%02d'|format(ep.episodeNumber ?? 0) }}</span></td>
+          <td class="text-muted">{{ ep.title ?? '—' }}</td>
+          <td>
+            {% if ep.episodeFile and ep.episodeFile.quality %}
+              <span class="badge bg-blue-lt">{{ ep.episodeFile.quality.quality.name ?? '—' }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-muted">{{ ep.airDateUtc ? ep.airDateUtc|date('d/m/Y', 'Europe/Paris') : '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted py-4">Tous les épisodes atteignent le cutoff.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if cutoff.totalRecords is defined and cutoff.totalRecords > 50 %}
+<div class="d-flex justify-content-center gap-2 mt-3">
+  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">← Précédent</a>{% endif %}
+  <span class="text-muted small align-self-center">Page {{ page }} / {{ (cutoff.totalRecords / 50)|round(0, 'ceil') }}</span>
+  {% if page * 50 < cutoff.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">Suivant →</a>{% endif %}
+</div>
+{% endif %}
+
+</div>
+</div>
+{% endblock %}

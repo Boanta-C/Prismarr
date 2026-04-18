@@ -1,0 +1,1158 @@
+{% extends 'base.html.twig' %}
+{% block title %}Prowlarr — IH-ARGOS{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32zm0 400c-97 0-176-79-176-176S159 80 256 80s176 79 176 176-79 176-176 176z" fill="#E88D1A"/><path d="M256 120c-75 0-136 61-136 136s61 136 136 136 136-61 136-136-61-136-136-136zm0 224c-48.6 0-88-39.4-88-88s39.4-88 88-88 88 39.4 88 88-39.4 88-88 88z" fill="#E88D1A"/><circle cx="256" cy="256" r="48" fill="#E88D1A"/></svg> Prowlarr{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block stylesheets %}
+<style>
+.pw-stat { font-size:1.5rem; font-weight:700; line-height:1; }
+.pw-indexer-row { transition:background .1s; }
+.pw-indexer-row:hover { background:rgba(255,255,255,.02); }
+.pw-health-item { display:flex; align-items:flex-start; gap:.5rem; padding:.5rem .75rem; border-radius:.4rem; margin-bottom:.35rem; }
+.pw-health-warning { background:rgba(245,158,11,.08); border-left:3px solid #f59e0b; }
+.pw-health-error { background:rgba(239,68,68,.08); border-left:3px solid #ef4444; }
+.pw-app-card { display:flex; align-items:center; gap:.75rem; padding:.6rem .85rem; background:var(--tblr-bg-surface); border:1px solid var(--tblr-border-color); border-radius:.5rem; }
+.pw-search-results { max-height:500px; overflow-y:auto; }
+.pw-result-row { font-size:.8rem; }
+.pw-result-row td { padding:.35rem .5rem !important; }
+.pw-toggle-btn { cursor:pointer; padding:2px 6px; border-radius:.25rem; border:1px solid var(--tblr-border-color); background:none; transition:all .15s; font-size:.7rem; }
+.pw-toggle-btn:hover { border-color:#6366f1; }
+.pw-toggle-btn.is-on { background:rgba(34,197,94,.15); border-color:#22c55e; color:#22c55e; }
+.pw-toggle-btn.is-off { background:rgba(239,68,68,.1); border-color:#ef4444; color:#ef4444; }
+#modal-add-indexer, #modal-edit-indexer, #modal-info-indexer { overscroll-behavior: contain; }
+#modal-add-indexer .modal-dialog, #modal-edit-indexer .modal-dialog, #modal-info-indexer .modal-dialog { overscroll-behavior: contain; }
+.pw-schema-card:hover { border-color:#E88D1A !important; background:rgba(232,141,26,.05) !important; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-xl py-2">
+    <div class="d-flex align-items-center justify-content-end">
+        {% include 'prowlarr/_prowlarr_nav.html.twig' %}
+    </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+        <div><strong>Impossible de contacter Prowlarr</strong><div class="small text-secondary">Vérifiez que Prowlarr est accessible sur {{ app.request.server.get('PROWLARR_URL', '192.168.10.220:9696') }}</div></div>
+    </div>
+{% endif %}
+
+{# ── Stats ── #}
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="pw-stat" style="color:#E88D1A;">{{ stats.total ?? 0 }}</div>
+            <div class="text-secondary small">Indexeurs</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="pw-stat text-success">{{ stats.enabled ?? 0 }}</div>
+            <div class="text-secondary small">Actifs</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="pw-stat text-danger">{{ stats.failing ?? 0 }}</div>
+            <div class="text-secondary small">En erreur</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="pw-stat" style="color:#6366f1;">{{ stats.torrent ?? 0 }}</div>
+            <div class="text-secondary small">Torrent</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="pw-stat" style="color:#0ea5e9;">{{ stats.usenet ?? 0 }}</div>
+            <div class="text-secondary small">Usenet</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="pw-stat" style="color:#22c55e;">{{ apps|length }}</div>
+            <div class="text-secondary small">Applications</div>
+        </div></div>
+    </div>
+</div>
+
+{# ── Santé ── #}
+{% if health is not empty %}
+<div class="card mb-3">
+    <div class="card-header">
+        <h3 class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1 text-warning"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+            Santé <span class="badge bg-warning-lt ms-1">{{ health|length }}</span>
+        </h3>
+    </div>
+    <div class="card-body p-2">
+        {% for h in health %}
+        <div class="pw-health-item {{ h.type == 'error' ? 'pw-health-error' : 'pw-health-warning' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ h.type == 'error' ? '#ef4444' : '#f59e0b' }}" stroke-width="2" class="flex-shrink-0" style="margin-top:2px;"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+            <div>
+                <div class="small fw-medium">{{ h.message }}</div>
+                <div class="text-secondary" style="font-size:.7rem;">{{ h.source ?? '' }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# ── Indexeurs (pleine largeur) ── #}
+<div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">
+                Indexeurs <span class="badge bg-secondary-lt ms-1">{{ indexers|length }}</span>
+            </h3>
+            <div class="card-options d-flex gap-2 align-items-center">
+                <button class="btn btn-sm btn-ghost-secondary" id="btn-test-all" title="Tester tous les indexeurs">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M5 12l5 5l10-10"/></svg>
+                    Tester tout
+                </button>
+                <button class="btn btn-sm btn-ghost-secondary" id="btn-sync-indexers" title="Synchroniser avec Radarr/Sonarr">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M20 11A8.1 8.1 0 004.5 9M4 5v4h4M4 13a8.1 8.1 0 0015.5 2m.5 4v-4h-4"/></svg>
+                    Sync apps
+                </button>
+                <select class="form-select form-select-sm" id="filter-indexer" style="width:auto;min-width:120px;">
+                    <option value="all">Tous</option>
+                    <option value="enabled">Actifs</option>
+                    <option value="disabled">Désactivés</option>
+                    <option value="torrent">Torrent</option>
+                    <option value="usenet">Usenet</option>
+                </select>
+                <button class="btn btn-sm btn-primary" id="btn-add-indexer" style="background:#E88D1A;border-color:#E88D1A;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 5v14M5 12h14"/></svg>
+                    Ajouter
+                </button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Protocole</th>
+                        <th>Privacy</th>
+                        <th>Priorité</th>
+                        <th>Fonctions</th>
+                        <th>Catégories</th>
+                        <th>Requêtes</th>
+                        <th>Grabs</th>
+                        <th>Échecs</th>
+                        <th>Santé</th>
+                        <th>Ajouté</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if indexers is empty %}
+                        <tr><td colspan="12" class="text-center text-secondary py-3">Aucun indexeur configuré.</td></tr>
+                    {% else %}
+                        {% for idx in indexers %}
+                        {% set hasError = status[idx.id] is defined %}
+                        <tr class="pw-indexer-row" data-id="{{ idx.id }}">
+                            <td>
+                                <div class="fw-medium" style="cursor:pointer;color:#E88D1A;" data-info-id="{{ idx.id }}">{{ idx.name }}</div>
+                                {% if idx.definitionName %}<div class="text-secondary" style="font-size:.68rem;">{{ idx.definitionName }}</div>{% endif %}
+                            </td>
+                            <td>
+                                {% if idx.protocol == 'torrent' %}
+                                    <span class="badge" style="background:rgba(99,102,241,.15);color:#818cf8;">Torrent</span>
+                                {% elseif idx.protocol == 'usenet' %}
+                                    <span class="badge" style="background:rgba(14,165,233,.15);color:#38bdf8;">Usenet</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-lt">{{ idx.protocol }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if idx.privacy == 'private' %}
+                                    <span class="badge bg-danger-lt" style="font-size:.6rem;">Privé</span>
+                                {% elseif idx.privacy == 'semiPrivate' %}
+                                    <span class="badge bg-warning-lt" style="font-size:.6rem;">Semi</span>
+                                {% else %}
+                                    <span class="badge bg-green-lt" style="font-size:.6rem;">Public</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-secondary">{{ idx.priority }}</td>
+                            <td>
+                                <span class="badge {{ idx.supportsRss ? 'bg-green-lt' : 'bg-secondary-lt' }}" style="font-size:.55rem;">RSS</span>
+                                <span class="badge {{ idx.supportsSearch ? 'bg-green-lt' : 'bg-secondary-lt' }}" style="font-size:.55rem;">Search</span>
+                            </td>
+                            <td>
+                                {% set catCount = idx.capabilities.categories is defined ? idx.capabilities.categories|length : 0 %}
+                                <span class="text-secondary small">{{ catCount }}</span>
+                            </td>
+                            {% set iStats = idxStats[idx.id] ?? null %}
+                            <td class="small text-secondary">{{ iStats ? iStats.numberOfQueries : '—' }}</td>
+                            <td class="small">
+                                {% if iStats and iStats.numberOfGrabs > 0 %}
+                                    <span class="text-success">{{ iStats.numberOfGrabs }}</span>
+                                {% else %}
+                                    <span class="text-secondary">0</span>
+                                {% endif %}
+                            </td>
+                            <td class="small">
+                                {% if iStats and (iStats.numberOfFailedQueries + iStats.numberOfFailedGrabs) > 0 %}
+                                    <span class="text-danger">{{ iStats.numberOfFailedQueries + iStats.numberOfFailedGrabs }}</span>
+                                {% else %}
+                                    <span class="text-secondary">0</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not idx.enabled %}
+                                    <span class="text-secondary small">Désactivé</span>
+                                {% elseif hasError %}
+                                    <span class="d-flex align-items-center gap-1 text-danger small"><span class="status-dot bg-danger"></span> Erreur</span>
+                                {% else %}
+                                    <span class="d-flex align-items-center gap-1 text-success small"><span class="status-dot status-dot-animated bg-success"></span> OK</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-secondary small text-nowrap">{{ idx.added ? idx.added|date('d/m/Y') : '—' }}</td>
+                            <td class="text-end">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <button class="btn btn-sm btn-ghost-secondary p-1" data-edit-id="{{ idx.id }}" title="Modifier">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l10.5-10.5a2.828 2.828 0 10-4-4L4 16v4M13.5 6.5l4 4"/></svg>
+                                    </button>
+                                    <button class="btn btn-sm btn-ghost-secondary p-1" data-test-id="{{ idx.id }}" title="Tester">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg>
+                                    </button>
+                                    <button class="pw-toggle-btn {{ idx.enabled ? 'is-on' : 'is-off' }}" data-toggle-id="{{ idx.id }}" title="{{ idx.enabled ? 'Désactiver' : 'Activer' }}">
+                                        {{ idx.enabled ? 'ON' : 'OFF' }}
+                                    </button>
+                                    <button class="btn btn-sm btn-ghost-danger p-1" data-delete-id="{{ idx.id }}" data-delete-name="{{ idx.name }}" title="Supprimer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<div class="row g-3">
+
+{# ── Recherche Prowlarr ── #}
+<div class="col-lg-8">
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">Recherche</h3>
+        </div>
+        <div class="card-body">
+            <div class="d-flex gap-2 mb-3">
+                <input type="text" id="pw-search-input" class="form-control" placeholder="Rechercher sur tous les indexeurs…" autocomplete="off">
+                <button id="pw-search-btn" class="btn btn-primary flex-shrink-0">Rechercher</button>
+            </div>
+            <div id="pw-search-loading" style="display:none;" class="text-center py-2"><div class="spinner-border spinner-border-sm text-secondary"></div> <span class="small text-secondary">Recherche en cours…</span></div>
+            <div id="pw-search-results"></div>
+        </div>
+    </div>
+</div>{# /col-lg-8 #}
+
+{# ── Colonne droite ── #}
+<div class="col-lg-4">
+
+    {# Applications connectées #}
+    <div class="card mb-3">
+        <div class="card-header">
+            <h3 class="card-title">Applications connectées</h3>
+        </div>
+        <div class="card-body p-2">
+            {% if apps is empty %}
+                <div class="text-center text-secondary small py-2">Aucune application</div>
+            {% else %}
+                {% for app in apps %}
+                <div class="pw-app-card mb-2">
+                    <div class="flex-grow-1">
+                        <div class="fw-medium small">{{ app.name ?? '—' }}</div>
+                        <div class="text-secondary" style="font-size:.7rem;">{{ app.implementationName ?? '' }}</div>
+                    </div>
+                    <span class="badge bg-green-lt" style="font-size:.6rem;">Connecté</span>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+
+</div>
+</div>
+
+
+
+</div>{# /container-xl #}
+</div>{# /page-body #}
+
+{# ══ Modal Ajouter un indexeur ══ #}
+<div class="modal modal-blur fade" id="modal-add-indexer" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
+        <div class="modal-content" style="background:var(--tblr-bg-surface);">
+            <div class="modal-header">
+                <h4 class="modal-title">Ajouter un indexeur</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="add-idx-filters">
+                    <div class="d-flex gap-2 mb-2">
+                        <input type="text" id="add-idx-search" class="form-control" placeholder="Rechercher (ex: YGG, 1337x…)" autocomplete="off">
+                    </div>
+                    <div class="d-flex gap-2 mb-3">
+                        <select class="form-select form-select-sm" id="add-filter-protocol">
+                            <option value="">Protocole</option>
+                            <option value="torrent">Torrent</option>
+                            <option value="usenet">Usenet</option>
+                        </select>
+                        <select class="form-select form-select-sm" id="add-filter-privacy">
+                            <option value="">Privacy</option>
+                            <option value="public">Public</option>
+                            <option value="semiPrivate">Semi-privé</option>
+                            <option value="private">Privé</option>
+                        </select>
+                        <select class="form-select form-select-sm" id="add-filter-lang">
+                            <option value="">Langue</option>
+                        </select>
+                        <select class="form-select form-select-sm" id="add-filter-cat">
+                            <option value="">Catégorie</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="add-idx-list" class="row g-2" style="max-height:450px;overflow-y:auto;"></div>
+                <div id="add-idx-form" style="display:none;" class="mt-3 p-3 border border-primary rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 id="add-idx-form-title" class="mb-0"></h5>
+                        <button id="add-idx-back" class="btn btn-sm btn-ghost-secondary">Retour</button>
+                    </div>
+                    <div id="add-idx-fields"></div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button id="add-idx-test" class="btn btn-sm btn-outline-secondary">Tester</button>
+                        <button id="add-idx-save" class="btn btn-sm btn-primary" style="background:#E88D1A;border-color:#E88D1A;">Ajouter</button>
+                    </div>
+                    <div id="add-idx-result" class="mt-2 alert d-none" style="font-size:.85rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ══ Modal Éditer un indexeur ══ #}
+<div class="modal modal-blur fade" id="modal-edit-indexer" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
+        <div class="modal-content" style="background:var(--tblr-bg-surface);">
+            <div class="modal-header">
+                <h4 class="modal-title" id="edit-idx-title">Modifier l'indexeur</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="edit-idx-fields"></div>
+                <div class="d-flex gap-2 mt-3">
+                    <button id="edit-idx-test" class="btn btn-sm btn-outline-secondary">Tester</button>
+                    <button id="edit-idx-save" class="btn btn-sm btn-primary" style="background:#E88D1A;border-color:#E88D1A;">Sauvegarder</button>
+                </div>
+                <div id="edit-idx-result" class="mt-2 alert d-none" style="font-size:.85rem;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ══ Modal Info indexeur (3 onglets) ══ #}
+<div class="modal modal-blur fade" id="modal-info-indexer" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
+        <div class="modal-content" style="background:var(--tblr-bg-surface);">
+            <div class="modal-header">
+                <h4 class="modal-title" id="info-idx-title">Indexeur</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                {# Onglets #}
+                <div class="d-flex border-bottom" style="background:rgba(255,255,255,.02);">
+                    <button class="btn btn-ghost-secondary rounded-0 flex-fill pw-info-tab active" data-tab="details" style="border-bottom:2px solid #E88D1A;">Détails</button>
+                    <button class="btn btn-ghost-secondary rounded-0 flex-fill pw-info-tab" data-tab="categories">Catégories</button>
+                    <button class="btn btn-ghost-secondary rounded-0 flex-fill pw-info-tab" data-tab="history">Historique</button>
+                </div>
+                <div class="p-3">
+                    <div id="info-tab-details"></div>
+                    <div id="info-tab-categories" style="display:none;"></div>
+                    <div id="info-tab-history" style="display:none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-sm btn-ghost-danger" id="info-idx-delete">Supprimer</button>
+                <div class="ms-auto d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" id="info-idx-edit">Modifier</button>
+                    <button class="btn btn-sm btn-ghost-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+    // ── Helpers ──
+    function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    function showAlert(el, cls, msg) { el.className = 'mt-2 alert ' + cls; el.textContent = msg; el.style.display = ''; }
+    // Nettoyer le payload avant envoi à l'API Prowlarr (supprimer selectOptions vides qui causent des erreurs de type)
+    function cleanPayload(data) {
+        var clean = JSON.parse(JSON.stringify(data));
+        if (clean.fields) {
+            clean.fields.forEach(function(f) {
+                delete f.selectOptions;
+                delete f._injectedOptions;
+                delete f.selectOptionsProviderAction;
+            });
+        }
+        return clean;
+    }
+    function openModal(id) { var m = document.getElementById(id); m.classList.add('show'); m.style.display = 'block'; m.style.overflowY = 'auto'; document.body.classList.add('modal-open'); document.body.style.overflow = 'hidden'; if (!document.querySelector('.modal-backdrop')) { var b = document.createElement('div'); b.className = 'modal-backdrop fade show'; document.body.appendChild(b); } }
+    function closeModal(id) { var m = document.getElementById(id); m.classList.remove('show'); m.style.display = 'none'; document.body.classList.remove('modal-open'); document.body.style.overflow = ''; var b = document.querySelector('.modal-backdrop'); if (b) b.remove(); }
+
+    var appProfilesCache = null;
+
+    function renderFields(fields, container, topLevel) {
+        var h = '';
+        // Champs de niveau indexeur (Name, Enabled, Redirect, App Profile, Priority)
+        if (topLevel) {
+            h += '<div class="row g-2 mb-3 pb-3" style="border-bottom:1px solid var(--tblr-border-color);">';
+            h += '<div class="col-12 col-sm-6"><label class="form-label small mb-1">Nom</label><input type="text" class="form-control form-control-sm pw-top" data-top="name" value="' + esc(topLevel.name || '') + '"></div>';
+            h += '<div class="col-12 col-sm-6"><label class="form-label small mb-1">Profil d\'application</label><select class="form-select form-select-sm pw-top" data-top="appProfileId" id="pw-app-profile-sel"><option>Chargement…</option></select></div>';
+            h += '<div class="col-6 col-sm-3"><label class="form-label small mb-1">Priorité</label><input type="number" class="form-control form-control-sm pw-top" data-top="priority" value="' + (topLevel.priority ?? 25) + '"></div>';
+            h += '<div class="col-6 col-sm-3 d-flex align-items-end gap-3">';
+            h += '<label class="form-check form-switch mb-1"><input class="form-check-input pw-top" data-top="enable" type="checkbox"' + (topLevel.enable !== false ? ' checked' : '') + '><span class="form-check-label small">Activé</span></label>';
+            h += '<label class="form-check form-switch mb-1"><input class="form-check-input pw-top" data-top="redirect" type="checkbox"' + (topLevel.redirect ? ' checked' : '') + '><span class="form-check-label small">Redirect</span></label>';
+            h += '</div>';
+            h += '<div class="col-12"><label class="form-label small mb-1">Tags</label><div class="d-flex flex-wrap gap-1 align-items-center p-2" id="pw-tags-wrap" style="background:rgba(255,255,255,.02);border:1px solid var(--tblr-border-color);border-radius:.4rem;min-height:38px;"></div></div>';
+            h += '</div>';
+            // Charger app profiles
+            if (!appProfilesCache) {
+                fetch('/prowlarr/app-profiles').then(function(r){return r.json();}).then(function(profiles) {
+                    appProfilesCache = profiles;
+                    fillAppProfileSelect(topLevel.appProfileId);
+                });
+            } else {
+                setTimeout(function() { fillAppProfileSelect(topLevel.appProfileId); }, 0);
+            }
+        }
+        // Champs spécifiques indexeur
+        h += '<div class="row g-2">';
+        fields.forEach(function (f) {
+            if (f.type === 'info') {
+                var infoHtml = f.value || f.helpText || '';
+                var infoLabel = f.label ? '<strong>' + esc(f.label) + '</strong><br>' : '';
+                h += '<div class="col-12"><div class="small text-secondary" style="font-size:.75rem;padding:.5rem .7rem;background:rgba(255,255,255,.03);border-radius:.35rem;line-height:1.4;">' + infoLabel + infoHtml + '</div></div>';
+                return;
+            }
+            if (f.name === 'definitionFile') return;
+            var label = esc(f.label || f.name);
+            var name = esc(f.name);
+            var helpText = f.helpText ? '<div class="form-text" style="font-size:.65rem;">' + esc(f.helpText) + '</div>' : '';
+            h += '<div class="col-12 col-sm-6">';
+            h += '<label class="form-label small mb-1">' + label + '</label>';
+            if (f.type === 'checkbox') {
+                h += '<div><label class="form-check form-switch"><input class="form-check-input pw-field" data-name="' + name + '" type="checkbox"' + (f.value ? ' checked' : '') + '><span class="form-check-label small">' + label + '</span></label></div>';
+            } else if (f.type === 'select' && f.selectOptions) {
+                h += '<select class="form-select form-select-sm pw-field" data-name="' + name + '">';
+                (f.selectOptions || []).forEach(function (opt) {
+                    var sel = (opt.value !== undefined && String(opt.value) === String(f.value)) ? ' selected' : '';
+                    h += '<option value="' + esc(String(opt.value)) + '"' + sel + '>' + esc(opt.name || opt.value) + '</option>';
+                });
+                h += '</select>';
+            } else if (f.type === 'number') {
+                h += '<input type="number" class="form-control form-control-sm pw-field" data-name="' + name + '" value="' + (f.value ?? '') + '">';
+            } else if (f.type === 'password') {
+                h += '<input type="password" class="form-control form-control-sm pw-field" data-name="' + name + '" value="' + esc(f.value ?? '') + '" autocomplete="off">';
+            } else {
+                h += '<input type="text" class="form-control form-control-sm pw-field" data-name="' + name + '" value="' + esc(String(f.value ?? '')) + '">';
+            }
+            h += helpText + '</div>';
+        });
+        h += '</div>';
+        container.innerHTML = h;
+    }
+
+    function fillAppProfileSelect(selectedId) {
+        var sel = document.getElementById('pw-app-profile-sel');
+        if (!sel || !appProfilesCache) return;
+        sel.innerHTML = appProfilesCache.map(function(p) {
+            return '<option value="' + p.id + '"' + (p.id === selectedId ? ' selected' : '') + '>' + esc(p.name) + '</option>';
+        }).join('');
+    }
+
+    var tagsCache = null;
+    var selectedTags = [];
+
+    function loadAndRenderTags(currentTags) {
+        selectedTags = currentTags || [];
+        if (!tagsCache) {
+            fetch('/prowlarr/tags').then(function(r) { return r.json(); }).then(function(tags) {
+                tagsCache = tags;
+                renderTagsUI();
+            });
+        } else {
+            renderTagsUI();
+        }
+    }
+
+    function renderTagsUI() {
+        var wrap = document.getElementById('pw-tags-wrap');
+        if (!wrap) return;
+        var h = '';
+        // Tags existants (cliquables)
+        (tagsCache || []).forEach(function(t) {
+            var active = selectedTags.indexOf(t.id) !== -1;
+            h += '<span class="badge ' + (active ? '' : '') + '" style="cursor:pointer;font-size:.7rem;padding:.3em .6em;border-radius:2rem;transition:all .15s;'
+              + (active ? 'background:#6366f1;color:#fff;box-shadow:0 0 6px rgba(99,102,241,.4);' : 'background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);')
+              + '" data-tag-id="' + t.id + '">'
+              + (active ? '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right:3px;"><path d="M5 12l5 5l10-10"/></svg>' : '')
+              + esc(t.label) + '</span>';
+        });
+        // Input créer nouveau
+        h += '<div class="d-flex gap-1 align-items-center ms-1" style="border-left:1px solid rgba(255,255,255,.08);padding-left:.5rem;">'
+           + '<input type="text" class="form-control form-control-sm" id="pw-tag-new" placeholder="Nouveau…" style="width:90px;font-size:.7rem;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);">'
+           + '<button class="btn btn-sm btn-icon" id="pw-tag-add-btn" style="width:28px;height:28px;background:rgba(99,102,241,.15);color:#818cf8;border:none;border-radius:.3rem;" title="Créer un tag">'
+           + '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button></div>';
+        wrap.innerHTML = h;
+
+        // Bind toggle tags
+        wrap.querySelectorAll('[data-tag-id]').forEach(function(badge) {
+            badge.addEventListener('click', function() {
+                var id = parseInt(badge.dataset.tagId);
+                var idx = selectedTags.indexOf(id);
+                if (idx !== -1) selectedTags.splice(idx, 1);
+                else selectedTags.push(id);
+                renderTagsUI();
+            });
+        });
+
+        // Bind créer tag
+        var addBtn = document.getElementById('pw-tag-add-btn');
+        var addInput = document.getElementById('pw-tag-new');
+        if (addBtn && addInput) {
+            addBtn.addEventListener('click', createNewTag);
+            addInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); createNewTag(); } });
+        }
+    }
+
+    function createNewTag() {
+        var input = document.getElementById('pw-tag-new');
+        var label = (input.value || '').trim();
+        if (!label) return;
+        input.disabled = true;
+        fetch('/prowlarr/tag/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ label: label }) })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                input.disabled = false;
+                if (d.ok && d.tag) {
+                    tagsCache.push(d.tag);
+                    selectedTags.push(d.tag.id);
+                    renderTagsUI();
+                }
+            });
+    }
+
+    function collectTopLevel(container, base) {
+        var data = JSON.parse(JSON.stringify(base));
+        container.querySelectorAll('.pw-top').forEach(function(el) {
+            var key = el.dataset.top;
+            if (el.type === 'checkbox') data[key] = el.checked;
+            else if (key === 'appProfileId' || key === 'priority') data[key] = el.value !== '' ? parseInt(el.value) : data[key];
+            else data[key] = el.value;
+        });
+        data.tags = selectedTags;
+        return data;
+    }
+
+    function collectFields(container, baseFields) {
+        var fields = JSON.parse(JSON.stringify(baseFields));
+        fields.forEach(function (field) {
+            // Supprimer les selectOptions injectées côté client pour éviter les erreurs de type
+            if (field.name === 'baseUrl' && field._injectedOptions) {
+                delete field.selectOptions;
+                delete field._injectedOptions;
+            }
+        });
+        container.querySelectorAll('.pw-field').forEach(function (el) {
+            var name = el.dataset.name;
+            var field = fields.find(function (f) { return f.name === name; });
+            if (!field) return;
+            if (el.type === 'checkbox') field.value = el.checked;
+            else if (el.type === 'number') field.value = el.value !== '' ? parseFloat(el.value) : null;
+            else if (field.type === 'select' && field.selectOptions && field.selectOptions.length) {
+                // Garder le type original de la valeur (int vs string)
+                var origOpt = field.selectOptions.find(function(o) { return String(o.value) === el.value; });
+                field.value = origOpt ? origOpt.value : el.value;
+            }
+            else field.value = el.value;
+        });
+        return fields;
+    }
+
+    // ── Toggle ON/OFF ──
+    document.querySelectorAll('[data-toggle-id]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            btn.disabled = true; btn.textContent = '…';
+            fetch('/prowlarr/indexer/' + btn.dataset.toggleId + '/toggle', { method: 'POST' })
+                .then(function (r) { return r.json(); })
+                .then(function (d) { btn.disabled = false; if (d.ok) { btn.classList.toggle('is-on', d.enabled); btn.classList.toggle('is-off', !d.enabled); btn.textContent = d.enabled ? 'ON' : 'OFF'; } });
+        });
+    });
+
+    // ── Supprimer ──
+    document.querySelectorAll('[data-delete-id]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!confirm('Supprimer l\'indexeur « ' + btn.dataset.deleteName + ' » ?')) return;
+            fetch('/prowlarr/indexer/' + btn.dataset.deleteId + '/delete', { method: 'POST' })
+                .then(function (r) { return r.json(); })
+                .then(function (d) { if (d.ok) { var row = btn.closest('tr'); if (row) row.remove(); } });
+        });
+    });
+
+    // ── Test indexeur ──
+    document.querySelectorAll('[data-test-id]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var id = btn.dataset.testId;
+            var orig = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.7rem;height:.7rem;"></span>';
+            btn.disabled = true;
+            fetch('/prowlarr/indexer/' + id, { method: 'GET' })
+                .then(function (r) { return r.json(); })
+                .then(function (raw) {
+                    return fetch('/prowlarr/indexer/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(raw)) });
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    btn.disabled = false;
+                    if (d.ok) { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg>'; }
+                    else { btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>'; }
+                    setTimeout(function () { btn.innerHTML = orig; }, 3000);
+                });
+        });
+    });
+
+    // ── Tester tous les indexeurs (API native testall) ──
+    document.getElementById('btn-test-all').addEventListener('click', function () {
+        var btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.7rem;height:.7rem;"></span> Test en cours…';
+        fetch('/prowlarr/indexer/testall', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                btn.disabled = false;
+                if (d.ok) {
+                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" class="me-1"><path d="M5 12l5 5l10-10"/></svg> Tous OK';
+                } else {
+                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" class="me-1"><path d="M12 9v4"/><path d="M12 16h.01"/></svg> Erreurs détectées';
+                }
+                setTimeout(function () {
+                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M5 12l5 5l10-10"/></svg> Tester tout';
+                }, 3000);
+            });
+    });
+
+    // ── Filtre indexeurs ──
+    document.getElementById('filter-indexer').addEventListener('change', function () {
+        var val = this.value;
+        document.querySelectorAll('.pw-indexer-row').forEach(function (row) {
+            var show = true;
+            if (val === 'enabled') show = row.querySelector('.is-on') !== null;
+            else if (val === 'disabled') show = row.querySelector('.is-off') !== null;
+            else if (val === 'torrent') show = row.innerHTML.indexOf('Torrent') !== -1;
+            else if (val === 'usenet') show = row.innerHTML.indexOf('Usenet') !== -1;
+            row.style.display = show ? '' : 'none';
+        });
+    });
+
+    // ── Sync apps avec suivi commande ──
+    var syncOrigHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M20 11A8.1 8.1 0 004.5 9M4 5v4h4M4 13a8.1 8.1 0 0015.5 2m.5 4v-4h-4"/></svg> Sync apps';
+    document.getElementById('btn-sync-indexers').addEventListener('click', function () {
+        var btn = this; btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.7rem;height:.7rem;"></span> Sync…';
+        fetch('/prowlarr/command', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'ApplicationIndexerSync' }) })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d.ok) { btn.disabled = false; btn.innerHTML = syncOrigHtml; return; }
+                var cmdId = d.command && d.command.id;
+                if (!cmdId) { btn.disabled = false; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" class="me-1"><path d="M5 12l5 5l10-10"/></svg> Synced!'; setTimeout(function(){btn.innerHTML=syncOrigHtml;},2000); return; }
+                // Poll command status
+                var poll = setInterval(function () {
+                    fetch('/prowlarr/command/' + cmdId)
+                        .then(function(r){return r.json();})
+                        .then(function(s) {
+                            if (!s || s.status === 'completed') {
+                                clearInterval(poll);
+                                btn.disabled = false;
+                                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" class="me-1"><path d="M5 12l5 5l10-10"/></svg> Synced!';
+                                setTimeout(function(){btn.innerHTML=syncOrigHtml;},2000);
+                            } else if (s.status === 'failed') {
+                                clearInterval(poll);
+                                btn.disabled = false;
+                                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" class="me-1"><path d="M18 6L6 18M6 6l12 12"/></svg> Échec';
+                                setTimeout(function(){btn.innerHTML=syncOrigHtml;},3000);
+                            } else {
+                                btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.7rem;height:.7rem;"></span> ' + (s.status || 'sync…');
+                            }
+                        });
+                }, 2000);
+            });
+    });
+
+    // ── Recherche Prowlarr ──
+    var searchInput = document.getElementById('pw-search-input');
+    var searchBtn = document.getElementById('pw-search-btn');
+    var searchLoading = document.getElementById('pw-search-loading');
+    var searchResults = document.getElementById('pw-search-results');
+
+    function doSearch() {
+        var q = searchInput.value.trim();
+        if (q.length < 2) return;
+        searchLoading.style.display = ''; searchResults.innerHTML = ''; searchBtn.disabled = true;
+        fetch('/prowlarr/search?q=' + encodeURIComponent(q))
+            .then(function (r) { return r.json(); })
+            .then(function (items) {
+                searchLoading.style.display = 'none'; searchBtn.disabled = false;
+                if (!items.length) { searchResults.innerHTML = '<div class="text-center text-secondary small py-2">Aucun résultat</div>'; return; }
+                var h = '<div class="small text-secondary mb-2">' + items.length + ' résultats</div>';
+                h += '<div class="table-responsive pw-search-results"><table class="table table-vcenter table-sm">';
+                h += '<thead><tr><th>Titre</th><th>Indexeur</th><th>Taille</th><th>Seeds</th><th>Âge</th></tr></thead><tbody>';
+                items.forEach(function (r) {
+                    var size = r.size > 0 ? (r.size / 1073741824).toFixed(2) + ' Go' : '—';
+                    var seeds = r.seeders !== null ? '<span class="text-success">' + r.seeders + '</span>' : '—';
+                    h += '<tr class="pw-result-row"><td class="text-truncate" style="max-width:300px;" title="' + esc(r.title||'') + '">' + esc(r.title||'—') + '</td><td><span class="badge bg-secondary-lt" style="font-size:.55rem;">' + esc(r.indexer||'—') + '</span></td><td class="text-secondary">' + size + '</td><td>' + seeds + '</td><td class="text-secondary">' + (r.age||0) + 'j</td></tr>';
+                });
+                h += '</tbody></table></div>';
+                searchResults.innerHTML = h;
+            })
+            .catch(function () { searchLoading.style.display = 'none'; searchBtn.disabled = false; searchResults.innerHTML = '<div class="text-center text-danger small py-2">Erreur</div>'; });
+    }
+    searchBtn.addEventListener('click', doSearch);
+    searchInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') doSearch(); });
+
+    // ══ Modal Ajouter ══
+    var schemaCache = null;
+    var selectedSchema = null;
+
+    document.getElementById('btn-add-indexer').addEventListener('click', function () {
+        // Reset complet à chaque ouverture
+        document.getElementById('add-idx-form').style.display = 'none';
+        document.getElementById('add-idx-filters').style.display = '';
+        document.getElementById('add-idx-list').style.display = '';
+        document.getElementById('add-idx-search').value = '';
+        document.getElementById('add-filter-protocol').value = '';
+        document.getElementById('add-filter-privacy').value = '';
+        document.getElementById('add-filter-lang').value = '';
+        document.getElementById('add-filter-cat').value = '';
+        document.getElementById('add-idx-result').className = 'mt-2 alert d-none';
+        openModal('modal-add-indexer');
+        if (!schemaCache) {
+            document.getElementById('add-idx-list').innerHTML = '<div class="col-12 text-center py-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>';
+            fetch('/prowlarr/indexer/schema').then(function (r) { return r.json(); }).then(function (data) { schemaCache = data; populateFilterDropdowns(); renderSchemaList(getAddFilters()); });
+        } else { renderSchemaList(getAddFilters()); }
+    });
+
+    function getAddFilters() {
+        return {
+            q: document.getElementById('add-idx-search').value.trim().toLowerCase(),
+            protocol: document.getElementById('add-filter-protocol').value,
+            privacy: document.getElementById('add-filter-privacy').value,
+            lang: document.getElementById('add-filter-lang').value,
+            cat: document.getElementById('add-filter-cat').value,
+        };
+    }
+    function onAddFilterChange() { if (schemaCache) renderSchemaList(getAddFilters()); }
+    document.getElementById('add-idx-search').addEventListener('input', onAddFilterChange);
+    document.getElementById('add-filter-protocol').addEventListener('change', onAddFilterChange);
+    document.getElementById('add-filter-privacy').addEventListener('change', onAddFilterChange);
+    document.getElementById('add-filter-lang').addEventListener('change', onAddFilterChange);
+    document.getElementById('add-filter-cat').addEventListener('change', onAddFilterChange);
+
+    function populateFilterDropdowns() {
+        var langs = {}, cats = {};
+        schemaCache.forEach(function(s) {
+            if (s.language) langs[s.language] = (langs[s.language]||0)+1;
+            (s.capabilities && s.capabilities.categories || []).forEach(function(c) { if (c.name) cats[c.name] = (cats[c.name]||0)+1; });
+        });
+        var langSel = document.getElementById('add-filter-lang');
+        Object.keys(langs).sort().forEach(function(l) { var o = document.createElement('option'); o.value = l; o.textContent = l + ' (' + langs[l] + ')'; langSel.appendChild(o); });
+        var catSel = document.getElementById('add-filter-cat');
+        Object.keys(cats).sort(function(a,b) { return cats[b]-cats[a]; }).forEach(function(c) { var o = document.createElement('option'); o.value = c; o.textContent = c + ' (' + cats[c] + ')'; catSel.appendChild(o); });
+    }
+
+    function renderSchemaList(filters) {
+        var container = document.getElementById('add-idx-list');
+        var q = typeof filters === 'string' ? filters : (filters.q || '');
+        var fProto = (filters.protocol || '');
+        var fPrivacy = (filters.privacy || '');
+        var fLang = (filters.lang || '');
+        var fCat = (filters.cat || '');
+        var filtered = schemaCache.filter(function (s) {
+            if (q) {
+                var haystack = ((s.name || '') + ' ' + (s.definitionName || '') + ' ' + (s.implementationName || '') + ' ' + (s.description || '') + ' ' + (s.language || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                var qNorm = q.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                var words = qNorm.split(/\s+/).filter(function(w) { return w.length > 0; });
+                var allMatch = words.every(function (w) { return haystack.includes(w); });
+                if (!allMatch) return false;
+            }
+            if (fProto && s.protocol !== fProto) return false;
+            if (fPrivacy && s.privacy !== fPrivacy) return false;
+            if (fLang && s.language !== fLang) return false;
+            if (fCat) { var hasCat = false; (s.capabilities && s.capabilities.categories || []).forEach(function(c) { if (c.name === fCat) hasCat = true; }); if (!hasCat) return false; }
+            return true;
+        });
+
+        // Trier par pertinence : match dans le nom > match dans definitionName > le reste
+        if (q) {
+            filtered.sort(function (a, b) {
+                var aName = ((a.name || '') + ' ' + (a.definitionName || '')).toLowerCase();
+                var bName = ((b.name || '') + ' ' + (b.definitionName || '')).toLowerCase();
+                var qNorm2 = q.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                var aInName = aName.includes(qNorm2) ? 1 : 0;
+                var bInName = bName.includes(qNorm2) ? 1 : 0;
+                if (aInName !== bInName) return bInName - aInName;
+                // Commence par le terme
+                var aStarts = aName.indexOf(qNorm2) === 0 ? 1 : 0;
+                var bStarts = bName.indexOf(qNorm2) === 0 ? 1 : 0;
+                if (aStarts !== bStarts) return bStarts - aStarts;
+                return (a.name || '').localeCompare(b.name || '');
+            });
+        }
+        filtered = filtered.slice(0, 60);
+
+        if (!filtered.length) { container.innerHTML = '<div class="col-12 text-center text-secondary small py-2">Aucun indexeur trouvé</div>'; return; }
+
+        var h = '';
+        filtered.forEach(function (s) {
+            var proto = s.protocol === 'torrent' ? '<span class="badge" style="background:rgba(99,102,241,.15);color:#818cf8;font-size:.6rem;">Torrent</span>' : '<span class="badge" style="background:rgba(14,165,233,.15);color:#38bdf8;font-size:.6rem;">Usenet</span>';
+            var privacy = s.privacy === 'private' ? '<span class="badge bg-danger-lt" style="font-size:.6rem;">Privé</span>' : (s.privacy === 'semiPrivate' ? '<span class="badge bg-warning-lt" style="font-size:.6rem;">Semi</span>' : '<span class="badge bg-green-lt" style="font-size:.6rem;">Public</span>');
+            var displayName = esc(s.name || s.definitionName || s.implementationName || '—');
+            var lang = s.language ? '<span class="badge bg-secondary-lt" style="font-size:.55rem;">' + esc(s.language) + '</span>' : '';
+            h += '<div class="col-12 col-sm-6 col-md-4"><div class="card pw-schema-card" data-schema-idx="' + schemaCache.indexOf(s) + '" style="cursor:pointer;transition:border-color .15s,background .15s;">';
+            h += '<div class="card-body py-3 px-3">';
+            h += '<div class="fw-semibold mb-1">' + displayName + '</div>';
+            h += '<div class="d-flex flex-wrap gap-1 mb-2">' + proto + ' ' + privacy + ' ' + lang + '</div>';
+            if (s.description) h += '<div class="text-secondary small" style="font-size:.72rem;line-height:1.3;">' + esc(s.description).substring(0, 120) + (s.description.length > 120 ? '…' : '') + '</div>';
+            h += '</div></div></div>';
+        });
+        container.innerHTML = h;
+
+        container.querySelectorAll('.pw-schema-card').forEach(function (card) {
+            card.addEventListener('click', function () {
+                var idx = parseInt(card.dataset.schemaIdx);
+                selectedSchema = JSON.parse(JSON.stringify(schemaCache[idx]));
+                document.getElementById('add-idx-form-title').textContent = selectedSchema.name || selectedSchema.definitionName || selectedSchema.implementationName || '—';
+                document.getElementById('add-idx-list').style.display = 'none';
+                document.getElementById('add-idx-filters').style.display = 'none';
+                document.getElementById('add-idx-form').style.display = '';
+                document.getElementById('add-idx-result').className = 'mt-2 alert d-none';
+                // Injecter indexerUrls comme selectOptions pour baseUrl
+                (selectedSchema.fields || []).forEach(function(f) {
+                    if (f.name === 'baseUrl' && (!f.selectOptions || !f.selectOptions.length) && (selectedSchema || raw || {}).indexerUrls && (selectedSchema || raw || {}).indexerUrls.length) {
+                        var urls = (selectedSchema || raw).indexerUrls;
+                        f.selectOptions = urls.map(function(u) { return { value: u, name: u }; });
+                        f._injectedOptions = true;
+                        if (!f.value) f.value = urls[0];
+                    }
+                });
+                renderFields(selectedSchema.fields || [], document.getElementById('add-idx-fields'), selectedSchema);
+                loadAndRenderTags(selectedSchema.tags || []);
+            });
+        });
+    }
+
+    document.getElementById('add-idx-back').addEventListener('click', function () {
+        document.getElementById('add-idx-form').style.display = 'none';
+        document.getElementById('add-idx-list').style.display = '';
+        document.getElementById('add-idx-filters').style.display = '';
+    });
+
+    document.getElementById('add-idx-test').addEventListener('click', function () {
+        var btn = this; var result = document.getElementById('add-idx-result');
+        var payload = collectTopLevel(document.getElementById('add-idx-fields'), selectedSchema);
+        payload.fields = collectFields(document.getElementById('add-idx-fields'), selectedSchema.fields || []);
+        btn.disabled = true; btn.textContent = 'Test…';
+        fetch('/prowlarr/indexer/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(payload)) })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                btn.disabled = false; btn.textContent = 'Tester';
+                if (d.ok) showAlert(result, 'alert-success', 'Connexion réussie !');
+                else showAlert(result, 'alert-danger', 'Échec : ' + (d.error || '—'));
+            });
+    });
+
+    document.getElementById('add-idx-save').addEventListener('click', function () {
+        var btn = this; var result = document.getElementById('add-idx-result');
+        var payload = collectTopLevel(document.getElementById('add-idx-fields'), selectedSchema);
+        payload.fields = collectFields(document.getElementById('add-idx-fields'), selectedSchema.fields || []);
+        btn.disabled = true; btn.textContent = 'Ajout…';
+        fetch('/prowlarr/indexer/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(payload)) })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                btn.disabled = false; btn.textContent = 'Ajouter';
+                if (d.ok) { showAlert(result, 'alert-success', 'Indexeur ajouté !'); setTimeout(function () { window.location.reload(); }, 800); }
+                else showAlert(result, 'alert-danger', 'Erreur : ' + (d.error || 'Ajout impossible'));
+            });
+    });
+
+    // Fermer modals — bouton close + clic backdrop + Escape
+    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var modal = btn.closest('.modal');
+            if (modal) closeModal(modal.id);
+        });
+    });
+    ['modal-add-indexer', 'modal-edit-indexer'].forEach(function (id) {
+        var modal = document.getElementById(id);
+        if (modal) {
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal(id);
+            });
+        }
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            ['modal-add-indexer', 'modal-edit-indexer'].forEach(function (id) {
+                var m = document.getElementById(id);
+                if (m && m.classList.contains('show')) closeModal(id);
+            });
+        }
+    });
+
+    // ══ Modal Éditer ══
+    var editRaw = null;
+
+    document.querySelectorAll('[data-edit-id]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var id = btn.dataset.editId;
+            document.getElementById('edit-idx-fields').innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>';
+            document.getElementById('edit-idx-result').className = 'mt-2 alert d-none';
+            openModal('modal-edit-indexer');
+            fetch('/prowlarr/indexer/' + id)
+                .then(function (r) { return r.json(); })
+                .then(function (raw) {
+                    editRaw = raw;
+                    document.getElementById('edit-idx-title').textContent = 'Modifier — ' + (raw.name || '—');
+                    // Injecter indexerUrls comme selectOptions pour baseUrl
+                    (raw.fields || []).forEach(function(f) {
+                        if (f.name === 'baseUrl' && (!f.selectOptions || !f.selectOptions.length) && raw.indexerUrls && raw.indexerUrls.length) {
+                            f.selectOptions = raw.indexerUrls.map(function(u) { return { value: u, name: u }; });
+                        }
+                    });
+                    renderFields(raw.fields || [], document.getElementById('edit-idx-fields'), raw);
+                    loadAndRenderTags(raw.tags || []);
+                });
+        });
+    });
+
+    document.getElementById('edit-idx-test').addEventListener('click', function () {
+        var btn = this; var result = document.getElementById('edit-idx-result');
+        var payload = collectTopLevel(document.getElementById('edit-idx-fields'), editRaw);
+        payload.fields = collectFields(document.getElementById('edit-idx-fields'), editRaw.fields || []);
+        btn.disabled = true; btn.textContent = 'Test…';
+        fetch('/prowlarr/indexer/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(payload)) })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                btn.disabled = false; btn.textContent = 'Tester';
+                if (d.ok) showAlert(result, 'alert-success', 'Connexion réussie !');
+                else showAlert(result, 'alert-danger', 'Échec : ' + (d.error || '—'));
+            });
+    });
+
+    document.getElementById('edit-idx-save').addEventListener('click', function () {
+        var btn = this; var result = document.getElementById('edit-idx-result');
+        var payload = collectTopLevel(document.getElementById('edit-idx-fields'), editRaw);
+        payload.fields = collectFields(document.getElementById('edit-idx-fields'), editRaw.fields || []);
+        btn.disabled = true; btn.textContent = 'Sauvegarde…';
+        fetch('/prowlarr/indexer/' + editRaw.id + '/update', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cleanPayload(payload)) })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                btn.disabled = false; btn.textContent = 'Sauvegarder';
+                if (d.ok) { showAlert(result, 'alert-success', 'Sauvegardé !'); setTimeout(function () { window.location.reload(); }, 800); }
+                else showAlert(result, 'alert-danger', 'Erreur : ' + (d.error || 'Sauvegarde impossible'));
+            });
+    });
+
+    // ══ Modal Info indexeur ══
+    var infoRaw = null;
+
+    // Onglets
+    document.querySelectorAll('.pw-info-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.pw-info-tab').forEach(function(t) { t.classList.remove('active'); t.style.borderBottom = '2px solid transparent'; });
+            tab.classList.add('active'); tab.style.borderBottom = '2px solid #E88D1A';
+            ['details','categories','history'].forEach(function(id) {
+                document.getElementById('info-tab-' + id).style.display = id === tab.dataset.tab ? '' : 'none';
+            });
+        });
+    });
+
+    // Clic sur nom indexeur
+    document.querySelectorAll('[data-info-id]').forEach(function(el) {
+        el.addEventListener('click', function() {
+            var id = parseInt(el.dataset.infoId);
+            // Reset onglets
+            document.querySelectorAll('.pw-info-tab').forEach(function(t) { t.classList.remove('active'); t.style.borderBottom = '2px solid transparent'; });
+            document.querySelector('.pw-info-tab[data-tab="details"]').classList.add('active');
+            document.querySelector('.pw-info-tab[data-tab="details"]').style.borderBottom = '2px solid #E88D1A';
+            document.getElementById('info-tab-details').style.display = '';
+            document.getElementById('info-tab-categories').style.display = 'none';
+            document.getElementById('info-tab-history').style.display = 'none';
+            document.getElementById('info-tab-details').innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>';
+            document.getElementById('info-tab-categories').innerHTML = '';
+            document.getElementById('info-tab-history').innerHTML = '';
+            openModal('modal-info-indexer');
+
+            fetch('/prowlarr/indexer/' + id)
+                .then(function(r) { return r.json(); })
+                .then(function(raw) {
+                    infoRaw = raw;
+                    document.getElementById('info-idx-title').textContent = raw.name || '—';
+                    renderInfoDetails(raw);
+                    renderInfoCategories(raw);
+                    // History lazy — charger au clic sur l'onglet
+                    var histTab = document.querySelector('.pw-info-tab[data-tab="history"]');
+                    var histLoaded = false;
+                    var idxId = id;
+                    histTab.addEventListener('click', function() {
+                        if (histLoaded) return;
+                        histLoaded = true;
+                        document.getElementById('info-tab-history').innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-secondary"></div></div>';
+                        fetch('/prowlarr/indexer/' + idxId + '/history')
+                            .then(function(r) { return r.json(); })
+                            .then(function(records) { renderInfoHistory(records); });
+                    });
+                });
+        });
+    });
+
+    function renderInfoDetails(raw) {
+        var cap = raw.capabilities || {};
+        var searchParams = cap.searchParams || [];
+        var tvParams = cap.tvSearchParams || [];
+        var movieParams = cap.movieSearchParams || [];
+        var musicParams = cap.musicSearchParams || [];
+        var bookParams = cap.bookSearchParams || [];
+
+        var protoBadge = raw.protocol === 'torrent' ? '<span class="badge" style="background:rgba(99,102,241,.15);color:#818cf8;">Torrent</span>' : '<span class="badge" style="background:rgba(14,165,233,.15);color:#38bdf8;">Usenet</span>';
+        var privBadge = raw.privacy === 'private' ? '<span class="badge bg-danger-lt">Privé</span>' : (raw.privacy === 'semiPrivate' ? '<span class="badge bg-warning-lt">Semi-privé</span>' : '<span class="badge bg-green-lt">Public</span>');
+
+        var torznabUrl = '';
+        if (raw.indexerUrls && raw.indexerUrls.length) {
+            torznabUrl = window.location.origin + '/prowlarr/indexer/' + raw.id;
+        }
+
+        var h = '<h6 class="mb-3" style="color:#E88D1A;">Détails de l\'indexeur</h6>';
+        h += '<div class="row g-2 mb-3">';
+        h += '<div class="col-4 col-sm-3 text-secondary small">Type</div><div class="col-8 col-sm-9">' + protoBadge + '</div>';
+        h += '<div class="col-4 col-sm-3 text-secondary small">Description</div><div class="col-8 col-sm-9 small">' + esc(raw.description || '—') + '</div>';
+        h += '<div class="col-4 col-sm-3 text-secondary small">Langue</div><div class="col-8 col-sm-9 small">' + esc(raw.language || '—') + '</div>';
+        h += '<div class="col-4 col-sm-3 text-secondary small">Protocole</div><div class="col-8 col-sm-9 small">' + esc(raw.protocol || '—') + '</div>';
+        h += '<div class="col-4 col-sm-3 text-secondary small">Privacy</div><div class="col-8 col-sm-9">' + privBadge + '</div>';
+        if (raw.indexerUrls && raw.indexerUrls.length) {
+            h += '<div class="col-4 col-sm-3 text-secondary small">URL(s)</div><div class="col-8 col-sm-9 small" style="word-break:break-all;">' + raw.indexerUrls.map(function(u) { return '<a href="' + esc(u) + '" target="_blank" class="text-secondary">' + esc(u) + '</a>'; }).join('<br>') + '</div>';
+        }
+        h += '</div>';
+
+        // Search Capabilities (comme le natif — label + badges paramètres)
+        h += '<h6 class="mb-2" style="color:#E88D1A;">Capacités de recherche</h6>';
+        var capRows = [
+            { label: 'RSS', supported: raw.supportsRss },
+            { label: 'Recherche brute', supported: cap.supportsRawSearch || false },
+            { label: 'Recherche', params: searchParams },
+            { label: 'Recherche TV', params: tvParams },
+            { label: 'Recherche Films', params: movieParams },
+            { label: 'Recherche Musique', params: musicParams },
+            { label: 'Recherche Livres', params: bookParams },
+        ];
+        h += '<div class="row g-1">';
+        capRows.forEach(function(c) {
+            h += '<div class="col-12 d-flex align-items-center gap-2 py-1">';
+            h += '<div class="small" style="width:130px;flex-shrink:0;color:rgba(255,255,255,.6);">' + c.label + '</div>';
+            if (c.supported !== undefined) {
+                h += c.supported
+                    ? '<span class="badge bg-green-lt" style="font-size:.6rem;">Supporté</span>'
+                    : '<span class="badge bg-secondary-lt" style="font-size:.6rem;">Non supporté</span>';
+            } else {
+                var params = c.params || [];
+                if (!params.length) {
+                    h += '<span class="badge bg-secondary-lt" style="font-size:.6rem;">Non supporté</span>';
+                } else {
+                    var paramLabels = { q: 'Texte', season: 'Saison', ep: 'Épisode', imdbId: 'IMDb', tmdbId: 'TMDb', tvdbId: 'TVDB', tvMazeId: 'TVMaze', year: 'Année', genre: 'Genre', artist: 'Artiste', album: 'Album', label: 'Label', title: 'Titre', author: 'Auteur' };
+                    var unique = params.filter(function(p, i) { return params.indexOf(p) === i; });
+                    unique.forEach(function(p) {
+                        h += '<span class="badge" style="font-size:.58rem;background:rgba(56,189,248,.15);color:#38bdf8;margin-right:2px;">' + (paramLabels[p] || p) + '</span>';
+                    });
+                }
+            }
+            h += '</div>';
+        });
+        h += '</div>';
+
+        document.getElementById('info-tab-details').innerHTML = h;
+    }
+
+    function renderInfoCategories(raw) {
+        var cats = (raw.capabilities || {}).categories || [];
+        if (!cats.length) { document.getElementById('info-tab-categories').innerHTML = '<div class="text-center text-secondary small py-3">Aucune catégorie</div>'; return; }
+        var total = 0;
+        cats.forEach(function(c) { total++; (c.subCategories || []).forEach(function() { total++; }); });
+        var h = '<div class="small text-secondary mb-2">' + total + ' catégories</div>';
+        h += '<div class="table-responsive" style="max-height:350px;overflow-y:auto;"><table class="table table-sm table-vcenter">';
+        h += '<thead><tr><th style="width:80px;">ID</th><th>Nom</th></tr></thead><tbody>';
+        cats.forEach(function(c) {
+            h += '<tr><td class="text-secondary small fw-medium">' + c.id + '</td><td class="fw-medium small">' + esc(c.name) + '</td></tr>';
+            (c.subCategories || []).forEach(function(s) {
+                h += '<tr style="opacity:.7;"><td class="text-secondary" style="font-size:.7rem;padding-left:1.5rem;">' + s.id + '</td><td style="font-size:.75rem;padding-left:1.5rem;">' + esc(s.name) + '</td></tr>';
+            });
+        });
+        h += '</tbody></table></div>';
+        document.getElementById('info-tab-categories').innerHTML = h;
+    }
+
+    function renderInfoHistory(records) {
+        if (!records.length) { document.getElementById('info-tab-history').innerHTML = '<div class="text-center text-secondary small py-3">Aucun historique</div>'; return; }
+        var h = '<div class="table-responsive"><table class="table table-sm table-vcenter">';
+        h += '<thead><tr><th>Date</th><th>Type</th><th>Requête</th><th>Source</th></tr></thead><tbody>';
+        records.forEach(function(r) {
+            var typeBadge = r.eventType === 'indexerRss' ? '<span class="badge bg-cyan-lt" style="font-size:.55rem;">RSS</span>'
+                : r.eventType === 'indexerQuery' ? '<span class="badge bg-indigo-lt" style="font-size:.55rem;">Query</span>'
+                : '<span class="badge bg-secondary-lt" style="font-size:.55rem;">' + esc(r.eventType || '—') + '</span>';
+            h += '<tr class="small"><td class="text-secondary text-nowrap">' + (r.date ? new Date(r.date).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—') + '</td>';
+            h += '<td>' + typeBadge + '</td>';
+            h += '<td class="text-truncate" style="max-width:200px;">' + esc(r.data && r.data.query ? r.data.query : '—') + '</td>';
+            h += '<td class="text-secondary">' + esc(r.data && r.data.source ? r.data.source : '—') + '</td></tr>';
+        });
+        h += '</tbody></table></div>';
+        document.getElementById('info-tab-history').innerHTML = h;
+    }
+
+    // Boutons footer modal info
+    document.getElementById('info-idx-edit').addEventListener('click', function() {
+        if (!infoRaw) return;
+        closeModal('modal-info-indexer');
+        // Déclencher l'édition
+        var editBtn = document.querySelector('[data-edit-id="' + infoRaw.id + '"]');
+        if (editBtn) editBtn.click();
+    });
+    document.getElementById('info-idx-delete').addEventListener('click', function() {
+        if (!infoRaw) return;
+        if (!confirm('Supprimer l\'indexeur « ' + (infoRaw.name || '') + ' » ?')) return;
+        fetch('/prowlarr/indexer/' + infoRaw.id + '/delete', { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { if (d.ok) { closeModal('modal-info-indexer'); window.location.reload(); } });
+    });
+
+    // Fermer modal info
+    document.getElementById('modal-info-indexer').addEventListener('click', function(e) { if (e.target === this) closeModal('modal-info-indexer'); });
+})();
+</script>
+{% endblock %}

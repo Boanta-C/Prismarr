@@ -1,0 +1,847 @@
+{% extends 'base.html.twig' %}
+{% block title %}Jellyseerr — IH-ARGOS{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/><path d="M256 176c-44.2 0-80 35.8-80 80s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80zm0 120c-22.1 0-40-17.9-40-40s17.9-40 40-40 40 17.9 40 40-17.9 40-40 40z" fill="#c084fc" opacity=".6"/></svg> Requêtes{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* ── Cards requêtes ── */
+.js-req-card {
+    position:relative;
+    border-radius:.6rem;
+    overflow:hidden;
+    background:var(--tblr-card-bg);
+    border:1px solid var(--tblr-border-color);
+    transition:all .2s ease;
+    cursor:pointer;
+    height:100%;
+}
+.js-req-card:hover {
+    border-color:#a259ff;
+    box-shadow:0 4px 20px rgba(162,89,255,.15);
+    transform:translateY(-2px);
+}
+
+/* Backdrop en fond de card */
+.js-req-backdrop {
+    height:100px;
+    background-size:cover;
+    background-position:center top;
+    position:relative;
+}
+.js-req-backdrop::after {
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(transparent 20%, var(--tblr-card-bg) 95%);
+}
+.js-req-no-backdrop {
+    height:40px;
+    background:linear-gradient(135deg, rgba(162,89,255,.08) 0%, rgba(99,102,241,.08) 100%);
+}
+
+/* Contenu card */
+.js-req-content {
+    padding:.75rem;
+    margin-top:-30px;
+    position:relative;
+    z-index:1;
+}
+.js-req-poster {
+    width:60px;
+    height:90px;
+    border-radius:.4rem;
+    object-fit:cover;
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
+    flex-shrink:0;
+}
+.js-req-poster-placeholder {
+    width:60px;
+    height:90px;
+    border-radius:.4rem;
+    background:var(--tblr-bg-surface-secondary);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+.js-req-title {
+    font-weight:600;
+    font-size:.9rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:100%;
+}
+.js-req-meta {
+    font-size:.72rem;
+    color:var(--tblr-text-secondary);
+}
+.js-req-overview {
+    font-size:.75rem;
+    color:var(--tblr-text-secondary);
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    line-height:1.35;
+}
+.js-req-actions {
+    display:flex;
+    gap:.35rem;
+    flex-wrap:wrap;
+}
+.js-type-badge {
+    font-size:.6rem;
+    padding:1px 6px;
+    border-radius:3px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+}
+.js-type-movie { background:rgba(239,68,68,.12); color:#ef4444; }
+.js-type-tv { background:rgba(56,189,248,.12); color:#38bdf8; }
+
+/* User avatar */
+.js-user-info {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:.7rem;
+    color:var(--tblr-text-secondary);
+}
+
+/* Pagination */
+.js-pagination a {
+    padding:4px 10px;
+    border-radius:4px;
+    text-decoration:none;
+    font-size:.8rem;
+    border:1px solid var(--tblr-border-color);
+    color:var(--tblr-body-color);
+}
+.js-pagination a:hover { border-color:#a259ff; color:#a259ff; }
+.js-pagination a.active { background:#a259ff; color:#fff; border-color:#a259ff; }
+
+/* Stats */
+.js-stat { font-size:1.5rem; font-weight:700; line-height:1; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-xl py-2">
+    <div class="d-flex align-items-center justify-content-end">
+        {% include 'jellyseerr/_nav.html.twig' %}
+    </div>
+    <div class="mt-2">
+        {% include 'jellyseerr/_jellyseerr_nav.html.twig' %}
+    </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
+        <div><strong>Impossible de contacter Jellyseerr</strong><div class="small text-secondary">Vérifiez que Jellyseerr est accessible sur 192.168.10.220:5055</div></div>
+    </div>
+{% endif %}
+
+{# ── Stats cards ── #}
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="js-stat" style="color:#a259ff;">{{ counts.total ?? 0 }}</div>
+            <div class="text-secondary small">Total</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="js-stat" style="color:#f59e0b;">{{ counts.pending ?? 0 }}</div>
+            <div class="text-secondary small">En attente</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="js-stat" style="color:#a855f7;">{{ counts.processing ?? 0 }}</div>
+            <div class="text-secondary small">En cours</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="js-stat" style="color:#38bdf8;">{{ counts.approved ?? 0 }}</div>
+            <div class="text-secondary small">Approuvées</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="js-stat" style="color:#ef4444;">{{ counts.declined ?? 0 }}</div>
+            <div class="text-secondary small">Refusées</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card card-sm"><div class="card-body text-center">
+            <div class="js-stat" style="color:#22c55e;">{{ (counts.movie ?? 0) + (counts.tv ?? 0) - (counts.pending ?? 0) - (counts.declined ?? 0) }}</div>
+            <div class="text-secondary small">
+                <span style="color:#ef4444;">{{ counts.movie ?? 0 }} films</span> ·
+                <span style="color:#38bdf8;">{{ counts.tv ?? 0 }} séries</span>
+            </div>
+        </div></div>
+    </div>
+</div>
+
+{# ── Liste des requêtes ── #}
+{% if requests|length == 0 and not error %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".3"><path d="M3 7v4a1 1 0 0 0 1 1h3"/><path d="M7.5 10.5l.5 .5l2 -2"/><path d="M3 15v4a1 1 0 0 0 1 1h3"/><path d="M7.5 18.5l.5 .5l2 -2"/><path d="M13 7h8"/><path d="M13 11h5"/><path d="M13 15h8"/><path d="M13 19h5"/></svg>
+            <div class="text-secondary mt-2">Aucune requête {{ filter != 'all' ? 'avec ce filtre' }}</div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="row g-3">
+{% for req in requests %}
+    {% set tmdb = req._tmdb ?? null %}
+    {% set poster = tmdb and tmdb.posterPath ? 'https://image.tmdb.org/t/p/w185' ~ tmdb.posterPath : null %}
+    {% set backdrop = tmdb and tmdb.backdropPath ? 'https://image.tmdb.org/t/p/w780' ~ tmdb.backdropPath : null %}
+    {% set user = req.requestedBy ?? null %}
+
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="js-req-card" data-request-id="{{ req.id }}" data-type="{{ req.type ?? 'movie' }}" data-status="{{ req._statusColor ?? 'secondary' }}">
+            {# Backdrop header #}
+            {% if backdrop %}
+                <div class="js-req-backdrop" style="background-image:url('{{ backdrop }}')"></div>
+            {% else %}
+                <div class="js-req-no-backdrop"></div>
+            {% endif %}
+
+            {# Contenu #}
+            <div class="js-req-content">
+                <div class="d-flex gap-3">
+                    {# Poster #}
+                    {% if poster %}
+                        <img src="{{ poster }}" class="js-req-poster" alt="" loading="lazy">
+                    {% else %}
+                        <div class="js-req-poster-placeholder">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M20.4 14.5L16 10 4 20"/></svg>
+                        </div>
+                    {% endif %}
+
+                    <div class="flex-fill" style="min-width:0;">
+                        {# Badges #}
+                        <div class="d-flex align-items-center gap-1 mb-1">
+                            <span class="js-type-badge {{ req.type == 'movie' ? 'js-type-movie' : 'js-type-tv' }}">
+                                {{ req.type == 'movie' ? 'Film' : 'Série' }}
+                            </span>
+                            <span class="badge bg-{{ req._statusColor }}-lt text-{{ req._statusColor }}" style="font-size:.6rem;">
+                                {{ req._statusLabel }}
+                            </span>
+                            {% if req.is4k ?? false %}
+                                <span class="badge bg-yellow-lt text-yellow" style="font-size:.6rem;">4K</span>
+                            {% endif %}
+                        </div>
+
+                        {# Titre #}
+                        <div class="js-req-title" title="{{ tmdb ? tmdb.title : 'TMDb #' ~ (req.media.tmdbId ?? '?') }}">
+                            {{ tmdb ? tmdb.title : 'TMDb #' ~ (req.media.tmdbId ?? '?') }}
+                        </div>
+
+                        {# Meta #}
+                        <div class="js-req-meta mt-1">
+                            {% if tmdb and tmdb.releaseDate %}
+                                {{ tmdb.releaseDate|slice(0,4) }}
+                            {% endif %}
+                            {% if tmdb and tmdb.voteAverage %}
+                                · <span style="color:#f59e0b;">★</span> {{ tmdb.voteAverage|number_format(1) }}
+                            {% endif %}
+                            {% if tmdb and tmdb.genres|length > 0 %}
+                                · {{ tmdb.genres|slice(0,2)|join(', ') }}
+                            {% endif %}
+                        </div>
+
+                        {# Synopsis #}
+                        {% if tmdb and tmdb.overview %}
+                            <div class="js-req-overview mt-1">{{ tmdb.overview }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Footer : user + traité par + actions #}
+                <div class="d-flex align-items-center justify-content-between mt-2 pt-2" style="border-top:1px solid var(--tblr-border-color-translucent);">
+                    <div class="d-flex align-items-center gap-2 flex-wrap" style="font-size:.82rem;">
+                        {% if user %}
+                            <span class="avatar avatar-xs" style="width:26px;height:26px;{% if user.avatar is defined and user.avatar %}background-image:url('http://192.168.10.220:5055{{ user.avatar }}'){% endif %}"></span>
+                            <span style="font-weight:500;">{{ user.displayName ?? user.jellyfinUsername ?? user.email ?? '?' }}</span>
+                            <span class="text-muted">·</span>
+                        {% endif %}
+                        <span class="text-secondary">{% if req.createdAt is defined and req.createdAt %}{{ req.createdAt|slice(0,10) }}{% endif %}</span>
+                        {% set modifier = req.modifiedBy ?? null %}
+                        {% if req.status != 1 and modifier is not null %}
+                            <span class="text-muted">·</span>
+                            <span class="text-secondary" style="font-size:.75rem;">
+                                {{ req._statusLabel }} par
+                                <strong>{{ modifier.displayName ?? modifier.jellyfinUsername ?? '?' }}</strong>
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="js-req-actions">
+                        {% if req.status == 1 %}
+                            <button class="btn btn-sm btn-success py-0 px-2 js-action-btn" data-action="approve" data-id="{{ req.id }}" style="font-size:.75rem;" title="Approuver">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5l10 -10"/></svg>
+                            </button>
+                            <button class="btn btn-sm btn-danger py-0 px-2 js-action-btn" data-action="decline" data-id="{{ req.id }}" style="font-size:.75rem;" title="Refuser">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+                            </button>
+                            <button class="btn btn-sm btn-warning py-0 px-2 js-card-edit-btn" data-id="{{ req.id }}" title="Modifier" style="font-size:.75rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"/><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"/><path d="M16 5l3 3"/></svg>
+                            </button>
+                        {% endif %}
+                        <button class="btn btn-sm btn-ghost-danger py-0 px-2 js-action-btn" data-action="delete" data-id="{{ req.id }}" style="font-size:.75rem;" title="Supprimer">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+</div>
+
+{# ── Pagination ── #}
+{% set totalPages = pageInfo.pages ?? 1 %}
+{% if totalPages > 1 %}
+<div class="d-flex justify-content-center gap-1 mt-3 mb-2 js-pagination">
+    {% if page > 1 %}
+        <a href="{{ path('jellyseerr_index', {filter:filter, sort:sort, page:page-1, type:app.request.query.get('type','')}) }}">←</a>
+    {% endif %}
+    {% for p in max(1, page-3)..min(totalPages, page+3) %}
+        <a href="{{ path('jellyseerr_index', {filter:filter, sort:sort, page:p, type:app.request.query.get('type','')}) }}"
+           class="{{ p == page ? 'active' }}">{{ p }}</a>
+    {% endfor %}
+    {% if page < totalPages %}
+        <a href="{{ path('jellyseerr_index', {filter:filter, sort:sort, page:page+1, type:app.request.query.get('type','')}) }}">→</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{# ── Trigger caché pour la modal (Turbo-safe) ── #}
+<button type="button" id="js-modal-trigger" class="d-none"
+        data-bs-toggle="modal" data-bs-target="#modal-request-detail"
+        data-request-id=""></button>
+
+<button type="button" id="js-edit-trigger" class="d-none"
+        data-bs-toggle="modal" data-bs-target="#modal-request-edit"
+        data-request-id=""></button>
+
+{# ── Modal détail ── #}
+<div class="modal modal-blur fade" id="modal-request-detail" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="overflow:hidden;border:0;border-radius:.75rem;">
+            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                    style="position:absolute;top:12px;right:12px;z-index:10;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5));"></button>
+            <div id="js-modal-body" style="min-height:200px;">
+                <div class="text-center py-5"><div class="spinner-border text-purple"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Modal édition ── #}
+<div class="modal modal-blur fade" id="modal-request-edit" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border:0;border-radius:.75rem;">
+            <div class="modal-header" style="border-bottom:1px solid var(--tblr-border-color);">
+                <h5 class="modal-title" id="js-edit-title">Modifier la demande</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="js-edit-body">
+                <div class="text-center py-4"><div class="spinner-border text-purple"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+    // ── Sort select ──
+    var sortSel = document.getElementById('js-sort-select');
+    if (sortSel) {
+        sortSel.addEventListener('change', function(){
+            var url = new URL(window.location.href);
+            url.searchParams.set('sort', this.value);
+            url.searchParams.set('page', '1');
+            window.location.href = url.toString();
+        });
+    }
+
+    // ── Filtre type (film/série) — côté serveur ──
+    var allCards = document.querySelectorAll('.js-req-card');
+    var currentType = new URL(window.location.href).searchParams.get('type') || 'all';
+
+    document.querySelectorAll('.js-type-btn').forEach(function(btn){
+        if (btn.dataset.type === currentType) btn.classList.add('active');
+        else btn.classList.remove('active');
+
+        btn.addEventListener('click', function(){
+            var type = this.dataset.type;
+            var url = new URL(window.location.href);
+            if (type === 'all') {
+                url.searchParams.delete('type');
+            } else {
+                url.searchParams.set('type', type);
+            }
+            url.searchParams.set('page', '1');
+            window.location.href = url.toString();
+        });
+    });
+
+    // ── Clic card → ouvre modal via trigger caché ──
+    var modalTrigger = document.getElementById('js-modal-trigger');
+    var editTrigger  = document.getElementById('js-edit-trigger');
+    allCards.forEach(function(card){
+        card.addEventListener('click', function(e){
+            if (e.target.closest('.js-action-btn') || e.target.closest('.js-card-edit-btn')) return;
+            modalTrigger.dataset.requestId = card.dataset.requestId;
+            modalTrigger.click();
+        });
+    });
+
+    // ── Bouton modifier sur les cards → ouvre modal édition ──
+    document.querySelectorAll('.js-card-edit-btn').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            e.stopPropagation();
+            e.preventDefault();
+            currentReq = null; // Force rechargement
+            editTrigger.dataset.requestId = this.dataset.id;
+            editTrigger.click();
+        });
+    });
+
+    // ── Actions cards (approve, decline, delete) ──
+    document.querySelectorAll('.js-action-btn').forEach(function(btn){
+        btn.addEventListener('click', function(e){
+            e.stopPropagation();
+            e.preventDefault();
+
+            var action = this.dataset.action;
+            var id     = this.dataset.id;
+            var card   = this.closest('.js-req-card');
+
+            if (action === 'delete' && !confirm('Supprimer cette requête ?')) return;
+
+            this.disabled = true;
+            var self = this;
+
+            fetch('/jellyseerr/request/' + id + '/' + action, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                if (data.ok) {
+                    if (action === 'delete') {
+                        var col = card.closest('.col-12');
+                        col.style.transition = 'opacity .3s, transform .3s';
+                        col.style.opacity = '0';
+                        col.style.transform = 'scale(.95)';
+                        setTimeout(function(){ col.remove(); }, 300);
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Erreur : action échouée');
+                    self.disabled = false;
+                }
+            })
+            .catch(function(){
+                alert('Erreur réseau');
+                self.disabled = false;
+            });
+        });
+    });
+
+    // ── Variable partagée pour la requête courante ──
+    var currentReq = null;
+
+    // ── Modal détail via show.bs.modal (pattern Turbo-safe) ──
+    var modalEl = document.getElementById('modal-request-detail');
+    if (modalEl) modalEl.addEventListener('show.bs.modal', function(e){
+        var trigger = e.relatedTarget;
+        if (!trigger) return;
+
+        var id = trigger.dataset.requestId;
+        if (!id) { e.preventDefault(); return; }
+
+        var body = document.getElementById('js-modal-body');
+        body.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-purple"></div></div>';
+
+        fetch('/jellyseerr/request/' + id, { credentials: 'same-origin', headers: {'Accept':'application/json'} })
+            .then(function(r){ return r.json(); })
+            .then(function(req){
+                currentReq = req;
+                var tmdb = req._tmdb || {};
+                var backdrop = tmdb.backdropPath ? 'https://image.tmdb.org/t/p/w1280' + tmdb.backdropPath : null;
+                var poster   = tmdb.posterPath ? 'https://image.tmdb.org/t/p/w342' + tmdb.posterPath : null;
+                var user = req.requestedBy || {};
+                var titleText = tmdb.title || ('TMDb #' + ((req.media && req.media.tmdbId) || '?'));
+                var statusLabel = req._statusLabel || '?';
+                var statusColor = req._statusColor || 'secondary';
+
+                var html = '';
+
+                // ── Hero backdrop ──
+                html += '<div style="position:relative;min-height:240px;';
+                if (backdrop) {
+                    html += 'background:url(\'' + backdrop + '\') center/cover;';
+                } else {
+                    html += 'background:linear-gradient(135deg, #1a1033 0%, #2d1b69 50%, #0f0a1a 100%);';
+                }
+                html += '">';
+                html += '<div style="position:absolute;inset:0;background:linear-gradient(to top, var(--tblr-card-bg) 0%, rgba(0,0,0,.5) 50%, rgba(0,0,0,.2) 100%);"></div>';
+                html += '<div style="position:relative;z-index:1;padding:1.5rem 1.5rem 0;display:flex;gap:1.25rem;align-items:flex-end;min-height:240px;">';
+
+                if (poster) {
+                    html += '<img src="' + poster + '" style="width:140px;border-radius:.6rem;box-shadow:0 8px 32px rgba(0,0,0,.5);margin-bottom:-50px;flex-shrink:0;" alt="">';
+                }
+
+                html += '<div style="padding-bottom:10px;min-width:0;">';
+                html += '<div class="mb-2"><span class="badge bg-' + statusColor + '" style="font-size:.8rem;padding:4px 12px;">' + statusLabel + '</span>';
+                html += ' <span class="js-type-badge ' + (req.type === 'movie' ? 'js-type-movie' : 'js-type-tv') + '" style="font-size:.7rem;padding:2px 8px;">' + (req.type === 'movie' ? 'Film' : 'Série') + '</span>';
+                if (req.is4k) html += ' <span class="badge bg-yellow-lt text-yellow" style="font-size:.7rem;">4K</span>';
+                html += '</div>';
+                html += '<h3 style="margin:0;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5);line-height:1.2;">' + titleText + '</h3>';
+
+                if (tmdb.releaseDate || tmdb.voteAverage) {
+                    html += '<div style="color:rgba(255,255,255,.7);font-size:.85rem;margin-top:.3rem;">';
+                    if (tmdb.releaseDate) html += tmdb.releaseDate.substring(0, 4);
+                    if (tmdb.voteAverage) html += ' · <span style="color:#f59e0b;">★</span> ' + Number(tmdb.voteAverage).toFixed(1);
+                    if (tmdb.genres && tmdb.genres.length) html += ' · ' + tmdb.genres.join(', ');
+                    html += '</div>';
+                }
+                html += '</div></div></div>';
+
+                // ── Body ──
+                html += '<div style="padding:' + (poster ? '60px' : '20px') + ' 1.5rem 1.5rem;">';
+
+                if (tmdb.overview) {
+                    html += '<p style="font-size:.88rem;line-height:1.6;color:var(--tblr-body-color);margin-bottom:1.25rem;">' + tmdb.overview + '</p>';
+                }
+
+                // Tableau saisons (TV)
+                if (req.seasons && req.seasons.length > 0) {
+                    html += '<table class="table table-sm table-vcenter mb-3" style="font-size:.82rem;">';
+                    html += '<thead><tr><th style="width:50px;"></th><th>Saison</th><th>Épisodes</th><th class="text-end">Statut</th></tr></thead><tbody>';
+                    req.seasons.forEach(function(s){
+                        var sColor = s.status === 5 ? 'success' : (s.status === 2 ? 'info' : (s.status === 1 ? 'warning' : 'secondary'));
+                        var sLabel = s.status === 5 ? 'Disponible' : (s.status === 2 ? 'Approuvée' : (s.status === 1 ? 'En attente' : 'En cours'));
+                        html += '<tr>';
+                        html += '<td><span class="avatar avatar-xs" style="width:28px;height:28px;background:#a259ff22;color:#a259ff;font-size:.7rem;font-weight:700;">' + s.seasonNumber + '</span></td>';
+                        html += '<td style="font-weight:500;">Saison ' + s.seasonNumber + '</td>';
+                        html += '<td class="text-secondary">' + (s.episodeCount || '—') + '</td>';
+                        html += '<td class="text-end"><span class="badge bg-' + sColor + '-lt text-' + sColor + '">' + sLabel + '</span></td>';
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table>';
+                }
+
+                // Demandeur + traité par
+                html += '<div style="padding:.65rem .85rem;background:var(--tblr-bg-surface-secondary);border-radius:.5rem;margin-bottom:1rem;">';
+                html += '<div class="d-flex align-items-center gap-3">';
+                if (user.avatar) {
+                    html += '<span class="avatar avatar-sm" style="width:32px;height:32px;background-image:url(\'http://192.168.10.220:5055' + user.avatar + '\');flex-shrink:0;"></span>';
+                } else {
+                    html += '<span class="avatar avatar-sm" style="width:32px;height:32px;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg></span>';
+                }
+                html += '<div style="font-size:.82rem;">';
+                html += '<span style="font-weight:600;">' + (user.displayName || user.jellyfinUsername || user.email || '?') + '</span>';
+                html += '<span class="text-secondary"> · ' + (req.createdAt ? req.createdAt.substring(0, 10) : '?') + '</span>';
+                html += '</div>';
+                html += '</div>';
+
+                // Traité par (si pas en attente)
+                var modifier = req.modifiedBy || null;
+                if (req.status !== 1 && modifier) {
+                    var modName = modifier.displayName || modifier.jellyfinUsername || modifier.email || '?';
+                    var modAvatar = modifier.avatar ? 'http://192.168.10.220:5055' + modifier.avatar : '';
+                    html += '<div class="d-flex align-items-center gap-2 mt-2 pt-2" style="border-top:1px solid var(--tblr-border-color-translucent);font-size:.78rem;">';
+                    if (modAvatar) {
+                        html += '<span class="avatar avatar-xs" style="width:22px;height:22px;background-image:url(\'' + modAvatar + '\');flex-shrink:0;"></span>';
+                    }
+                    html += '<span class="text-secondary">' + statusLabel + ' par <strong>' + modName + '</strong></span>';
+                    if (req.updatedAt) {
+                        html += '<span class="text-secondary ms-auto">' + req.updatedAt.substring(0, 10) + '</span>';
+                    }
+                    html += '</div>';
+                }
+                html += '</div>';
+
+                // Actions
+                html += '<div class="d-flex gap-2">';
+                if (req.status === 1) {
+                    // En attente → 3 boutons
+                    html += '<button class="btn btn-success js-modal-action" data-action="approve" data-id="' + req.id + '" style="flex:1;">';
+                    html += '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5l10 -10"/></svg> Valider';
+                    html += '</button>';
+                    html += '<button class="btn btn-danger js-modal-action" data-action="decline" data-id="' + req.id + '" style="flex:1;">';
+                    html += '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Refuser';
+                    html += '</button>';
+                    html += '<button class="btn btn-warning" id="js-open-edit" style="flex:1;">';
+                    html += '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"/><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"/><path d="M16 5l3 3"/></svg> Modifier';
+                    html += '</button>';
+                }
+                html += '<button class="btn btn-ghost-danger js-modal-action" data-action="delete" data-id="' + req.id + '">';
+                html += '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>';
+                html += '</button>';
+                html += '</div>';
+
+                html += '</div>';
+                body.innerHTML = html;
+
+                // ── Bouton Modifier → ouvre la 2e modal ──
+                var openEditBtn = document.getElementById('js-open-edit');
+                if (openEditBtn) openEditBtn.addEventListener('click', function(){
+                    modalEl.querySelector('[data-bs-dismiss="modal"]').click();
+                    setTimeout(function(){
+                        var editTrigger = document.getElementById('js-edit-trigger');
+                        editTrigger.dataset.requestId = req.id;
+                        editTrigger.click();
+                    }, 300);
+                });
+
+                // ── Bind action buttons ──
+                body.querySelectorAll('.js-modal-action').forEach(function(b){
+                    b.addEventListener('click', function(){
+                        var act = this.dataset.action;
+                        var rid = this.dataset.id;
+                        if (act === 'delete' && !confirm('Supprimer cette requête ?')) return;
+                        this.disabled = true;
+
+                        fetch('/jellyseerr/request/' + rid + '/' + act, { method:'POST', credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'} })
+                            .then(function(r){ return r.json(); })
+                            .then(function(d){
+                                if (d.ok) {
+                                    modalEl.querySelector('[data-bs-dismiss="modal"]').click();
+                                    window.location.reload();
+                                } else {
+                                    alert('Erreur');
+                                }
+                            });
+                    });
+                });
+            })
+            .catch(function(){
+                body.innerHTML = '<div class="alert alert-danger m-3">Erreur lors du chargement</div>';
+            });
+    });
+    // ── Modal édition via show.bs.modal ──
+    var editModalEl = document.getElementById('modal-request-edit');
+    if (editModalEl) editModalEl.addEventListener('show.bs.modal', function(e){
+        var trigger = e.relatedTarget;
+        if (!trigger) return;
+        var id = trigger.dataset.requestId;
+        if (!id) { e.preventDefault(); return; }
+
+        var titleEl = document.getElementById('js-edit-title');
+        var editBody = document.getElementById('js-edit-body');
+        titleEl.textContent = 'Modifier la demande';
+        editBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-purple"></div></div>';
+
+        // Charger requête si pas en cache
+        var reqPromise = (currentReq && String(currentReq.id) === String(id))
+            ? Promise.resolve(currentReq)
+            : fetch('/jellyseerr/request/' + id, { credentials:'same-origin', headers:{'Accept':'application/json'} }).then(function(r){ return r.json(); });
+
+        reqPromise.then(function(req){
+            var tmdb = req._tmdb || {};
+            var serviceType = req.type === 'movie' ? 'radarr' : 'sonarr';
+            titleEl.textContent = 'Modifier — ' + (tmdb.title || 'Requête #' + req.id);
+
+            var svcP = fetch('/jellyseerr/service/' + serviceType, { credentials:'same-origin', headers:{'Accept':'application/json'} }).then(function(r){ return r.json(); }).catch(function(){ return {}; });
+            var usersP = fetch('/jellyseerr/users', { credentials:'same-origin', headers:{'Accept':'application/json'} }).then(function(r){ return r.json(); }).catch(function(){ return []; });
+
+            Promise.all([svcP, usersP]).then(function(results){
+                var svc = results[0];
+                var users = results[1];
+                var profiles = svc.profiles || [];
+                var rootFolders = svc.rootFolders || [];
+                var requestedSeasons = {};
+                (req.seasons || []).forEach(function(s){ requestedSeasons[s.seasonNumber] = s; });
+                var currentUserId = (req.requestedBy && req.requestedBy.id) || null;
+
+                var html = '';
+
+                // Saisons (TV)
+                if (req.type === 'tv') {
+                    html += '<div class="mb-3">';
+                    html += '<label class="form-label">Saisons</label>';
+                    html += '<table class="table table-sm table-vcenter" style="font-size:.82rem;">';
+                    html += '<thead><tr><th style="width:40px;"></th><th>Saison</th><th>Épisodes</th><th class="text-end">Statut</th></tr></thead><tbody>';
+
+                    var allSeasons = (tmdb.seasons || []).filter(function(s){ return s.seasonNumber > 0; });
+                    if (allSeasons.length === 0) {
+                        (req.seasons || []).forEach(function(s){ allSeasons.push({seasonNumber: s.seasonNumber, episodeCount: s.episodeCount || 0}); });
+                    }
+
+                    allSeasons.forEach(function(s){
+                        var existing = requestedSeasons[s.seasonNumber];
+                        var checked = existing ? 'checked' : '';
+                        var sColor = existing ? (existing.status === 5 ? 'success' : (existing.status === 2 ? 'info' : 'warning')) : 'secondary';
+                        var sLabel = existing ? (existing.status === 5 ? 'Disponible' : (existing.status === 2 ? 'Approuvée' : 'En attente')) : 'Non demandée';
+                        html += '<tr>';
+                        html += '<td><input type="checkbox" class="form-check-input js-season-cb" value="' + s.seasonNumber + '" ' + checked + '></td>';
+                        html += '<td style="font-weight:500;">Saison ' + s.seasonNumber + '</td>';
+                        html += '<td class="text-secondary">' + (s.episodeCount || '—') + '</td>';
+                        html += '<td class="text-end"><span class="badge bg-' + sColor + '-lt text-' + sColor + '" style="font-size:.7rem;">' + sLabel + '</span></td>';
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table></div>';
+                }
+
+                // Dossier racine
+                html += '<div class="mb-3">';
+                html += '<label class="form-label">Dossier racine</label>';
+                html += '<select class="form-select" id="js-edit-rootfolder">';
+                rootFolders.forEach(function(rf){
+                    html += '<option value="' + rf.path + '" ' + (rf.path === req.rootFolder ? 'selected' : '') + '>' + rf.path + '</option>';
+                });
+                html += '</select></div>';
+
+                // Profil qualité
+                html += '<div class="mb-3">';
+                html += '<label class="form-label">Profil qualité</label>';
+                html += '<select class="form-select" id="js-edit-profile">';
+                profiles.forEach(function(p){
+                    html += '<option value="' + p.id + '" ' + (p.id === req.profileId ? 'selected' : '') + '>' + p.name + '</option>';
+                });
+                html += '</select></div>';
+
+                // Demandeur (custom dropdown avec avatars)
+                var currentUser = users.find(function(u){ return u.id === currentUserId; }) || {};
+                var currentUserName = currentUser.displayName || currentUser.jellyfinUsername || currentUser.email || '?';
+                var currentUserAvatar = currentUser.avatar ? 'http://192.168.10.220:5055' + currentUser.avatar : '';
+
+                html += '<div class="mb-3">';
+                html += '<label class="form-label">Demandé par</label>';
+                html += '<input type="hidden" id="js-edit-user" value="' + currentUserId + '">';
+                html += '<div id="js-user-dropdown" style="position:relative;">';
+                html += '<div id="js-user-selected" style="cursor:pointer;padding:.5rem .75rem;border:1px solid var(--tblr-border-color);border-radius:.4rem;display:flex;align-items:center;gap:.5rem;">';
+                if (currentUserAvatar) {
+                    html += '<span class="avatar avatar-xs" style="width:24px;height:24px;background-image:url(\'' + currentUserAvatar + '\');flex-shrink:0;"></span>';
+                }
+                html += '<span id="js-user-name" style="flex:1;">' + currentUserName + '</span>';
+                html += '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6l6 -6"/></svg>';
+                html += '</div>';
+                html += '<div id="js-user-list" style="display:none;position:absolute;z-index:100;top:100%;left:0;right:0;max-height:200px;overflow-y:auto;background:var(--tblr-card-bg);border:1px solid var(--tblr-border-color);border-radius:.4rem;margin-top:2px;box-shadow:0 4px 12px rgba(0,0,0,.2);">';
+                users.forEach(function(u){
+                    var name = u.displayName || u.jellyfinUsername || u.email || ('User #' + u.id);
+                    var avatar = u.avatar ? 'http://192.168.10.220:5055' + u.avatar : '';
+                    html += '<div class="js-user-option d-flex align-items-center gap-2" data-id="' + u.id + '" data-name="' + name + '" data-avatar="' + avatar + '" style="cursor:pointer;padding:.4rem .75rem;transition:background .1s;' + (u.id === currentUserId ? 'background:rgba(162,89,255,.1);' : '') + '" onmouseover="this.style.background=\'rgba(162,89,255,.1)\'" onmouseout="this.style.background=\'' + (u.id === currentUserId ? 'rgba(162,89,255,.1)' : 'transparent') + '\'">';
+                    if (avatar) {
+                        html += '<span class="avatar avatar-xs" style="width:22px;height:22px;background-image:url(\'' + avatar + '\');flex-shrink:0;"></span>';
+                    } else {
+                        html += '<span class="avatar avatar-xs" style="width:22px;height:22px;flex-shrink:0;font-size:.6rem;">' + name.charAt(0).toUpperCase() + '</span>';
+                    }
+                    html += '<span style="font-size:.85rem;">' + name + '</span>';
+                    if (u.id === currentUserId) html += '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="2.5" class="ms-auto"><path d="M5 12l5 5l10 -10"/></svg>';
+                    html += '</div>';
+                });
+                html += '</div></div></div>';
+
+                // Boutons
+                html += '<div class="d-flex gap-2 justify-content-end pt-3" style="border-top:1px solid var(--tblr-border-color);">';
+                html += '<button class="btn" data-bs-dismiss="modal">Annuler</button>';
+                html += '<button class="btn btn-primary" id="js-edit-save">';
+                html += '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10 -10"/></svg> Enregistrer';
+                html += '</button>';
+                html += '</div>';
+
+                editBody.innerHTML = html;
+
+                // ── User dropdown handler ──
+                var userSelected = document.getElementById('js-user-selected');
+                var userList = document.getElementById('js-user-list');
+                var userInput = document.getElementById('js-edit-user');
+                var userName = document.getElementById('js-user-name');
+                if (userSelected && userList) {
+                    userSelected.addEventListener('click', function(){
+                        userList.style.display = userList.style.display === 'none' ? 'block' : 'none';
+                    });
+                    document.querySelectorAll('.js-user-option').forEach(function(opt){
+                        opt.addEventListener('click', function(){
+                            userInput.value = this.dataset.id;
+                            userName.textContent = this.dataset.name;
+                            var avatarEl = userSelected.querySelector('.avatar');
+                            if (avatarEl && this.dataset.avatar) {
+                                avatarEl.style.backgroundImage = 'url(\'' + this.dataset.avatar + '\')';
+                            }
+                            userList.style.display = 'none';
+                        });
+                    });
+                    editModalEl.addEventListener('click', function(ev){
+                        if (!ev.target.closest('#js-user-dropdown')) userList.style.display = 'none';
+                    });
+                }
+
+                // Save handler
+                var saveBtn = document.getElementById('js-edit-save');
+                if (saveBtn) saveBtn.addEventListener('click', function(){
+                    var defaultServerId = (svc.server && svc.server.id != null) ? svc.server.id : 0;
+                    var payload = {
+                        mediaType: req.type,
+                        serverId: req.serverId != null ? req.serverId : defaultServerId,
+                        profileId: parseInt(document.getElementById('js-edit-profile').value) || null,
+                        rootFolder: document.getElementById('js-edit-rootfolder').value || null,
+                        userId: parseInt(document.getElementById('js-edit-user').value) || null
+                    };
+
+                    if (req.type === 'tv') {
+                        var seasons = [];
+                        document.querySelectorAll('.js-season-cb:checked').forEach(function(cb){
+                            seasons.push(parseInt(cb.value));
+                        });
+                        payload.seasons = seasons;
+                    }
+
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<div class="spinner-border spinner-border-sm" style="width:16px;height:16px;"></div> Enregistrement…';
+
+                    fetch('/jellyseerr/request/' + req.id + '/edit', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {'Content-Type':'application/json', 'X-Requested-With':'XMLHttpRequest'},
+                        body: JSON.stringify(payload)
+                    })
+                    .then(function(r){
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.json();
+                    })
+                    .then(function(d){
+                        if (d.ok) {
+                            editModalEl.querySelector('[data-bs-dismiss="modal"]').click();
+                            window.location.reload();
+                        } else {
+                            saveBtn.disabled = false;
+                            saveBtn.innerHTML = 'Erreur — réessayer';
+                        }
+                    })
+                    .catch(function(err){
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = 'Erreur — réessayer';
+                        console.error('Edit error:', err);
+                    });
+                });
+            });
+        });
+    });
+})();
+</script>
+{% endblock %}

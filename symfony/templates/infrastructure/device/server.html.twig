@@ -1,0 +1,1521 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ device.name }} — Infrastructure{% endblock %}
+{% block page_title %}{{ device.name }}{% endblock %}
+
+{% block page_actions %}
+  <div class="d-flex align-items-center gap-2">
+    <span class="status-dot {% if device.status == 'online' %}status-dot-animated bg-success{% else %}bg-danger{% endif %}"></span>
+    <span class="text-secondary small">{{ device.ipAddress }}</span>
+    {% if device.lastSeenAt %}
+      <span class="text-secondary small">· <span id="sse-page-sync">{{ device.lastSeenAt|date('H:i:s') }}</span></span>
+    {% endif %}
+    <span id="mac-agent-badge" class="badge bg-secondary-lt text-secondary ms-1">● Agent…</span>
+  </div>
+{% endblock %}
+
+{% block body %}
+<div id="mac-agent-offline-banner" class="alert alert-warning d-flex align-items-center gap-2 mb-3" style="display:none!important;">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><path d="M12 9v4m0 4l.01 0"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/></svg>
+  <div>
+    <strong>Agent Python arrêté</strong> — Les métriques affichées ne sont pas disponibles.
+    <span class="text-muted ms-1">Démarre l'agent depuis <a href="{{ path('app_tasks') }}" class="text-reset fw-semibold">Tâches</a>.</span>
+  </div>
+</div>
+
+<style>
+  #mac-procs-tbody tr[data-proc-name] {
+    transition: background-color .15s ease;
+  }
+  #mac-procs-tbody tr[data-proc-name]:hover {
+    background-color: rgba(var(--tblr-primary-rgb), .07);
+  }
+  #mac-procs-tbody tr[data-proc-name]:active {
+    background-color: rgba(var(--tblr-primary-rgb), .14);
+  }
+</style>
+
+{# ── Ligne 1 : CPU / RAM / Disque / Uptime ── #}
+<div class="row g-3 mb-3">
+  <div class="col-sm-3">
+    <div class="card h-100" style="border-top:3px solid var(--tblr-azure);">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="avatar bg-azure-lt" style="border-radius:10px;width:2.5rem;height:2.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--tblr-azure)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4m0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2z"/><path d="M4 14m0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2z"/><path d="M8 8l0 .01m0 6l0 .01"/></svg>
+          </div>
+          <div>
+            <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">CPU</div>
+            <div class="h2 mb-0 fw-bold" id="mac-cpu-val">—</div>
+          </div>
+        </div>
+        <div class="progress mb-1" style="height:4px;"><div id="mac-cpu-bar" class="progress-bar bg-azure" style="width:0%"></div></div>
+        <div class="text-secondary mt-1" style="font-size:.72rem;" id="mac-cpu-model-sub">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card h-100" style="border-top:3px solid var(--tblr-indigo);">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="avatar bg-indigo-lt" style="border-radius:10px;width:2.5rem;height:2.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--tblr-indigo)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0"/><path d="M17 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0"/><path d="M6 12v-3a5 5 0 0 1 5-5h2m3 3v3a5 5 0 0 1-5 5h-2"/></svg>
+          </div>
+          <div>
+            <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">RAM</div>
+            <div class="h2 mb-0 fw-bold" id="mac-ram-val">—</div>
+          </div>
+        </div>
+        <div class="progress mb-2" style="height:8px;" id="mac-mem-stacked">
+          <div id="mem-bar-active"     class="progress-bar bg-primary"   style="width:0%" title="Actif"></div>
+          <div id="mem-bar-wired"      class="progress-bar bg-warning"   style="width:0%" title="Wired"></div>
+          <div id="mem-bar-compressed" class="progress-bar bg-danger"    style="width:0%" title="Compressé"></div>
+          <div id="mem-bar-inactive"   class="progress-bar bg-secondary" style="width:0%" title="Inactif"></div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap" style="font-size:.68rem;">
+          <span class="text-primary">● <span id="mem-active-val">—</span> actif</span>
+          <span class="text-warning">● <span id="mem-wired-val">—</span> wired</span>
+          <span class="text-danger">● <span id="mem-comp-val">—</span> comp.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card h-100" style="border-top:3px solid var(--tblr-teal);">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="avatar bg-teal-lt" style="border-radius:10px;width:2.5rem;height:2.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--tblr-teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6a8 3 0 0 0 16 0v-6"/><path d="M4 12v6a8 3 0 0 0 16 0v-6"/></svg>
+          </div>
+          <div>
+            <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">Stockage</div>
+            <div class="h2 mb-0 fw-bold" id="mac-disk-val">—</div>
+          </div>
+        </div>
+        <div class="progress mb-1" style="height:4px;"><div id="mac-disk-bar" class="progress-bar bg-teal" style="width:0%"></div></div>
+        <div class="text-secondary mt-1" style="font-size:.72rem;" id="mac-disk-io">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card h-100" style="border-top:3px solid var(--tblr-border-color);">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="avatar bg-secondary-lt" style="border-radius:10px;width:2.5rem;height:2.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--tblr-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
+          </div>
+          <div>
+            <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">Uptime</div>
+            <div class="h2 mb-0 fw-bold" id="mac-uptime-val">—</div>
+          </div>
+        </div>
+        <div class="text-secondary mt-1" style="font-size:.72rem;" id="mac-os-sub">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Ligne 2 : Réseau / Swap / Processus / Load ── #}
+<div class="row g-3 mb-3">
+  <div class="col-sm-3">
+    <div class="card h-100" style="border-top:3px solid var(--tblr-cyan);">
+      <div class="card-body p-3">
+        <div class="text-secondary mb-2" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">
+          Réseau <span class="text-muted fw-normal" id="mac-net-iface" style="text-transform:none;font-size:.7rem;"></span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-secondary small">↓ Reçu</span>
+          <span class="fw-semibold" id="mac-net-in">—</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-secondary small">↑ Envoyé</span>
+          <span class="fw-semibold" id="mac-net-out">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card h-100" style="border-top:3px solid var(--tblr-orange);">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="avatar bg-orange-lt" style="border-radius:10px;width:2.5rem;height:2.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--tblr-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+          </div>
+          <div>
+            <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">Swap</div>
+            <div class="h2 mb-0 fw-bold" id="mac-swap-val">—</div>
+          </div>
+        </div>
+        <div class="progress" style="height:4px;"><div id="mac-swap-bar" class="progress-bar bg-orange" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card h-100" style="border-top:3px solid var(--tblr-purple);">
+      <div class="card-body p-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="avatar bg-purple-lt" style="border-radius:10px;width:2.5rem;height:2.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--tblr-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M6.4 6.4l.7 .7m9.2 9.2l.7 .7M4 12h1m14 0h1M6.4 17.6l.7 -.7m9.2 -9.2l.7 -.7M12 4v1m0 14v1"/></svg>
+          </div>
+          <div>
+            <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">Processus</div>
+            <div class="h2 mb-0 fw-bold" id="mac-proc-count">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <div class="card h-100" style="border-top:3px solid var(--tblr-green);">
+      <div class="card-body p-3">
+        <div class="text-secondary mb-2" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">Charge système</div>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-secondary small">1 min</span>
+          <span class="fw-semibold" id="mac-load-1">—</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="text-secondary small">5 min</span>
+          <span class="fw-semibold" id="mac-load-5">—</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-secondary small">15 min</span>
+          <span class="fw-semibold" id="mac-load-15">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Infos système ── #}
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-sm-3">
+        <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">Adresse IP</div>
+        <div class="fw-semibold mt-1">{{ device.ipAddress ?? '—' }}</div>
+      </div>
+      <div class="col-sm-3">
+        <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">Processeur</div>
+        <div class="fw-semibold mt-1" id="mac-cpu-model">—</div>
+      </div>
+      <div class="col-sm-3">
+        <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">Système</div>
+        <div class="fw-semibold mt-1" id="mac-os-info">—</div>
+      </div>
+      <div class="col-sm-3">
+        <div class="text-secondary" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;">Statut</div>
+        <div class="mt-1 d-flex align-items-center gap-2">
+          <span class="status-dot {% if device.status == 'online' %}status-dot-animated bg-success{% else %}bg-danger{% endif %}"></span>
+          <span class="fw-semibold">{{ device.status == 'online' ? 'En ligne' : 'Hors ligne' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# PLACEHOLDER containers-grid vide pour SSE compat #}
+<div id="containers-grid" style="display:none">
+{% if containers is not empty %}
+  <div class="row row-cards g-3">
+    {% for item in containers %}
+      {% set service = item.service %}
+      {% set is_running = service.status == 'up' %}
+
+      {% if is_running %}
+        {% set status_color = 'success' %}
+        {% set status_label = 'running' %}
+      {% elseif service.status == 'down' %}
+        {% set status_color = 'danger' %}
+        {% set status_label = 'exited' %}
+      {% elseif service.status == 'degraded' %}
+        {% set status_color = 'warning' %}
+        {% set status_label = 'degraded' %}
+      {% else %}
+        {% set status_color = 'secondary' %}
+        {% set status_label = 'unknown' %}
+      {% endif %}
+
+      <div class="col-md-6 col-xl-4">
+        <div class="card h-100" data-container="{{ service.name }}" data-status="{{ service.status }}"
+             data-csrf-token="{{ csrf_token('container_action_' ~ service.name) }}"
+             data-system="{{ service.name starts with 'argos_' ? '1' : '0' }}"
+             style="cursor:pointer" title="Cliquer pour les détails">
+          <div class="card-status-top bg-{{ status_color }}"></div>
+          <div class="card-body">
+
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="d-flex align-items-center gap-2 overflow-hidden">
+                <span class="status-dot {% if is_running %}status-dot-animated{% endif %} bg-{{ status_color }} flex-shrink-0"></span>
+                <span class="fw-semibold text-truncate" title="{{ service.name }}">{{ service.name }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                <span class="badge bg-{{ status_color }}-lt">{{ status_label }}</span>
+                {% if not (service.name starts with 'argos_') %}
+                  {% if is_running %}
+                    <button class="btn btn-sm btn-icon btn-ghost-warning p-1" data-card-action="restart"
+                            title="Restart" style="width:1.6rem;height:1.6rem;min-height:0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/>
+                        <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+                      </svg>
+                    </button>
+                    <button class="btn btn-sm btn-icon btn-ghost-danger p-1" data-card-action="stop"
+                            title="Stop" style="width:1.6rem;height:1.6rem;min-height:0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="4" width="16" height="16" rx="2"/>
+                      </svg>
+                    </button>
+                  {% else %}
+                    <button class="btn btn-sm btn-icon btn-ghost-success p-1" data-card-action="start"
+                            title="Start" style="width:1.6rem;height:1.6rem;min-height:0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 4v16l13-8z"/>
+                      </svg>
+                    </button>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+
+            {% if is_running %}
+              {% if item.cpu is not null %}
+                <div class="mb-1">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-secondary" style="font-size: 0.75rem; letter-spacing: .04em; text-transform: uppercase;">CPU</span>
+                    <span data-cpu-val class="fw-semibold small {% if item.cpu > 80 %}text-danger{% elseif item.cpu > 50 %}text-warning{% else %}text-muted{% endif %}">{{ item.cpu }}%</span>
+                  </div>
+                  <div class="progress" style="height: 4px;">
+                    <div data-cpu-bar class="progress-bar {% if item.cpu > 80 %}bg-danger{% elseif item.cpu > 50 %}bg-warning{% else %}bg-primary{% endif %}"
+                         style="width: {{ item.cpu > 100 ? 100 : item.cpu }}%" role="progressbar"></div>
+                  </div>
+                </div>
+              {% endif %}
+
+              {% if item.mem is not null %}
+                <div class="mb-1">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-secondary" style="font-size: 0.75rem; letter-spacing: .04em; text-transform: uppercase;">RAM</span>
+                    <span data-mem-val class="fw-semibold small {% if item.mem > 80 %}text-danger{% elseif item.mem > 60 %}text-warning{% else %}text-muted{% endif %}">
+                      {% if item.mem_mb is not null %}{{ item.mem_mb }} MB · {% endif %}{{ item.mem }}%
+                    </span>
+                  </div>
+                  <div class="progress" style="height: 4px;">
+                    <div data-mem-bar class="progress-bar {% if item.mem > 80 %}bg-danger{% elseif item.mem > 60 %}bg-warning{% else %}bg-azure{% endif %}"
+                         style="width: {{ item.mem > 100 ? 100 : item.mem }}%" role="progressbar"></div>
+                  </div>
+                </div>
+              {% endif %}
+
+              {% if item.cpu is null and item.mem is null %}
+                <div class="text-secondary small fst-italic">Métriques en cours de collecte…</div>
+              {% endif %}
+            {% else %}
+              <div class="text-secondary small fst-italic mt-1">Conteneur arrêté</div>
+            {% endif %}
+
+          </div>
+
+          <div class="card-footer d-flex justify-content-between align-items-center py-2 px-3">
+            <div class="text-muted" style="font-size: 0.72rem;">
+              {% if is_running and service.responseTimeMs %}
+                {% set secs = service.responseTimeMs %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     class="me-1" style="vertical-align: -1px;">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                </svg>
+                {% if secs > 86400 %}
+                  {{ (secs / 86400)|round(0, 'floor') }}j {{ ((secs % 86400) / 3600)|round(0, 'floor') }}h
+                {% elseif secs > 3600 %}
+                  {{ (secs / 3600)|round(0, 'floor') }}h {{ ((secs % 3600) / 60)|round(0, 'floor') }}min
+                {% else %}
+                  {{ (secs / 60)|round(0, 'floor') }}min
+                {% endif %}
+              {% else %}
+                &nbsp;
+              {% endif %}
+            </div>
+            <div class="text-muted" data-checked-at style="font-size: 0.72rem;">{{ item.checked_at ? item.checked_at|date('H:i:s') : '' }}</div>
+          </div>
+
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    <div class="d-flex align-items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="text-info flex-shrink-0">
+        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/>
+      </svg>
+      <div>
+        <div class="fw-semibold">En attente du premier polling Docker</div>
+        <div class="text-secondary small">Vérifie que le conteneur <code>argos_worker</code> est démarré.</div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+</div>{# /containers-grid #}
+
+{# Bouton invisible — sert à déclencher le modal via Bootstrap data-attribute #}
+<button id="container-modal-trigger" class="d-none" data-bs-toggle="modal" data-bs-target="#container-modal" aria-hidden="true"></button>
+
+{# ===== Modal détail container ===== #}
+<div class="modal modal-blur fade" id="container-modal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <div class="d-flex align-items-center gap-2 overflow-hidden">
+          <span id="modal-status-dot" class="status-dot bg-secondary flex-shrink-0"></span>
+          <h5 class="modal-title mb-0 text-truncate" id="modal-container-name">—</h5>
+          <span id="modal-container-badge" class="badge bg-secondary-lt ms-1 flex-shrink-0"></span>
+        </div>
+        <div class="ms-auto d-flex align-items-center gap-2 flex-shrink-0">
+          <button id="modal-btn-restart" class="btn btn-sm btn-ghost-warning d-none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>Restart
+          </button>
+          <button id="modal-btn-stop" class="btn btn-sm btn-ghost-danger d-none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>Stop
+          </button>
+          <button id="modal-btn-start" class="btn btn-sm btn-ghost-success d-none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M7 4v16l13-8z"/></svg>Start
+          </button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+      </div>
+
+      <div class="modal-body pt-2 pb-0 px-3">
+        <ul class="nav nav-tabs mb-0">
+          <li class="nav-item"><a class="nav-link active" id="modal-tab-infos" href="#modal-pane-infos" data-bs-toggle="tab">Infos</a></li>
+          <li class="nav-item"><a class="nav-link" id="modal-tab-stats" href="#modal-pane-stats" data-bs-toggle="tab">Stats 24h</a></li>
+          <li class="nav-item"><a class="nav-link" id="modal-tab-logs" href="#modal-pane-logs" data-bs-toggle="tab">Logs</a></li>
+        </ul>
+      </div>
+
+      <div class="modal-body" style="min-height: 58vh">
+        <div class="tab-content">
+
+          <div class="tab-pane show active" id="modal-pane-infos">
+            <div id="modal-infos-spinner" class="text-center py-4">
+              <div class="spinner-border spinner-border-sm text-secondary"></div>
+            </div>
+            <div id="modal-infos-content" class="d-none"></div>
+          </div>
+
+          <div class="tab-pane" id="modal-pane-stats">
+            <div id="modal-stats-spinner" class="text-center py-4">
+              <div class="spinner-border spinner-border-sm text-secondary"></div>
+            </div>
+            <div id="modal-stats-content" class="d-none"></div>
+          </div>
+
+          <div class="tab-pane" id="modal-pane-logs">
+            <div id="modal-logs-spinner" class="text-center py-4">
+              <div class="spinner-border spinner-border-sm text-secondary"></div>
+              <div class="text-secondary small mt-2">Chargement des logs…</div>
+            </div>
+            <div id="modal-logs-content" class="d-none">
+              <pre id="modal-logs-pre" class="rounded p-3 small mb-0"
+                   style="background:#1a1a2e;color:#e2e8f0;max-height:50vh;overflow-y:auto;white-space:pre-wrap;word-break:break-all;font-size:.70rem;line-height:1.5"></pre>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer py-2">
+        <span class="text-muted font-monospace small" id="modal-container-id"></span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{# ── Top processus + Historique — card unifiée ── #}
+<div class="card mb-3" id="mac-history-card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-secondary"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span class="fw-semibold">Historique — 24h</span>
+      <span id="mac-history-proc-name" class="text-primary fw-semibold" style="display:none;"></span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span id="mac-history-period" class="text-muted fst-italic small"></span>
+      <span id="mac-history-pts" class="badge bg-secondary-lt text-secondary" style="display:none"></span>
+    </div>
+  </div>
+
+  <div class="d-flex" style="min-height:520px;">
+
+    {# Colonne gauche : Top processus #}
+    <div style="width:260px;min-width:260px;border-right:1px solid var(--tblr-border-color);">
+      <div class="px-3 pt-2 pb-0">
+        <button id="mac-history-back" class="btn btn-sm btn-outline-secondary w-100 d-none mb-2">← Système</button>
+      </div>
+      <div class="px-3 py-2 border-bottom d-flex align-items-center justify-content-between">
+        <span class="fw-semibold small">Top processus</span>
+        <span class="text-secondary" style="font-size:.72rem;">CPU ↓</span>
+      </div>
+      <div class="table-responsive" style="overflow-y:auto;max-height:600px;">
+        <table class="table table-sm table-vcenter mb-0">
+          <thead>
+            <tr>
+              <th style="font-size:.72rem;">Processus</th>
+              <th class="text-end" style="width:52px;font-size:.72rem;">CPU</th>
+              <th class="text-end" style="width:52px;font-size:.72rem;">RAM</th>
+            </tr>
+          </thead>
+          <tbody id="mac-procs-tbody">
+            <tr><td colspan="3" class="text-center text-secondary fst-italic small py-3">En attente…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# Colonne droite : Graphiques #}
+    <div class="flex-grow-1 p-3" style="min-width:0;">
+
+      <div id="mac-history-spinner" class="text-center py-5">
+        <div class="spinner-border spinner-border-sm text-secondary"></div>
+        <div class="text-secondary small mt-2">Chargement…</div>
+      </div>
+
+      {# Vue système #}
+      <div id="mac-history-content" class="d-none">
+        <div id="mac-history-nodata" class="text-center text-secondary fst-italic small py-4 d-none">
+          Pas encore assez de données — collecte toutes les 60 secondes.
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="text-secondary" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">CPU %</span>
+              <span class="badge bg-blue-lt text-blue" id="mac-h-cpu-cur">—</span>
+            </div>
+            <div id="mac-h-cpu-chart"></div>
+            <div class="d-flex justify-content-between mt-1" style="font-size:.8rem;">
+              <span class="text-secondary">Min <strong id="mac-h-cpu-min">—</strong></span>
+              <span class="text-secondary">Moy <strong id="mac-h-cpu-avg">—</strong></span>
+              <span class="text-secondary">Max <strong class="text-warning" id="mac-h-cpu-max">—</strong></span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="text-secondary" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">RAM %</span>
+              <span class="badge bg-purple-lt text-purple" id="mac-h-mem-cur">—</span>
+            </div>
+            <div id="mac-h-mem-chart"></div>
+            <div class="d-flex justify-content-between mt-1" style="font-size:.8rem;">
+              <span class="text-secondary">Min <strong id="mac-h-mem-min">—</strong></span>
+              <span class="text-secondary">Moy <strong id="mac-h-mem-avg">—</strong></span>
+              <span class="text-secondary">Max <strong class="text-warning" id="mac-h-mem-max">—</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="text-secondary" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Disque %</span>
+              <span class="badge bg-teal-lt text-teal" id="mac-h-disk-cur">—</span>
+            </div>
+            <div id="mac-h-disk-chart"></div>
+            <div class="d-flex justify-content-between mt-1" style="font-size:.8rem;">
+              <span class="text-secondary">Min <strong id="mac-h-disk-min">—</strong></span>
+              <span class="text-secondary">Moy <strong id="mac-h-disk-avg">—</strong></span>
+              <span class="text-secondary">Max <strong class="text-warning" id="mac-h-disk-max">—</strong></span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="text-secondary" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Charge 1 min</span>
+              <span class="badge bg-orange-lt text-orange" id="mac-h-load-cur">—</span>
+            </div>
+            <div id="mac-h-load-chart"></div>
+            <div class="d-flex justify-content-between mt-1" style="font-size:.8rem;">
+              <span class="text-secondary">Min <strong id="mac-h-load-min">—</strong></span>
+              <span class="text-secondary">Moy <strong id="mac-h-load-avg">—</strong></span>
+              <span class="text-secondary">Max <strong class="text-warning" id="mac-h-load-max">—</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="text-secondary" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Réseau ↓ KB/s</span>
+              <span class="badge bg-green-lt text-green" id="mac-h-netin-cur">—</span>
+            </div>
+            <div id="mac-h-netin-chart"></div>
+          </div>
+          <div class="col-6">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="text-secondary" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Réseau ↑ KB/s</span>
+              <span class="badge bg-cyan-lt text-cyan" id="mac-h-netout-cur">—</span>
+            </div>
+            <div id="mac-h-netout-chart"></div>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="text-secondary" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Swap %</span>
+              <span class="badge bg-red-lt text-red" id="mac-h-swap-cur">—</span>
+            </div>
+            <div id="mac-h-swap-chart"></div>
+          </div>
+        </div>
+      </div>
+
+      {# Vue processus #}
+      <div id="mac-history-proc" class="d-none">
+        <div id="mac-history-proc-spinner" class="text-center py-5">
+          <div class="spinner-border spinner-border-sm text-secondary"></div>
+        </div>
+        <div id="mac-history-proc-content" class="d-none">
+          <div id="mac-history-proc-nodata" class="text-center text-secondary fst-italic small py-4 d-none">
+            Pas encore assez de données pour ce processus.
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="text-secondary" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">CPU %</span>
+                <span class="badge bg-blue-lt text-blue" id="mac-hp-cpu-cur">—</span>
+              </div>
+              <div id="mac-hp-cpu-chart"></div>
+              <div class="d-flex justify-content-between mt-1" style="font-size:.8rem;">
+                <span class="text-secondary">Min <strong id="mac-hp-cpu-min">—</strong></span>
+                <span class="text-secondary">Moy <strong id="mac-hp-cpu-avg">—</strong></span>
+                <span class="text-secondary">Max <strong class="text-warning" id="mac-hp-cpu-max">—</strong></span>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="text-secondary" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">RAM %</span>
+                <span class="badge bg-orange-lt text-orange" id="mac-hp-mem-cur">—</span>
+              </div>
+              <div id="mac-hp-mem-chart"></div>
+              <div class="d-flex justify-content-between mt-1" style="font-size:.8rem;">
+                <span class="text-secondary">Min <strong id="mac-hp-mem-min">—</strong></span>
+                <span class="text-secondary">Moy <strong id="mac-hp-mem-avg">—</strong></span>
+                <span class="text-secondary">Max <strong class="text-warning" id="mac-hp-mem-max">—</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+  function mercureUrl(topic) {
+    var u = new URL('/.well-known/mercure', window.location.origin);
+    u.searchParams.append('topic', topic);
+    return u.toString();
+  }
+  function barColor(v, warn, danger, ok) {
+    return v > danger ? 'bg-danger' : (v > warn ? 'bg-warning' : ok);
+  }
+  function formatUptime(secs) {
+    if (secs > 86400) return Math.floor(secs / 86400) + 'j ' + Math.floor((secs % 86400) / 3600) + 'h';
+    if (secs > 3600)  return Math.floor(secs / 3600) + 'h ' + Math.floor((secs % 3600) / 60) + 'min';
+    return Math.floor(secs / 60) + 'min';
+  }
+  function formatSpeed(kbs) {
+    if (kbs >= 1024) return (kbs / 1024).toFixed(1) + ' MB/s';
+    return kbs.toFixed(0) + ' KB/s';
+  }
+  function setText(id, val, cls) {
+    var el = document.getElementById(id);
+    if (!el || val === null || val === undefined) return;
+    el.textContent = val;
+    if (cls !== undefined) el.className = 'h2 mb-0 fw-bold ' + cls;
+  }
+  function setBar(id, pct, cls) {
+    var el = document.getElementById(id);
+    if (!el || pct === undefined) return;
+    el.style.width = Math.min(Math.max(pct, 0), 100) + '%';
+    if (cls) el.className = 'progress-bar ' + cls;
+  }
+  function setOnce(id, val) {
+    var el = document.getElementById(id);
+    if (!el || !val || el.textContent === val) return;
+    if (el.textContent === '—' || el.textContent === '') el.textContent = val;
+  }
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function init() {
+    if (window._argosMacSrc) { window._argosMacSrc.close(); window._argosMacSrc = null; }
+
+    window._argosMacSrc = new EventSource(mercureUrl('/argos/metrics/mac'));
+    window._argosMacSrc.onmessage = function (e) {
+      var d = JSON.parse(e.data);
+
+      var cores = d.logical_cores || 1;
+
+      // ── CPU ──
+      setText('mac-cpu-val', d.cpu !== undefined ? d.cpu + '%' : null,
+        d.cpu > 80 ? 'text-danger' : d.cpu > 60 ? 'text-warning' : '');
+      setBar('mac-cpu-bar', d.cpu, barColor(d.cpu, 60, 80, 'bg-azure'));
+      if (d.cpu_model) {
+        setOnce('mac-cpu-model-sub', d.cpu_model + (d.physical_cores ? ' · ' + d.physical_cores + ' cœurs' : ''));
+        setOnce('mac-cpu-model', d.cpu_model + (d.physical_cores ? ' · ' + d.physical_cores + 'c' : ''));
+      }
+
+      // ── RAM (stacked bar) ──
+      if (d.mem_used_mb !== undefined) {
+        var totalMb = d.mem_total_mb || 1;
+        var usedGb  = (d.mem_used_mb  / 1024).toFixed(1);
+        var totalGb = Math.round(d.mem_total_mb / 1024);
+        setText('mac-ram-val', usedGb + ' / ' + totalGb + ' GB',
+          d.mem_percent > 85 ? 'text-danger' : d.mem_percent > 70 ? 'text-warning' : '');
+
+        setBar('mem-bar-active',     d.mem_active_mb     / totalMb * 100, 'bg-primary');
+        setBar('mem-bar-wired',      d.mem_wired_mb      / totalMb * 100, 'bg-warning');
+        setBar('mem-bar-compressed', d.mem_compressed_mb / totalMb * 100, 'bg-danger');
+        setBar('mem-bar-inactive',   d.mem_inactive_mb   / totalMb * 100, 'bg-secondary');
+
+        var el = document.getElementById('mem-active-val');
+        if (el) el.textContent = Math.round(d.mem_active_mb / 1024) + ' GB';
+        el = document.getElementById('mem-wired-val');
+        if (el) el.textContent = Math.round(d.mem_wired_mb / 1024 * 10) / 10 + ' GB';
+        el = document.getElementById('mem-comp-val');
+        if (el) el.textContent = Math.round(d.mem_compressed_mb / 1024 * 10) / 10 + ' GB';
+      }
+
+      // ── Disque ──
+      if (d.disk_used_gb !== undefined) {
+        setText('mac-disk-val', d.disk_used_gb + ' / ' + d.disk_total_gb + ' GB',
+          d.disk_percent > 90 ? 'text-danger' : d.disk_percent > 75 ? 'text-warning' : '');
+        setBar('mac-disk-bar', d.disk_percent, barColor(d.disk_percent, 75, 90, 'bg-teal'));
+        var ioEl = document.getElementById('mac-disk-io');
+        if (ioEl) ioEl.textContent = d.disk_rw_mbs > 0 ? 'I/O : ' + d.disk_rw_mbs + ' MB/s' : 'I/O : inactif';
+      }
+
+      // ── Uptime ──
+      if (d.uptime !== undefined) {
+        setText('mac-uptime-val', formatUptime(d.uptime), '');
+        setOnce('mac-os-sub', d.os_name && d.os_version ? d.os_name + ' ' + d.os_version : '');
+      }
+
+      // ── OS info card ──
+      if (d.os_name) setOnce('mac-os-info', d.os_name + (d.os_version ? ' ' + d.os_version : ''));
+
+      // ── Réseau ──
+      if (d.net_in_kbs !== undefined) {
+        var el = document.getElementById('mac-net-in');
+        if (el) el.textContent = formatSpeed(d.net_in_kbs);
+        el = document.getElementById('mac-net-out');
+        if (el) el.textContent = formatSpeed(d.net_out_kbs);
+        el = document.getElementById('mac-net-iface');
+        if (el && d.net_interface) el.textContent = '(' + d.net_interface + ')';
+      }
+
+      // ── Swap ──
+      if (d.swap_used_mb !== undefined) {
+        var swapLabel = d.swap_total_mb > 0
+          ? Math.round(d.swap_used_mb / 1024 * 10) / 10 + ' / ' + Math.round(d.swap_total_mb / 1024) + ' GB'
+          : 'Inactif';
+        setText('mac-swap-val', swapLabel,
+          d.swap_percent > 80 ? 'text-danger' : d.swap_percent > 50 ? 'text-warning' : '');
+        setBar('mac-swap-bar', d.swap_percent, barColor(d.swap_percent, 50, 80, 'bg-orange'));
+      }
+
+      // ── Processus ──
+      if (d.proc_count) setText('mac-proc-count', d.proc_count, '');
+
+      // ── Charge système ──
+      if (d.load && d.load.length >= 3) {
+        [['mac-load-1', d.load[0]], ['mac-load-5', d.load[1]], ['mac-load-15', d.load[2]]].forEach(function(pair) {
+          var el = document.getElementById(pair[0]);
+          if (!el) return;
+          el.textContent = pair[1].toFixed(2);
+          el.className = 'fw-semibold ' + (pair[1] > cores ? 'text-danger' : pair[1] > cores * 0.7 ? 'text-warning' : 'text-success');
+        });
+      }
+
+      // ── Top processus ──
+      if (d.top_procs && d.top_procs.length > 0) {
+        var tbody = document.getElementById('mac-procs-tbody');
+        if (tbody) {
+          tbody.innerHTML = d.top_procs.map(function(p) {
+            var cpuClass = p.cpu > 50 ? 'text-danger fw-semibold' : p.cpu > 20 ? 'text-warning fw-semibold' : '';
+            var isActive = window._argosProcActive === p.name;
+            return '<tr data-proc-name="' + esc(p.name) + '" style="cursor:pointer" title="Voir l\'historique"' +
+              (isActive ? ' class="table-active"' : '') + '>' +
+              '<td class="text-truncate" style="max-width:130px;font-size:.8rem;">' + esc(p.name) + '</td>' +
+              '<td class="text-end ' + cpuClass + '" style="font-size:.8rem;">' + p.cpu.toFixed(1) + '%</td>' +
+              '<td class="text-end text-secondary" style="font-size:.8rem;">' + p.mem.toFixed(1) + '%</td>' +
+              '</tr>';
+          }).join('');
+        }
+      }
+
+      // ── Agent badge + bandeau hors ligne ──
+      var badge  = document.getElementById('mac-agent-badge');
+      var banner = document.getElementById('mac-agent-offline-banner');
+      if (d.agent_active !== undefined) {
+        if (badge) {
+          badge.style.display = '';
+          if (d.agent_active) {
+            badge.textContent = '● Agent actif';
+            badge.className = 'badge bg-success-lt text-success ms-1';
+          } else {
+            badge.textContent = '● Agent arrêté';
+            badge.className = 'badge bg-danger-lt text-danger ms-1';
+          }
+        }
+        if (banner) {
+          banner.style.setProperty('display', d.agent_active ? 'none' : 'flex', 'important');
+        }
+      }
+
+      // ── Sync timestamp ──
+      var syncEl = document.getElementById('sse-page-sync');
+      if (syncEl && d.last_seen) syncEl.textContent = d.last_seen;
+    };
+  }
+
+  if (!window._argosMacListeners) {
+    window._argosMacListeners = true;
+    document.addEventListener('turbo:load', init);
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('turbo:before-cache', function () {
+      if (window._argosMacSrc) { window._argosMacSrc.close(); window._argosMacSrc = null; }
+      document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+    });
+  }
+  init();
+})();
+</script>
+
+{# ===== JS Modal Détail Container ===== #}
+<script>
+(function () {
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  var _current      = null;   // { name, csrfToken, isSystem }
+  var _logsInterval = null;   // setInterval ID pour le polling live des logs
+
+  function show(id)  { var el = document.getElementById(id); if (el) el.classList.remove('d-none'); }
+  function hide(id)  { var el = document.getElementById(id); if (el) el.classList.add('d-none'); }
+  function text(id, t){ var el = document.getElementById(id); if (el) el.textContent = t; }
+  function html(id, h){ var el = document.getElementById(id); if (el) el.innerHTML = h; }
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  var _sparkId = 0;
+  function sparklineSvg(data, labels, color) {
+    if (!data || data.length < 2) {
+      return '<div class="text-center text-secondary small fst-italic py-3">Données insuffisantes (en attente de collecte)</div>';
+    }
+    var id = 'spk' + (++_sparkId);
+    // Viewport
+    var W = 540, H = 160;
+    var padL = 36, padR = 12, padT = 10, padB = 28;
+    var iW = W - padL - padR, iH = H - padT - padB;
+
+    var rawMax = Math.max.apply(null, data.concat([1]));
+    var rawMin = Math.min.apply(null, data);
+    // Arrondir max au multiple de 25 supérieur
+    var gridMax = Math.ceil(rawMax / 25) * 25;
+    if (gridMax < 25) gridMax = 25;
+    var last = data[data.length - 1];
+
+    // Coordonnées
+    var coords = data.map(function (v, i) {
+      return {
+        x: padL + (i / (data.length - 1)) * iW,
+        y: padT + (1 - v / gridMax) * iH,
+      };
+    });
+    var pts  = coords.map(function (c) { return c.x.toFixed(1) + ',' + c.y.toFixed(1); }).join(' ');
+    var lc   = coords[coords.length - 1];
+    var area = 'M ' + coords.map(function (c) { return c.x.toFixed(1) + ' ' + c.y.toFixed(1); }).join(' L ')
+             + ' L ' + lc.x.toFixed(1) + ' ' + (padT + iH)
+             + ' L ' + padL + ' ' + (padT + iH) + ' Z';
+
+    // Grille horizontale
+    var grid = '', yAxis = '';
+    var gridLevels = [0, 25, 50, 75, 100].filter(function (v) { return v <= gridMax; });
+    gridLevels.forEach(function (pct) {
+      var y = padT + (1 - pct / gridMax) * iH;
+      grid  += '<line x1="' + padL + '" y1="' + y.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + y.toFixed(1) + '"'
+             + ' stroke="currentColor" stroke-opacity="0.07" stroke-dasharray="4 3"/>';
+      yAxis += '<text x="' + (padL - 5) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="end"'
+             + ' font-size="9" fill="currentColor" opacity="0.45">' + pct + '</text>';
+    });
+
+    // Axe X — labels temporels (5 points répartis)
+    var xAxis = '';
+    if (labels && labels.length >= 2) {
+      var picks = [0, Math.round(data.length * 0.25), Math.round(data.length * 0.5), Math.round(data.length * 0.75), data.length - 1];
+      picks.forEach(function (idx) {
+        if (idx >= labels.length) return;
+        var x = padL + (idx / (data.length - 1)) * iW;
+        xAxis += '<text x="' + x.toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle"'
+               + ' font-size="9" fill="currentColor" opacity="0.45">' + labels[idx] + '</text>';
+      });
+    }
+
+    // Axe Y vertical
+    var yLine = '<line x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + (padT + iH) + '"'
+              + ' stroke="currentColor" stroke-opacity="0.15"/>';
+
+    // Stats
+    var minV = rawMin.toFixed(1);
+    var maxV = rawMax.toFixed(1);
+    var lastV = last.toFixed(1);
+
+    return '<div class="mb-1">'
+      + '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:160px;display:block;overflow:visible">'
+      + '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="' + color + '" stop-opacity="0.35"/>'
+      + '<stop offset="75%" stop-color="' + color + '" stop-opacity="0.06"/>'
+      + '<stop offset="100%" stop-color="' + color + '" stop-opacity="0.0"/>'
+      + '</linearGradient></defs>'
+      + grid + yAxis + yLine + xAxis
+      + '<path d="' + area + '" fill="url(#' + id + ')"/>'
+      + '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+      + '<circle cx="' + lc.x.toFixed(1) + '" cy="' + lc.y.toFixed(1) + '" r="4" fill="' + color + '" stroke="white" stroke-width="1.5"/>'
+      + '</svg>'
+      + '<div class="d-flex justify-content-between px-1 mt-1" style="font-size:.72rem">'
+      + '<span class="text-muted">min <strong>' + minV + '%</strong></span>'
+      + '<span style="color:' + color + '" class="fw-bold">' + lastV + '% actuellement</span>'
+      + '<span class="text-muted">max <strong>' + maxV + '%</strong></span>'
+      + '</div></div>';
+  }
+
+  // ── Populate tabs ─────────────────────────────────────────────────────────
+
+  function populateInfos(d) {
+    var stateColor = d.state === 'running' ? 'success' : (d.state === 'exited' ? 'danger' : 'warning');
+
+    // Header status
+    var dot = document.getElementById('modal-status-dot');
+    if (dot) {
+      dot.className = 'status-dot bg-' + stateColor + ' flex-shrink-0'
+        + (d.state === 'running' ? ' status-dot-animated' : '');
+    }
+    var badge = document.getElementById('modal-container-badge');
+    if (badge) { badge.textContent = d.state; badge.className = 'badge bg-' + stateColor + '-lt ms-1 flex-shrink-0'; }
+    text('modal-container-id', d.id ? 'ID: ' + d.id : '');
+
+    // Action buttons state
+    if (_current && !_current.isSystem) {
+      if (d.state === 'running') {
+        show('modal-btn-stop'); show('modal-btn-restart'); hide('modal-btn-start');
+      } else {
+        hide('modal-btn-stop'); hide('modal-btn-restart'); show('modal-btn-start');
+      }
+    }
+
+    // Ports
+    var portsHtml = d.ports && d.ports.length
+      ? d.ports.map(function (p) {
+          return '<code class="me-2">' + p.host + ' → ' + p.container + '</code>';
+        }).join('')
+      : '<span class="text-secondary">Aucun port exposé</span>';
+
+    // Mounts
+    var mountsHtml = d.mounts && d.mounts.length
+      ? '<ul class="list-unstyled mb-0 small">' + d.mounts.map(function (m) {
+          var badge = m.type === 'volume' ? 'bg-azure-lt' : 'bg-secondary-lt';
+          return '<li class="mb-1">'
+            + '<span class="badge ' + badge + ' me-1">' + m.type + '</span>'
+            + '<span class="text-secondary font-monospace">' + (m.source || m.name || '—') + '</span>'
+            + ' <span class="text-muted mx-1">→</span>'
+            + '<span class="font-monospace">' + m.destination + '</span>'
+            + (m.mode === 'ro' ? ' <span class="badge bg-warning-lt ms-1">ro</span>' : '')
+            + '</li>';
+        }).join('') + '</ul>'
+      : '<span class="text-secondary">Aucun volume</span>';
+
+    // Dates
+    var startedAt = '—';
+    if (d.started_at && d.started_at !== '0001-01-01T00:00:00Z') {
+      startedAt = new Date(d.started_at).toLocaleString('fr-FR');
+    }
+    var finishedAt = '';
+    if (d.state !== 'running' && d.finished_at && d.finished_at !== '0001-01-01T00:00:00Z') {
+      finishedAt = new Date(d.finished_at).toLocaleString('fr-FR');
+    }
+
+    // Networks
+    var networksHtml = d.networks && d.networks.length
+      ? d.networks.map(function (n) {
+          var aliases = n.aliases && n.aliases.length
+            ? ' <span class="text-muted small">(' + n.aliases.join(', ') + ')</span>' : '';
+          var gw = n.gateway ? ' <span class="text-muted small">gw ' + n.gateway + '</span>' : '';
+          return '<div class="mb-1"><span class="badge bg-indigo-lt me-1">' + n.name + '</span>'
+            + (n.ip ? '<code class="small">' + n.ip + '</code>' : '') + gw + aliases + '</div>';
+        }).join('')
+      : '<span class="text-secondary">—</span>';
+
+    // Restart policy
+    var rpColor = { 'always': 'success', 'unless-stopped': 'azure', 'on-failure': 'warning', 'no': 'secondary' };
+    var rpBadge = '<span class="badge bg-' + (rpColor[d.restart_policy] || 'secondary') + '-lt">'
+      + (d.restart_policy || 'no') + '</span>';
+
+    // Exit code
+    var exitRow = '';
+    if (d.state !== 'running' && d.exit_code !== null && d.exit_code !== undefined) {
+      var ecColor = d.exit_code === 0 ? 'success' : 'danger';
+      exitRow = '<tr><td class="text-secondary">Exit code</td>'
+        + '<td><span class="badge bg-' + ecColor + '-lt font-monospace">' + d.exit_code + '</span>'
+        + (finishedAt ? ' <span class="text-muted small ms-2">arrêté le ' + finishedAt + '</span>' : '')
+        + '</td></tr>';
+    }
+
+    html('modal-infos-content',
+      '<table class="table table-sm mb-0">'
+      + '<tr><td class="text-secondary" style="width:130px">Image</td>'
+      +     '<td><code class="text-truncate d-inline-block" style="max-width:400px">' + d.image + '</code></td></tr>'
+      + '<tr><td class="text-secondary">Hostname</td><td><code>' + (d.hostname || '—') + '</code></td></tr>'
+      + '<tr><td class="text-secondary">Démarré le</td><td>' + startedAt + '</td></tr>'
+      + exitRow
+      + '<tr><td class="text-secondary">Restart</td><td>' + rpBadge + '</td></tr>'
+      + '<tr><td class="text-secondary align-top">Réseaux</td><td>' + networksHtml + '</td></tr>'
+      + '<tr><td class="text-secondary">Ports</td><td>' + portsHtml + '</td></tr>'
+      + '<tr><td class="text-secondary align-top">Volumes</td><td>' + mountsHtml + '</td></tr>'
+      + '</table>'
+      + (d.env && d.env.length ? (
+          '<div class="mt-3">'
+          + '<div class="d-flex align-items-center justify-content-between mb-2">'
+          + '<span class="text-secondary small text-uppercase fw-medium" style="letter-spacing:.05em">Variables d\'environnement</span>'
+          + '<span class="badge bg-secondary-lt">' + d.env.length + '</span>'
+          + '</div>'
+          + '<div style="max-height:320px;overflow-y:auto;border:1px solid var(--tblr-border-color);border-radius:6px">'
+          + '<table class="table table-sm mb-0" style="font-size:.73rem">'
+          + d.env.map(function (e) {
+              var isMasked = e.value === '***';
+              return '<tr>'
+                + '<td class="font-monospace text-secondary pe-3" style="width:38%;word-break:break-all;white-space:normal">' + esc(e.key) + '</td>'
+                + '<td class="font-monospace' + (isMasked ? ' text-muted' : '') + '" style="word-break:break-all;white-space:normal">'
+                + (isMasked ? '<span class="badge bg-warning-lt">masked</span>' : esc(e.value))
+                + '</td></tr>';
+            }).join('')
+          + '</table></div></div>'
+        ) : '<div class="mt-3 text-secondary small fst-italic">Aucune variable d\'environnement</div>')
+    );
+
+    hide('modal-infos-spinner');
+    show('modal-infos-content');
+  }
+
+  function populateStats(d) {
+    var sp = d.sparkline || { labels: [], cpu: [], mem: [] };
+    var period = sp.labels && sp.labels.length >= 2
+      ? '<span class="text-muted small">' + sp.labels[0] + ' → ' + sp.labels[sp.labels.length - 1] + '</span>'
+      : '<span class="text-muted small fst-italic">pas encore de données 24h</span>';
+
+    html('modal-stats-content',
+      '<div class="mb-4">'
+      + '<div class="d-flex justify-content-between align-items-center mb-2">'
+      + '<span class="text-secondary small text-uppercase fw-medium" style="letter-spacing:.05em">CPU — 24h</span>'
+      + period + '</div>'
+      + sparklineSvg(sp.cpu, sp.labels, 'var(--tblr-primary)') + '</div>'
+      + '<div>'
+      + '<div class="d-flex justify-content-between align-items-center mb-2">'
+      + '<span class="text-secondary small text-uppercase fw-medium" style="letter-spacing:.05em">RAM — 24h</span>'
+      + '</div>'
+      + sparklineSvg(sp.mem, sp.labels, 'var(--tblr-azure)') + '</div>'
+    );
+
+    hide('modal-stats-spinner');
+    show('modal-stats-content');
+  }
+
+  // ── Open modal ────────────────────────────────────────────────────────────
+
+  function openModal(name, csrfToken, isSystem) {
+
+    _current = { name: name, csrfToken: csrfToken, isSystem: isSystem === '1' };
+    if (_logsInterval) { clearInterval(_logsInterval); _logsInterval = null; }
+
+    // Reset
+    text('modal-container-name', name);
+    text('modal-container-id', '');
+    var dot = document.getElementById('modal-status-dot');
+    if (dot) dot.className = 'status-dot bg-secondary flex-shrink-0';
+    var badge = document.getElementById('modal-container-badge');
+    if (badge) { badge.textContent = ''; badge.className = 'badge bg-secondary-lt ms-1 flex-shrink-0'; }
+
+    ['infos', 'stats', 'logs'].forEach(function (t) {
+      show('modal-' + t + '-spinner');
+      hide('modal-' + t + '-content');
+    });
+    if (document.getElementById('modal-logs-spinner')) {
+      document.getElementById('modal-logs-spinner').innerHTML =
+        '<div class="spinner-border spinner-border-sm text-secondary"></div>'
+        + '<div class="text-secondary small mt-2">Chargement des logs…</div>';
+    }
+
+    // Boutons actions
+    ['modal-btn-restart', 'modal-btn-stop', 'modal-btn-start'].forEach(function (id) {
+      var btn = document.getElementById(id);
+      if (btn) btn.classList.add('d-none');
+    });
+    if (!_current.isSystem) {
+      show('modal-btn-restart');
+      show('modal-btn-stop'); // affiné après inspect
+    }
+
+    // Reset au premier onglet (clic natif car bootstrap global non exposé)
+    var firstTab = document.getElementById('modal-tab-infos');
+    if (firstTab) firstTab.click();
+
+    // Ouvrir le modal via data-attribute Bootstrap (bootstrap global non exposé par Tabler)
+    var trigger = document.getElementById('container-modal-trigger');
+    if (trigger) trigger.click();
+
+    // Fetch details (infos + stats)
+    fetch('/container/' + encodeURIComponent(name) + '/details')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { populateInfos(d); populateStats(d); })
+      .catch(function () {
+        html('modal-infos-spinner', '<div class="text-danger small">Erreur de chargement</div>');
+        html('modal-stats-spinner', '<div class="text-danger small">Erreur de chargement</div>');
+      });
+  }
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+
+  function doAction(action) {
+    if (!_current || _current.isSystem) return;
+    var body = new URLSearchParams({ _token: _current.csrfToken, action: action });
+    fetch('/container/' + encodeURIComponent(_current.name) + '/action', {
+      method: 'POST', body: body,
+    }).then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.success) {
+        // Fermer via data-attribute (bootstrap global non exposé par Tabler)
+        var closeBtn = document.querySelector('#container-modal [data-bs-dismiss="modal"]');
+        if (closeBtn) closeBtn.click();
+        // Le SSE détectera le changement de statut et mettra à jour la grille
+      }
+    })
+    .catch(function () { /* ignore */ });
+  }
+
+  // ── Listeners (singleton) ─────────────────────────────────────────────────
+
+  if (!window._argosContainerModalListeners) {
+    window._argosContainerModalListeners = true;
+
+    // Clic sur une card container → ouvrir le modal
+    document.addEventListener('click', function (e) {
+      var intercepted = e.target.closest('button, a, form');
+      var card = e.target.closest('[data-container][data-csrf-token]');
+if (intercepted) return;
+      if (!card) return;
+      e.preventDefault();
+      openModal(card.dataset.container, card.dataset.csrfToken, card.dataset.system || '0');
+    });
+
+    // Onglet Logs → polling live (3 s)
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('#modal-tab-logs')) return;
+      if (_logsInterval || !_current) return;
+
+      function fetchLogs() {
+        if (!_current) return;
+        fetch('/container/' + encodeURIComponent(_current.name) + '/logs')
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            var pre = document.getElementById('modal-logs-pre');
+            if (!pre) return;
+            var atBottom = pre.scrollHeight - pre.scrollTop - pre.clientHeight < 60;
+            pre.textContent = d.logs || '(aucun log disponible)';
+            if (atBottom) pre.scrollTop = pre.scrollHeight;
+            hide('modal-logs-spinner');
+            show('modal-logs-content');
+          })
+          .catch(function () {
+            html('modal-logs-spinner', '<div class="text-danger small">Erreur de chargement des logs</div>');
+          });
+      }
+
+      fetchLogs();
+      _logsInterval = setInterval(fetchLogs, 3000);
+    });
+
+    // Boutons actions
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('#modal-btn-restart, #modal-btn-stop, #modal-btn-start');
+      if (!btn) return;
+      if (btn.id === 'modal-btn-restart') doAction('restart');
+      else if (btn.id === 'modal-btn-stop')    doAction('stop');
+      else if (btn.id === 'modal-btn-start')   doAction('start');
+    });
+
+    // Boutons icônes sur les cards (restart/stop/start directs, sans ouvrir le modal)
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-card-action]');
+      if (!btn) return;
+      var card = btn.closest('[data-container][data-csrf-token]');
+      if (!card) return;
+      var name      = card.dataset.container;
+      var csrfToken = card.dataset.csrfToken;
+      var action    = btn.dataset.cardAction;
+      btn.disabled  = true;
+      fetch('/container/' + encodeURIComponent(name) + '/action', {
+        method: 'POST',
+        body: new URLSearchParams({ _token: csrfToken, action: action }),
+      }).then(function (r) { return r.json(); })
+      .catch(function () {})
+      .finally(function () { btn.disabled = false; });
+    });
+
+    // Fermeture modal → réinitialiser l'état + stopper le polling logs
+    document.addEventListener('hidden.bs.modal', function (e) {
+      if (e.target && e.target.id === 'container-modal') {
+        _current = null;
+        if (_logsInterval) { clearInterval(_logsInterval); _logsInterval = null; }
+      }
+    });
+  }
+
+})();
+</script>
+
+{# ===== JS Historique Métriques Système Mac ===== #}
+<script>
+(function () {
+
+  function show(id) { var el = document.getElementById(id); if (el) el.classList.remove('d-none'); }
+  function hide(id) { var el = document.getElementById(id); if (el) el.classList.add('d-none');    }
+  function text(id, t) { var el = document.getElementById(id); if (el) el.textContent = t; }
+  function html(id, h) { var el = document.getElementById(id); if (el) el.innerHTML = h;  }
+
+  function avg(arr) {
+    if (!arr || arr.length === 0) return 0;
+    return arr.reduce(function (s, v) { return s + v; }, 0) / arr.length;
+  }
+
+  var _sid = 0;
+  function spark(data, labels, color, unit, H) {
+    H = H || 160;
+    if (!data || data.length < 2) {
+      return '<div class="text-center text-secondary small fst-italic py-3">Pas encore assez de données</div>';
+    }
+    var id   = 'mh' + (++_sid);
+    var W    = 700, padL = 54, padR = 36, padT = 14, padB = 34;
+    var iW   = W - padL - padR, iH = H - padT - padB;
+    var rMax = Math.max.apply(null, data.concat([0.01]));
+    var rMin = Math.min.apply(null, data);
+
+    // Grille adaptée à l'unité
+    var step, gridMax;
+    if (unit === '%') {
+      step    = rMax > 75 ? 25 : rMax > 30 ? 10 : 5;
+      gridMax = Math.ceil(rMax / step) * step;
+      if (gridMax < step) gridMax = step;
+    } else {
+      step    = Math.pow(10, Math.floor(Math.log(rMax || 1) / Math.LN10));
+      gridMax = Math.ceil(rMax / step) * step;
+      if (gridMax <= 0) gridMax = 1;
+    }
+
+    var avgVal = avg(data);
+    var last   = data[data.length - 1];
+
+    var coords = data.map(function (v, i) {
+      return { x: padL + (i / (data.length - 1)) * iW, y: padT + (1 - v / gridMax) * iH };
+    });
+    var pts  = coords.map(function (c) { return c.x.toFixed(1) + ',' + c.y.toFixed(1); }).join(' ');
+    var lc   = coords[coords.length - 1];
+    var area = 'M ' + coords.map(function (c) { return c.x.toFixed(1) + ' ' + c.y.toFixed(1); }).join(' L ')
+             + ' L ' + lc.x.toFixed(1) + ' ' + (padT + iH) + ' L ' + padL + ' ' + (padT + iH) + ' Z';
+
+    // Grille horizontale (4 niveaux)
+    var grid = '', yAxis = '';
+    for (var lvl = 0; lvl <= 4; lvl++) {
+      var v = gridMax * lvl / 4;
+      var y = padT + (1 - v / gridMax) * iH;
+      var lbl = v >= 1000 ? (v / 1000).toFixed(1) + 'k' : (Number.isInteger(v) ? v : v.toFixed(1));
+      grid  += '<line x1="' + padL + '" y1="' + y.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + y.toFixed(1) + '"'
+             + ' stroke="currentColor" stroke-opacity="0.07" stroke-dasharray="5 4"/>';
+      yAxis += '<text x="' + (padL - 7) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end"'
+             + ' font-size="12" fill="currentColor" opacity="0.6">' + lbl + (unit === '%' ? '%' : '') + '</text>';
+    }
+
+    // Axe X — 7 points
+    var xAxis = '';
+    if (labels && labels.length >= 2) {
+      for (var k = 0; k <= 6; k++) {
+        var idx = Math.round(k / 6 * (data.length - 1));
+        if (idx >= labels.length) continue;
+        var x = padL + (idx / (data.length - 1)) * iW;
+        xAxis += '<text x="' + x.toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle"'
+               + ' font-size="12" fill="currentColor" opacity="0.55">' + labels[idx] + '</text>';
+      }
+    }
+
+    // Fond de zone de tracé
+    var plotBg = '<rect x="' + padL + '" y="' + padT + '" width="' + iW + '" height="' + iH + '"'
+               + ' fill="currentColor" fill-opacity="0.02" rx="2"/>';
+
+    // Bordure de la zone de tracé (4 côtés)
+    var plotBorder = '<rect x="' + padL + '" y="' + padT + '" width="' + iW + '" height="' + iH + '"'
+                   + ' fill="none" stroke="currentColor" stroke-opacity="0.12" stroke-width="1" rx="2"/>';
+
+    // Axe Y (bordure gauche renforcée) + baseline X
+    var yLine    = '<line x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + (padT + iH) + '"'
+                 + ' stroke="currentColor" stroke-opacity="0.3" stroke-width="1.5"/>';
+    var baseline = '<line x1="' + padL + '" y1="' + (padT + iH) + '" x2="' + (W - padR) + '" y2="' + (padT + iH) + '"'
+                 + ' stroke="currentColor" stroke-opacity="0.3" stroke-width="1.5"/>';
+
+    // Ligne moyenne + label avec fond
+    var avgY    = padT + (1 - avgVal / gridMax) * iH;
+    var avgLbl  = avgVal.toFixed(1) + (unit === '%' ? '%' : (unit ? ' ' + unit : ''));
+    var avgLn   = '<line x1="' + padL + '" y1="' + avgY.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + avgY.toFixed(1) + '"'
+                + ' stroke="' + color + '" stroke-opacity="0.4" stroke-dasharray="6 3" stroke-width="1.5"/>'
+                + '<rect x="' + (W - padR + 4) + '" y="' + (avgY - 8).toFixed(1) + '" width="' + (avgLbl.length * 7 + 8) + '" height="15"'
+                + ' fill="' + color + '" fill-opacity="0.12" rx="3"/>'
+                + '<text x="' + (W - padR + 8) + '" y="' + (avgY + 4).toFixed(1) + '" font-size="11" font-weight="600" fill="' + color + '" opacity="0.9">' + avgLbl + '</text>';
+
+    var lastFmt = unit === '%' ? last.toFixed(1) + '%' : last.toFixed(1) + (unit ? ' ' + unit : '');
+    var minFmt  = unit === '%' ? rMin.toFixed(1) + '%' : rMin.toFixed(1) + (unit ? ' ' + unit : '');
+    var maxFmt  = unit === '%' ? rMax.toFixed(1) + '%' : rMax.toFixed(1) + (unit ? ' ' + unit : '');
+    var avgFmt  = unit === '%' ? avgVal.toFixed(1) + '%' : avgVal.toFixed(1) + (unit ? ' ' + unit : '');
+
+    return '<div style="border:1px solid rgba(128,128,128,.15);border-radius:6px;padding:8px 4px 4px;background:rgba(128,128,128,.02);">'
+      + '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:' + H + 'px;display:block;overflow:visible">'
+      + '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="' + color + '" stop-opacity="0.4"/>'
+      + '<stop offset="85%" stop-color="' + color + '" stop-opacity="0.03"/>'
+      + '</linearGradient></defs>'
+      + plotBg + grid + yAxis + yLine + baseline + xAxis + avgLn
+      + '<path d="' + area + '" fill="url(#' + id + ')"/>'
+      + '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'
+      + '<circle cx="' + lc.x.toFixed(1) + '" cy="' + lc.y.toFixed(1) + '" r="5" fill="' + color + '" stroke="white" stroke-width="2"/>'
+      + plotBorder
+      + '</svg>'
+      + '<div class="d-flex mt-2 mx-1" style="font-size:.8rem;border:1px solid rgba(128,128,128,.15);border-radius:5px;overflow:hidden;">'
+      + '<div style="flex:1;text-align:center;padding:4px 6px;border-right:1px solid rgba(128,128,128,.15);"><div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;opacity:.55;">Min</div><strong>' + minFmt + '</strong></div>'
+      + '<div style="flex:1;text-align:center;padding:4px 6px;border-right:1px solid rgba(128,128,128,.15);"><div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;opacity:.55;">Moy</div><strong style="color:' + color + '">' + avgFmt + '</strong></div>'
+      + '<div style="flex:1;text-align:center;padding:4px 6px;border-right:1px solid rgba(128,128,128,.15);"><div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;opacity:.55;">Max</div><strong style="color:#f59f00;">' + maxFmt + '</strong></div>'
+      + '<div style="flex:1.4;text-align:center;padding:4px 8px;background:' + color + '1a;"><div style="font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;opacity:.7;">Actuel</div><strong style="color:' + color + ';">' + lastFmt + '</strong></div>'
+      + '</div></div>';
+  }
+
+  function statOf(arr) {
+    if (!arr || arr.length === 0) return { min: 0, max: 0, avg: 0, last: 0 };
+    return {
+      min:  Math.min.apply(null, arr),
+      max:  Math.max.apply(null, arr),
+      avg:  avg(arr),
+      last: arr[arr.length - 1],
+    };
+  }
+
+  function renderHistory(d) {
+    var labels = d.labels || [];
+    var pts    = labels.length;
+
+    hide('mac-history-spinner');
+    show('mac-history-content');
+
+    if (pts < 2) {
+      show('mac-history-nodata');
+      return;
+    }
+    hide('mac-history-nodata');
+
+    // Période
+    var period = labels[0] + ' → ' + labels[labels.length - 1];
+    text('mac-history-period', period);
+    var ptsBadge = document.getElementById('mac-history-pts');
+    if (ptsBadge) { ptsBadge.textContent = pts + ' points'; ptsBadge.style.display = ''; }
+
+    // ── CPU ──
+    var cpu = statOf(d.cpu);
+    text('mac-h-cpu-cur', cpu.last.toFixed(1) + '%');
+    text('mac-h-cpu-min', cpu.min.toFixed(1) + '%');
+    text('mac-h-cpu-avg', cpu.avg.toFixed(1) + '%');
+    text('mac-h-cpu-max', cpu.max.toFixed(1) + '%');
+    html('mac-h-cpu-chart', spark(d.cpu, labels, '#4299e1', '%', 220));
+
+    // ── RAM ──
+    var mem = statOf(d.mem);
+    text('mac-h-mem-cur', mem.last.toFixed(1) + '%');
+    text('mac-h-mem-min', mem.min.toFixed(1) + '%');
+    text('mac-h-mem-avg', mem.avg.toFixed(1) + '%');
+    text('mac-h-mem-max', mem.max.toFixed(1) + '%');
+    html('mac-h-mem-chart', spark(d.mem, labels, '#ae3ec9', '%', 220));
+
+    // ── Disque ──
+    var disk = statOf(d.disk);
+    text('mac-h-disk-cur', disk.last.toFixed(1) + '%');
+    text('mac-h-disk-min', disk.min.toFixed(1) + '%');
+    text('mac-h-disk-avg', disk.avg.toFixed(1) + '%');
+    text('mac-h-disk-max', disk.max.toFixed(1) + '%');
+    html('mac-h-disk-chart', spark(d.disk, labels, '#0ca678', '%', 220));
+
+    // ── Load 1min ──
+    var load = statOf(d.load_1);
+    text('mac-h-load-cur', load.last.toFixed(2));
+    text('mac-h-load-min', load.min.toFixed(2));
+    text('mac-h-load-avg', load.avg.toFixed(2));
+    text('mac-h-load-max', load.max.toFixed(2));
+    html('mac-h-load-chart', spark(d.load_1, labels, '#f76707', '', 220));
+
+    // ── Réseau entrant ──
+    var ni = statOf(d.net_in);
+    text('mac-h-netin-cur', ni.last.toFixed(0) + ' KB/s');
+    html('mac-h-netin-chart', spark(d.net_in, labels, '#2fb344', 'KB/s', 180));
+
+    // ── Réseau sortant ──
+    var no = statOf(d.net_out);
+    text('mac-h-netout-cur', no.last.toFixed(0) + ' KB/s');
+    html('mac-h-netout-chart', spark(d.net_out, labels, '#17a2b8', 'KB/s', 180));
+
+    // ── Swap ──
+    var sw = statOf(d.swap);
+    text('mac-h-swap-cur', sw.last.toFixed(1) + '%');
+    html('mac-h-swap-chart', spark(d.swap, labels, '#d63939', '%', 180));
+  }
+
+  // ── Vue active : 'system' ou nom du process ──────────────────────────────
+  var _activeView = 'system';
+  window._argosProcActive = null;
+
+  function showSystem() {
+    _activeView = 'system';
+    window._argosProcActive = null;
+    // En-tête
+    var nameEl = document.getElementById('mac-history-proc-name');
+    if (nameEl) nameEl.style.display = 'none';
+    var backBtn = document.getElementById('mac-history-back');
+    if (backBtn) backBtn.classList.add('d-none');
+    // Panels
+    show('mac-history-content');
+    hide('mac-history-proc');
+    // Surbrillance table
+    document.querySelectorAll('#mac-procs-tbody tr').forEach(function (r) {
+      r.classList.remove('table-active');
+    });
+  }
+
+  function showProc(procName) {
+    _activeView = procName;
+    window._argosProcActive = procName;
+    var _savedScroll = window.scrollY;
+    // En-tête
+    var nameEl = document.getElementById('mac-history-proc-name');
+    if (nameEl) { nameEl.textContent = '— ' + procName; nameEl.style.display = ''; }
+    var backBtn = document.getElementById('mac-history-back');
+    if (backBtn) backBtn.classList.remove('d-none');
+    // Panels
+    hide('mac-history-content');
+    show('mac-history-proc');
+    // Surbrillance table
+    document.querySelectorAll('#mac-procs-tbody tr').forEach(function (r) {
+      r.classList.toggle('table-active', r.dataset.procName === procName);
+    });
+
+    // Chargement
+    hide('mac-history-proc-content');
+    hide('mac-history-proc-nodata');
+    show('mac-history-proc-spinner');
+
+    fetch('/infrastructure/mac/proc/' + encodeURIComponent(procName) + '/history')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (_activeView !== procName) return;
+        var sp  = d.sparkline || { labels: [], cpu: [], mem: [] };
+        var pts = sp.cpu ? sp.cpu.length : 0;
+
+        hide('mac-history-proc-spinner');
+        show('mac-history-proc-content');
+
+        if (pts < 2) { show('mac-history-proc-nodata'); return; }
+
+        var cpu = statOf(sp.cpu), mem = statOf(sp.mem);
+        text('mac-hp-cpu-cur', cpu.last.toFixed(1) + '%');
+        text('mac-hp-cpu-min', cpu.min.toFixed(1) + '%');
+        text('mac-hp-cpu-avg', cpu.avg.toFixed(1) + '%');
+        text('mac-hp-cpu-max', cpu.max.toFixed(1) + '%');
+        html('mac-hp-cpu-chart', spark(sp.cpu, sp.labels, '#4299e1', '%', 320));
+
+        text('mac-hp-mem-cur', mem.last.toFixed(1) + '%');
+        text('mac-hp-mem-min', mem.min.toFixed(1) + '%');
+        text('mac-hp-mem-avg', mem.avg.toFixed(1) + '%');
+        text('mac-hp-mem-max', mem.max.toFixed(1) + '%');
+        html('mac-hp-mem-chart', spark(sp.mem, sp.labels, '#f76707', '%', 320));
+        window.scrollTo({ top: _savedScroll, behavior: 'instant' });
+      })
+      .catch(function () {
+        if (_activeView !== procName) return;
+        hide('mac-history-proc-spinner');
+        show('mac-history-proc-content');
+        show('mac-history-proc-nodata');
+      });
+  }
+
+  // ── Chargement système ────────────────────────────────────────────────────
+  function load() {
+    fetch('/infrastructure/mac/metrics/history')
+      .then(function (r) { return r.json(); })
+      .then(renderHistory)
+      .catch(function () {
+        hide('mac-history-spinner');
+        show('mac-history-content');
+        show('mac-history-nodata');
+      });
+  }
+
+  // ── Clic sur une ligne du tableau top processus ───────────────────────────
+  document.addEventListener('click', function (e) {
+    var row = e.target.closest('tr');
+    if (!row || !row.dataset.procName) return;
+    e.preventDefault();
+    var sy = window.scrollY;
+    showProc(row.dataset.procName);
+    window.scrollTo({ top: sy, behavior: 'instant' });
+  });
+
+  // ── Bouton retour "← Système" ─────────────────────────────────────────────
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#mac-history-back')) return;
+    showSystem();
+  });
+
+  if (!window._argosMacHistoryInit) {
+    window._argosMacHistoryInit = true;
+    document.addEventListener('turbo:load', load);
+    document.addEventListener('DOMContentLoaded', load);
+    setInterval(function () {
+      if (_activeView === 'system') {
+        load();
+      } else {
+        showProc(_activeView);
+      }
+    }, 60000);
+  }
+  load();
+})();
+</script>
+
+{% endblock %}

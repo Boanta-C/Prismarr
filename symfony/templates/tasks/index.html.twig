@@ -1,0 +1,239 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tâches{% endblock %}
+{% block page_title %}Tâches planifiées{% endblock %}
+
+{% block body %}
+<div class="page-body">
+  <div class="container-xl">
+
+    {# ── Worker alerts ────────────────────────────────────────────────────── #}
+    {% if worker_alerts %}
+    <div class="alert alert-warning d-flex align-items-start gap-2 mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1"><path d="M12 9v4m0 4l.01 0"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/></svg>
+      <div>
+        <strong>{{ worker_alerts|length }} worker{{ worker_alerts|length > 1 ? 's' : '' }} en erreur</strong>
+        <ul class="mb-0 mt-1 small">
+          {% for alert in worker_alerts %}
+            <li>{{ alert.message }} <span class="text-muted">(depuis {{ alert.createdAt|date('d/m H:i') }})</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Agent Python — section plate ─────────────────────────────────────── #}
+    <div class="d-flex align-items-center justify-content-between py-3 mb-4 border-bottom">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-secondary"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8m-4-4v8"/></svg>
+          <span class="fw-semibold">Agent Python — Mac Mini</span>
+        </div>
+        <span id="agent-status-badge"
+              class="badge {{ agent_status.running ? 'bg-success' : 'bg-secondary' }} d-flex align-items-center gap-1"
+              style="font-size:.82rem;padding:.35em .65em;">
+          <span class="status-dot {{ agent_status.running ? 'status-dot-animated bg-white' : 'bg-white' }}" style="width:6px;height:6px;flex-shrink:0;"></span>
+          {{ agent_status.running ? 'En ligne' : 'Hors ligne' }}
+        </span>
+        <span class="text-secondary small" id="agent-info">
+          {% if agent_status.running %}
+            PID&nbsp;: <strong>{{ agent_status.pid ?? '—' }}</strong> &nbsp;·&nbsp; Port&nbsp;: <strong>9099</strong>
+            {% if not agent_status.manager_online %}
+              &nbsp;·&nbsp; <span class="text-warning">Host manager hors ligne</span>
+            {% endif %}
+          {% elseif not manager_url %}
+            <code>MAC_HOST_MANAGER_URL</code> non configuré dans <code>.env.local</code>
+          {% else %}
+            Agent arrêté
+          {% endif %}
+        </span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        {% if manager_url %}
+          <button class="btn btn-sm btn-success" id="btn-agent-start" onclick="agentAction('start')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M7 4v16l13 -8z"/></svg>Démarrer
+          </button>
+          <button class="btn btn-sm btn-warning" id="btn-agent-restart" onclick="agentAction('restart')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>Redémarrer
+          </button>
+          <button class="btn btn-sm btn-danger" id="btn-agent-stop" onclick="agentAction('stop')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>Arrêter
+          </button>
+        {% endif %}
+        <span id="action-feedback" class="text-secondary small"></span>
+      </div>
+    </div>
+
+    {# ── Jobs Scheduler ───────────────────────────────────────────────────── #}
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <h3 class="mb-0 d-inline">Jobs Scheduler</h3>
+        <span class="text-muted small ms-2">ArgosSchedule — {{ jobs|length }} tâches</span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-vcenter table-hover">
+        <thead>
+          <tr>
+            <th style="width:160px">Job</th>
+            <th>Description</th>
+            <th style="width:80px">Intervalle</th>
+            <th style="width:110px">Dernier run</th>
+            <th style="width:70px">Délai</th>
+            <th style="width:120px">Statut</th>
+            <th style="width:50px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in jobs %}
+            {% set stale      = job.last_run and job.last_run < date('-5 minutes')  and job.interval not in ['1h'] %}
+            {% set stale_hour = job.last_run and job.last_run < date('-2 hours')    and job.interval == '1h' %}
+            <tr>
+              <td class="fw-semibold">{{ job.name }}</td>
+              <td class="text-secondary small">{{ job.description }}</td>
+              <td>
+                <span class="text-secondary small font-monospace">{{ job.interval }}</span>
+              </td>
+              <td class="text-secondary small">
+                {% if job.last_run %}
+                  <span title="{{ job.last_run|date('d/m/Y H:i:s') }}">{{ job.last_run|date('H:i:s') }}</span>
+                  <div class="text-muted" style="font-size:.7rem;">{{ job.last_run|date('d/m/Y') }}</div>
+                {% else %}
+                  <span class="text-muted">Jamais</span>
+                {% endif %}
+              </td>
+              <td class="text-secondary small">
+                {% if job.last_run %}
+                  {% set diff = date().timestamp - job.last_run.timestamp %}
+                  {% if diff < 60 %}{{ diff }}s
+                  {% elseif diff < 3600 %}{{ (diff / 60)|round }}m
+                  {% else %}{{ (diff / 3600)|round(1) }}h
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if job.status == 'error' %}
+                  <span class="badge bg-danger text-white">Erreur worker</span>
+                {% elseif stale or stale_hour %}
+                  <span class="badge bg-warning text-dark">En retard</span>
+                {% elseif job.status == 'ok' %}
+                  <span class="badge bg-success text-white">OK</span>
+                {% else %}
+                  <span class="badge bg-secondary text-white">En attente</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-ghost-primary job-run-btn"
+                        data-job-key="{{ job.key }}"
+                        title="Déclencher maintenant">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16l13 -8z"/></svg>
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var _csrf     = {{ csrf_token('agent_action')|json_encode|raw }};
+  var _csrfRun  = {{ csrf_token('run_job')|json_encode|raw }};
+
+  // ── Agent actions ────────────────────────────────────────────────────────
+  function agentAction(action) {
+    var btn = document.getElementById('btn-agent-' + action);
+    var fb  = document.getElementById('action-feedback');
+    if (btn) btn.disabled = true;
+    if (fb)  fb.textContent = action === 'start' ? 'Démarrage…' : action === 'stop' ? 'Arrêt…' : 'Redémarrage…';
+
+    fetch('/taches/agent/' + action, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: '_token=' + encodeURIComponent(_csrf),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (fb) fb.textContent = data.status || data.error || '';
+      setTimeout(refreshAgentStatus, action === 'restart' ? 2500 : 1200);
+      if (btn) btn.disabled = false;
+    })
+    .catch(function() {
+      if (fb) fb.textContent = 'Erreur réseau';
+      if (btn) btn.disabled = false;
+    });
+  }
+
+  function refreshAgentStatus() {
+    fetch('/taches/agent/status', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var badge = document.getElementById('agent-status-badge');
+      var info  = document.getElementById('agent-info');
+      if (badge) {
+        badge.className = 'badge ' + (data.running ? 'bg-success' : 'bg-secondary') + ' d-flex align-items-center gap-1';
+        badge.innerHTML = '<span class="status-dot ' + (data.running ? 'status-dot-animated bg-white' : 'bg-white') + '" style="width:6px;height:6px;flex-shrink:0;"></span>'
+                        + (data.running ? 'En ligne' : 'Hors ligne');
+      }
+      if (info) {
+        info.textContent = data.running
+          ? 'PID : ' + (data.pid ?? '—') + '  ·  Port : 9099'
+          : 'Agent arrêté';
+      }
+    });
+  }
+
+  // ── Déclenchement manuel ─────────────────────────────────────────────────
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.job-run-btn');
+    if (!btn) return;
+    var key = btn.dataset.jobKey;
+    if (!key) return;
+
+    var origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.75rem;height:.75rem;"></span>';
+
+    fetch('/taches/run/' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: '_token=' + encodeURIComponent(_csrfRun),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+        btn.className = 'btn btn-sm btn-ghost-danger job-run-btn';
+        btn.title = data.error;
+      } else {
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10 -10"/></svg>';
+        btn.className = 'btn btn-sm btn-ghost-success job-run-btn';
+        btn.title = 'Déclenché — rechargement dans 3s';
+        setTimeout(function() { window.location.reload(); }, 3000);
+      }
+      setTimeout(function() {
+        btn.innerHTML = origHtml;
+        btn.className = 'btn btn-sm btn-ghost-primary job-run-btn';
+        btn.title = 'Déclencher maintenant';
+        btn.disabled = false;
+      }, 3500);
+    })
+    .catch(function() {
+      btn.innerHTML = origHtml;
+      btn.className = 'btn btn-sm btn-ghost-danger job-run-btn';
+      btn.disabled = false;
+    });
+  });
+
+  // ── Refresh auto statut agent toutes les 10s ─────────────────────────────
+  window.agentAction = agentAction;
+  setInterval(refreshAgentStatus, 10000);
+})();
+</script>
+{% endblock %}

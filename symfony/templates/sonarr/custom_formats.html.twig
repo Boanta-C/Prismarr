@@ -1,0 +1,497 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Formats custom — Sonarr{% endblock %}
+
+{% block stylesheets %}
+<style>
+.spec-card {
+  border: 1px solid var(--tblr-border-color);
+  border-radius: .5rem;
+  padding: .75rem;
+  margin-bottom: .5rem;
+  background: var(--tblr-bg-surface-secondary);
+}
+.spec-card .spec-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .5rem;
+}
+.spec-card .spec-header .spec-title {
+  font-weight: 600;
+  font-size: .85rem;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Formats personnalisés</h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-cf">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+          Ajouter
+        </button>
+        {% include 'media/_sonarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+{% endif %}
+
+<div id="cf-feedback" class="alert d-none mb-3"></div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Formats personnalisés</h3>
+    <div class="card-options">
+      <span class="badge bg-secondary-lt">{{ formats|length }}</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if formats is empty %}
+      <div class="text-muted text-center py-5">Aucun format personnalisé.</div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-vcenter mb-0">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Conditions</th>
+              <th>Inclure si renommage</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for fmt in formats %}
+            <tr>
+              <td class="fw-medium">{{ fmt.name ?? '—' }}</td>
+              <td class="text-muted small">
+                {% set specs = fmt.specifications ?? [] %}
+                {% if specs|length > 0 %}
+                  {% for spec in specs %}
+                    <span class="badge bg-blue-lt me-1 mb-1">
+                      {% if spec.negate ?? false %}<span class="text-danger">!</span>{% endif %}
+                      {{ spec.name ?? spec.implementation ?? '?' }}
+                    </span>
+                  {% endfor %}
+                {% else %}
+                  <span class="text-muted">Aucune</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if fmt.includeCustomFormatWhenRenaming ?? false %}
+                  <span class="badge bg-success-lt text-success">Oui</span>
+                {% else %}
+                  <span class="badge bg-secondary-lt">Non</span>
+                {% endif %}
+              </td>
+              <td class="text-end d-flex gap-2 justify-content-end">
+                <button class="btn btn-ghost-secondary btn-icon"
+                        data-bs-toggle="modal" data-bs-target="#modal-cf"
+                        data-edit-item="{{ fmt|json_encode|e('html_attr') }}" title="Modifier">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                </button>
+                <button class="btn btn-ghost-danger btn-icon btn-cf-delete"
+                        data-id="{{ fmt.id }}"
+                        data-name="{{ fmt.name ?? '' }}" title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+</div>
+</div>
+
+{# Modal creation/edition format custom #}
+<div class="modal modal-blur fade" id="modal-cf" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-cf-title">Nouveau format personnalisé</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-medium">Nom <span class="text-danger">*</span></label>
+          <input type="text" id="cf-name" class="form-control" placeholder="Ex: HDR10, Remux, FLAC...">
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="cf-include-renaming">
+          <label class="form-check-label" for="cf-include-renaming">Inclure dans le renommage</label>
+        </div>
+
+        <hr>
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 class="mb-0">Conditions (Specifications)</h6>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-spec">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+            Ajouter une condition
+          </button>
+        </div>
+        <div id="cf-specs-container"></div>
+        <div id="cf-no-specs" class="text-muted small text-center py-3">Aucune condition. Cliquez sur "Ajouter une condition" pour commencer.</div>
+
+        <div id="cf-modal-feedback" class="alert d-none mt-3"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary" id="btn-cf-save">
+          <span class="spinner-border spinner-border-sm d-none me-1" id="cf-spinner"></span>
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+  var SCHEMA_URL = {{ path('sonarr_custom_format_schema')|json_encode|raw }};
+  var SAVE_URL   = {{ path('sonarr_custom_format_add')|json_encode|raw }};
+  var feedback   = document.getElementById('cf-feedback');
+  var schemaCache = null;
+  var editingItem = null;
+  var specIndex   = 0;
+
+  function showPageFeedback(msg, type) {
+    feedback.className = 'alert alert-' + type + ' mb-3';
+    feedback.textContent = msg;
+    feedback.classList.remove('d-none');
+    setTimeout(function(){ feedback.classList.add('d-none'); }, 4000);
+  }
+
+  function showModalFeedback(msg, type) {
+    var mfb = document.getElementById('cf-modal-feedback');
+    mfb.className = 'alert alert-' + type + ' mt-3';
+    mfb.textContent = msg;
+    mfb.classList.remove('d-none');
+  }
+
+  function hideModalFeedback() {
+    document.getElementById('cf-modal-feedback').classList.add('d-none');
+  }
+
+  function updateNoSpecsMsg() {
+    var container = document.getElementById('cf-specs-container');
+    var msg = document.getElementById('cf-no-specs');
+    msg.style.display = container.children.length === 0 ? '' : 'none';
+  }
+
+  // Load schema for condition types
+  async function loadSchema() {
+    if (schemaCache) return schemaCache;
+    try {
+      var r = await fetch(SCHEMA_URL, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      if (!r.ok) return [];
+      var data = await r.json();
+      schemaCache = Array.isArray(data) ? data : [];
+      return schemaCache;
+    } catch(e) {
+      console.error('loadSchema error:', e);
+      return [];
+    }
+  }
+
+  // Render a field from a spec schema
+  function renderSpecField(field, specIdx, existingValue) {
+    if (field.hidden) return '';
+    var id = 'cf-spec-' + specIdx + '-f-' + field.name;
+    var val = existingValue !== undefined ? existingValue : (field.value ?? '');
+    var html = '';
+
+    if (field.type === 'checkbox') {
+      html = '<div class="mb-2 d-flex align-items-center gap-2">'
+        + '<input class="form-check-input spec-field" type="checkbox" id="' + id + '" data-name="' + field.name + '" data-field-type="checkbox"' + (val ? ' checked' : '') + '>'
+        + '<label class="form-check-label" for="' + id + '">' + (field.label || field.name) + '</label>'
+        + (field.helpText ? '<small class="text-muted ms-2">' + field.helpText + '</small>' : '')
+        + '</div>';
+    } else if (field.type === 'select' && field.selectOptions && field.selectOptions.length > 0) {
+      var opts = field.selectOptions.map(function(o) {
+        return '<option value="' + o.value + '"' + (o.value == val ? ' selected' : '') + '>' + (o.name || o.value) + '</option>';
+      }).join('');
+      html = '<div class="mb-2">'
+        + '<label class="form-label small" for="' + id + '">' + (field.label || field.name) + '</label>'
+        + '<select class="form-select form-select-sm spec-field" id="' + id + '" data-name="' + field.name + '" data-field-type="select">' + opts + '</select>'
+        + (field.helpText ? '<small class="text-muted">' + field.helpText + '</small>' : '')
+        + '</div>';
+    } else if (field.type === 'number') {
+      html = '<div class="mb-2">'
+        + '<label class="form-label small" for="' + id + '">' + (field.label || field.name) + '</label>'
+        + '<input class="form-control form-control-sm spec-field" type="number" id="' + id + '" data-name="' + field.name + '" data-field-type="number" value="' + (val ?? '') + '">'
+        + (field.helpText ? '<small class="text-muted">' + field.helpText + '</small>' : '')
+        + '</div>';
+    } else {
+      html = '<div class="mb-2">'
+        + '<label class="form-label small" for="' + id + '">' + (field.label || field.name) + '</label>'
+        + '<input class="form-control form-control-sm spec-field" type="text" id="' + id + '" data-name="' + field.name + '" data-field-type="text" value="' + (val ?? '') + '">'
+        + (field.helpText ? '<small class="text-muted">' + field.helpText + '</small>' : '')
+        + '</div>';
+    }
+    return html;
+  }
+
+  // Create a spec card
+  function createSpecCard(schemas, existingSpec) {
+    var idx = specIndex++;
+    var card = document.createElement('div');
+    card.className = 'spec-card';
+    card.dataset.specIdx = idx;
+
+    // Build implementation select
+    var implOptions = '<option value="">-- Choisir un type --</option>';
+    schemas.forEach(function(s, i) {
+      var selected = (existingSpec && existingSpec.implementation === s.implementation) ? ' selected' : '';
+      implOptions += '<option value="' + i + '"' + selected + '>' + (s.implementationName || s.implementation || '?') + '</option>';
+    });
+
+    var nameVal = existingSpec ? (existingSpec.name || '') : '';
+    var negateChecked = (existingSpec && existingSpec.negate) ? ' checked' : '';
+    var requiredChecked = (existingSpec && existingSpec.required) ? ' checked' : '';
+
+    card.innerHTML = '<div class="spec-header">'
+      + '<span class="spec-title">Condition #' + (idx + 1) + '</span>'
+      + '<button type="button" class="btn btn-ghost-danger btn-sm btn-remove-spec">'
+      + '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>'
+      + '</button>'
+      + '</div>'
+      + '<div class="row g-2 mb-2">'
+      + '<div class="col-md-6">'
+      + '<label class="form-label small">Type de condition</label>'
+      + '<select class="form-select form-select-sm spec-impl-select">' + implOptions + '</select>'
+      + '</div>'
+      + '<div class="col-md-6">'
+      + '<label class="form-label small">Nom de la condition</label>'
+      + '<input type="text" class="form-control form-control-sm spec-name-input" value="' + nameVal + '" placeholder="Nom...">'
+      + '</div>'
+      + '</div>'
+      + '<div class="d-flex gap-3 mb-2">'
+      + '<div class="form-check">'
+      + '<input class="form-check-input spec-negate-check" type="checkbox"' + negateChecked + '>'
+      + '<label class="form-check-label small">Inverser (Negate)</label>'
+      + '</div>'
+      + '<div class="form-check">'
+      + '<input class="form-check-input spec-required-check" type="checkbox"' + requiredChecked + '>'
+      + '<label class="form-check-label small">Requis</label>'
+      + '</div>'
+      + '</div>'
+      + '<div class="spec-fields-container"></div>';
+
+    // Remove button handler
+    card.querySelector('.btn-remove-spec').addEventListener('click', function() {
+      card.remove();
+      updateNoSpecsMsg();
+    });
+
+    // Impl select change handler
+    var implSelect = card.querySelector('.spec-impl-select');
+    implSelect.addEventListener('change', function() {
+      var i = parseInt(implSelect.value);
+      var fieldsContainer = card.querySelector('.spec-fields-container');
+      if (isNaN(i)) { fieldsContainer.innerHTML = ''; return; }
+      var schema = schemas[i];
+      // Auto-fill name if empty
+      var nameInput = card.querySelector('.spec-name-input');
+      if (!nameInput.value.trim()) {
+        nameInput.value = schema.implementationName || schema.implementation || '';
+      }
+      // Render fields
+      var existingFields = existingSpec ? (existingSpec.fields || []) : [];
+      var html = (schema.fields || []).filter(function(f){ return !f.hidden; }).map(function(f) {
+        var existing = existingFields.find(function(ef){ return ef.name === f.name; });
+        var val = existing ? existing.value : undefined;
+        return renderSpecField(f, idx, val);
+      }).join('');
+      fieldsContainer.innerHTML = html;
+    });
+
+    // If editing existing spec, trigger rendering
+    if (existingSpec) {
+      var matchIdx = schemas.findIndex(function(s){ return s.implementation === existingSpec.implementation; });
+      if (matchIdx >= 0) {
+        implSelect.value = matchIdx;
+        implSelect.dispatchEvent(new Event('change'));
+      }
+    }
+
+    document.getElementById('cf-specs-container').appendChild(card);
+    updateNoSpecsMsg();
+    return card;
+  }
+
+  // Collect all specs from DOM
+  function collectSpecs(schemas) {
+    var cards = document.querySelectorAll('#cf-specs-container .spec-card');
+    var specs = [];
+    cards.forEach(function(card) {
+      var implSelect = card.querySelector('.spec-impl-select');
+      var implIdx = parseInt(implSelect.value);
+      if (isNaN(implIdx)) return;
+      var schema = schemas[implIdx];
+      var name = card.querySelector('.spec-name-input').value.trim() || schema.implementationName || schema.implementation;
+      var negate = card.querySelector('.spec-negate-check').checked;
+      var required = card.querySelector('.spec-required-check').checked;
+
+      // Collect field values
+      var fields = (schema.fields || []).map(function(f) {
+        var fieldEl = card.querySelector('.spec-field[data-name="' + f.name + '"]');
+        var val = f.value;
+        if (fieldEl) {
+          var ft = fieldEl.dataset.fieldType;
+          if (ft === 'checkbox') val = fieldEl.checked;
+          else if (ft === 'number') val = fieldEl.value !== '' ? Number(fieldEl.value) : null;
+          else if (ft === 'select') {
+            var v = fieldEl.value;
+            val = /^\d+$/.test(v) ? Number(v) : v;
+          }
+          else val = fieldEl.value;
+        }
+        return { name: f.name, value: val };
+      });
+
+      specs.push({
+        name: name,
+        implementation: schema.implementation,
+        implementationName: schema.implementationName || schema.implementation,
+        infoLink: schema.infoLink || '',
+        negate: negate,
+        required: required,
+        fields: fields,
+      });
+    });
+    return specs;
+  }
+
+  // Modal show event
+  document.getElementById('modal-cf').addEventListener('show.bs.modal', async function(e) {
+    hideModalFeedback();
+    specIndex = 0;
+    document.getElementById('cf-specs-container').innerHTML = '';
+
+    var raw = e.relatedTarget ? (e.relatedTarget.dataset.editItem || null) : null;
+    editingItem = raw ? JSON.parse(raw) : null;
+
+    if (editingItem) {
+      document.getElementById('modal-cf-title').textContent = 'Modifier : ' + (editingItem.name || 'Format');
+      document.getElementById('cf-name').value = editingItem.name || '';
+      document.getElementById('cf-include-renaming').checked = editingItem.includeCustomFormatWhenRenaming || false;
+      document.getElementById('btn-cf-save').textContent = 'Enregistrer';
+    } else {
+      document.getElementById('modal-cf-title').textContent = 'Nouveau format personnalisé';
+      document.getElementById('cf-name').value = '';
+      document.getElementById('cf-include-renaming').checked = false;
+      document.getElementById('btn-cf-save').textContent = 'Créer';
+    }
+
+    var schemas = await loadSchema();
+    if (schemas.length === 0) {
+      showModalFeedback('Impossible de charger les types de conditions depuis Sonarr.', 'warning');
+    }
+
+    // Populate existing specs if editing
+    if (editingItem && editingItem.specifications && editingItem.specifications.length > 0) {
+      editingItem.specifications.forEach(function(spec) {
+        createSpecCard(schemas, spec);
+      });
+    }
+    updateNoSpecsMsg();
+  });
+
+  // Add spec button
+  document.getElementById('btn-add-spec').addEventListener('click', async function() {
+    var schemas = await loadSchema();
+    if (schemas.length === 0) {
+      showModalFeedback('Impossible de charger les types de conditions.', 'warning');
+      return;
+    }
+    createSpecCard(schemas, null);
+  });
+
+  // Save
+  document.getElementById('btn-cf-save').addEventListener('click', async function() {
+    hideModalFeedback();
+    var name = document.getElementById('cf-name').value.trim();
+    if (!name) {
+      showModalFeedback('Le nom est obligatoire.', 'warning');
+      return;
+    }
+
+    var schemas = await loadSchema();
+    var specifications = collectSpecs(schemas);
+
+    var payload = {
+      name: name,
+      includeCustomFormatWhenRenaming: document.getElementById('cf-include-renaming').checked,
+      specifications: specifications,
+    };
+    if (editingItem) payload.id = editingItem.id;
+
+    var spinner = document.getElementById('cf-spinner');
+    var saveBtn = document.getElementById('btn-cf-save');
+    saveBtn.disabled = true;
+    if (spinner) spinner.classList.remove('d-none');
+
+    try {
+      var url = SAVE_URL;
+      if (editingItem) {
+        url = '/sonarr/formats/' + editingItem.id + '/modifier';
+      }
+      var r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        body: JSON.stringify(payload),
+      });
+      var data = await r.json();
+      if (data.ok || (data.id && data.name)) {
+        location.reload();
+        return;
+      } else {
+        showModalFeedback(data.error || 'Erreur lors de l\'enregistrement.', 'danger');
+        saveBtn.disabled = false;
+      }
+    } catch(err) {
+      showModalFeedback('Erreur réseau : ' + (err.message || err), 'danger');
+      saveBtn.disabled = false;
+    } finally {
+      if (spinner) spinner.classList.add('d-none');
+    }
+  });
+
+  // Delete handlers (event delegation)
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-cf-delete');
+    if (!btn) return;
+    if (!confirm('Supprimer le format "' + btn.dataset.name + '" ?')) return;
+    fetch('/sonarr/formats/' + btn.dataset.id + '/supprimer', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+      body: '{}',
+    }).then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data.ok) location.reload();
+        else showPageFeedback('Erreur lors de la suppression.', 'danger');
+      })
+      .catch(function(){ showPageFeedback('Erreur réseau.', 'danger'); });
+  });
+})();
+</script>
+{% endblock %}

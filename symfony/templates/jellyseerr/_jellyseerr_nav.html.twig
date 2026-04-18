@@ -1,0 +1,38 @@
+{# Navigation Jellyseerr — barre de filtres #}
+{% set current_filter = filter ?? 'all' %}
+
+<div class="d-flex align-items-center gap-2 flex-wrap w-100">
+    {% set filters = [
+        {key: 'all',         label: 'Toutes',                color: 'primary',  count: counts.total ?? 0},
+        {key: 'pending',     label: 'En attente',             color: 'warning',  count: counts.pending ?? 0},
+        {key: 'processing',  label: 'En cours',               color: 'purple',   count: counts.processing ?? 0},
+        {key: 'approved',    label: 'Approuvées',             color: 'info',     count: counts.approved ?? 0},
+        {key: 'available',   label: 'Disponibles',            color: 'success',  count: null},
+        {key: 'partial',     label: 'Partiellement dispo',    color: 'cyan',     count: null},
+        {key: 'unavailable', label: 'Indisponibles',          color: 'orange',   count: null},
+        {key: 'failed',      label: 'Échouées',               color: 'danger',   count: null},
+    ] %}
+
+    {% for f in filters %}
+        <a href="{{ path('jellyseerr_index', {filter: f.key, sort: sort ?? 'added', type: app.request.query.get('type', '') }) }}"
+           class="btn btn-sm {{ current_filter == f.key ? 'btn-' ~ f.color : 'btn-ghost-' ~ f.color }}">
+            {{ f.label }}
+            {% if f.count is not null and f.count > 0 %}
+                <span class="badge bg-{{ f.color }}-lt ms-1">{{ f.count }}</span>
+            {% endif %}
+        </a>
+    {% endfor %}
+
+    <div class="ms-auto d-flex align-items-center gap-2">
+        <div class="btn-group btn-group-sm" id="js-type-filter">
+            <button class="btn btn-sm js-type-btn active" data-type="all">Tout</button>
+            <button class="btn btn-sm js-type-btn" data-type="movie" style="color:#ef4444;">Films</button>
+            <button class="btn btn-sm js-type-btn" data-type="tv" style="color:#38bdf8;">Séries</button>
+        </div>
+
+        <select class="form-select form-select-sm" style="width:auto;" id="js-sort-select">
+            <option value="added" {{ (sort ?? 'added') == 'added' ? 'selected' }}>Plus récentes</option>
+            <option value="modified" {{ (sort ?? 'added') == 'modified' ? 'selected' }}>Dernière modif</option>
+        </select>
+    </div>
+</div>

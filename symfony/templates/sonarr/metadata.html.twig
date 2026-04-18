@@ -1,0 +1,246 @@
+{% extends 'base.html.twig' %}
+{% block title %}Metadata — Sonarr{% endblock %}
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Metadata</h2></div>
+      <div class="col-auto ms-auto">{% include 'media/_sonarr_nav.html.twig' %}</div>
+    </div>
+  </div>
+</div>
+<div class="page-body"><div class="container-xl">
+{% if error %}<div class="alert alert-danger">Impossible de joindre Sonarr.</div>{% endif %}
+<div id="meta-feedback" class="alert d-none mb-3"></div>
+
+<div class="card">
+  <div class="card-header"><h3 class="card-title">Consommateurs de metadata</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ metadata|length }}</span></div></div>
+  <div class="card-body p-0">
+    {% if metadata is empty %}
+      <div class="text-muted text-center py-5">Aucun consommateur de metadata.</div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-vcenter table-sm mb-0">
+          <thead><tr><th>Nom</th><th>Type</th><th>Statut</th><th class="text-end">Actions</th></tr></thead>
+          <tbody>
+            {% for m in metadata %}
+            <tr>
+              <td class="fw-medium">{{ m.name ?? '—' }}</td>
+              <td class="text-muted small">{{ m.implementationName ?? m.implementation ?? '—' }}</td>
+              <td>
+                {% if m.enable ?? false %}
+                  <span class="badge bg-success-lt text-success">Actif</span>
+                {% else %}
+                  <span class="badge bg-secondary-lt">Inactif</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <button class="btn btn-ghost-primary btn-sm btn-meta-toggle"
+                        data-id="{{ m.id }}"
+                        data-enabled="{{ (m.enable ?? false) ? '1' : '0' }}"
+                        title="{{ (m.enable ?? false) ? 'Desactiver' : 'Activer' }}">
+                  {% if m.enable ?? false %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64A9 9 0 0 1 20.77 15"/><path d="M6.16 6.16a9 9 0 1 0 12.68 12.68"/><path d="m2 2 20 20"/><path d="M12 2v4"/></svg>
+                  {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="M20 12h4"/><path d="m19.07 4.93-2.83 2.83"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><circle cx="12" cy="12" r="4"/><path d="M12 20v4"/><path d="m20.485 20.485-2.83-2.83"/><path d="M4 12H0"/><path d="m4.515 20.485 2.83-2.83"/></svg>
+                  {% endif %}
+                </button>
+                <button class="btn btn-ghost-primary btn-sm"
+                        data-bs-toggle="modal" data-bs-target="#modal-meta"
+                        data-edit-item="{{ m|json_encode|e('html_attr') }}"
+                        title="Modifier">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                </button>
+                <button class="btn btn-ghost-danger btn-sm btn-meta-delete"
+                        data-id="{{ m.id }}"
+                        data-name="{{ m.name ?? '' }}"
+                        title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if metadata is not empty %}
+<div class="text-muted small mt-2">
+  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+  Les consommateurs de metadata ecrivent des fichiers .nfo et des images aux cotes des fichiers de films.
+</div>
+{% endif %}
+
+</div></div>
+
+{# ── Modal edition ── #}
+<div class="modal modal-blur fade" id="modal-meta" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="meta-modal-title">Modifier le consommateur</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="meta-modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-medium">Nom</label>
+          <input type="text" id="meta-name" class="form-control form-control-sm">
+        </div>
+        <div class="mb-3">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="meta-enable">
+            <label class="form-check-label" for="meta-enable">Actif</label>
+          </div>
+        </div>
+        <div id="meta-fields-container"></div>
+        <div id="meta-modal-feedback" class="alert d-none mt-3"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-success" id="btn-meta-save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+  var feedback = document.getElementById('meta-feedback');
+  var mfb = document.getElementById('meta-modal-feedback');
+  var currentPayload = null;
+
+  function showFeedback(msg, type) {
+    feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
+    feedback.textContent = msg;
+    feedback.classList.remove('d-none');
+    setTimeout(function(){ feedback.classList.add('d-none'); }, 4000);
+  }
+
+  function buildFieldsUI(fields) {
+    var container = document.getElementById('meta-fields-container');
+    container.innerHTML = '';
+    if (!fields || !fields.length) return;
+    var heading = document.createElement('h4');
+    heading.className = 'mb-3';
+    heading.textContent = 'Champs';
+    container.appendChild(heading);
+    fields.forEach(function(field, idx) {
+      var div = document.createElement('div');
+      div.className = 'mb-2';
+      if (field.type === 'checkbox') {
+        div.innerHTML = '<div class="form-check form-switch">' +
+          '<input class="form-check-input meta-field" type="checkbox" data-idx="' + idx + '" ' + (field.value ? 'checked' : '') + '>' +
+          '<label class="form-check-label">' + (field.label || field.name) + '</label>' +
+          '</div>';
+        if (field.helpText) div.innerHTML += '<small class="text-muted">' + field.helpText + '</small>';
+      } else if (field.type === 'select' && field.selectOptions) {
+        var html = '<label class="form-label fw-medium">' + (field.label || field.name) + '</label>';
+        html += '<select class="form-select form-select-sm meta-field" data-idx="' + idx + '">';
+        field.selectOptions.forEach(function(opt) {
+          html += '<option value="' + opt.value + '"' + (opt.value == field.value ? ' selected' : '') + '>' + opt.name + '</option>';
+        });
+        html += '</select>';
+        if (field.helpText) html += '<small class="text-muted">' + field.helpText + '</small>';
+        div.innerHTML = html;
+      } else {
+        div.innerHTML = '<label class="form-label fw-medium">' + (field.label || field.name) + '</label>' +
+          '<input type="text" class="form-control form-control-sm meta-field" data-idx="' + idx + '" value="' + (field.value || '') + '">';
+        if (field.helpText) div.innerHTML += '<small class="text-muted">' + field.helpText + '</small>';
+      }
+      container.appendChild(div);
+    });
+  }
+
+  function collectFields() {
+    if (!currentPayload || !currentPayload.fields) return [];
+    var fields = JSON.parse(JSON.stringify(currentPayload.fields));
+    document.querySelectorAll('.meta-field').forEach(function(el) {
+      var idx = parseInt(el.dataset.idx, 10);
+      if (fields[idx]) {
+        if (el.type === 'checkbox') {
+          fields[idx].value = el.checked;
+        } else if (el.tagName === 'SELECT') {
+          fields[idx].value = parseInt(el.value, 10);
+        } else {
+          fields[idx].value = el.value;
+        }
+      }
+    });
+    return fields;
+  }
+
+  var modalEl = document.getElementById('modal-meta');
+
+  modalEl.addEventListener('show.bs.modal', function(e) {
+    var trigger = e.relatedTarget;
+    if (!trigger || !trigger.dataset.editItem) return;
+    currentPayload = JSON.parse(trigger.dataset.editItem);
+    document.getElementById('meta-modal-title').textContent = 'Modifier : ' + (currentPayload.name || '');
+    document.getElementById('meta-name').value = currentPayload.name || '';
+    document.getElementById('meta-enable').checked = !!currentPayload.enable;
+    buildFieldsUI(currentPayload.fields || []);
+    mfb.classList.add('d-none');
+  });
+
+  document.querySelectorAll('.btn-meta-toggle').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var id = btn.dataset.id;
+      var enabled = btn.dataset.enabled === '1';
+      fetch('/sonarr/metadata/' + id + '/modifier', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        body: JSON.stringify({enable: !enabled}),
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok !== false) location.reload();
+        else showFeedback(data.error || 'Erreur.', 'danger');
+      });
+    });
+  });
+
+  document.getElementById('btn-meta-save').addEventListener('click', function() {
+    if (!currentPayload) return;
+    var payload = JSON.parse(JSON.stringify(currentPayload));
+    payload.name = document.getElementById('meta-name').value.trim();
+    payload.enable = document.getElementById('meta-enable').checked;
+    payload.fields = collectFields();
+    fetch('/sonarr/metadata/' + payload.id + '/modifier', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+      body: JSON.stringify(payload),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.ok !== false) location.reload();
+      else {
+        mfb.className = 'alert alert-danger mt-3';
+        mfb.textContent = data.error || 'Erreur lors de la sauvegarde.';
+        mfb.classList.remove('d-none');
+      }
+    });
+  });
+
+  document.querySelectorAll('.btn-meta-delete').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (!confirm('Supprimer "' + btn.dataset.name + '" ?')) return;
+      fetch('/sonarr/metadata/' + btn.dataset.id + '/supprimer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        body: '{}',
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok) location.reload();
+        else showFeedback('Erreur lors de la suppression.', 'danger');
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,849 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Explorer{% endblock %}
+{% block page_title %}Explorer{% endblock %}
+
+{% block body %}
+<style>
+  /* ── Layout ── */
+  .explorer-sidebar { display: flex; flex-direction: column; gap: 1rem; }
+  .explorer-card {
+    background: var(--tblr-bg-surface); border: 1px solid var(--tblr-border-color);
+    border-radius: .5rem; padding: .75rem;
+  }
+  .explorer-card h6 {
+    font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
+    color: #6366f1; margin: 0 0 .5rem; display: flex; align-items: center; gap: .4rem;
+  }
+
+  /* ── Pills/chips ── */
+  .ex-pills { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .ex-pill {
+    padding: .2rem .55rem; border-radius: .3rem; font-size: .7rem; font-weight: 500;
+    border: 1px solid var(--tblr-border-color); background: transparent;
+    color: var(--tblr-body-color); cursor: pointer; transition: all .12s;
+  }
+  .ex-pill:hover { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,.06); }
+  .ex-pill.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+
+  /* ── Type switch ── */
+  .ex-type-switch { display: inline-flex; border-radius: .4rem; overflow: hidden; border: 1px solid var(--tblr-border-color); }
+  .ex-type-btn {
+    padding: .3rem .8rem; font-size: .75rem; font-weight: 500;
+    border: none; background: transparent; color: var(--tblr-body-color);
+    cursor: pointer; transition: all .12s; line-height: 1.2;
+  }
+  .ex-type-btn + .ex-type-btn { border-left: 1px solid var(--tblr-border-color); }
+  .ex-type-btn.active { background: #6366f1; color: #fff; }
+  .ex-type-btn:not(.active):hover { background: rgba(99,102,241,.08); }
+
+  /* ── Collection pills ── */
+  .ex-col-pill {
+    padding: .25rem .6rem; border-radius: .3rem; font-size: .7rem; font-weight: 500;
+    border: 1px solid var(--tblr-border-color); background: transparent;
+    color: var(--tblr-body-color); cursor: pointer; transition: all .12s;
+  }
+  .ex-col-pill:hover { border-color: #f59e0b; color: #f59e0b; }
+  .ex-col-pill.active { background: #f59e0b; color: #1a1a1a; border-color: #f59e0b; }
+
+  /* ── Person search ── */
+  .ex-person-input {
+    width: 100%; padding: .35rem .6rem; border-radius: .4rem; font-size: .8rem;
+    border: 1px solid var(--tblr-border-color); background: var(--tblr-bg-surface);
+    color: var(--tblr-body-color); transition: border-color .15s;
+  }
+  .ex-person-input:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 2px rgba(99,102,241,.15); }
+  .ex-person-suggestion {
+    display: flex; align-items: center; gap: .4rem; padding: .3rem .5rem;
+    cursor: pointer; border-radius: .3rem; transition: background .1s; font-size: .78rem;
+  }
+  .ex-person-suggestion:hover { background: rgba(99,102,241,.08); }
+  .ex-person-suggestion img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+  .ex-person-header {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .5rem 0; margin-bottom: .5rem; border-bottom: 1px solid var(--tblr-border-color);
+  }
+  .ex-person-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+
+  /* ── Results grid ── */
+  .ex-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: .75rem; align-items: start;
+  }
+  .ex-card {
+    position: relative; border-radius: .5rem; overflow: hidden;
+    background: var(--tblr-bg-surface); border: 1px solid var(--tblr-border-color);
+    cursor: pointer; transition: transform .15s, box-shadow .15s;
+    aspect-ratio: 2/3;
+  }
+  .ex-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+  .ex-card img.poster { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+  .ex-card .no-poster {
+    width: 100%; aspect-ratio: 2/3; display: flex; align-items: center; justify-content: center;
+    background: var(--tblr-bg-surface-secondary); color: var(--tblr-muted); font-size: 1.5rem;
+  }
+  .ex-card .overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,.85));
+    padding: .4rem;
+  }
+  .ex-card .overlay .title { font-size: .7rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ex-card .overlay .sub { font-size: .58rem; color: rgba(255,255,255,.6); }
+  .ex-card .badge-type {
+    position: absolute; top: .3rem; left: .3rem;
+    font-size: .55rem; font-weight: 700; padding: .1rem .3rem;
+    border-radius: .2rem; color: #1a1a1a;
+  }
+  .ex-card .badge-type.movie { background: rgba(255,194,48,.9); }
+  .ex-card .badge-type.tv { background: rgba(0,204,255,.9); }
+  .ex-card .badge-lib {
+    position: absolute; top: .3rem; left: calc(.3rem + 2rem + .2rem);
+    font-size: .55rem; font-weight: 700; padding: .1rem .3rem;
+    border-radius: .2rem; color: #fff;
+  }
+  .ex-card .badge-vote {
+    position: absolute; bottom: 0; right: 0;
+    font-size: .58rem; font-weight: 700; padding: .1rem .3rem;
+    border-top-left-radius: .25rem; color: #fff;
+  }
+  .ex-card .badge-vote.good { background: rgba(34,197,94,.9); }
+  .ex-card .badge-vote.mid  { background: rgba(245,158,11,.9); }
+  .ex-card .badge-vote.bad  { background: rgba(239,68,68,.9); }
+  .ex-card .wl-star {
+    position: absolute; top: .3rem; right: .3rem;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,0,0,.5); border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity .15s;
+    z-index: 6; padding: 0;
+  }
+  .ex-card:hover .wl-star { opacity: 1; }
+  .ex-card .wl-star svg { width: 12px; height: 12px; }
+  .ex-card .wl-star.in-wl { opacity: 1; background: rgba(245,158,11,.85); }
+  .ex-card .wl-star.in-wl:hover { background: rgba(245,158,11,1); }
+  .ex-card .wl-star:not(.in-wl):hover { background: rgba(245,158,11,.6); }
+
+  .ex-action-bar {
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+    margin-bottom: .75rem;
+  }
+  .ex-empty { grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--tblr-muted); font-size: .85rem; }
+  .ex-status { font-size: .8rem; color: var(--tblr-muted); }
+  .ex-apply-btn, .ex-clear-btn { vertical-align: middle; }
+
+  @media (max-width: 768px) {
+    .explorer-layout { flex-direction: column !important; }
+    .explorer-sidebar { width: 100% !important; }
+  }
+</style>
+
+<div class="container-xl">
+  <div class="mb-3">
+    <a href="{{ path('tmdb_index') }}" class="btn btn-outline-secondary btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      Découverte
+    </a>
+  </div>
+
+  <div class="d-flex gap-3 explorer-layout" style="align-items:flex-start;">
+    <!-- Sidebar filtres -->
+    <div class="explorer-sidebar" style="width:240px; flex-shrink:0;">
+
+      <!-- Type -->
+      <div class="explorer-card">
+        <h6><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/></svg> Type</h6>
+        <div class="ex-type-switch">
+          <button class="ex-type-btn active" data-type="movie">Films</button>
+          <button class="ex-type-btn" data-type="tv">Séries</button>
+        </div>
+      </div>
+
+      <!-- Genre -->
+      <div class="explorer-card">
+        <h6><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4v16l13-8z"/></svg> Genre</h6>
+        <div class="ex-pills" id="ex-genre-pills"></div>
+      </div>
+
+      <!-- Décennie -->
+      <div class="explorer-card">
+        <h6><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Décennie</h6>
+        <div class="ex-pills">
+          <button class="ex-pill" data-decade="1980">80s</button>
+          <button class="ex-pill" data-decade="1990">90s</button>
+          <button class="ex-pill" data-decade="2000">2000s</button>
+          <button class="ex-pill" data-decade="2010">2010s</button>
+          <button class="ex-pill" data-decade="2020">2020s</button>
+        </div>
+      </div>
+
+      <!-- Tri -->
+      <div class="explorer-card">
+        <h6><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18M7 12h10M11 20h2"/></svg> Tri</h6>
+        <select class="form-select form-select-sm" id="ex-sort" style="font-size:.75rem;">
+          <option value="popularity.desc">Populaires</option>
+          <option value="vote_average.desc">Mieux notés</option>
+          <option value="primary_release_date.desc">Plus récents</option>
+          <option value="revenue.desc">Box-office</option>
+        </select>
+      </div>
+
+      <!-- Collections -->
+      <div class="explorer-card">
+        <h6><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg> Collections</h6>
+        <input type="text" class="ex-person-input mb-2" id="ex-col-search" placeholder="Rechercher une collection...">
+        <div id="ex-col-suggestions" style="margin-bottom:.3rem;"></div>
+        <div class="ex-pills" id="ex-col-pills">
+          <button class="ex-col-pill" data-col-id="529892">MCU</button>
+          <button class="ex-col-pill" data-col-id="86311">Avengers</button>
+          <button class="ex-col-pill" data-col-id="748">X-Men</button>
+          <button class="ex-col-pill" data-col-id="531241">Spider-Man</button>
+          <button class="ex-col-pill" data-col-id="263">LOTR</button>
+          <button class="ex-col-pill" data-col-id="1241">Harry Potter</button>
+          <button class="ex-col-pill" data-col-id="656">Star Wars</button>
+          <button class="ex-col-pill" data-col-id="645">James Bond</button>
+          <button class="ex-col-pill" data-col-id="9485">Fast & Furious</button>
+          <button class="ex-col-pill" data-col-id="2150">Alien</button>
+          <button class="ex-col-pill" data-col-id="528">Terminator</button>
+          <button class="ex-col-pill" data-col-id="2980">Retour vers le futur</button>
+          <button class="ex-col-pill" data-col-id="404609">John Wick</button>
+          <button class="ex-col-pill" data-col-id="295">Pirates des Caraïbes</button>
+          <button class="ex-col-pill" data-col-id="87359">Mission Impossible</button>
+          <button class="ex-col-pill" data-col-id="10">Batman</button>
+        </div>
+      </div>
+
+      <!-- Par acteur -->
+      <div class="explorer-card">
+        <h6><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0115 0"/></svg> Par acteur</h6>
+        <input type="text" class="ex-person-input" id="ex-person-input" placeholder="Nom de l'acteur...">
+        <div id="ex-person-suggestions" style="margin-top:.3rem;"></div>
+      </div>
+    </div>
+
+    <!-- Résultats -->
+    <div style="flex:1; min-width:0;">
+      <div class="ex-action-bar">
+        <button class="btn btn-primary btn-sm" id="ex-apply">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M10 10m-7 0a7 7 0 1014 0 7 7 0 10-14 0"/><path d="M21 21l-6-6"/></svg>
+          Rechercher
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" id="ex-clear">Réinitialiser</button>
+        <div class="ex-status" id="ex-status" style="margin:0;"></div>
+      </div>
+      <div id="ex-person-header" class="ex-person-header" style="display:none;">
+        <img id="ex-person-photo" src="">
+        <div>
+          <div id="ex-person-name" style="font-weight:600;"></div>
+          <div id="ex-person-count" style="font-size:.72rem; color:var(--tblr-muted);"></div>
+        </div>
+      </div>
+      <div class="ex-grid" id="ex-grid">
+        <div class="ex-empty">Sélectionnez des filtres et cliquez sur Rechercher, ou choisissez une collection / un acteur.</div>
+      </div>
+      <div class="text-center mt-3" id="ex-load-more-wrap" style="display:none;">
+        <button class="btn btn-outline-primary btn-sm" id="ex-load-more" style="font-size:.8rem; padding:.35rem 1.5rem;">
+          Charger plus
+        </button>
+        <div class="text-secondary mt-1" id="ex-page-info" style="font-size:.7rem;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal détail Explorer -->
+<div class="modal modal-blur fade" id="ex-detail-modal" tabindex="-1" style="z-index:1060;">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content" style="background:var(--tblr-bg-surface); overflow:hidden;">
+      <div class="modal-body p-0">
+        <div id="ex-detail-loading" class="text-center py-5 text-secondary">
+          <div class="spinner-border spinner-border-sm me-2"></div> Chargement...
+        </div>
+        <div id="ex-detail-content" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .exd-header { position: relative; min-height: 180px; overflow: hidden; }
+  .exd-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(2px); transform: scale(1.05); }
+  .exd-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(transparent 20%, rgba(0,0,0,.85)); }
+  .exd-info { position: relative; z-index: 1; padding: 1.25rem; display: flex; gap: 1rem; align-items: flex-end; }
+  .exd-poster { width: 100px; border-radius: .4rem; box-shadow: 0 4px 12px rgba(0,0,0,.5); }
+  .exd-meta { color: #fff; }
+  .exd-meta h3 { margin: 0 0 .2rem; font-size: 1.15rem; }
+  .exd-meta .sub { font-size: .8rem; color: rgba(255,255,255,.7); }
+  .exd-close {
+    position: absolute; top: .6rem; right: .6rem; z-index: 5;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(0,0,0,.5); border: none; color: #fff;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .exd-close:hover { background: rgba(0,0,0,.7); }
+  .exd-body { padding: 1rem 1.25rem; }
+  .exd-body .synopsis { color: var(--tblr-body-color); line-height: 1.6; margin-bottom: .75rem; font-size: .85rem; }
+  .exd-providers { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .75rem; }
+  .exd-providers img { width: 28px; height: 28px; border-radius: .25rem; }
+  .exd-cast { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem; }
+  .exd-cast-item { text-align: center; width: 50px; }
+  .exd-cast-item img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
+  .exd-cast-item .name { font-size: .55rem; color: var(--tblr-muted); line-height: 1.1; margin-top: .15rem; }
+  .exd-trailer { border-radius: .4rem; overflow: hidden; margin-bottom: .75rem; }
+  .exd-actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+</style>
+
+<script>
+(function() {
+  function escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  var grid = document.getElementById('ex-grid');
+  var statusEl = document.getElementById('ex-status');
+  var loadMoreWrap = document.getElementById('ex-load-more-wrap');
+  var loadMoreBtn = document.getElementById('ex-load-more');
+  var pageInfo = document.getElementById('ex-page-info');
+
+  var currentMode = 'discover';
+  var currentPage = 1;
+  var totalPages = 1;
+  var totalResults = 0;
+  var lastParams = null;
+  var lastLabel = '';
+
+  var statusColors = { downloaded: '#22c55e', missing: '#f59e0b', announced: '#6366f1', inCinemas: '#6366f1', partial: '#3b82f6', unmonitored: '#6b7280' };
+  var statusLabels = { downloaded: 'Dispo', missing: 'Manquant', announced: 'Annoncé', inCinemas: 'En salles', partial: 'Partiel', unmonitored: 'Non suivi' };
+
+  function cardHTML(item) {
+    var vc = item.vote >= 7 ? 'good' : (item.vote >= 5 ? 'mid' : 'bad');
+    var poster = item.poster
+      ? '<img class="poster" src="' + item.poster + '" alt="" loading="lazy">'
+      : '<div class="no-poster">🎬</div>';
+    var lib = item.in_library ? '<span class="badge-lib" style="background:' + (statusColors[item.lib_status] || '#22c55e') + ';">' + (statusLabels[item.lib_status] || 'Dispo') + '</span>' : '';
+    var vote = item.vote ? '<span class="badge-vote ' + vc + '">★ ' + item.vote + '</span>' : '';
+    var wlClass = (window._argosWatchlist && window._argosWatchlist[item.type + '_' + item.id]) ? ' in-wl' : '';
+    var wlStar = '<button type="button" class="wl-star' + wlClass + '" data-tmdb-id="' + item.id + '" data-tmdb-type="' + item.type + '" data-title="' + (item.title||'').replace(/"/g,'&quot;') + '" data-poster="' + (item.poster||'') + '" data-vote="' + (item.vote||'') + '" data-year="' + (item.year||'') + '"><svg viewBox="0 0 24 24" fill="' + (wlClass ? '#f59e0b' : 'none') + '" stroke="#f59e0b" stroke-width="2"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4-6.2-4.5h7.6z"/></svg></button>';
+    return '<div class="ex-card" data-tmdb-id="' + item.id + '" data-type="' + item.type + '">'
+      + poster
+      + '<span class="badge-type ' + item.type + '">' + (item.type === 'movie' ? 'Film' : 'Série') + '</span>'
+      + lib + wlStar + vote
+      + '<div class="overlay"><div class="title">' + escHtml(item.title || '') + '</div>'
+      + '<div class="sub">' + (item.year || '') + '</div></div></div>';
+  }
+
+  function render(items, label, append) {
+    if (append) {
+      grid.insertAdjacentHTML('beforeend', items.map(cardHTML).join(''));
+    } else {
+      grid.innerHTML = items.map(cardHTML).join('') || '<div class="ex-empty">Aucun résultat.</div>';
+    }
+    var count = grid.querySelectorAll('.ex-card').length;
+    statusEl.textContent = label ? label + ' · ' + (totalResults || count) + ' résultat' + ((totalResults || count) > 1 ? 's' : '') : '';
+    updatePagination();
+  }
+
+  function updatePagination() {
+    if (currentMode === 'discover' && currentPage < totalPages) {
+      loadMoreWrap.style.display = '';
+      pageInfo.textContent = 'Page ' + currentPage + ' / ' + totalPages;
+    } else {
+      loadMoreWrap.style.display = 'none';
+    }
+  }
+
+  function showSpinner() {
+    grid.innerHTML = '<div class="ex-empty"><span class="spinner-border spinner-border-sm me-2"></span>Chargement...</div>';
+    loadMoreWrap.style.display = 'none';
+  }
+
+  // ── Modal détail ──
+  var detailModal = document.getElementById('ex-detail-modal');
+  var detailLoading = document.getElementById('ex-detail-loading');
+  var detailContent = document.getElementById('ex-detail-content');
+  var detailBackdrop = null;
+
+  function isOnExplorerPage() {
+    return document.getElementById('ex-detail-modal') !== null;
+  }
+
+  function openModal() {
+    if (!isOnExplorerPage()) return;
+    detailLoading.style.display = '';
+    detailContent.style.display = 'none';
+    detailContent.innerHTML = '';
+    detailModal.classList.add('show');
+    detailModal.style.display = 'block';
+    document.body.classList.add('modal-open');
+    if (!document.querySelector('.modal-backdrop.exd-backdrop')) {
+      detailBackdrop = document.createElement('div');
+      detailBackdrop.className = 'modal-backdrop fade show exd-backdrop';
+      document.body.appendChild(detailBackdrop);
+      detailBackdrop.addEventListener('click', closeModal);
+    }
+  }
+
+  function closeModal() {
+    if (!isOnExplorerPage()) return;
+    detailModal.classList.remove('show');
+    detailModal.style.display = 'none';
+    var bd = document.querySelector('.exd-backdrop');
+    if (bd) bd.remove();
+    if (!document.querySelector('.modal.show')) {
+      document.body.classList.remove('modal-open');
+    }
+    detailContent.querySelectorAll('iframe').forEach(function(f) { f.src = ''; });
+  }
+
+  detailModal.addEventListener('click', function(e) {
+    if (e.target === detailModal) closeModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (!isOnExplorerPage()) return;
+    if (e.key === 'Escape' && detailModal.classList.contains('show')) closeModal();
+  });
+
+  function renderDetailModal(d) {
+    detailLoading.style.display = 'none';
+    detailContent.style.display = '';
+
+    var genres = (d.genres || []).join(', ');
+    var cast = (d.cast || []).slice(0, 6).map(function(c) {
+      var img = c.profile ? '<img src="' + c.profile + '">' : '<div style="width:42px;height:42px;border-radius:50%;background:var(--tblr-bg-surface-secondary);display:flex;align-items:center;justify-content:center;font-size:.7rem;">?</div>';
+      return '<div class="exd-cast-item">' + img + '<div class="name">' + escHtml(c.name || '') + '</div></div>';
+    }).join('');
+
+    var providers = '';
+    if (d.providers && d.providers.flatrate && d.providers.flatrate.length) {
+      providers = '<div class="exd-providers">' + d.providers.flatrate.map(function(p) {
+        return p.logo ? '<img src="' + p.logo + '" title="' + p.name + '">' : '';
+      }).join('') + '</div>';
+    }
+
+    var trailer = '';
+    if (d.trailer && d.trailer.key) {
+      trailer = '<div class="exd-trailer"><div class="ratio ratio-16x9"><iframe src="https://www.youtube.com/embed/' + d.trailer.key + '?rel=0&cc_lang_pref=fr&hl=fr" allowfullscreen></iframe></div></div>';
+    }
+
+    // Watchlist
+    var wlKey = d.type + '_' + d.id;
+    var isInWl = window._argosWatchlist && window._argosWatchlist[wlKey];
+
+    var html = '<div class="exd-header">'
+      + (d.backdrop ? '<div class="exd-bg" style="background-image:url(\'' + d.backdrop + '\')"></div>' : '')
+      + '<button class="exd-close" id="exd-close-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>'
+      + '<div class="exd-info">'
+      + (d.poster ? '<img class="exd-poster" src="' + d.poster + '">' : '')
+      + '<div class="exd-meta"><h3>' + (d.title || '') + '</h3>'
+      + '<div class="sub">' + (d.year || '') + (d.runtime ? ' · ' + d.runtime + ' min' : '') + (genres ? ' · ' + genres : '') + '</div>'
+      + (d.vote ? '<div class="sub">★ ' + d.vote + ' / 10</div>' : '')
+      + '</div></div></div>'
+      + '<div class="exd-body">';
+
+    if (d.overview) html += '<p class="synopsis">' + d.overview + '</p>';
+    html += providers;
+    if (cast) html += '<div class="exd-cast">' + cast + '</div>';
+    html += trailer;
+
+    html += '<div class="exd-actions">';
+    if (!d.in_library) {
+      html += '<button class="btn btn-primary btn-sm exd-add-btn" data-tmdb-id="' + d.id + '" data-type="' + d.type + '" data-title="' + (d.title||'').replace(/"/g,'&quot;') + '">Ajouter à ' + (d.type === 'movie' ? 'Radarr' : 'Sonarr') + '</button>';
+    } else {
+      var libUrl = (d.type === 'movie' ? '/medias/films' : '/medias/series') + (d.lib_id ? '?open=' + d.lib_id : '');
+      html += '<a href="' + libUrl + '" class="btn btn-success btn-sm">Voir dans ' + (d.type === 'movie' ? 'Films' : 'Séries') + '</a>';
+    }
+    html += '<button class="btn btn-sm ' + (isInWl ? 'btn-warning' : 'btn-outline-warning') + ' exd-wl-btn" data-tmdb-id="' + d.id + '" data-type="' + d.type + '" data-title="' + (d.title||'').replace(/"/g,'&quot;') + '" data-poster-path="' + (d.poster_path||'') + '" data-vote="' + (d.vote||'') + '" data-year="' + (d.year||'') + '">'
+      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="' + (isInWl ? '#fff' : 'none') + '" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4-6.2-4.5h7.6z"/></svg>'
+      + (isInWl ? 'Watchlist ✓' : 'Watchlist') + '</button>';
+    html += '<a href="https://www.themoviedb.org/' + d.type + '/' + d.id + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">TMDb</a>';
+    if (d.imdb_id) html += '<a href="https://www.imdb.com/title/' + d.imdb_id + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">IMDb</a>';
+    html += '</div></div>';
+
+    detailContent.innerHTML = html;
+    document.getElementById('exd-close-btn').addEventListener('click', closeModal);
+  }
+
+  function openDetail(type, id) {
+    openModal();
+    fetch('/decouverte/detail/' + type + '/' + id, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.error) { detailLoading.innerHTML = '<div class="alert alert-danger m-3">' + d.error + '</div>'; return; }
+        renderDetailModal(d);
+      })
+      .catch(function() { detailLoading.innerHTML = '<div class="alert alert-danger m-3">Erreur réseau</div>'; });
+  }
+
+  // Clic card → modal détail locale
+  document.addEventListener('click', function(e) {
+    if (!isOnExplorerPage()) return;
+    if (e.target.closest('.wl-star')) return;
+    var card = e.target.closest('.ex-card[data-tmdb-id]');
+    if (!card) return;
+    openDetail(card.dataset.type, card.dataset.tmdbId);
+  });
+
+  // Watchlist toggle depuis la modal
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.exd-wl-btn');
+    if (!btn) return;
+    e.stopImmediatePropagation();
+    var key = btn.dataset.type + '_' + btn.dataset.tmdbId;
+    fetch('/decouverte/watchlist/toggle', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tmdb_id: parseInt(btn.dataset.tmdbId), type: btn.dataset.type,
+        title: btn.dataset.title, poster_path: btn.dataset.posterPath || null,
+        vote: btn.dataset.vote ? parseFloat(btn.dataset.vote) : null,
+        year: btn.dataset.year ? parseInt(btn.dataset.year) : null
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var added = d.action === 'added';
+      if (added) window._argosWatchlist[key] = true; else delete window._argosWatchlist[key];
+      btn.className = 'btn btn-sm ' + (added ? 'btn-warning' : 'btn-outline-warning') + ' exd-wl-btn';
+      btn.querySelector('svg').setAttribute('fill', added ? '#fff' : 'none');
+      var txt = btn.childNodes[btn.childNodes.length - 1];
+      txt.textContent = added ? 'Watchlist ✓' : 'Watchlist';
+      // Sync étoiles dans la grille
+      document.querySelectorAll('.wl-star[data-tmdb-id="' + btn.dataset.tmdbId + '"]').forEach(function(s) {
+        s.classList.toggle('in-wl', added);
+        s.querySelector('svg').setAttribute('fill', added ? '#f59e0b' : 'none');
+      });
+      if (window._argosToast) window._argosToast(added ? 'Ajouté à la watchlist' : 'Retiré de la watchlist', added ? 'success' : 'info');
+    });
+  });
+
+  // ── Type switch ──
+  document.querySelectorAll('.ex-type-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.ex-type-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      loadGenres(btn.dataset.type);
+    });
+  });
+
+  function getType() {
+    var active = document.querySelector('.ex-type-btn.active');
+    return active ? active.dataset.type : 'movie';
+  }
+
+  // ── Genres ──
+  var genrePills = document.getElementById('ex-genre-pills');
+
+  function loadGenres(type) {
+    fetch('/decouverte/genres/' + type, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        genrePills.innerHTML = (d.genres || []).map(function(g) {
+          return '<button class="ex-pill" data-genre-id="' + g.id + '">' + g.name + '</button>';
+        }).join('');
+      });
+  }
+  loadGenres('movie');
+
+  genrePills.addEventListener('click', function(e) {
+    var pill = e.target.closest('.ex-pill');
+    if (pill) pill.classList.toggle('active');
+  });
+
+  document.querySelectorAll('.ex-pill[data-decade]').forEach(function(p) {
+    p.addEventListener('click', function() {
+      var wasActive = p.classList.contains('active');
+      document.querySelectorAll('.ex-pill[data-decade]').forEach(function(other) { other.classList.remove('active'); });
+      if (!wasActive) p.classList.add('active');
+    });
+  });
+
+  // ── Construire les params de recherche ──
+  function buildParams(page) {
+    var type = getType();
+    var params = new URLSearchParams({ type: type });
+    var genres = [];
+    genrePills.querySelectorAll('.ex-pill.active').forEach(function(p) { genres.push(p.dataset.genreId); });
+    if (genres.length) params.set('genres', genres.join(','));
+    var decades = [];
+    document.querySelectorAll('.ex-pill[data-decade].active').forEach(function(p) { decades.push(parseInt(p.dataset.decade)); });
+    if (decades.length) {
+      params.set('year_min', Math.min.apply(null, decades));
+      params.set('year_max', Math.max.apply(null, decades) + 9);
+    }
+    params.set('sort', document.getElementById('ex-sort').value);
+    params.set('vote_count_min', '50');
+    if (page > 1) params.set('page', page);
+    return { params: params, genres: genres, decades: decades, type: type };
+  }
+
+  function buildLabel(info) {
+    var label = info.type === 'movie' ? 'Films' : 'Séries';
+    if (info.genres.length) label += ' · ' + info.genres.length + ' genre' + (info.genres.length > 1 ? 's' : '');
+    if (info.decades.length) label += ' · ' + info.decades.map(function(d) { return d + 's'; }).join('+');
+    return label;
+  }
+
+  // ── Rechercher ──
+  document.getElementById('ex-apply').addEventListener('click', function() {
+    currentMode = 'discover';
+    currentPage = 1;
+    clearCollectionActive();
+    clearPersonHeader();
+    var info = buildParams(1);
+    lastParams = info;
+    lastLabel = buildLabel(info);
+    showSpinner();
+    fetch('/decouverte/filter?' + info.params.toString(), { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        totalPages = d.total_pages || 1;
+        totalResults = d.total_results || 0;
+        render(d.results || [], lastLabel, false);
+      });
+  });
+
+  // ── Charger plus ──
+  loadMoreBtn.addEventListener('click', function() {
+    if (currentMode !== 'discover' || currentPage >= totalPages) return;
+    currentPage++;
+    loadMoreBtn.disabled = true;
+    loadMoreBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Chargement...';
+    var info = buildParams(currentPage);
+    fetch('/decouverte/filter?' + info.params.toString(), { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        render(d.results || [], lastLabel, true);
+        loadMoreBtn.disabled = false;
+        loadMoreBtn.textContent = 'Charger plus';
+      });
+  });
+
+  // ── Réinitialiser ──
+  document.getElementById('ex-clear').addEventListener('click', function() {
+    genrePills.querySelectorAll('.ex-pill.active').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.ex-pill[data-decade].active').forEach(function(p) { p.classList.remove('active'); });
+    document.getElementById('ex-sort').value = 'popularity.desc';
+    clearCollectionActive();
+    clearPersonHeader();
+    grid.innerHTML = '<div class="ex-empty">Sélectionnez des filtres et cliquez sur Rechercher.</div>';
+    statusEl.textContent = '';
+    loadMoreWrap.style.display = 'none';
+    currentPage = 1; totalPages = 1; totalResults = 0;
+  });
+
+  // ── Collections ──
+  function clearCollectionActive() {
+    document.querySelectorAll('.ex-col-pill.active').forEach(function(p) { p.classList.remove('active'); });
+  }
+
+  // Recherche collection
+  var colSearch = document.getElementById('ex-col-search');
+  var colSugg = document.getElementById('ex-col-suggestions');
+  var colTimer = null;
+
+  colSearch.addEventListener('input', function() {
+    clearTimeout(colTimer);
+    var q = colSearch.value.trim();
+    if (q.length < 2) { colSugg.innerHTML = ''; return; }
+    colTimer = setTimeout(function() {
+      fetch('/decouverte/collection/search?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          colSugg.innerHTML = (d.results || []).map(function(c) {
+            var img = c.poster ? '<img src="' + c.poster + '" style="width:20px;height:30px;border-radius:2px;object-fit:cover;margin-right:4px;">' : '';
+            return '<div class="ex-person-suggestion" data-col-id="' + c.id + '">' + img + '<span>' + escHtml(c.name) + '</span></div>';
+          }).join('');
+        });
+    }, 300);
+  });
+
+  colSugg.addEventListener('click', function(e) {
+    var s = e.target.closest('[data-col-id]');
+    if (!s) return;
+    colSugg.innerHTML = '';
+    colSearch.value = '';
+    currentMode = 'collection';
+    clearCollectionActive();
+    clearPersonHeader();
+    showSpinner();
+    fetch('/decouverte/collection/' + s.dataset.colId, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.error) { grid.innerHTML = '<div class="ex-empty">' + d.error + '</div>'; return; }
+        totalResults = (d.results || []).length;
+        render(d.results || [], d.name || 'Collection', false);
+      });
+  });
+
+  document.getElementById('ex-col-pills').addEventListener('click', function(e) {
+    var pill = e.target.closest('.ex-col-pill');
+    if (!pill) return;
+    currentMode = 'collection';
+    clearCollectionActive();
+    clearPersonHeader();
+    pill.classList.add('active');
+    showSpinner();
+    fetch('/decouverte/collection/' + pill.dataset.colId, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.error) { grid.innerHTML = '<div class="ex-empty">' + d.error + '</div>'; return; }
+        totalResults = (d.results || []).length;
+        render(d.results || [], d.name || 'Collection', false);
+      });
+  });
+
+  // ── Par acteur ──
+  var personInput = document.getElementById('ex-person-input');
+  var personSugg = document.getElementById('ex-person-suggestions');
+  var personHeader = document.getElementById('ex-person-header');
+  var personTimer = null;
+
+  function clearPersonHeader() {
+    personHeader.style.display = 'none';
+    personSugg.innerHTML = '';
+  }
+
+  personInput.addEventListener('input', function() {
+    clearTimeout(personTimer);
+    var q = personInput.value.trim();
+    if (q.length < 2) { personSugg.innerHTML = ''; return; }
+    personTimer = setTimeout(function() {
+      fetch('/decouverte/person/search?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          personSugg.innerHTML = (d.results || []).map(function(p) {
+            var img = p.profile ? '<img src="' + p.profile + '">' : '';
+            return '<div class="ex-person-suggestion" data-person-id="' + p.id + '" data-name="' + (p.name||'').replace(/"/g,'&quot;') + '" data-photo="' + (p.profile||'') + '">' + img + '<span>' + p.name + '</span></div>';
+          }).join('');
+        });
+    }, 300);
+  });
+
+  personSugg.addEventListener('click', function(e) {
+    var s = e.target.closest('.ex-person-suggestion');
+    if (!s) return;
+    currentMode = 'person';
+    clearCollectionActive();
+    personSugg.innerHTML = '';
+    personInput.value = s.dataset.name;
+
+    personHeader.style.display = 'flex';
+    document.getElementById('ex-person-name').textContent = s.dataset.name;
+    var photo = document.getElementById('ex-person-photo');
+    if (s.dataset.photo) { photo.src = s.dataset.photo; photo.style.display = ''; }
+    else { photo.style.display = 'none'; }
+
+    showSpinner();
+    fetch('/decouverte/person/' + s.dataset.personId, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.error) { grid.innerHTML = '<div class="ex-empty">' + d.error + '</div>'; return; }
+        totalResults = (d.results || []).length;
+        render(d.results || [], d.name || 'Filmographie', false);
+        document.getElementById('ex-person-count').textContent = (d.results || []).length + ' titre' + ((d.results||[]).length > 1 ? 's' : '');
+      });
+  });
+  // ── Ajouter à Radarr/Sonarr depuis la modal ──
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.exd-add-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    var origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Résolution...';
+    fetch('/decouverte/resolve/' + btn.dataset.type + '/' + btn.dataset.tmdbId, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          btn.className = 'btn btn-danger btn-sm exd-add-btn';
+          btn.innerHTML = data.error;
+          btn.disabled = false;
+          setTimeout(function() { btn.className = 'btn btn-primary btn-sm exd-add-btn'; btn.innerHTML = origText; }, 3000);
+          return;
+        }
+        closeModal();
+        setTimeout(function() {
+          var trigger = document.createElement('button');
+          trigger.setAttribute('data-quick-add', JSON.stringify(data));
+          trigger.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
+          document.body.appendChild(trigger);
+          trigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+          setTimeout(function() { trigger.remove(); }, 100);
+        }, 300);
+      })
+      .catch(function() {
+        btn.className = 'btn btn-danger btn-sm exd-add-btn';
+        btn.innerHTML = 'Erreur réseau';
+        btn.disabled = false;
+        setTimeout(function() { btn.className = 'btn btn-primary btn-sm exd-add-btn'; btn.innerHTML = origText; }, 3000);
+      });
+  });
+
+  // ── Watchlist ──
+  window._argosWatchlist = window._argosWatchlist || {};
+  fetch('/decouverte/watchlist/status', { credentials: 'same-origin' })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      window._argosWatchlist = d.index || {};
+      // Sync étoiles déjà rendues
+      document.querySelectorAll('.ex-card .wl-star[data-tmdb-id]').forEach(function(s) {
+        var key = s.dataset.tmdbType + '_' + s.dataset.tmdbId;
+        var inWl = !!window._argosWatchlist[key];
+        s.classList.toggle('in-wl', inWl);
+        s.querySelector('svg').setAttribute('fill', inWl ? '#f59e0b' : 'none');
+      });
+    });
+
+  function syncExWlStar(tmdbId, tmdbType, added) {
+    document.querySelectorAll('.wl-star[data-tmdb-id="' + tmdbId + '"][data-tmdb-type="' + tmdbType + '"]').forEach(function(s) {
+      s.classList.toggle('in-wl', added);
+      s.querySelector('svg').setAttribute('fill', added ? '#f59e0b' : 'none');
+    });
+  }
+
+  document.addEventListener('click', function(e) {
+    var star = e.target.closest('.ex-card .wl-star');
+    if (!star) return;
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    var posterPath = '';
+    if (star.dataset.poster) {
+      var m = star.dataset.poster.match(/\/t\/p\/\w+(\/.+)$/);
+      if (m) posterPath = m[1];
+    }
+    var key = star.dataset.tmdbType + '_' + star.dataset.tmdbId;
+    var wasIn = !!window._argosWatchlist[key];
+    var willAdd = !wasIn;
+
+    // Optimiste : MAJ UI immédiate
+    if (willAdd) window._argosWatchlist[key] = true;
+    else delete window._argosWatchlist[key];
+    syncExWlStar(star.dataset.tmdbId, star.dataset.tmdbType, willAdd);
+
+    fetch('/decouverte/watchlist/toggle', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tmdb_id: parseInt(star.dataset.tmdbId),
+        type: star.dataset.tmdbType,
+        title: star.dataset.title || '',
+        poster_path: posterPath || null,
+        vote: star.dataset.vote ? parseFloat(star.dataset.vote) : null,
+        year: star.dataset.year ? parseInt(star.dataset.year) : null
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var added = d.action === 'added';
+      if (added) window._argosWatchlist[key] = true;
+      else delete window._argosWatchlist[key];
+      if (added !== willAdd) syncExWlStar(star.dataset.tmdbId, star.dataset.tmdbType, added);
+      if (window._argosToast) window._argosToast(added ? 'Ajouté à la watchlist' : 'Retiré de la watchlist', added ? 'success' : 'info');
+    })
+    .catch(function() {
+      if (wasIn) window._argosWatchlist[key] = true;
+      else delete window._argosWatchlist[key];
+      syncExWlStar(star.dataset.tmdbId, star.dataset.tmdbType, wasIn);
+      if (window._argosToast) window._argosToast('Erreur réseau', 'danger');
+    });
+  });
+})();
+</script>
+{% endblock %}

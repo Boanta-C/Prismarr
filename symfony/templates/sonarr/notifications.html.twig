@@ -1,0 +1,167 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications — Sonarr{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Notifications</h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-notif">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+          Ajouter
+        </button>
+        {% include 'media/_sonarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+{% endif %}
+
+<div id="notif-feedback" class="alert d-none mb-3"></div>
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Notifications configurées</h3>
+    <div class="card-options">
+      <span class="badge bg-secondary-lt">{{ notifications|length }}</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if notifications is empty %}
+      <div class="text-muted text-center py-5">Aucune notification configurée.</div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-vcenter table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Type</th>
+              <th>Triggers</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for notif in notifications %}
+            <tr>
+              <td class="fw-medium">{{ notif.name ?? '—' }}</td>
+              <td>
+                <span class="badge bg-blue-lt">{{ notif.implementationName ?? notif.implementation ?? '—' }}</span>
+              </td>
+              <td class="small">
+                <div class="d-flex flex-wrap gap-1">
+                  {% if notif.onGrab ?? false %}<span class="badge bg-secondary-lt">Récupération</span>{% endif %}
+                  {% if notif.onDownload ?? false %}<span class="badge bg-secondary-lt">Téléchargement</span>{% endif %}
+                  {% if notif.onUpgrade ?? false %}<span class="badge bg-secondary-lt">Upgrade</span>{% endif %}
+                  {% if notif.onRename ?? false %}<span class="badge bg-secondary-lt">Renommage</span>{% endif %}
+                  {% if notif.onSeriesAdd ?? false %}<span class="badge bg-secondary-lt">Série ajoutée</span>{% endif %}
+                  {% if notif.onSeriesDelete ?? false %}<span class="badge bg-secondary-lt">Suppression</span>{% endif %}
+                  {% if notif.onHealthIssue ?? false %}<span class="badge bg-secondary-lt">Santé</span>{% endif %}
+                  {% if notif.onApplicationUpdate ?? false %}<span class="badge bg-secondary-lt">MAJ</span>{% endif %}
+                  {% if notif.onManualInteractionRequired ?? false %}<span class="badge bg-secondary-lt">Interaction</span>{% endif %}
+                </div>
+              </td>
+              <td class="text-end">
+                <div class="d-flex gap-2 justify-content-end">
+                  <button class="btn btn-ghost-secondary btn-icon btn-notif-edit"
+                          data-bs-toggle="modal" data-bs-target="#modal-notif"
+                          data-edit-item="{{ notif|json_encode|e('html_attr') }}" title="Modifier">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                  </button>
+                  <button class="btn btn-ghost-primary btn-icon btn-notif-test"
+                          data-id="{{ notif.id }}" title="Tester">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                  </button>
+                  <button class="btn btn-ghost-danger btn-icon btn-notif-delete"
+                          data-id="{{ notif.id }}" data-name="{{ notif.name ?? '' }}" title="Supprimer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+</div>
+</div>
+
+{% include 'radarr/_schema_modal.html.twig' with {
+  modal_id: 'modal-notif',
+  modal_title_add: 'Ajouter une notification',
+  modal_title_edit: 'Modifier la notification',
+  schema_url: path('sonarr_notifications_schema'),
+  save_url_add: path('sonarr_notification_add'),
+  save_url_edit: '/sonarr/notifications/__ID__/modifier',
+  test_url: path('sonarr_notification_test_payload'),
+  mode: 'notification'
+} %}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+  var feedback = document.getElementById('notif-feedback');
+  function showFeedback(msg, type) {
+    type = type || 'success';
+    feedback.className = 'alert alert-' + type + ' mb-3';
+    feedback.textContent = msg;
+    feedback.classList.remove('d-none');
+    setTimeout(function(){ feedback.classList.add('d-none'); }, type === 'danger' ? 10000 : 4000);
+  }
+
+  var SVG_OK = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  var SVG_FAIL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+  var SVG_SPIN = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span>';
+
+  document.querySelectorAll('.btn-notif-test').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var origHTML = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = SVG_SPIN;
+      fetch('/sonarr/notifications/' + btn.dataset.id + '/tester', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        body: '{}',
+      }).then(function(r){ return r.json(); }).then(function(data) {
+        btn.innerHTML = data.ok ? SVG_OK : SVG_FAIL;
+        if (!data.ok) showFeedback(data.error || 'Échec du test.', 'danger');
+      }).catch(function() {
+        btn.innerHTML = SVG_FAIL;
+        showFeedback('Erreur réseau.', 'danger');
+      }).finally(function() {
+        btn.disabled = false;
+        setTimeout(function(){ btn.innerHTML = origHTML; }, 3000);
+      });
+    });
+  });
+
+  document.querySelectorAll('.btn-notif-delete').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (!confirm('Supprimer la notification "' + btn.dataset.name + '" ?')) return;
+      fetch('/sonarr/notifications/' + btn.dataset.id + '/supprimer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        body: '{}',
+      }).then(function(r){ return r.json(); }).then(function(data) {
+        if (data.ok) location.reload();
+        else showFeedback('Erreur lors de la suppression.', 'danger');
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

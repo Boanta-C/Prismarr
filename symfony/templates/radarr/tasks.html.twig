@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+{% block title %}Tâches système — Radarr{% endblock %}
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Tâches système</h2></div>
+      <div class="col-auto ms-auto">{% include 'media/_radarr_nav.html.twig' %}</div>
+    </div>
+  </div>
+</div>
+<div class="page-body"><div class="container-xl">
+{% if error %}<div class="alert alert-danger">Impossible de joindre Radarr.</div>{% endif %}
+<div id="tasks-feedback" class="alert d-none mb-3"></div>
+<div class="card">
+  <div class="card-header"><h3 class="card-title">Tâches planifiées</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ tasks|length }}</span></div></div>
+  <div class="card-body p-0">
+    {% if tasks is empty %}
+      <div class="text-muted text-center py-5">Aucune tâche.</div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-vcenter mb-0">
+          <thead><tr><th>Nom</th><th>Intervalle</th><th>Dernière exécution</th><th>Prochaine exécution</th><th class="w-1"></th></tr></thead>
+          <tbody>
+            {% for task in tasks %}
+            <tr>
+              <td class="fw-medium">{{ task.name ?? task.taskName ?? '—' }}</td>
+              <td class="text-muted">{{ task.interval is defined ? task.interval ~ ' min' : '—' }}</td>
+              <td class="text-muted small">{{ task.lastExecution is defined ? task.lastExecution|date('d/m/Y H:i') : '—' }}</td>
+              <td class="text-muted small">{{ task.nextExecution is defined ? task.nextExecution|date('d/m/Y H:i') : '—' }}</td>
+              <td>
+                <button class="btn btn-ghost-primary btn-icon btn-sm btn-task-run"
+                        data-command="{{ task.taskName ?? task.name ?? '' }}"
+                        title="Exécuter">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+</div></div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+var feedback = document.getElementById('tasks-feedback');
+function showFeedback(msg, type) {
+  feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
+  feedback.textContent = msg;
+  feedback.classList.remove('d-none');
+  setTimeout(function(){ feedback.classList.add('d-none'); }, 4000);
+}
+
+var SVG_PLAY = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+var SVG_SPIN = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span>';
+
+document.querySelectorAll('.btn-task-run').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var commandName = btn.dataset.command;
+    if (!commandName) return;
+    btn.disabled = true;
+    btn.innerHTML = SVG_SPIN;
+
+    fetch('{{ path('radarr_task_run') }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+      body: JSON.stringify({commandName: commandName}),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.ok) {
+        showFeedback('Tâche "' + commandName + '" lancée.');
+        setTimeout(function() { location.reload(); }, 1500);
+      } else {
+        showFeedback('Erreur lors du lancement.', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = SVG_PLAY;
+      }
+    })
+    .catch(function() {
+      showFeedback('Erreur réseau.', 'danger');
+      btn.disabled = false;
+      btn.innerHTML = SVG_PLAY;
+    });
+  });
+});
+})();
+</script>
+{% endblock %}

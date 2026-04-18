@@ -1,0 +1,144 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique Films — IH-ARGOS{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Historique Films</h2>
+      </div>
+      <div class="col-auto ms-auto">
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{# Filtres par type d'événement #}
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="text-muted small fw-medium">Filtrer :</span>
+      {% set eventTypes = [
+        {value: '', label: 'Tous'},
+        {value: '1', label: 'Capturé'},
+        {value: '3', label: 'Importé'},
+        {value: '4', label: 'Échec'},
+        {value: '6', label: 'Supprimé'},
+        {value: '8', label: 'Renommé'},
+      ] %}
+      {% for et in eventTypes %}
+        <a href="{{ path('app_media_films_history', {eventType: et.value, page: 1}) }}"
+           class="btn btn-sm {{ eventType == et.value ? 'btn-primary' : 'btn-ghost-secondary' }}">
+          {{ et.label }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% set records = history.records ?? [] %}
+{% set total = history.totalRecords ?? records|length %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-vcenter table-sm card-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Film</th>
+          <th>Événement</th>
+          <th>Qualité</th>
+          <th>Source / Indexeur</th>
+          <th>Protocole</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for item in records %}
+        {% set movie = item.movie ?? null %}
+        <tr>
+          <td class="text-muted small text-nowrap">
+            {% if item.date is defined %}
+              {{ item.date|date('d/m/Y H:i') }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            {% if movie %}
+              <span class="fw-medium">{{ movie.title ?? '—' }}</span>
+              {% if movie.year is defined %}<span class="text-muted small ms-1">({{ movie.year }})</span>{% endif %}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set evType = item.eventType ?? '' %}
+            {% if evType == 'grabbed' %}
+              <span class="badge bg-primary-lt">Capturé</span>
+            {% elseif evType == 'downloadFolderImported' %}
+              <span class="badge bg-success-lt">Importé</span>
+            {% elseif evType == 'downloadFailed' %}
+              <span class="badge bg-danger-lt">Échec DL</span>
+            {% elseif evType == 'movieFileDeleted' %}
+              <span class="badge bg-secondary-lt">Supprimé</span>
+            {% elseif evType == 'movieImported' %}
+              <span class="badge bg-success-lt">Film importé</span>
+            {% elseif evType == 'movieFileRenamed' %}
+              <span class="badge bg-blue-lt">Renommé</span>
+            {% else %}
+              <span class="badge bg-secondary-lt">{{ evType }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set quality = item.quality.quality.name ?? item.quality ?? null %}
+            {% if quality %}
+              <span class="badge bg-blue-lt">{{ quality }}</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small">
+            {% set data = item.data ?? {} %}
+            {{ data.releaseTitle ?? data.importedPath ?? data.sourceTitle ?? '—' }}
+            {% if data.indexer is defined and data.indexer %}
+              <br><span class="text-muted" style="font-size:.7rem">{{ data.indexer }}</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small">
+            {% set protocol = item.data.protocol ?? item.data.downloadClient ?? null %}
+            {{ protocol ?? '—' }}
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">Aucun historique</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if total > 50 %}
+  <div class="card-footer d-flex align-items-center justify-content-between">
+    <p class="m-0 text-muted small">Page {{ page }} — {{ records|length }} entrées sur {{ total }}</p>
+    <div class="d-flex gap-2">
+      {% if page > 1 %}
+        <a href="{{ path('app_media_films_history', {page: page - 1, eventType: eventType}) }}" class="btn btn-sm btn-ghost-secondary">Précédent</a>
+      {% endif %}
+      {% if records|length == 50 %}
+        <a href="{{ path('app_media_films_history', {page: page + 1, eventType: eventType}) }}" class="btn btn-sm btn-ghost-secondary">Suivant</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,434 @@
+{% extends 'base.html.twig' %}
+{% block title %}Services — Paramètres — IH-ARGOS{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> Services{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block body %}
+<div class="container-xl py-2">
+    <div class="d-flex align-items-center justify-content-end">{% include 'jellyseerr/_nav.html.twig' %}</div>
+</div>
+<div class="page-body"><div class="container-xl">
+
+{# ── Macro card service ── #}
+{% macro srvCard(srv, type, svc) %}
+    <div class="col-12 col-lg-6">
+        <div class="card" style="border-left:3px solid {{ type == 'radarr' ? '#FFC230' : '#0CF' }};">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-2">
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <strong style="font-size:1rem;">{{ srv.name ?? type }}</strong>
+                            {% if srv.isDefault ?? false %}<span class="badge bg-purple-lt text-purple" style="font-size:.55rem;">Par défaut</span>{% endif %}
+                            {% if srv.is4k ?? false %}<span class="badge bg-yellow-lt text-yellow" style="font-size:.55rem;">4K</span>{% endif %}
+                        </div>
+                        <div class="text-secondary" style="font-size:.8rem;">{{ srv.hostname ?? '' }}:{{ srv.port ?? '' }}{% if srv.useSsl ?? false %} (SSL){% endif %}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3" style="font-size:.78rem;">
+                        <div class="text-center">
+                            <div style="font-weight:600;">{{ srv.activeProfileName ?? '?' }}</div>
+                            <div class="text-secondary" style="font-size:.68rem;">Profil</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mb-3" style="font-size:.78rem;">
+                    <span class="d-inline-flex align-items-center gap-1 text-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
+                        {{ srv.activeDirectory ?? '?' }}
+                    </span>
+                    {% if type == 'radarr' %}
+                        <span class="d-inline-flex align-items-center gap-1 text-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            {{ srv.minimumAvailability ?? '?' }}
+                        </span>
+                    {% endif %}
+                    {% if type == 'sonarr' and (srv.activeAnimeDirectory ?? '') != '' %}
+                        <span class="d-inline-flex align-items-center gap-1 text-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
+                            {{ srv.activeAnimeDirectory }} (anime)
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary js-edit-srv" style="background:#a259ff;border-color:#a259ff;"
+                            data-type="{{ type }}" data-srv="{{ srv|json_encode|e('html_attr') }}"
+                            data-profiles="{{ (svc.profiles ?? [])|json_encode|e('html_attr') }}"
+                            data-folders="{{ (svc.rootFolders ?? [])|json_encode|e('html_attr') }}"
+                            data-bs-toggle="modal" data-bs-target="#modal-edit-srv">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"/><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"/><path d="M16 5l3 3"/></svg>
+                        Modifier
+                    </button>
+                    <button class="btn btn-sm btn-outline-success js-test-srv"
+                            data-type="{{ type }}" data-srv-id="{{ srv.id ?? 0 }}"
+                            data-hostname="{{ srv.hostname ?? '' }}" data-port="{{ srv.port ?? '' }}"
+                            data-ssl="{{ srv.useSsl ?? false ? '1' : '0' }}" data-base="{{ srv.baseUrl ?? '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10 -10"/></svg>
+                        Tester
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{# ── Radarr ── #}
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <h3 style="font-weight:700;font-size:1rem;">
+        <svg width="20" height="20" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="me-2" style="vertical-align:-3px;"><g transform="translate(70 21)"><path d="M105.3 154.9L112.8 869.5C52.7 877 7.5 846.9 7.5 786.8L0 192.6C0 4.5 173-40.6 278.3 34.6L812.3 343C887.5 395.6 902.6 493.4 865 561.1C857.5 508.5 834.9 478.4 789.8 448.3L188 109.8C142.9 79.7 105.3 87.2 105.3 154.9Z" fill="#FFC230"/></g></svg>
+        Paramètres Radarr
+    </h3>
+</div>
+<p class="text-secondary mb-3" style="font-size:.8rem;">Gérez vos serveurs Radarr connectés à Jellyseerr.</p>
+<div class="row g-3 mb-2">
+    {% for srv in radarr %}
+        {{ _self.srvCard(srv, 'radarr', radarrProfiles[srv.id ?? 0] ?? {}) }}
+    {% endfor %}
+</div>
+<div class="mb-4">
+    <button class="btn btn-sm btn-outline-secondary js-add-srv" data-type="radarr" data-bs-toggle="modal" data-bs-target="#modal-edit-srv">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
+        Ajouter un serveur Radarr
+    </button>
+</div>
+
+{# ── Sonarr ── #}
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <h3 style="font-weight:700;font-size:1rem;">
+        <svg width="20" height="20" viewBox="0 0 216.7 216.9" xmlns="http://www.w3.org/2000/svg" class="me-2" style="vertical-align:-3px;"><path d="M194.65 42.5l-22.4 22.4C159.15 78 158 89.4 158 109.5c0 17.93 2.85 34.35 16.2 47.7l19 18.95c-2.5 3.07-5.2 6.07-8.1 9-.7.83-1.48 1.6-2.35 2.3-2.53 2.5-5.17 4.82-7.9 6.95l-17.55-17.55c-15.6-15.6-28-17.1-48.6-17.1-19.77 0-33.22 1.82-47.7 16.3l-18.55 18.6c-3.77-2.87-7.33-6.03-10.7-9.5-2.8-2.8-5.42-5.67-7.85-8.6l19.15-19.2c13.85-13.85 16.1-29.92 16.1-47.85 0-17.5-2.87-33.82-15.6-46.55L22.45 43.85c2.83-3.6 5.92-7.07 9.25-10.4 2.93-2.87 5.93-5.55 9-8.05L61.1 43.85C74.1 56.85 90.77 60.2 108.7 60.2c18.47 0 35.08-3.58 48.6-17.1l19.3-19.25c2.9 2.37 5.73 4.93 8.5 7.7 3.47 3.53 6.65 7.18 9.55 10.95z" fill="#0CF"/><circle cx="108.35" cy="108.45" r="29.5" fill="#0CF" opacity=".8"/></svg>
+        Paramètres Sonarr
+    </h3>
+</div>
+<p class="text-secondary mb-3" style="font-size:.8rem;">Gérez vos serveurs Sonarr connectés à Jellyseerr.</p>
+<div class="row g-3 mb-2">
+    {% for srv in sonarr %}
+        {{ _self.srvCard(srv, 'sonarr', sonarrProfiles[srv.id ?? 0] ?? {}) }}
+    {% endfor %}
+</div>
+<div class="mb-4">
+    <button class="btn btn-sm btn-outline-secondary js-add-srv" data-type="sonarr" data-bs-toggle="modal" data-bs-target="#modal-edit-srv">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
+        Ajouter un serveur Sonarr
+    </button>
+</div>
+
+{# ── Règles de substitution ── #}
+<h3 style="font-weight:700;font-size:1rem;margin-bottom:.75rem;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="2" class="me-2" style="vertical-align:-3px;"><path d="M3 12h4l3 8l4 -16l3 8h4"/></svg>
+    Règles de substitution
+</h3>
+<p class="text-secondary mb-3" style="font-size:.8rem;">Les règles de substitution permettent de rediriger automatiquement les demandes vers un serveur ou profil spécifique en fonction de l'utilisateur, du genre ou de la langue.</p>
+
+{% if rules|length > 0 %}
+    {% for rule in rules %}
+        <div class="card mb-2" style="border-left:3px solid #a259ff;">
+            <div class="card-body d-flex align-items-center justify-content-between" style="font-size:.85rem;">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    {% if rule.radarrServiceId is not null %}
+                        <span class="badge bg-yellow-lt text-yellow">Radarr</span>
+                    {% elseif rule.sonarrServiceId is not null %}
+                        <span class="badge bg-cyan-lt text-cyan">Sonarr</span>
+                    {% endif %}
+                    {% if rule.users %}<span class="text-secondary">Utilisateurs: <strong>{{ rule.users }}</strong></span>{% endif %}
+                    {% if rule.genre %}<span class="text-secondary">Genre: <strong>{{ rule.genre }}</strong></span>{% endif %}
+                    {% if rule.rootFolder %}<span class="text-secondary">→ <strong>{{ rule.rootFolder }}</strong></span>{% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="card mb-2"><div class="card-body text-center py-3 text-secondary" style="font-size:.85rem;">Aucune règle configurée</div></div>
+{% endif %}
+
+<div class="mb-4">
+    <a href="http://192.168.10.220:5055/settings/services" target="_blank" class="btn btn-sm btn-outline-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>
+        Gérer les règles sur Jellyseerr
+    </a>
+</div>
+
+{# ── Modal édition ── #}
+<div class="modal modal-blur fade" id="modal-edit-srv" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width:700px;">
+        <div class="modal-content" style="border:0;border-radius:.75rem;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="js-modal-title">Modifier le service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="js-modal-body" style="max-height:70vh;overflow-y:auto;"></div>
+            <div class="modal-footer">
+                <div id="js-modal-status" class="me-auto small"></div>
+                <button class="btn btn-outline-danger" id="js-modal-delete" style="display:none;">Supprimer</button>
+                <button class="btn" data-bs-dismiss="modal">Annuler</button>
+                <button class="btn btn-outline-success" id="js-modal-test">Tester</button>
+                <button class="btn btn-primary" id="js-modal-save" style="background:#a259ff;border-color:#a259ff;">Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div></div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+    var currentType = '';
+    var currentId = -1; // -1 = création
+
+    function makeField(label, id, value, placeholder, type) {
+        type = type || 'text';
+        return '<div class="col-12 col-sm-6"><label class="form-label small">' + label + '</label><input type="' + type + '" class="form-control form-control-sm" id="' + id + '" value="' + (value || '') + '" placeholder="' + (placeholder || '') + '"></div>';
+    }
+    function makeSelect(label, id, options, selected) {
+        var h = '<div class="col-12 col-sm-6"><label class="form-label small">' + label + '</label><select class="form-select form-select-sm" id="' + id + '">';
+        options.forEach(function(o){ h += '<option value="' + o.value + '" ' + (String(o.value) === String(selected) ? 'selected' : '') + '>' + o.label + '</option>'; });
+        h += '</select></div>';
+        return h;
+    }
+    function makeToggle(label, id, checked) {
+        return '<div class="col-12 col-sm-6"><label class="form-check form-switch mt-1"><input type="checkbox" class="form-check-input" id="' + id + '" ' + (checked ? 'checked' : '') + ' style="cursor:pointer;"><span class="form-check-label small">' + label + '</span></label></div>';
+    }
+
+    // ── Modal show ──
+    var modalEl = document.getElementById('modal-edit-srv');
+    if (modalEl) modalEl.addEventListener('show.bs.modal', function(e){
+        var trigger = e.relatedTarget;
+        if (!trigger) return;
+
+        var isNew = trigger.classList.contains('js-add-srv');
+        var srv = isNew ? {} : JSON.parse(trigger.dataset.srv);
+        var profiles = isNew ? [] : JSON.parse(trigger.dataset.profiles || '[]');
+        var folders = isNew ? [] : JSON.parse(trigger.dataset.folders || '[]');
+        currentType = trigger.dataset.type;
+        currentId = isNew ? -1 : srv.id;
+
+        document.getElementById('js-modal-title').textContent = (isNew ? 'Ajouter un serveur ' : 'Modifier le serveur ') + (currentType === 'radarr' ? 'Radarr' : 'Sonarr');
+        document.getElementById('js-modal-status').innerHTML = '';
+
+        var profOpts = profiles.map(function(p){ return {value:p.id, label:p.name}; });
+        var folderOpts = folders.map(function(f){ return {value:f.path, label:f.path}; });
+
+        // Bloquer le save si création et pas de profils chargés
+        var modalSaveBtn = document.getElementById('js-modal-save');
+        var modalDeleteBtn = document.getElementById('js-modal-delete');
+        if (isNew) {
+            modalSaveBtn.disabled = true;
+            modalSaveBtn.title = 'Testez la connexion d\'abord pour charger les profils et dossiers';
+            modalDeleteBtn.style.display = 'none';
+        } else {
+            modalSaveBtn.disabled = false;
+            modalSaveBtn.title = '';
+            modalDeleteBtn.style.display = '';
+        }
+
+        var sep = '<div class="col-12"><hr style="opacity:.1;margin:.25rem 0;"></div>';
+        var sectionTitle = function(t){ return '<div class="col-12" style="margin-top:.25rem;"><span style="font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:#a259ff;">' + t + '</span></div>'; };
+
+        var html = '';
+        if (isNew) {
+            html += '<div class="alert alert-info d-flex align-items-start gap-2 mb-3" style="font-size:.82rem;" id="js-test-hint"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg><div>Remplissez les informations de connexion puis cliquez sur <strong>Tester</strong> pour charger les profils qualité et dossiers racine disponibles.</div></div>';
+        }
+        html += '<div class="row g-3">';
+
+        // ── Mode ──
+        html += sectionTitle('Mode');
+        html += makeToggle('Serveur par défaut', 'js-srv-default', srv.isDefault);
+        html += makeToggle('Serveur 4K', 'js-srv-4k', srv.is4k);
+
+        // ── Connexion ──
+        html += sep + sectionTitle('Connexion');
+        html += makeField('Nom du serveur', 'js-srv-name', srv.name, 'Radarr');
+        html += '<div class="col-12 col-sm-6"><label class="form-label small">Nom d\'hôte ou adresse IP</label><div class="input-group input-group-sm"><input type="text" class="form-control" id="js-srv-host" value="' + (srv.hostname||'') + '"><span class="input-group-text">:</span><input type="number" class="form-control" id="js-srv-port" value="' + (srv.port||'') + '" style="max-width:80px;"></div></div>';
+        html += makeToggle('Activer SSL', 'js-srv-ssl', srv.useSsl);
+        html += '<div class="col-12 col-sm-6"><label class="form-label small">Clé API</label><div class="input-group input-group-sm"><input type="password" class="form-control" id="js-srv-apikey" value="' + (srv.apiKey||'') + '"><button class="btn btn-outline-secondary" type="button" onclick="var e=document.getElementById(\'js-srv-apikey\');e.type=e.type===\'password\'?\'text\':\'password\';"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4-5.4 6-9 6c-3.6 0-6.6-2-9-6c2.4-4 5.4-6 9-6c3.6 0 6.6 2 9 6"/></svg></button></div></div>';
+        html += makeField('URL de base', 'js-srv-base', srv.baseUrl, '/radarr');
+        html += makeField('URL externe', 'js-srv-exturl', srv.externalUrl, 'https://radarr.example.com');
+
+        // ── Profils ──
+        html += sep + sectionTitle('Profils & Dossiers');
+        html += makeSelect('Profil qualité', 'js-srv-profile', profOpts, srv.activeProfileId);
+        html += makeSelect('Dossier racine', 'js-srv-folder', folderOpts, srv.activeDirectory);
+
+        if (currentType === 'radarr') {
+            html += makeSelect('Disponibilité minimum', 'js-srv-avail', [
+                {value:'announced',label:'Annoncé'}, {value:'inCinemas',label:'En salles'}, {value:'released',label:'Sorti'}
+            ], srv.minimumAvailability);
+        }
+
+        // ── Sonarr: Anime ──
+        if (currentType === 'sonarr') {
+            html += makeSelect('Type de série', 'js-srv-series-type', [
+                {value:'standard',label:'Standard'}, {value:'daily',label:'Quotidien'}, {value:'anime',label:'Anime'}
+            ], srv.seriesType || 'standard');
+
+            html += sep + sectionTitle('Anime');
+            html += makeSelect('Type de série Animé', 'js-srv-anime-type', [
+                {value:'standard',label:'Standard'}, {value:'daily',label:'Quotidien'}, {value:'anime',label:'Anime'}
+            ], srv.animeSeriesType || 'anime');
+            html += makeSelect('Profil qualité anime', 'js-srv-anime-profile', profOpts, srv.activeAnimeProfileId);
+            html += makeSelect('Dossier racine anime', 'js-srv-anime-folder', folderOpts, srv.activeAnimeDirectory);
+        }
+
+        // ── Dossiers saison (Sonarr) ──
+        if (currentType === 'sonarr') {
+            html += sep + sectionTitle('Dossiers');
+            html += makeToggle('Dossiers automatiques des saisons', 'js-srv-season-folders', srv.enableSeasonFolders);
+        }
+
+        // ── Tags ──
+        html += sep + sectionTitle('Tags');
+        html += makeField('Tags', 'js-srv-tags', (srv.tags||[]).join(','), 'tag1, tag2');
+        if (currentType === 'sonarr') {
+            html += makeField('Tags anime', 'js-srv-anime-tags', (srv.animeTags||[]).join(','), 'tag1, tag2');
+        }
+
+        // ── Options ──
+        html += sep + sectionTitle('Options');
+        html += makeToggle('Activer la recherche', 'js-srv-search', !srv.preventSearch);
+        html += makeToggle('Activer la synchronisation', 'js-srv-sync', srv.syncEnabled);
+        html += makeToggle('Tagger les demandes', 'js-srv-tag-req', srv.tagRequests);
+
+        html += '</div>';
+        document.getElementById('js-modal-body').innerHTML = html;
+    });
+
+    // ── Save ──
+    document.getElementById('js-modal-save').addEventListener('click', function(){
+        var btn = this;
+        var profileSel = document.getElementById('js-srv-profile');
+        var payload = {
+            name: document.getElementById('js-srv-name').value,
+            hostname: document.getElementById('js-srv-host').value,
+            port: parseInt(document.getElementById('js-srv-port').value)||0,
+            apiKey: document.getElementById('js-srv-apikey').value,
+            useSsl: document.getElementById('js-srv-ssl').checked,
+            baseUrl: document.getElementById('js-srv-base').value,
+            externalUrl: document.getElementById('js-srv-exturl').value,
+            isDefault: document.getElementById('js-srv-default').checked,
+            is4k: document.getElementById('js-srv-4k').checked,
+            activeProfileId: parseInt(profileSel.value),
+            activeProfileName: profileSel.options[profileSel.selectedIndex].text,
+            activeDirectory: document.getElementById('js-srv-folder').value,
+            preventSearch: !document.getElementById('js-srv-search').checked,
+            syncEnabled: document.getElementById('js-srv-sync').checked,
+            tagRequests: document.getElementById('js-srv-tag-req').checked,
+            tags: document.getElementById('js-srv-tags').value ? document.getElementById('js-srv-tags').value.split(',').map(function(t){return t.trim();}).filter(Boolean) : []
+        };
+
+        if (currentType === 'radarr') {
+            var availSel = document.getElementById('js-srv-avail');
+            payload.minimumAvailability = availSel ? availSel.value : 'released';
+        }
+
+        if (currentType === 'sonarr') {
+            var animeProfileSel = document.getElementById('js-srv-anime-profile');
+            payload.seriesType = document.getElementById('js-srv-series-type').value;
+            payload.animeSeriesType = document.getElementById('js-srv-anime-type').value;
+            payload.activeAnimeProfileId = parseInt(animeProfileSel.value);
+            payload.activeAnimeProfileName = animeProfileSel.options[animeProfileSel.selectedIndex].text;
+            payload.activeAnimeDirectory = document.getElementById('js-srv-anime-folder').value;
+            payload.enableSeasonFolders = document.getElementById('js-srv-season-folders').checked;
+            payload.animeTags = document.getElementById('js-srv-anime-tags').value ? document.getElementById('js-srv-anime-tags').value.split(',').map(function(t){return t.trim();}).filter(Boolean) : [];
+            payload.activeLanguageProfileId = 2;
+            payload.activeAnimeLanguageProfileId = 2;
+        }
+
+        btn.disabled = true; btn.innerHTML = '<div class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></div>';
+        var saveUrl = currentId === -1
+            ? '/jellyseerr/parametres/services/' + currentType + '/create'
+            : '/jellyseerr/parametres/services/' + currentType + '/' + currentId + '/save';
+        fetch(saveUrl, {
+            method:'POST', credentials:'same-origin',
+            headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+            body: JSON.stringify(payload)
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){ if (d.ok) window.location.reload(); else { btn.disabled=false; btn.textContent='Erreur'; } })
+        .catch(function(){ btn.disabled=false; btn.textContent='Erreur'; });
+    });
+
+    // ── Test modal ──
+    document.getElementById('js-modal-test').addEventListener('click', function(){
+        var statusEl = document.getElementById('js-modal-status');
+        statusEl.innerHTML = '<div class="spinner-border spinner-border-sm text-success" style="width:14px;height:14px;"></div> Test…';
+        fetch('/jellyseerr/parametres/services/test', {
+            method:'POST', credentials:'same-origin',
+            headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+            body: JSON.stringify({ type:currentType, hostname:document.getElementById('js-srv-host').value, port:parseInt(document.getElementById('js-srv-port').value)||0, apiKey:document.getElementById('js-srv-apikey').value, useSsl:document.getElementById('js-srv-ssl').checked, baseUrl:document.getElementById('js-srv-base').value })
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if (d.ok && d.data) {
+                statusEl.innerHTML = '<span class="text-success">Connexion réussie — profils et dossiers chargés</span>';
+                // Débloquer le save
+                var saveB = document.getElementById('js-modal-save');
+                if (saveB) { saveB.disabled = false; saveB.title = ''; }
+                // Masquer le hint
+                var hint = document.getElementById('js-test-hint');
+                if (hint) hint.style.display = 'none';
+                // Remplir les dropdowns profil/dossier
+                var profileSel = document.getElementById('js-srv-profile');
+                var folderSel = document.getElementById('js-srv-folder');
+                if (profileSel && d.data.profiles) {
+                    var prevProfile = profileSel.value;
+                    profileSel.innerHTML = '';
+                    d.data.profiles.forEach(function(p){ var o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if (String(p.id) === prevProfile) o.selected = true; profileSel.appendChild(o); });
+                }
+                if (folderSel && d.data.rootFolders) {
+                    var prevFolder = folderSel.value;
+                    folderSel.innerHTML = '';
+                    d.data.rootFolders.forEach(function(f){ var o = document.createElement('option'); o.value = f.path; o.textContent = f.path; if (f.path === prevFolder) o.selected = true; folderSel.appendChild(o); });
+                }
+                // Anime dropdowns (Sonarr)
+                var animeProfileSel = document.getElementById('js-srv-anime-profile');
+                var animeFolderSel = document.getElementById('js-srv-anime-folder');
+                if (animeProfileSel && d.data.profiles) {
+                    var prev = animeProfileSel.value;
+                    animeProfileSel.innerHTML = '';
+                    d.data.profiles.forEach(function(p){ var o = document.createElement('option'); o.value = p.id; o.textContent = p.name; if (String(p.id) === prev) o.selected = true; animeProfileSel.appendChild(o); });
+                }
+                if (animeFolderSel && d.data.rootFolders) {
+                    var prev2 = animeFolderSel.value;
+                    animeFolderSel.innerHTML = '';
+                    d.data.rootFolders.forEach(function(f){ var o = document.createElement('option'); o.value = f.path; o.textContent = f.path; if (f.path === prev2) o.selected = true; animeFolderSel.appendChild(o); });
+                }
+            } else {
+                statusEl.innerHTML = d.ok ? '<span class="text-success">Connexion réussie</span>' : '<span class="text-danger">Connexion échouée</span>';
+            }
+        })
+        .catch(function(){ statusEl.innerHTML = '<span class="text-danger">Erreur réseau</span>'; });
+    });
+
+    // ── Delete ──
+    document.getElementById('js-modal-delete').addEventListener('click', function(){
+        if (!confirm('Supprimer ce serveur ' + (currentType === 'radarr' ? 'Radarr' : 'Sonarr') + ' ? Cette action est irréversible.')) return;
+        this.disabled = true;
+        fetch('/jellyseerr/parametres/services/' + currentType + '/' + currentId + '/delete', {
+            method:'POST', credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'}
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){ if (d.ok) window.location.reload(); else alert('Erreur'); })
+        .catch(function(){ alert('Erreur réseau'); });
+    });
+
+
+    // ── Test card ──
+    document.querySelectorAll('.js-test-srv').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var self = this; self.disabled = true; self.innerHTML = '<div class="spinner-border spinner-border-sm" style="width:12px;height:12px;"></div>';
+            fetch('/jellyseerr/parametres/services/test', {
+                method:'POST', credentials:'same-origin',
+                headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+                body: JSON.stringify({ type:this.dataset.type, hostname:this.dataset.hostname, port:parseInt(this.dataset.port), apiKey:(JSON.parse(this.closest('.card-body').querySelector('.js-edit-srv').dataset.srv)||{}).apiKey||'', useSsl:this.dataset.ssl==='1', baseUrl:this.dataset.base||'' })
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                self.disabled=false;
+                if (d.ok) { self.className='btn btn-sm btn-success'; self.textContent='OK'; }
+                else { self.className='btn btn-sm btn-danger'; self.textContent='Échec'; }
+                setTimeout(function(){ self.className='btn btn-sm btn-outline-success js-test-srv'; self.textContent='Tester'; }, 3000);
+            });
+        });
+    });
+})();
+</script>
+{% endblock %}

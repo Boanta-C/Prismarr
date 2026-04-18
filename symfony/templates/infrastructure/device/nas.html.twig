@@ -1,0 +1,693 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ device.name }} — Infrastructure{% endblock %}
+{% block page_title %}{{ device.name }}{% endblock %}
+
+{% block page_actions %}
+  <div class="d-flex align-items-center gap-2">
+    <span class="status-dot {% if device.status == 'online' %}status-dot-animated bg-success{% else %}bg-danger{% endif %}"></span>
+    <span class="text-secondary small">{{ device.ipAddress }}</span>
+    {% if device.lastSeenAt %}
+      <span class="text-secondary small">· <span id="sse-page-sync">{{ device.lastSeenAt|date('H:i:s') }}</span></span>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block body %}
+
+{% if nas_metrics.cpu is null and nas_metrics.mem is null and nas_metrics.temp is null %}
+  <div class="alert alert-info">
+    <div class="d-flex align-items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+           class="text-info flex-shrink-0">
+        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/>
+      </svg>
+      <div>
+        <div class="fw-semibold">En attente du premier polling Synology</div>
+        <div class="text-secondary small">Vérifie que <code>SYNOLOGY_USER</code> / <code>SYNOLOGY_PASSWORD</code> sont dans <code>.env.local</code>.</div>
+      </div>
+    </div>
+  </div>
+{% else %}
+
+  {# ── Métriques système : CPU / RAM / Température ── #}
+  <div class="row g-3 mb-4">
+
+    <div class="col-sm-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                   fill="none" stroke="var(--tblr-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 5m0 1a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1z"/>
+                <path d="M9 9h6v6h-6z"/><path d="M3 10h2m-2 4h2m14 -4h2m-2 4h2m-10 -14v2m4 -2v2m-4 14v2m4 -2v2"/>
+              </svg>
+              <span class="text-secondary small fw-medium" style="letter-spacing:.04em; text-transform:uppercase;">CPU</span>
+            </div>
+            {% if nas_metrics.cpu is not null %}
+              <span id="sse-nas-cpu-val" class="fw-bold {% if nas_metrics.cpu > 80 %}text-danger{% elseif nas_metrics.cpu > 50 %}text-warning{% else %}text-cyan{% endif %}">
+                {{ nas_metrics.cpu }}%
+              </span>
+            {% endif %}
+          </div>
+          {% if nas_metrics.cpu is not null %}
+            <div class="progress" style="height: 5px;">
+              <div id="sse-nas-cpu-bar" class="progress-bar {% if nas_metrics.cpu > 80 %}bg-danger{% elseif nas_metrics.cpu > 50 %}bg-warning{% else %}bg-cyan{% endif %}"
+                   style="width: {{ nas_metrics.cpu > 100 ? 100 : nas_metrics.cpu }}%" role="progressbar"></div>
+            </div>
+            <div id="sse-nas-cpu-spk" style="height:40px;margin-top:3px;opacity:0.85"></div>
+          {% else %}
+            <div class="text-secondary small fst-italic">En attente…</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                   fill="none" stroke="var(--tblr-indigo)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 4m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"/>
+                <path d="M9 4v4h6v-4m-2 12v.01m-2 0v.01"/>
+              </svg>
+              <span class="text-secondary small fw-medium" style="letter-spacing:.04em; text-transform:uppercase;">RAM</span>
+            </div>
+            {% if nas_metrics.mem is not null %}
+              <span id="sse-nas-ram-val" class="fw-bold {% if nas_metrics.mem > 80 %}text-danger{% elseif nas_metrics.mem > 60 %}text-warning{% else %}text-indigo{% endif %}">
+                {{ nas_metrics.mem }}%
+              </span>
+            {% endif %}
+          </div>
+          {% if nas_metrics.mem is not null %}
+            <div class="progress" style="height: 5px;">
+              <div id="sse-nas-ram-bar" class="progress-bar {% if nas_metrics.mem > 80 %}bg-danger{% elseif nas_metrics.mem > 60 %}bg-warning{% else %}bg-indigo{% endif %}"
+                   style="width: {{ nas_metrics.mem > 100 ? 100 : nas_metrics.mem }}%" role="progressbar"></div>
+            </div>
+            <div id="sse-nas-ram-spk" style="height:40px;margin-top:3px;opacity:0.85"></div>
+          {% else %}
+            <div class="text-secondary small fst-italic">En attente…</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-sm-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                   fill="none" stroke="var(--tblr-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5"/>
+                <path d="M10 9l4 0"/>
+              </svg>
+              <span class="text-secondary small fw-medium" style="letter-spacing:.04em; text-transform:uppercase;">Température</span>
+            </div>
+            {% if nas_metrics.temp is not null %}
+              <span id="sse-nas-temp-val" class="h3 mb-0 fw-bold {% if nas_metrics.temp > 70 %}text-danger{% elseif nas_metrics.temp > 55 %}text-warning{% else %}text-success{% endif %}">
+                {{ nas_metrics.temp }}°C
+              </span>
+            {% else %}
+              <span class="text-secondary small fst-italic">N/A</span>
+            {% endif %}
+          </div>
+          {% if nas_metrics.temp is not null %}
+            <div class="mt-2">
+              <div class="progress" style="height: 6px;">
+                {% set temp_pct = (nas_metrics.temp / 90 * 100)|round %}
+                <div id="sse-nas-temp-bar" class="progress-bar {% if nas_metrics.temp > 70 %}bg-danger{% elseif nas_metrics.temp > 55 %}bg-warning{% else %}bg-success{% endif %}"
+                     style="width: {{ temp_pct > 100 ? 100 : temp_pct }}%" role="progressbar"></div>
+              </div>
+              <div class="d-flex justify-content-between mt-1">
+                <span style="font-size: 0.68rem; color: var(--tblr-muted);">0°C</span>
+                <span style="font-size: 0.68rem; color: var(--tblr-muted);">90°C</span>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ── Volumes ── #}
+  {% if nas_volumes is not empty %}
+    <div class="row g-3 mb-4">
+      {% for vol in nas_volumes %}
+        <div class="col-md-6 col-xl-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="d-flex align-items-center gap-2 mb-3">
+                <div class="avatar avatar-sm bg-teal-lt" style="border-radius: 8px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                       fill="none" stroke="var(--tblr-teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <ellipse cx="12" cy="6" rx="8" ry="3"/>
+                    <path d="M4 6v6a8 3 0 0 0 16 0v-6m-16 6v6a8 3 0 0 0 16 0v-6"/>
+                  </svg>
+                </div>
+                <div class="fw-semibold">{{ vol.id|upper }}</div>
+                {% if vol.percent is not null %}
+                  <span class="badge ms-auto {% if vol.percent > 90 %}bg-danger-lt text-danger{% elseif vol.percent > 75 %}bg-warning-lt text-warning{% else %}bg-teal-lt text-teal{% endif %}">
+                    {{ vol.percent }}%
+                  </span>
+                {% endif %}
+              </div>
+              {% if vol.percent is not null %}
+                <div class="progress mb-2" style="height: 8px; border-radius: 4px;">
+                  <div class="progress-bar {% if vol.percent > 90 %}bg-danger{% elseif vol.percent > 75 %}bg-warning{% else %}bg-teal{% endif %}"
+                       style="width: {{ vol.percent > 100 ? 100 : vol.percent }}%" role="progressbar"></div>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted" style="font-size: 0.75rem;">
+                    Utilisé : <span class="fw-semibold text-body">{{ vol.used_gb }} GB</span>
+                  </span>
+                  <span class="text-muted" style="font-size: 0.75rem;">
+                    Total : <span class="fw-semibold text-body">{{ vol.total_gb }} GB</span>
+                  </span>
+                </div>
+                {% if vol.total_gb is not null and vol.used_gb is not null %}
+                  <div class="text-muted mt-1" style="font-size: 0.72rem;">
+                    Libre : {{ (vol.total_gb - vol.used_gb)|round(1) }} GB
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="text-secondary small fst-italic">En attente…</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {# ── Section système (chargée via AJAX /infrastructure/nas/live) ── #}
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="me-2 text-secondary">
+              <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/>
+              <path d="M6 6h.01m0 12h.01"/>
+            </svg>
+            Informations système
+          </div>
+        </div>
+        <div class="card-body p-3" id="nas-sysinfo-body">
+          <div class="d-flex align-items-center gap-2 text-secondary small fst-italic" id="nas-sysinfo-spinner">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+            Chargement…
+          </div>
+          <table class="table table-sm table-borderless mb-0 d-none" id="nas-sysinfo-table">
+            <tbody>
+              <tr>
+                <td class="text-secondary" style="font-size:.8rem; width:40%;">Modèle</td>
+                <td class="fw-semibold small" id="live-nas-model">—</td>
+              </tr>
+              <tr>
+                <td class="text-secondary" style="font-size:.8rem;">Firmware DSM</td>
+                <td class="fw-semibold small" id="live-nas-firmware">—</td>
+              </tr>
+              <tr>
+                <td class="text-secondary" style="font-size:.8rem;">Numéro de série</td>
+                <td class="fw-semibold small" id="live-nas-serial">—</td>
+              </tr>
+              <tr>
+                <td class="text-secondary" style="font-size:.8rem;">Uptime</td>
+                <td class="fw-semibold small" id="live-nas-uptime">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    {# ── Réseau (chargé via AJAX) ── #}
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="me-2 text-secondary">
+              <path d="M9 12h6m-3 -3v6"/><circle cx="12" cy="12" r="9"/>
+            </svg>
+            Interfaces réseau
+          </div>
+        </div>
+        <div class="card-body p-0" id="nas-network-body">
+          <div class="d-flex align-items-center gap-2 text-secondary small fst-italic p-3" id="nas-network-spinner">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+            Chargement…
+          </div>
+          <div class="d-none" id="nas-network-content">
+            <table class="table table-sm table-vcenter mb-0">
+              <thead>
+                <tr>
+                  <th>Interface</th>
+                  <th class="text-end text-success">TX</th>
+                  <th class="text-end text-azure">RX</th>
+                </tr>
+              </thead>
+              <tbody id="nas-network-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Disques physiques (chargés via AJAX, températures enrichies par DB) ── #}
+  <div class="card mb-4">
+    <div class="card-header">
+      <div class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="me-2 text-secondary">
+          <ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6a8 3 0 0 0 16 0v-6m-16 6v6a8 3 0 0 0 16 0v-6"/>
+        </svg>
+        Disques physiques
+      </div>
+    </div>
+    <div class="card-body p-0" id="nas-disks-body">
+      <div class="d-flex align-items-center gap-2 text-secondary small fst-italic p-3" id="nas-disks-spinner">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+        Chargement…
+      </div>
+      <div class="d-none" id="nas-disks-content">
+        <div class="table-responsive">
+          <table class="table table-sm table-vcenter table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Slot</th>
+                <th>Modèle</th>
+                <th class="text-center">Type</th>
+                <th class="text-end">Taille</th>
+                <th class="text-center">Température</th>
+                <th class="text-center">SMART</th>
+                <th class="text-center">Statut</th>
+              </tr>
+            </thead>
+            <tbody id="nas-disks-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Docker containers NAS ── #}
+  <div class="card mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <div class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="me-2 text-secondary">
+          <path d="M22 12.54c-1.804-.345-2.701-1.08-3.523-2.94"/>
+          <path d="M2 13h20"/>
+          <rect x="2" y="8" width="20" height="10" rx="2"/>
+          <path d="M6 8V6"/><path d="M10 8V6"/><path d="M14 8V6"/><path d="M18 8V6"/>
+        </svg>
+        Docker NAS
+      </div>
+      <span class="badge bg-secondary-lt" id="nas-docker-count">…</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="d-flex align-items-center gap-2 text-secondary small fst-italic p-3" id="nas-docker-spinner">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+        Chargement…
+      </div>
+      <div class="d-none" id="nas-docker-content">
+        <div class="table-responsive">
+          <table class="table table-sm table-vcenter table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Image</th>
+                <th class="text-center">Statut</th>
+              </tr>
+            </thead>
+            <tbody id="nas-docker-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+  /* ── Températures disques connues depuis DB (pour enrichissement AJAX) ── */
+  var diskTempsDb = {{ nas_disks_db is defined ? nas_disks_db|json_encode|raw : '{}' }};
+
+  /* ── Helpers ── */
+  function mercureUrl(topic) {
+    var u = new URL('/.well-known/mercure', window.location.origin);
+    u.searchParams.append('topic', topic);
+    return u.toString();
+  }
+  function setEl(id, txt, cls) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (txt !== undefined && txt !== null) el.textContent = txt;
+    if (cls !== undefined) el.className = cls;
+  }
+  function setBar(id, pct, cls) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.width = Math.min(pct, 100) + '%';
+    if (cls) el.className = 'progress-bar ' + cls;
+  }
+  function fmtBytes(b) {
+    if (b === null || b === undefined) return '—';
+    if (b >= 1073741824) return (b / 1073741824).toFixed(1) + ' GB/s';
+    if (b >= 1048576)    return (b / 1048576).toFixed(1) + ' MB/s';
+    if (b >= 1024)       return (b / 1024).toFixed(1) + ' KB/s';
+    return b.toFixed(0) + ' B/s';
+  }
+  function fmtMb(mb) {
+    if (mb === null || mb === undefined) return '—';
+    return mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : mb + ' MB';
+  }
+  function tempClass(t) {
+    if (t === null || t === undefined) return 'text-secondary';
+    return t > 55 ? 'text-danger fw-bold' : t > 45 ? 'text-warning fw-semibold' : 'text-success';
+  }
+  function statusBadge(s) {
+    if (s === 'normal' || s === 'good') return '<span class="badge bg-success-lt text-success">OK</span>';
+    if (s === 'warning')                return '<span class="badge bg-warning-lt text-warning">Warning</span>';
+    return '<span class="badge bg-danger-lt text-danger">' + (s || 'inconnu') + '</span>';
+  }
+
+  /* ── Mini sparkline SVG ── */
+  var _nasSpkId = 0;
+  function miniSparkSvg(data, color) {
+    if (!data || data.length < 2) return '';
+    var id = 'nsg' + (++_nasSpkId);
+    var W = 300, H = 40, px = 1, py = 4;
+    var max = Math.max.apply(null, data.concat([0.001]));
+    var coords = data.map(function (v, i) {
+      return { x: px + i / (data.length - 1) * (W - 2*px), y: py + (1 - v/max) * (H - 2*py) };
+    });
+    var pts  = coords.map(function (c) { return c.x.toFixed(1) + ',' + c.y.toFixed(1); }).join(' ');
+    var lc   = coords[coords.length - 1];
+    var area = 'M ' + coords.map(function (c) { return c.x.toFixed(1) + ' ' + c.y.toFixed(1); }).join(' L ')
+             + ' L ' + lc.x.toFixed(1) + ' ' + H + ' L ' + coords[0].x.toFixed(1) + ' ' + H + ' Z';
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" style="width:100%;height:40px;display:block">'
+      + '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="' + color + '" stop-opacity="0.3"/>'
+      + '<stop offset="100%" stop-color="' + color + '" stop-opacity="0.02"/>'
+      + '</linearGradient></defs>'
+      + '<path d="' + area + '" fill="url(#' + id + ')"/>'
+      + '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>'
+      + '<circle cx="' + lc.x.toFixed(1) + '" cy="' + lc.y.toFixed(1) + '" r="2.5" fill="' + color + '"/>'
+      + '</svg>';
+  }
+  var _nasBuf = { cpu: [], ram: [] };
+  var NAS_BUF = 40;
+
+  /* ── Rendu disques (initial) ── */
+  function smartBadge(s) {
+    if (!s || s === 'not_initialized') return '<span class="text-secondary">—</span>';
+    if (s === 'normal')  return '<span class="badge bg-success-lt text-success">OK</span>';
+    if (s === 'warning') return '<span class="badge bg-warning-lt text-warning">Warn</span>';
+    return '<span class="badge bg-danger-lt text-danger">' + s + '</span>';
+  }
+  function typeBadge(t) {
+    if (!t) return '<span class="text-secondary">—</span>';
+    var cls = t.toUpperCase() === 'SSD' ? 'bg-azure-lt text-azure' : 'bg-secondary-lt text-muted';
+    return '<span class="badge ' + cls + '">' + t.toUpperCase() + '</span>';
+  }
+  function renderDisks(disks) {
+    var tbody = document.getElementById('nas-disks-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!disks || disks.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-secondary fst-italic py-3">Aucun disque détecté.</td></tr>';
+      return;
+    }
+    disks.forEach(function (disk) {
+      var temp = disk.temp;
+      if (temp === null || temp === undefined) {
+        var dbKey = disk.id.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
+        temp = diskTempsDb[dbKey] !== undefined ? diskTempsDb[dbKey] : null;
+      }
+      var tempCell = temp !== null
+        ? '<span class="' + tempClass(temp) + '">' + temp + '°C</span>'
+        : '<span class="text-secondary">—</span>';
+      var sizeCell = disk.size_gb ? disk.size_gb + ' GB' : '—';
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-disk-id', disk.id || '');
+      var modelStr = disk.model || '—';
+      if (disk.firm) modelStr += ' <span class="text-muted" style="font-size:.72rem">' + disk.firm + '</span>';
+      tr.innerHTML =
+        '<td class="fw-semibold small">' + (disk.id || '—') + '</td>' +
+        '<td class="text-secondary small">' + modelStr + '</td>' +
+        '<td class="text-center">' + typeBadge(disk.type) + '</td>' +
+        '<td class="text-end small">' + sizeCell + '</td>' +
+        '<td class="text-center disk-temp-cell">' + tempCell + '</td>' +
+        '<td class="text-center">' + smartBadge(disk.smart_status) + '</td>' +
+        '<td class="text-center">' + statusBadge(disk.status) + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ── Mise à jour températures en place (SSE) ── */
+  function updateDiskTemps(disks) {
+    var tbody = document.getElementById('nas-disks-tbody');
+    if (!tbody || !tbody.querySelector('[data-disk-id]')) { renderDisks(disks); return; }
+    disks.forEach(function (disk) {
+      var row = tbody.querySelector('[data-disk-id="' + disk.id + '"]');
+      if (!row) return;
+      var cell = row.querySelector('.disk-temp-cell');
+      if (!cell) return;
+      var temp = disk.temp;
+      if (temp === null || temp === undefined) {
+        var dbKey = disk.id.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
+        temp = diskTempsDb[dbKey] !== undefined ? diskTempsDb[dbKey] : null;
+      }
+      cell.innerHTML = temp !== null
+        ? '<span class="' + tempClass(temp) + '">' + temp + '°C</span>'
+        : '<span class="text-secondary">—</span>';
+    });
+  }
+
+  /* ── Rendu réseau (initial) ── */
+  function renderNetwork(network) {
+    var tbody = document.getElementById('nas-network-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!network || network.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary fst-italic py-3">Aucune interface.</td></tr>';
+      return;
+    }
+    network.forEach(function (iface) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-iface', iface.device || '');
+      tr.innerHTML =
+        '<td class="fw-semibold small">' + (iface.device || '—') + '</td>' +
+        '<td class="text-end small text-success nas-tx-cell">' + fmtBytes(iface.tx) + '</td>' +
+        '<td class="text-end small text-azure nas-rx-cell">' + fmtBytes(iface.rx) + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ── Mise à jour TX/RX en place (SSE) ── */
+  function updateNetworkRates(network) {
+    var tbody = document.getElementById('nas-network-tbody');
+    if (!tbody || !tbody.querySelector('[data-iface]')) { renderNetwork(network); return; }
+    network.forEach(function (iface) {
+      var row = tbody.querySelector('[data-iface="' + iface.device + '"]');
+      if (!row) return;
+      var txCell = row.querySelector('.nas-tx-cell');
+      var rxCell = row.querySelector('.nas-rx-cell');
+      if (txCell) txCell.textContent = fmtBytes(iface.tx);
+      if (rxCell) rxCell.textContent = fmtBytes(iface.rx);
+    });
+  }
+
+  /* ── Docker containers NAS ── */
+  function renderDockerContainers(containers) {
+    var tbody   = document.getElementById('nas-docker-tbody');
+    var count   = document.getElementById('nas-docker-count');
+    var spinner = document.getElementById('nas-docker-spinner');
+    var content = document.getElementById('nas-docker-content');
+    if (!tbody) return;
+    if (spinner) spinner.classList.add('d-none');
+    if (content) content.classList.remove('d-none');
+    if (count)   count.textContent = containers ? containers.length : 0;
+    tbody.innerHTML = '';
+    if (!containers || containers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary fst-italic py-3">Aucun container Docker.</td></tr>';
+      return;
+    }
+    containers.forEach(function (c) {
+      var isRunning = c.status === 'running';
+      var dot  = isRunning ? '<span class="status-dot status-dot-animated bg-success me-1" style="width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;vertical-align:middle;"></span>' : '';
+      var badge = isRunning
+        ? '<span class="badge bg-success-lt text-success d-inline-flex align-items-center gap-1">' + dot + 'running</span>'
+        : '<span class="badge bg-secondary-lt text-secondary">' + (c.status || 'stopped') + '</span>';
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="fw-semibold small">' + (c.name || '—') + '</td>' +
+        '<td class="text-secondary small font-monospace" style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (c.image || '') + '">' + (c.image || '—') + '</td>' +
+        '<td class="text-center">' + badge + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ── Chargement AJAX live ── */
+  function loadNasLive() {
+    fetch('/infrastructure/nas/live', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (d) {
+        // Infos système
+        var spinner = document.getElementById('nas-sysinfo-spinner');
+        var table   = document.getElementById('nas-sysinfo-table');
+        if (spinner) spinner.classList.add('d-none');
+        if (table)   table.classList.remove('d-none');
+        setEl('live-nas-model',    d.model    || '—');
+        setEl('live-nas-firmware', d.firmware || '—');
+        setEl('live-nas-serial',   d.serial   || '—');
+        setEl('live-nas-uptime',   d.uptime   || '—');
+
+        // Enrichissement dynamique de la table sysinfo
+        if (d.cpu_info && document.getElementById('live-nas-model')) {
+          var tbody = document.getElementById('nas-sysinfo-table').querySelector('tbody');
+          if (tbody && !document.getElementById('live-nas-cpu')) {
+            var rowCpu = document.createElement('tr');
+            rowCpu.innerHTML = '<td class="text-secondary" style="font-size:.8rem;">CPU</td><td class="fw-semibold small" id="live-nas-cpu">' + (d.cpu_info || '—') + '</td>';
+            tbody.appendChild(rowCpu);
+          }
+          if (d.ram_size_mb && !document.getElementById('live-nas-ram-size')) {
+            var rowRam = document.createElement('tr');
+            var ramLabel = d.ram_size_mb >= 1024 ? (d.ram_size_mb / 1024).toFixed(0) + ' GB' : d.ram_size_mb + ' MB';
+            rowRam.innerHTML = '<td class="text-secondary" style="font-size:.8rem;">RAM installée</td><td class="fw-semibold small" id="live-nas-ram-size">' + ramLabel + '</td>';
+            tbody.appendChild(rowRam);
+          }
+        }
+
+        // Disques
+        var diskSpinner = document.getElementById('nas-disks-spinner');
+        var diskContent = document.getElementById('nas-disks-content');
+        if (diskSpinner) diskSpinner.classList.add('d-none');
+        if (diskContent) diskContent.classList.remove('d-none');
+        renderDisks(d.disks);
+
+        // Réseau
+        var netSpinner = document.getElementById('nas-network-spinner');
+        var netContent = document.getElementById('nas-network-content');
+        if (netSpinner) netSpinner.classList.add('d-none');
+        if (netContent) netContent.classList.remove('d-none');
+        renderNetwork(d.network);
+
+        // Docker containers
+        renderDockerContainers(d.docker || []);
+      })
+      .catch(function () {
+        ['nas-sysinfo-spinner', 'nas-disks-spinner', 'nas-network-spinner', 'nas-docker-spinner'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.innerHTML = '<span class="text-danger small">Erreur de chargement.</span>';
+        });
+      });
+  }
+
+  /* ── SSE Mercure ── */
+  function init() {
+    if (window._argosNasSrc) { window._argosNasSrc.close(); window._argosNasSrc = null; }
+    if (!document.getElementById('sse-nas-cpu-val')) return;
+
+    // Chargement AJAX au démarrage
+    loadNasLive();
+
+    window._argosNasSrc = new EventSource(mercureUrl('/argos/metrics/nas'));
+    window._argosNasSrc.onmessage = function (e) {
+      var d = JSON.parse(e.data);
+
+      // CPU
+      if (d.cpu !== null && d.cpu !== undefined) {
+        var cpuCls = 'fw-bold ' + (d.cpu > 80 ? 'text-danger' : d.cpu > 50 ? 'text-warning' : 'text-cyan');
+        setEl('sse-nas-cpu-val', d.cpu.toFixed(1) + '%', cpuCls);
+        setBar('sse-nas-cpu-bar', d.cpu, d.cpu > 80 ? 'bg-danger' : d.cpu > 50 ? 'bg-warning' : 'bg-cyan');
+        _nasBuf.cpu.push(d.cpu); if (_nasBuf.cpu.length > NAS_BUF) _nasBuf.cpu.shift();
+        var spkCpu = document.getElementById('sse-nas-cpu-spk');
+        if (spkCpu && _nasBuf.cpu.length >= 2) spkCpu.innerHTML = miniSparkSvg(_nasBuf.cpu, 'var(--tblr-cyan)');
+      }
+
+      // RAM %
+      if (d.mem !== null && d.mem !== undefined) {
+        var memCls = 'fw-bold ' + (d.mem > 80 ? 'text-danger' : d.mem > 60 ? 'text-warning' : 'text-indigo');
+        setEl('sse-nas-ram-val', d.mem.toFixed(1) + '%', memCls);
+        setBar('sse-nas-ram-bar', d.mem, d.mem > 80 ? 'bg-danger' : d.mem > 60 ? 'bg-warning' : 'bg-indigo');
+        _nasBuf.ram.push(d.mem); if (_nasBuf.ram.length > NAS_BUF) _nasBuf.ram.shift();
+        var spkRam = document.getElementById('sse-nas-ram-spk');
+        if (spkRam && _nasBuf.ram.length >= 2) spkRam.innerHTML = miniSparkSvg(_nasBuf.ram, 'var(--tblr-indigo)');
+      }
+
+      // RAM MB détaillée
+      if (d.mem_total_mb && d.mem_total_mb > 0) {
+        var pct = Math.round((d.mem_used_mb / d.mem_total_mb) * 100 * 10) / 10;
+        setEl('sse-nas-mem-total',     fmtMb(d.mem_total_mb));
+        setEl('sse-nas-mem-used',      fmtMb(d.mem_used_mb));
+        setEl('sse-nas-mem-free',      fmtMb(d.mem_total_mb - d.mem_used_mb));
+        setEl('sse-nas-mem-pct-label', pct + '%');
+        var barDetail = document.getElementById('sse-nas-mem-bar-detail');
+        if (barDetail) {
+          barDetail.style.width = Math.min(pct, 100) + '%';
+          barDetail.className = 'progress-bar ' + (pct > 85 ? 'bg-danger' : pct > 65 ? 'bg-warning' : 'bg-indigo');
+        }
+      }
+
+      // Temp
+      if (d.temp !== null && d.temp !== undefined) {
+        var tempCls = 'h3 mb-0 fw-bold ' + (d.temp > 70 ? 'text-danger' : d.temp > 55 ? 'text-warning' : 'text-success');
+        setEl('sse-nas-temp-val', d.temp.toFixed(1) + '°C', tempCls);
+        setBar('sse-nas-temp-bar', d.temp / 90 * 100, d.temp > 70 ? 'bg-danger' : d.temp > 55 ? 'bg-warning' : 'bg-success');
+      }
+
+      // Disques : mise à jour températures en place uniquement
+      if (d.disks && d.disks.length > 0) {
+        var diskContent = document.getElementById('nas-disks-content');
+        var diskSpinner = document.getElementById('nas-disks-spinner');
+        if (diskContent) diskContent.classList.remove('d-none');
+        if (diskSpinner) diskSpinner.classList.add('d-none');
+        updateDiskTemps(d.disks);
+      }
+
+      // Réseau : mise à jour TX/RX en place uniquement
+      if (d.network && d.network.length > 0) {
+        var netContent = document.getElementById('nas-network-content');
+        var netSpinner = document.getElementById('nas-network-spinner');
+        if (netContent) netContent.classList.remove('d-none');
+        if (netSpinner) netSpinner.classList.add('d-none');
+        updateNetworkRates(d.network);
+      }
+
+      var sc = document.getElementById('sse-page-sync');
+      if (sc && d.last_seen) sc.textContent = d.last_seen;
+    };
+  }
+
+  if (!window._argosNasListeners) {
+    window._argosNasListeners = true;
+    document.addEventListener('turbo:load', init);
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('turbo:before-cache', function () {
+      if (window._argosNasSrc) { window._argosNasSrc.close(); window._argosNasSrc = null; }
+    });
+  }
+  init();
+})();
+</script>
+{% endblock %}

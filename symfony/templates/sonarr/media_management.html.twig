@@ -1,0 +1,211 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des médias — Sonarr{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Gestion des médias</h2></div>
+      <div class="col-auto ms-auto">{% include 'media/_sonarr_nav.html.twig' %}</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+{% endif %}
+
+<div id="mm-feedback" class="alert d-none mb-3"></div>
+
+{# ── Nommage ── #}
+{% if namingConfig %}
+<div class="card mb-3">
+  <div class="card-header"><h3 class="card-title">Format de nommage</h3></div>
+  <div class="card-body">
+    <form id="naming-form">
+      <div class="mb-3">
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" name="renameEpisodes" id="renameEpisodes" {{ namingConfig.renameEpisodes ?? false ? 'checked' }}>
+          <label class="form-check-label" for="renameEpisodes">Renommer les épisodes</label>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Format épisode standard</label>
+          <input type="text" name="standardEpisodeFormat" class="form-control form-control-sm" value="{{ namingConfig.standardEpisodeFormat ?? '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Format épisode quotidien</label>
+          <input type="text" name="dailyEpisodeFormat" class="form-control form-control-sm" value="{{ namingConfig.dailyEpisodeFormat ?? '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Format épisode anime</label>
+          <input type="text" name="animeEpisodeFormat" class="form-control form-control-sm" value="{{ namingConfig.animeEpisodeFormat ?? '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Format dossier série</label>
+          <input type="text" name="seriesFolderFormat" class="form-control form-control-sm" value="{{ namingConfig.seriesFolderFormat ?? '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Format dossier saison</label>
+          <input type="text" name="seasonFolderFormat" class="form-control form-control-sm" value="{{ namingConfig.seasonFolderFormat ?? '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Style multi-épisodes</label>
+          <select name="multiEpisodeStyle" class="form-select form-select-sm">
+            <option value="0" {{ (namingConfig.multiEpisodeStyle ?? 0) == 0 ? 'selected' }}>Extend</option>
+            <option value="1" {{ (namingConfig.multiEpisodeStyle ?? 0) == 1 ? 'selected' }}>Duplicate</option>
+            <option value="2" {{ (namingConfig.multiEpisodeStyle ?? 0) == 2 ? 'selected' }}>Repeat</option>
+            <option value="3" {{ (namingConfig.multiEpisodeStyle ?? 0) == 3 ? 'selected' }}>Scene</option>
+            <option value="4" {{ (namingConfig.multiEpisodeStyle ?? 0) == 4 ? 'selected' }}>Range</option>
+            <option value="5" {{ (namingConfig.multiEpisodeStyle ?? 0) == 5 ? 'selected' }}>Prefixed Range</option>
+          </select>
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary btn-sm">Sauvegarder le nommage</button>
+        <button type="button" id="btn-naming-preview" class="btn btn-outline-secondary btn-sm">Prévisualiser</button>
+      </div>
+    </form>
+    <div id="naming-preview" class="mt-3" style="display:none;">
+      <div class="table-responsive">
+        <table class="table table-sm table-vcenter mb-0" style="font-size:.8rem;">
+          <tbody id="naming-preview-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Gestion des médias ── #}
+{% if mmConfig %}
+<div class="card mb-3">
+  <div class="card-header"><h3 class="card-title">Gestion des médias</h3></div>
+  <div class="card-body">
+    <form id="mm-form">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="autoUnmonitorPreviouslyDownloadedEpisodes" id="autoUnmonitor" {{ mmConfig.autoUnmonitorPreviouslyDownloadedEpisodes ?? false ? 'checked' }}>
+            <label class="form-check-label" for="autoUnmonitor">Auto-unmonitor épisodes téléchargés</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="createEmptySeriesFolders" id="createEmptyFolders" {{ mmConfig.createEmptySeriesFolders ?? false ? 'checked' }}>
+            <label class="form-check-label" for="createEmptyFolders">Créer dossiers séries vides</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="deleteEmptyFolders" id="deleteEmptyFolders" {{ mmConfig.deleteEmptyFolders ?? false ? 'checked' }}>
+            <label class="form-check-label" for="deleteEmptyFolders">Supprimer dossiers vides</label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Corbeille</label>
+          <input type="text" name="recycleBin" class="form-control form-control-sm" value="{{ mmConfig.recycleBin ?? '' }}" placeholder="Chemin corbeille (vide = désactivé)">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Durée corbeille (jours)</label>
+          <input type="number" name="recycleBinCleanupDays" class="form-control form-control-sm" value="{{ mmConfig.recycleBinCleanupDays ?? 7 }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Propers & Repacks</label>
+          <select name="downloadPropersAndRepacks" class="form-select form-select-sm">
+            <option value="preferAndUpgrade" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'preferAndUpgrade' ? 'selected' }}>Préférer et upgrader</option>
+            <option value="doNotUpgrade" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'doNotUpgrade' ? 'selected' }}>Ne pas upgrader</option>
+            <option value="doNotPrefer" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'doNotPrefer' ? 'selected' }}>Ne pas préférer</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm mt-3">Sauvegarder la gestion</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+  function showFeedback(msg, type) {
+    var el = document.getElementById('mm-feedback');
+    el.className = 'alert alert-' + type + ' mb-3';
+    el.textContent = msg;
+    el.classList.remove('d-none');
+    if (type === 'success') setTimeout(function() { el.classList.add('d-none'); }, 3000);
+  }
+
+  document.getElementById('naming-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var data = {};
+    new FormData(this).forEach(function(v, k) { data[k] = v; });
+    data.renameEpisodes = !!document.getElementById('renameEpisodes').checked;
+    data.multiEpisodeStyle = parseInt(data.multiEpisodeStyle || 0);
+    fetch('/sonarr/gestion-medias/naming', {
+      method: 'POST', headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+      body: JSON.stringify(data)
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      showFeedback(d.ok ? 'Nommage sauvegardé.' : 'Erreur : ' + (d.error || '?'), d.ok ? 'success' : 'danger');
+    });
+  });
+
+  document.getElementById('btn-naming-preview').addEventListener('click', function() {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Chargement...';
+    fetch('/sonarr/gestion-medias/naming/examples', {
+      headers: {'X-Requested-With':'XMLHttpRequest'}
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      btn.disabled = false;
+      btn.textContent = 'Prévisualiser';
+      var tbody = document.getElementById('naming-preview-tbody');
+      var rows = '';
+      var labels = {
+        singleEpisodeExample: 'Épisode standard',
+        dailyEpisodeExample: 'Épisode quotidien',
+        animeEpisodeExample: 'Épisode anime',
+        multiEpisodeExample: 'Multi-épisodes',
+        seriesFolderExample: 'Dossier série',
+        seasonFolderExample: 'Dossier saison'
+      };
+      for (var key in labels) {
+        if (data[key]) {
+          rows += '<tr><td class="text-muted" style="width:160px">' + labels[key] + '</td><td class="font-monospace">' + data[key] + '</td></tr>';
+        }
+      }
+      tbody.innerHTML = rows || '<tr><td class="text-muted">Aucun exemple disponible</td></tr>';
+      document.getElementById('naming-preview').style.display = '';
+    }).catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Prévisualiser';
+    });
+  });
+
+  document.getElementById('mm-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var data = {};
+    new FormData(this).forEach(function(v, k) { data[k] = v; });
+    data.autoUnmonitorPreviouslyDownloadedEpisodes = !!document.getElementById('autoUnmonitor').checked;
+    data.createEmptySeriesFolders = !!document.getElementById('createEmptyFolders').checked;
+    data.deleteEmptyFolders = !!document.getElementById('deleteEmptyFolders').checked;
+    data.recycleBinCleanupDays = parseInt(data.recycleBinCleanupDays || 7);
+    fetch('/sonarr/gestion-medias/mediamanagement', {
+      method: 'POST', headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+      body: JSON.stringify(data)
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      showFeedback(d.ok ? 'Gestion sauvegardée.' : 'Erreur : ' + (d.error || '?'), d.ok ? 'success' : 'danger');
+    });
+  });
+})();
+</script>
+{% endblock %}

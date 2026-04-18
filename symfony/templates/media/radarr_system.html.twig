@@ -1,0 +1,310 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Système Radarr — IH-ARGOS{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Système Radarr</h2>
+      </div>
+      <div class="col-auto ms-auto">
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+<div class="row g-3">
+
+{# ── Statut ── #}
+<div class="col-12 col-lg-6">
+  <div class="card h-100">
+    <div class="card-header">
+      <h3 class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        Statut système
+      </h3>
+    </div>
+    <div class="card-body">
+      {% if status %}
+        <dl class="row g-1">
+          <dt class="col-5 text-muted small">Version</dt>
+          <dd class="col-7 small fw-medium mb-0">{{ status.version ?? '—' }}</dd>
+
+          <dt class="col-5 text-muted small">OS</dt>
+          <dd class="col-7 small mb-0">{{ status.osName ?? '—' }} {{ status.osVersion ?? '' }}</dd>
+
+          <dt class="col-5 text-muted small">.NET</dt>
+          <dd class="col-7 small mb-0">{{ status.runtimeVersion ?? '—' }}</dd>
+
+          <dt class="col-5 text-muted small">Base de données</dt>
+          <dd class="col-7 small mb-0">{{ status.databaseVersion ?? '—' }}</dd>
+
+          {% if status.startTime is defined %}
+          <dt class="col-5 text-muted small">Démarré le</dt>
+          <dd class="col-7 small mb-0">{{ status.startTime|date('d/m/Y H:i') }}</dd>
+          {% endif %}
+
+          <dt class="col-5 text-muted small">URL de base</dt>
+          <dd class="col-7 small mb-0">{{ status.urlBase ?? '/' }}</dd>
+
+          {% if status.isDocker is defined %}
+          <dt class="col-5 text-muted small">Docker</dt>
+          <dd class="col-7 small mb-0">
+            {% if status.isDocker %}
+              <span class="badge bg-blue-lt">Oui</span>
+            {% else %}
+              <span class="badge bg-secondary-lt">Non</span>
+            {% endif %}
+          </dd>
+          {% endif %}
+
+          {% if status.updateAvailable is defined %}
+          <dt class="col-5 text-muted small">Mise à jour</dt>
+          <dd class="col-7 small mb-0">
+            {% if status.updateAvailable %}
+              <span class="badge bg-warning-lt text-warning">Disponible</span>
+            {% else %}
+              <span class="badge bg-success-lt">À jour</span>
+            {% endif %}
+          </dd>
+          {% endif %}
+        </dl>
+      {% else %}
+        <div class="text-muted small">Statut indisponible</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Santé ── #}
+<div class="col-12 col-lg-6">
+  <div class="card h-100">
+    <div class="card-header">
+      <h3 class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Santé
+        {% if health|length > 0 %}
+          <span class="badge bg-warning-lt text-warning ms-1">{{ health|length }} alerte(s)</span>
+        {% else %}
+          <span class="badge bg-success-lt ms-1">OK</span>
+        {% endif %}
+      </h3>
+    </div>
+    <div class="card-body">
+      {% if health is empty %}
+        <div class="text-success small d-flex align-items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Aucun problème détecté
+        </div>
+      {% else %}
+        <ul class="list-unstyled mb-0">
+        {% for item in health %}
+          <li class="d-flex gap-2 mb-2 pb-2 border-bottom border-1" style="border-color:var(--tblr-border-color)!important">
+            {% if item.type == 'error' %}
+              <span class="badge bg-danger-lt flex-shrink-0">Erreur</span>
+            {% elseif item.type == 'warning' %}
+              <span class="badge bg-warning-lt flex-shrink-0">Avert.</span>
+            {% else %}
+              <span class="badge bg-blue-lt flex-shrink-0">Info</span>
+            {% endif %}
+            <span class="small">{{ item.message ?? item.source ?? '—' }}</span>
+          </li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Espace disque ── #}
+<div class="col-12">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        Espace disque
+      </h3>
+    </div>
+    <div class="card-body">
+      {% if diskSpace is empty %}
+        <div class="text-muted small">Aucune information disponible</div>
+      {% else %}
+        {% for disk in diskSpace %}
+          {% set usedBytes = disk.totalSpace - disk.freeSpace %}
+          {% set pct = disk.totalSpace > 0 ? (usedBytes / disk.totalSpace * 100)|round : 0 %}
+          {% set freeGb = (disk.freeSpace / 1073741824)|round(1) %}
+          {% set totalGb = (disk.totalSpace / 1073741824)|round(1) %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small fw-medium">{{ disk.path ?? disk.label ?? '/' }}</span>
+              <span class="small text-muted">{{ freeGb }} Go libres / {{ totalGb }} Go total</span>
+            </div>
+            <div class="progress progress-sm">
+              <div class="progress-bar {% if pct > 90 %}bg-danger{% elseif pct > 75 %}bg-warning{% else %}bg-primary{% endif %}"
+                   style="width:{{ pct }}%" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100">
+              </div>
+            </div>
+            <div class="text-muted" style="font-size:.7rem;margin-top:.2rem">{{ pct }}% utilisé</div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Clients de téléchargement ── #}
+<div class="col-12 col-lg-6">
+  <div class="card h-100">
+    <div class="card-header">
+      <h3 class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Clients de téléchargement
+      </h3>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-vcenter table-sm card-table mb-0">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Type</th>
+            <th>Activé</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for client in downloadClients %}
+          <tr>
+            <td class="fw-medium">{{ client.name ?? '—' }}</td>
+            <td class="text-muted small">{{ client.implementation ?? client.type ?? '—' }}</td>
+            <td>
+              {% if client.enable ?? false %}
+                <span class="badge bg-success-lt">Oui</span>
+              {% else %}
+                <span class="badge bg-secondary-lt">Non</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="3" class="text-center text-muted py-3">Aucun client configuré</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{# ── Indexeurs ── #}
+<div class="col-12 col-lg-6">
+  <div class="card h-100">
+    <div class="card-header">
+      <h3 class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Indexeurs
+      </h3>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-vcenter table-sm card-table mb-0">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Activé</th>
+            <th>RSS</th>
+            <th>Recherche</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for idx in indexers %}
+          <tr>
+            <td class="fw-medium">{{ idx.name ?? '—' }}</td>
+            <td>
+              {% if idx.enable ?? idx.enableRss ?? false %}
+                <span class="badge bg-success-lt">Oui</span>
+              {% else %}
+                <span class="badge bg-secondary-lt">Non</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if idx.enableRss ?? false %}
+                <span class="text-success small">✓</span>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if idx.enableAutomaticSearch ?? false %}
+                <span class="text-success small">✓</span>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="text-center text-muted py-3">Aucun indexeur configuré</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{# ── Logs récents ── #}
+<div class="col-12">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Logs récents
+      </h3>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-vcenter table-sm card-table mb-0">
+        <thead>
+          <tr>
+            <th style="width:140px">Date</th>
+            <th style="width:90px">Niveau</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for log in logs %}
+          <tr>
+            <td class="text-muted small text-nowrap">
+              {% if log.time is defined %}{{ log.time|date('d/m/Y H:i:s') }}{% else %}—{% endif %}
+            </td>
+            <td>
+              {% set lvl = log.level ?? '' %}
+              {% if lvl == 'error' or lvl == 'fatal' %}
+                <span class="badge bg-danger-lt">{{ lvl }}</span>
+              {% elseif lvl == 'warn' or lvl == 'warning' %}
+                <span class="badge bg-warning-lt">{{ lvl }}</span>
+              {% elseif lvl == 'debug' %}
+                <span class="badge bg-secondary-lt">debug</span>
+              {% else %}
+                <span class="badge bg-blue-lt">{{ lvl ?: 'info' }}</span>
+              {% endif %}
+            </td>
+            <td class="small" style="word-break:break-all">
+              {{ log.message ?? '—' }}
+              {% if log.exception is defined and log.exception %}
+                <br><span class="text-muted" style="font-size:.7rem">{{ log.exception|slice(0, 200) }}</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="3" class="text-center text-muted py-3">Aucun log disponible</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div>{# /row #}
+</div>
+</div>
+{% endblock %}

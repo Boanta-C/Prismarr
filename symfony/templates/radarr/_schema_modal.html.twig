@@ -1,0 +1,515 @@
+{#
+  Modal générique pour créer/éditer un item à partir d'un schéma Radarr dynamique.
+  Variables attendues :
+    modal_id       : id du modal (ex: 'modal-indexer')
+    modal_title_add: titre ajout (ex: 'Ajouter un indexeur')
+    modal_title_edit: titre édition (ex: 'Modifier l\'indexeur')
+    schema_url     : URL de l'endpoint GET schema (ex: path('radarr_indexers_schema'))
+    save_url_add   : URL POST pour créer (ex: path('radarr_indexer_add'))
+    save_url_edit  : URL POST pour modifier — __ID__ sera remplacé par l'id (ex: '/radarr/indexeurs/__ID__/modifier')
+    test_url       : (optionnel) URL POST pour tester (ex: '/radarr/indexeurs/__ID__/tester')
+    extra_fields   : HTML supplémentaire avant les champs dynamiques (optionnel)
+    mode           : 'default' | 'notification' — notifications affichent des triggers au lieu des options RSS/search
+#}
+<div class="modal modal-blur fade" id="{{ modal_id }}" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="{{ modal_id }}-title">{{ modal_title_add }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <div id="{{ modal_id }}-feedback" class="alert d-none mb-3"></div>
+
+        {# Sélecteur d'implémentation (masqué en mode édition) #}
+        <div id="{{ modal_id }}-impl-wrap" class="mb-3">
+          <label class="form-label fw-medium">Type</label>
+          <select id="{{ modal_id }}-impl-select" class="form-select">
+            <option value="">— Choisir un type —</option>
+          </select>
+        </div>
+
+        {# Champ nom (toujours présent) #}
+        <div class="mb-3">
+          <label class="form-label fw-medium">Nom <span class="text-danger">*</span></label>
+          <input type="text" id="{{ modal_id }}-name" class="form-control" placeholder="Mon indexeur...">
+        </div>
+
+        {% if extra_fields is defined %}{{ extra_fields|raw }}{% endif %}
+
+        {% if (mode ?? 'default') == 'notification' %}
+        {# Triggers de notification (remplis dynamiquement depuis le schema supportsOn*) #}
+        <div id="{{ modal_id }}-triggers" class="d-none mb-3">
+          <label class="form-label fw-medium">Événements déclencheurs</label>
+          <div id="{{ modal_id }}-triggers-list" class="row g-2"></div>
+        </div>
+        {% else %}
+        {# Options globales (RSS, recherche auto, recherche interactive, priorité) #}
+        <div id="{{ modal_id }}-global-opts" class="d-none mb-3">
+          <div class="d-flex flex-wrap gap-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="{{ modal_id }}-enableRss" checked>
+              <label class="form-check-label" for="{{ modal_id }}-enableRss">RSS</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="{{ modal_id }}-enableAutoSearch" checked>
+              <label class="form-check-label" for="{{ modal_id }}-enableAutoSearch">Recherche auto</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="{{ modal_id }}-enableInteractive" checked>
+              <label class="form-check-label" for="{{ modal_id }}-enableInteractive">Recherche interactive</label>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label mb-0 small" for="{{ modal_id }}-priority">Priorité</label>
+              <input type="number" class="form-control form-control-sm" id="{{ modal_id }}-priority" value="25" style="width:70px;">
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {# Champs dynamiques générés depuis le schéma #}
+        <div id="{{ modal_id }}-fields"></div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        {% if test_url is defined and test_url %}
+        <button type="button" class="btn btn-outline-primary" id="{{ modal_id }}-test" disabled>
+          <span class="spinner-border spinner-border-sm d-none me-1" id="{{ modal_id }}-test-spinner"></span>
+          Tester
+        </button>
+        {% endif %}
+        <button type="button" class="btn btn-primary" id="{{ modal_id }}-save" disabled>
+          <span class="spinner-border spinner-border-sm d-none me-1" id="{{ modal_id }}-spinner"></span>
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const MID        = {{ modal_id|json_encode|raw }};
+  const SCHEMA_URL = {{ schema_url|json_encode|raw }};
+  const SAVE_ADD   = {{ save_url_add|json_encode|raw }};
+  const SAVE_EDIT  = {{ save_url_edit|json_encode|raw }};
+  const TEST_URL   = {{ (test_url ?? '')|json_encode|raw }};
+  const MODE       = {{ (mode ?? 'default')|json_encode|raw }};
+
+  let schemaCache = null;
+  let currentImpl = null;
+  let editingItem = null;
+
+  const el = id => document.getElementById(MID + '-' + id);
+  const modal = () => bootstrap.Modal.getOrCreateInstance(document.getElementById(MID));
+
+  // Mapping Newznab standard (catégories indexeurs Prowlarr/Torznab)
+  const NEWZNAB_CATS = {
+    1000:'TV',2000:'Films',3000:'Audio',4000:'PC',5000:'TV-Sport',6000:'XXX',7000:'Livres',8000:'Autre',
+    2010:'Films/Étranger',2020:'Films/Autre',2030:'Films/SD',2040:'Films/HD',2045:'Films/UHD',
+    2050:'Films/Blu-Ray',2060:'Films/3D',2070:'Films/DVD',2080:'Films/WEB-DL',
+    5070:'Anime',5080:'Documentaire',
+    1010:'TV/WEB-DL',1020:'TV/Étranger',1030:'TV/SD',1040:'TV/HD',1045:'TV/UHD',1050:'TV/Autre',1060:'TV/Sport',1070:'TV/Anime',1080:'TV/Documentaire',
+  };
+
+  // ── Rendu d'un champ ────────────────────────────────────────────────────
+  function renderField(field, existingFields) {
+    if (field.hidden) return '';
+    const id  = MID + '-f-' + field.name;
+    const existing = existingFields ? existingFields.find(f => f.name === field.name) : null;
+    let val = existing !== undefined && existing !== null ? (existing.value ?? field.value ?? '') : (field.value ?? '');
+    const isArray = Array.isArray(val);
+    const options = field.selectOptions ?? [];
+
+    let input = '';
+    switch (field.type) {
+      case 'checkbox':
+        return `<div class="mb-3 d-flex align-items-center gap-2">
+          <input class="form-check-input schema-field" type="checkbox" id="${id}" data-name="${field.name}" data-field-type="checkbox"${val ? ' checked' : ''}>
+          <label class="form-check-label" for="${id}">${field.label ?? field.name}</label>
+          ${field.helpText ? `<small class="text-muted ms-2">${field.helpText}</small>` : ''}
+        </div>`;
+
+      case 'select': {
+        // Déterminer les options effectives : schema options ou Newznab mapping
+        let effectiveOpts = options;
+        if (isArray && options.length > 0) {
+          // Vérifier si les options matchent les valeurs existantes
+          const optValues = new Set(options.map(o => o.value));
+          const anyMatch = val.some(v => optValues.has(v));
+          if (!anyMatch && val.some(v => NEWZNAB_CATS[v])) {
+            // Les options du schéma ne matchent pas → utiliser le mapping Newznab
+            effectiveOpts = val.map(v => ({value: v, name: NEWZNAB_CATS[v] || `#${v}`}));
+          }
+        }
+
+        if (isArray && effectiveOpts.length > 0) {
+          // Multi-select → grille de checkboxes alignées
+          const allOpts = effectiveOpts.length > val.length ? effectiveOpts : effectiveOpts;
+          // Si on a des options connues du schéma, les montrer toutes ; sinon juste celles cochées + les Newznab courants
+          let displayOpts = effectiveOpts;
+          if (effectiveOpts === options && options.length > 0) {
+            displayOpts = options;
+          } else if (val.some(v => NEWZNAB_CATS[v])) {
+            // Afficher toutes les catégories Newznab connues pour permettre la sélection
+            const allNewznab = Object.entries(NEWZNAB_CATS)
+              .filter(([k]) => Math.floor(k/1000) === Math.floor(val[0]/1000) || val.includes(Number(k)))
+              .map(([k,v]) => ({value: Number(k), name: v}))
+              .sort((a,b) => a.value - b.value);
+            displayOpts = allNewznab.length > 0 ? allNewznab : effectiveOpts;
+          }
+          const checks = displayOpts.map(o => {
+            const checked = val.includes(o.value) ? ' checked' : '';
+            return `<div class="form-check" style="min-width:180px;">
+              <input class="form-check-input schema-multi" type="checkbox" id="${id}-${o.value}" data-val="${o.value}"${checked}>
+              <label class="form-check-label" for="${id}-${o.value}">${o.name} <small class="text-muted">(${o.value})</small></label>
+            </div>`;
+          }).join('');
+          input = `<div class="schema-field d-flex flex-wrap gap-1" data-name="${field.name}" data-field-type="multicheck" id="${id}">${checks}</div>`;
+        } else if (isArray && val.some(v => NEWZNAB_CATS[v])) {
+          // Multi-select sans options schema mais valeurs Newznab connues → checkboxes Newznab
+          const mainCat = val.length > 0 ? Math.floor(val[0] / 1000) * 1000 : 2000;
+          const allNewznab = Object.entries(NEWZNAB_CATS)
+            .map(([k,v]) => ({value: Number(k), name: v}))
+            .filter(o => Math.floor(o.value / 1000) * 1000 === mainCat || val.includes(o.value))
+            .sort((a,b) => a.value - b.value);
+          const checks = allNewznab.map(o => {
+            const checked = val.includes(o.value) ? ' checked' : '';
+            return `<div class="form-check" style="min-width:180px;">
+              <input class="form-check-input schema-multi" type="checkbox" id="${id}-${o.value}" data-val="${o.value}"${checked}>
+              <label class="form-check-label" for="${id}-${o.value}">${o.name} <small class="text-muted">(${o.value})</small></label>
+            </div>`;
+          }).join('');
+          input = `<div class="schema-field d-flex flex-wrap gap-1" data-name="${field.name}" data-field-type="multicheck" id="${id}">${checks}</div>`;
+        } else if (isArray) {
+          input = `<input class="form-control schema-field" type="text" id="${id}" data-name="${field.name}" data-field-type="csv" value="${val.join(', ')}" placeholder="Ex: 2000, 2010, 2030">`;
+          if (!field.helpText) field.helpText = 'Entrez les valeurs séparées par des virgules';
+        } else if (options.length > 0) {
+          const opts = options.map(o =>
+            `<option value="${o.value}"${o.value == val ? ' selected' : ''}>${o.name}${o.hint ? ' ' + o.hint : ''}</option>`
+          ).join('');
+          input = `<select class="form-select schema-field" id="${id}" data-name="${field.name}" data-field-type="select">${opts}</select>`;
+        } else {
+          input = `<input class="form-control schema-field" type="text" id="${id}" data-name="${field.name}" data-field-type="text" value="${val ?? ''}">`;
+        }
+        break;
+      }
+
+      case 'tag':
+      case 'tagSelect':
+        if (isArray) val = val.join(', ');
+        input = `<input class="form-control schema-field" type="text" id="${id}" data-name="${field.name}" data-field-type="csv" value="${val ?? ''}" placeholder="Valeurs séparées par des virgules">`;
+        if (!field.helpText) field.helpText = 'Entrez les valeurs séparées par des virgules';
+        break;
+
+      case 'number':
+        input = `<input class="form-control schema-field" type="number" id="${id}" data-name="${field.name}" data-field-type="number" value="${isArray ? '' : (val ?? '')}">`;
+        break;
+
+      case 'password':
+        input = `<input class="form-control schema-field" type="password" id="${id}" data-name="${field.name}" data-field-type="password" value="${isArray ? '' : (val ?? '')}" autocomplete="new-password">`;
+        break;
+
+      case 'path':
+        input = `<input class="form-control schema-field" type="text" id="${id}" data-name="${field.name}" data-field-type="text" value="${isArray ? '' : (val ?? '')}" placeholder="/chemin/vers/dossier">`;
+        break;
+
+      case 'url':
+        input = `<input class="form-control schema-field" type="url" id="${id}" data-name="${field.name}" data-field-type="text" value="${isArray ? '' : (val ?? '')}" placeholder="https://...">`;
+        break;
+
+      default:
+        input = `<input class="form-control schema-field" type="text" id="${id}" data-name="${field.name}" data-field-type="text" value="${isArray ? val.join(', ') : (val ?? '')}">`;
+    }
+
+    return `<div class="mb-3">
+      <label class="form-label" for="${id}">${field.label ?? field.name}${field.required ? ' <span class="text-danger">*</span>' : ''}</label>
+      ${input}
+      ${field.helpText ? `<small class="text-muted">${field.helpText}</small>` : ''}
+    </div>`;
+  }
+
+  // ── Populate select implémentations ─────────────────────────────────────
+  async function loadSchema() {
+    if (schemaCache) return schemaCache;
+    try {
+      const r = await fetch(SCHEMA_URL, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      if (!r.ok) { showFeedback(`Erreur chargement schéma (HTTP ${r.status})`, 'danger'); return []; }
+      const data = await r.json();
+      schemaCache = Array.isArray(data) ? data : [];
+      if (!schemaCache.length) showFeedback('Aucun type disponible — vérifiez la connexion à Radarr.', 'warning');
+      return schemaCache;
+    } catch (err) {
+      console.error('loadSchema error:', err);
+      showFeedback('Impossible de charger le schéma.', 'danger');
+      return [];
+    }
+  }
+
+  function populateImplSelect(schemas) {
+    const sel = el('impl-select');
+    sel.innerHTML = '<option value="">— Choisir un type —</option>';
+    schemas.forEach((s, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = s.name || s.implementationName || s.implementation || '?';
+      sel.appendChild(opt);
+    });
+  }
+
+  // Notification trigger labels
+  const TRIGGER_LABELS = {
+    onGrab: 'Récupération', onDownload: 'Téléchargement', onUpgrade: 'Mise à niveau',
+    onRename: 'Renommage', onMovieAdded: 'Film ajouté', onMovieDelete: 'Film supprimé',
+    onMovieFileDelete: 'Fichier supprimé', onMovieFileDeleteForUpgrade: 'Fichier supprimé (upgrade)',
+    onHealthIssue: 'Problème de santé', onHealthRestored: 'Santé rétablie',
+    onApplicationUpdate: 'Mise à jour appli', onManualInteractionRequired: 'Interaction manuelle',
+    includeHealthWarnings: 'Inclure avertissements',
+  };
+
+  function renderTriggers(schema, existingItem) {
+    const wrap = el('triggers-list');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    Object.entries(TRIGGER_LABELS).forEach(([key, label]) => {
+      const supportsKey = 'supports' + key.charAt(0).toUpperCase() + key.slice(1);
+      // Show if schema supports it, or always show includeHealthWarnings
+      if (key !== 'includeHealthWarnings' && schema[supportsKey] === false) return;
+      const checked = existingItem ? (existingItem[key] ?? false) : false;
+      const col = document.createElement('div');
+      col.className = 'col-6';
+      col.innerHTML = `<div class="form-check"><input class="form-check-input notif-trigger" type="checkbox" id="${MID}-t-${key}" data-trigger="${key}"${checked ? ' checked' : ''}>
+        <label class="form-check-label small" for="${MID}-t-${key}">${label}</label></div>`;
+      wrap.appendChild(col);
+    });
+    el('triggers').classList.remove('d-none');
+  }
+
+  function renderFields(schema, existingFields) {
+    currentImpl = schema;
+    const container = el('fields');
+    container.innerHTML = (schema.fields ?? [])
+      .filter(f => !f.hidden)
+      .map(f => renderField(f, existingFields))
+      .join('');
+    el('save').disabled = false;
+    if (el('test')) el('test').disabled = false;
+    if (MODE === 'notification') {
+      renderTriggers(schema, editingItem);
+    } else {
+      el('global-opts').classList.remove('d-none');
+    }
+  }
+
+  // ── Collecte des valeurs — inclut TOUS les champs (y compris cachés) ───
+  function collectPayload() {
+    if (!currentImpl) return null;
+    const name = el('name').value.trim();
+    if (!name) { showFeedback('Le nom est obligatoire.', 'warning'); return null; }
+
+    // Collecter les valeurs des champs visibles depuis le DOM
+    const visibleValues = {};
+    document.querySelectorAll(`#${MID} .schema-field`).forEach(input => {
+      const ft = input.dataset.fieldType;
+      if (ft === 'checkbox') {
+        visibleValues[input.dataset.name] = input.checked;
+      } else if (ft === 'number') {
+        visibleValues[input.dataset.name] = input.value !== '' ? Number(input.value) : null;
+      } else if (ft === 'csv') {
+        const raw = input.value.trim();
+        if (!raw) { visibleValues[input.dataset.name] = []; }
+        else {
+          const parts = raw.split(',').map(s => s.trim()).filter(Boolean);
+          visibleValues[input.dataset.name] = parts.every(p => /^\d+$/.test(p))
+            ? parts.map(Number)
+            : parts;
+        }
+      } else if (ft === 'multicheck') {
+        // Checkboxes multi-sélection → tableau de valeurs cochées
+        const checked = [];
+        input.querySelectorAll('.schema-multi:checked').forEach(cb => {
+          const v = cb.dataset.val;
+          checked.push(/^\d+$/.test(v) ? Number(v) : v);
+        });
+        visibleValues[input.dataset.name] = checked;
+      } else if (ft === 'select') {
+        const v = input.value;
+        visibleValues[input.dataset.name] = /^\d+$/.test(v) ? Number(v) : v;
+      } else {
+        visibleValues[input.dataset.name] = input.value;
+      }
+    });
+
+    // Construire le tableau fields complet (visibles + cachés avec valeurs par défaut)
+    const fields = (currentImpl.fields ?? []).map(f => {
+      const editField = editingItem?.fields?.find(ef => ef.name === f.name);
+      return {
+        name: f.name,
+        value: f.name in visibleValues ? visibleValues[f.name] : (editField?.value ?? f.value ?? null),
+      };
+    });
+
+    // Payload complet avec toutes les métadonnées du schéma
+    const payload = {
+      name,
+      implementation: currentImpl.implementation,
+      implementationName: currentImpl.implementationName ?? currentImpl.implementation,
+      configContract: currentImpl.configContract,
+      tags: editingItem?.tags ?? [],
+      fields,
+    };
+
+    if (MODE === 'notification') {
+      // Collecter les triggers depuis les checkboxes
+      document.querySelectorAll(`#${MID} .notif-trigger`).forEach(cb => {
+        payload[cb.dataset.trigger] = cb.checked;
+      });
+    } else {
+      payload.enableRss = el('enableRss').checked;
+      payload.enableAutomaticSearch = el('enableAutoSearch').checked;
+      payload.enableInteractiveSearch = el('enableInteractive').checked;
+      payload.protocol = currentImpl.protocol ?? editingItem?.protocol ?? 'torrent';
+      payload.priority = parseInt(el('priority').value) || 25;
+    }
+
+    if (editingItem) payload.id = editingItem.id;
+
+    return payload;
+  }
+
+  // ── Feedback ────────────────────────────────────────────────────────────
+  function showFeedback(msg, type = 'danger') {
+    const fb = el('feedback');
+    fb.className = `alert alert-${type} mt-3`;
+    fb.textContent = msg;
+    fb.classList.remove('d-none');
+  }
+
+  // ── Initialisation via événements ────────────────────────────────────────
+  document.getElementById(MID).addEventListener('show.bs.modal', async (e) => {
+    try {
+      const _raw = e.relatedTarget?.dataset?.editItem;
+      editingItem = _raw ? JSON.parse(_raw) : null;
+      el('feedback').classList.add('d-none');
+      el('save').disabled = true;
+      if (el('test')) el('test').disabled = true;
+
+      const schemas = await loadSchema();
+
+      if (editingItem) {
+        document.getElementById(MID + '-title').textContent = {{ modal_title_edit|json_encode|raw }};
+        el('impl-wrap').classList.add('d-none');
+        el('name').value = editingItem.name ?? '';
+        if (MODE !== 'notification') {
+          el('enableRss').checked = editingItem.enableRss ?? true;
+          el('enableAutoSearch').checked = editingItem.enableAutomaticSearch ?? true;
+          el('enableInteractive').checked = editingItem.enableInteractiveSearch ?? true;
+          el('priority').value = editingItem.priority ?? 25;
+        }
+        const schema = schemas.find(s => s.implementation === editingItem.implementation) ?? schemas[0];
+        if (schema) renderFields(schema, editingItem.fields ?? []);
+        else showFeedback('Type d\'implémentation introuvable dans le schéma.', 'warning');
+      } else {
+        document.getElementById(MID + '-title').textContent = {{ modal_title_add|json_encode|raw }};
+        el('impl-wrap').classList.remove('d-none');
+        el('name').value = '';
+        el('fields').innerHTML = '';
+        if (MODE === 'notification') {
+          if (el('triggers')) el('triggers').classList.add('d-none');
+        } else {
+          el('global-opts').classList.add('d-none');
+          el('enableRss').checked = true;
+          el('enableAutoSearch').checked = true;
+          el('enableInteractive').checked = true;
+          el('priority').value = 25;
+        }
+        populateImplSelect(schemas);
+      }
+    } catch (err) {
+      console.error('show.bs.modal error:', err);
+      showFeedback('Erreur lors de l\'initialisation du formulaire.', 'danger');
+    }
+  });
+
+  // Changement d'implémentation → re-render des champs
+  document.getElementById(MID).addEventListener('change', async (e) => {
+    if (e.target.id !== MID + '-impl-select') return;
+    const idx = parseInt(e.target.value);
+    if (isNaN(idx)) { el('fields').innerHTML = ''; el('save').disabled = true; return; }
+    const schemas = await loadSchema();
+    renderFields(schemas[idx], null);
+  });
+
+  // Sauvegarde
+  el('save').addEventListener('click', async () => {
+    const payload = collectPayload();
+    if (!payload) return;
+
+    const spinner = el('spinner');
+    el('save').disabled = true;
+    spinner.classList.remove('d-none');
+
+    const url = editingItem
+      ? SAVE_EDIT.replace('__ID__', editingItem.id)
+      : SAVE_ADD;
+
+    try {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        body: JSON.stringify(payload),
+      });
+      const data = await r.json();
+      if (data.ok) {
+        // Succès : recharger la page immédiatement
+        location.reload();
+        return;
+      } else {
+        showFeedback(data.error || 'Erreur lors de l\'enregistrement.', 'danger');
+        el('save').disabled = false;
+      }
+    } catch (err) {
+      console.error('Save error:', err);
+      showFeedback('Erreur réseau : ' + (err.message || err), 'danger');
+      el('save').disabled = false;
+    } finally {
+      spinner.classList.add('d-none');
+    }
+  });
+
+  // Tester (si test_url fourni)
+  if (TEST_URL && el('test')) {
+    el('test').addEventListener('click', async () => {
+      const payload = collectPayload();
+      if (!payload) return;
+
+      const testBtn = el('test');
+      const spinner = el('test-spinner');
+      testBtn.disabled = true;
+      spinner.classList.remove('d-none');
+
+      try {
+        // Pour un item existant, on teste via son ID ; sinon on envoie le payload complet
+        const url = editingItem
+          ? TEST_URL.replace('__ID__', editingItem.id)
+          : TEST_URL.replace('__ID__', '0');
+
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+          body: JSON.stringify(payload),
+        });
+        const data = await r.json();
+        showFeedback(data.ok ? 'Test réussi ✓' : (data.error || 'Échec du test.'), data.ok ? 'success' : 'danger');
+      } catch {
+        showFeedback('Erreur réseau lors du test.', 'danger');
+      } finally {
+        testBtn.disabled = false;
+        spinner.classList.add('d-none');
+      }
+    });
+  }
+})();
+</script>

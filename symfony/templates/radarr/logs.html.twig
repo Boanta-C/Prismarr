@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+{% block title %}Logs — Radarr{% endblock %}
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Logs</h2></div>
+      <div class="col-auto ms-auto">{% include 'media/_radarr_nav.html.twig' %}</div>
+    </div>
+  </div>
+</div>
+<div class="page-body"><div class="container-xl">
+{% if error %}<div class="alert alert-danger">Impossible de joindre Radarr.</div>{% endif %}
+
+{% if files is not empty %}
+<div class="card mb-3">
+  <div class="card-header"><h3 class="card-title">Fichiers de logs</h3></div>
+  <div class="card-body py-2">
+    <div class="d-flex flex-wrap gap-2">
+      {% for file in files %}
+        <span class="badge bg-secondary-lt">{{ file.filename ?? file }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Logs récents</h3>
+    <div class="card-options d-flex gap-2 align-items-center">
+      <input type="text" id="log-search" class="form-control form-control-sm" placeholder="Rechercher..." style="width:200px">
+      <select id="log-level-filter" class="form-select form-select-sm" style="width:120px">
+        <option value="">Tous</option>
+        <option value="info">Info</option>
+        <option value="debug">Debug</option>
+        <option value="warn">Warn</option>
+        <option value="error">Error</option>
+      </select>
+      <span class="badge bg-secondary-lt" id="log-count">{{ logs|length }}</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if logs is empty %}
+      <div class="text-muted text-center py-5">Aucun log.</div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-vcenter table-sm mb-0">
+          <thead><tr><th style="width:140px">Date</th><th style="width:80px">Niveau</th><th>Message</th><th>Logger</th></tr></thead>
+          <tbody id="log-tbody">
+            {% for log in logs %}
+            {% set lvl = log.level|default('info')|lower %}
+            <tr data-level="{{ lvl }}">
+              <td class="text-muted small">{{ log.time is defined ? log.time|date('d/m H:i:s') : '—' }}</td>
+              <td>
+                {% if lvl == 'error' or lvl == 'fatal' %}
+                  <span class="badge bg-danger-lt text-danger">{{ lvl }}</span>
+                {% elseif lvl == 'warn' or lvl == 'warning' %}
+                  <span class="badge bg-warning-lt text-warning">{{ lvl }}</span>
+                {% elseif lvl == 'debug' or lvl == 'trace' %}
+                  <span class="badge bg-info-lt text-info">{{ lvl }}</span>
+                {% else %}
+                  <span class="badge bg-success-lt text-success">{{ lvl }}</span>
+                {% endif %}
+              </td>
+              <td class="small">{{ log.message ?? '—' }}</td>
+              <td class="text-muted small">{{ log.logger ?? '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{% set totalPages = ((total / pageSize)|round(0, 'ceil'))|default(1) %}
+{% if totalPages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination justify-content-center">
+    <li class="page-item {{ page <= 1 ? 'disabled' }}">
+      <a class="page-link" href="{{ path('radarr_logs', {page: page - 1}) }}">Prec.</a>
+    </li>
+    {% for p in 1..totalPages %}
+      {% if p >= page - 3 and p <= page + 3 %}
+      <li class="page-item {{ p == page ? 'active' }}">
+        <a class="page-link" href="{{ path('radarr_logs', {page: p}) }}">{{ p }}</a>
+      </li>
+      {% endif %}
+    {% endfor %}
+    <li class="page-item {{ page >= totalPages ? 'disabled' }}">
+      <a class="page-link" href="{{ path('radarr_logs', {page: page + 1}) }}">Suiv.</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+
+</div></div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+  var search = document.getElementById('log-search');
+  var levelFilter = document.getElementById('log-level-filter');
+  var tbody = document.getElementById('log-tbody');
+  var countBadge = document.getElementById('log-count');
+  if (!tbody) return;
+
+  function filterLogs() {
+    var query = (search.value || '').toLowerCase();
+    var level = levelFilter.value;
+    var rows = tbody.querySelectorAll('tr');
+    var visible = 0;
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var rowLevel = row.getAttribute('data-level') || '';
+      var text = row.textContent.toLowerCase();
+      var matchLevel = !level || rowLevel === level || (level === 'warn' && rowLevel === 'warning') || (level === 'error' && (rowLevel === 'error' || rowLevel === 'fatal'));
+      var matchSearch = !query || text.indexOf(query) !== -1;
+      if (matchLevel && matchSearch) {
+        row.style.display = '';
+        visible++;
+      } else {
+        row.style.display = 'none';
+      }
+    }
+    countBadge.textContent = visible;
+  }
+
+  search.addEventListener('input', filterLogs);
+  levelFilter.addEventListener('change', filterLogs);
+})();
+</script>
+{% endblock %}

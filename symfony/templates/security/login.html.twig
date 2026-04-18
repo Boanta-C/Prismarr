@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Connexion — IH-ARGOS</title>
+
+  <script>
+    (function () {
+      var t = localStorage.getItem('tablerTheme') || 'dark';
+      document.documentElement.setAttribute('data-bs-theme', t);
+    })();
+  </script>
+
+  <style>
+    @import url("https://rsms.me/inter/inter.css");
+    :root {
+      --tblr-primary: #6366f1;
+      --tblr-primary-rgb: 99, 102, 241;
+    }
+  </style>
+
+  <link rel="stylesheet" href="{{ asset('static/tabler/css/tabler.min.css') }}"/>
+  <link rel="stylesheet" href="{{ asset('static/tabler/css/tabler-themes.min.css') }}"/>
+</head>
+<body>
+
+  <div class="page page-center">
+    <div class="container container-tight py-4">
+
+      <div class="text-center mb-4">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+               fill="none" stroke="var(--tblr-primary)" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="4"/>
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+          <span class="fw-bold fs-1" style="color: var(--tblr-primary)">IH-ARGOS</span>
+        </div>
+        <div class="text-secondary mt-1">Infra Hub — Surveillance 24h/24</div>
+      </div>
+
+      {% if error %}
+        <div class="alert alert-danger mb-3">
+          {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+      {% endif %}
+
+      <div class="card card-md">
+        <div class="card-body">
+          <h2 class="h2 text-center mb-4">Connexion</h2>
+          <form action="{{ path('app_login') }}" method="post" autocomplete="off" novalidate>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}"/>
+
+            <div class="mb-3">
+              <label class="form-label" for="email">Adresse email</label>
+              <input type="email"
+                     id="email"
+                     name="_username"
+                     class="form-control"
+                     placeholder="votre@email.com"
+                     value="{{ last_username }}"
+                     autocomplete="email"
+                     autofocus
+                     required/>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label" for="password">Mot de passe</label>
+              <div class="input-group input-group-flat">
+                <input type="password"
+                       id="password"
+                       name="_password"
+                       class="form-control"
+                       placeholder="••••••••"
+                       autocomplete="current-password"
+                       required/>
+                <span class="input-group-text">
+                  <a href="#" class="link-secondary" id="toggle-password" title="Afficher le mot de passe">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" class="icon icon-1">
+                      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
+                      <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/>
+                    </svg>
+                  </a>
+                </span>
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-check">
+                <input type="checkbox" name="_remember_me" class="form-check-input"/>
+                <span class="form-check-label">Se souvenir de moi</span>
+              </label>
+            </div>
+
+            <div class="form-footer">
+              <button type="submit" class="btn btn-primary w-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" class="icon me-1">
+                  <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/>
+                  <path d="M20 12h-13l3 -3m0 6l-3 -3"/>
+                </svg>
+                Se connecter
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="{{ asset('static/tabler/js/tabler.min.js') }}" defer></script>
+  <script>
+    document.getElementById('toggle-password').addEventListener('click', function(e) {
+      e.preventDefault();
+      var input = document.getElementById('password');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    });
+  </script>
+</body>
+</html>

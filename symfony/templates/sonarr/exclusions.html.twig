@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Exclusions d'import — Sonarr{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Exclusions d'import
+        {% set records = exclusions.records ?? exclusions %}
+        {% if records is not empty %}<span class="badge bg-secondary-lt ms-2">{{ exclusions.totalRecords ?? records|length }}</span>{% endif %}
+      </h2></div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_sonarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+{% endif %}
+
+{% set records = exclusions.records ?? exclusions %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-vcenter table-hover card-table mb-0" style="font-size:.82rem;">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>TVDB ID</th>
+          <th class="text-end" style="width:80px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in records %}
+        <tr>
+          <td class="fw-medium">{{ e.title ?? e.seriesTitle ?? '—' }}</td>
+          <td class="text-muted">{{ e.tvdbId ?? '—' }}</td>
+          <td class="text-end">
+            <button class="btn btn-ghost-danger btn-icon btn-sm btn-excl-del" data-id="{{ e.id }}" title="Supprimer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="text-center text-muted py-4">Aucune exclusion.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if exclusions.totalRecords is defined and exclusions.totalRecords > 50 %}
+<div class="d-flex justify-content-center gap-2 mt-3">
+  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">← Précédent</a>{% endif %}
+  <span class="text-muted small align-self-center">Page {{ page }}</span>
+  {% if page * 50 < exclusions.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">Suivant →</a>{% endif %}
+</div>
+{% endif %}
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function() {
+  document.querySelectorAll('.btn-excl-del').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (!confirm('Supprimer cette exclusion ?')) return;
+      btn.disabled = true;
+      fetch('/sonarr/exclusions/' + btn.dataset.id + '/supprimer', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
+        body: '{}'
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.ok) btn.closest('tr').remove();
+        else btn.disabled = false;
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

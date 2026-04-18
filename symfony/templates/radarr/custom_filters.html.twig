@@ -1,0 +1,185 @@
+{% extends 'base.html.twig' %}
+{% block title %}Filtres personnalises — Radarr{% endblock %}
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col"><h2 class="page-title">Filtres personnalises</h2></div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-cf" id="btn-cf-add">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+          Ajouter
+        </button>
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="page-body"><div class="container-xl">
+{% if error %}<div class="alert alert-danger">Impossible de joindre Radarr.</div>{% endif %}
+<div id="cf-feedback" class="alert d-none mb-3"></div>
+
+<div class="card">
+  <div class="card-header"><h3 class="card-title">Filtres</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ filters|length }}</span></div></div>
+  <div class="card-body p-0">
+    {% if filters is empty %}
+      <div class="text-muted text-center py-5">Aucun filtre personnalise.</div>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-vcenter table-sm mb-0">
+          <thead><tr><th>Nom</th><th>Type</th><th>Filtres</th><th class="text-end">Actions</th></tr></thead>
+          <tbody>
+            {% for f in filters %}
+            <tr>
+              <td class="fw-medium">{{ f.label ?? f.name ?? '—' }}</td>
+              <td class="text-muted small">{{ f.type ?? '—' }}</td>
+              <td class="small">
+                {% if f.filters is defined and f.filters is iterable %}
+                  {% for cond in f.filters %}
+                    <span class="badge bg-secondary-lt me-1">{{ cond.key ?? '' }} {{ cond.type ?? '' }} {{ cond.value is iterable ? cond.value|join(', ') : (cond.value ?? '') }}</span>
+                  {% endfor %}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <button class="btn btn-ghost-primary btn-sm btn-cf-edit"
+                        data-id="{{ f.id }}"
+                        data-payload='{{ f|json_encode }}'
+                        title="Modifier">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                </button>
+                <button class="btn btn-ghost-danger btn-sm btn-cf-delete"
+                        data-id="{{ f.id }}"
+                        data-label="{{ f.label ?? f.name ?? '' }}"
+                        title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+</div></div>
+
+{# ── Modal ajout / edition ── #}
+<div class="modal modal-blur fade" id="modal-cf" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cf-modal-title">Ajouter un filtre</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="cf-edit-id" value="">
+        <div class="mb-3">
+          <label class="form-label fw-medium">Nom <span class="text-danger">*</span></label>
+          <input type="text" id="cf-label" class="form-control form-control-sm" placeholder="Mon filtre">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium">Type <span class="text-danger">*</span></label>
+          <select id="cf-type" class="form-select form-select-sm">
+            <option value="movie">movie</option>
+            <option value="customFilter">customFilter</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-medium">Conditions (JSON)</label>
+          <textarea id="cf-filters" class="form-control form-control-sm font-monospace" rows="6" placeholder='[{"key":"monitored","value":["true"],"type":"equal"}]'></textarea>
+          <small class="text-muted">Tableau JSON des conditions du filtre.</small>
+        </div>
+        <div id="cf-modal-feedback" class="alert d-none mt-3"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-success" id="btn-cf-save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+  var feedback = document.getElementById('cf-feedback');
+  var mfb = document.getElementById('cf-modal-feedback');
+  function showFeedback(msg, type) {
+    feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
+    feedback.textContent = msg;
+    feedback.classList.remove('d-none');
+    setTimeout(function(){ feedback.classList.add('d-none'); }, 4000);
+  }
+  function showModalFeedback(msg, type) {
+    mfb.className = 'alert alert-' + (type || 'danger') + ' mt-3';
+    mfb.textContent = msg;
+    mfb.classList.remove('d-none');
+  }
+
+  var modalEl = document.getElementById('modal-cf');
+  var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+  document.getElementById('btn-cf-add').addEventListener('click', function() {
+    document.getElementById('cf-modal-title').textContent = 'Ajouter un filtre';
+    document.getElementById('cf-edit-id').value = '';
+    document.getElementById('cf-label').value = '';
+    document.getElementById('cf-type').value = 'movie';
+    document.getElementById('cf-filters').value = '[]';
+    mfb.classList.add('d-none');
+  });
+
+  document.querySelectorAll('.btn-cf-edit').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var data = JSON.parse(btn.dataset.payload);
+      document.getElementById('cf-modal-title').textContent = 'Modifier le filtre';
+      document.getElementById('cf-edit-id').value = data.id;
+      document.getElementById('cf-label').value = data.label || data.name || '';
+      document.getElementById('cf-type').value = data.type || 'movie';
+      document.getElementById('cf-filters').value = JSON.stringify(data.filters || [], null, 2);
+      mfb.classList.add('d-none');
+      modal.show();
+    });
+  });
+
+  document.getElementById('btn-cf-save').addEventListener('click', async function() {
+    var id = document.getElementById('cf-edit-id').value;
+    var label = document.getElementById('cf-label').value.trim();
+    var type = document.getElementById('cf-type').value;
+    var filtersRaw = document.getElementById('cf-filters').value.trim();
+    if (!label) { showModalFeedback('Le nom est obligatoire.', 'warning'); return; }
+    var filters;
+    try { filters = JSON.parse(filtersRaw || '[]'); } catch(e) { showModalFeedback('JSON invalide pour les conditions.', 'danger'); return; }
+    var payload = {label: label, type: type, filters: filters};
+    var url = id ? '/radarr/filtres-personnalises/' + id + '/modifier' : '{{ path("radarr_custom_filter_add") }}';
+    if (id) payload.id = parseInt(id, 10);
+    var r = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+      body: JSON.stringify(payload),
+    });
+    var data = await r.json();
+    if (data.ok !== false) { location.reload(); }
+    else { showModalFeedback(data.error || 'Erreur lors de l\'enregistrement.', 'danger'); }
+  });
+
+  document.querySelectorAll('.btn-cf-delete').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      if (!confirm('Supprimer le filtre "' + btn.dataset.label + '" ?')) return;
+      var r = await fetch('/radarr/filtres-personnalises/' + btn.dataset.id + '/supprimer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        body: '{}',
+      });
+      var data = await r.json();
+      if (data.ok) location.reload();
+      else showFeedback('Erreur lors de la suppression.', 'danger');
+    });
+  });
+})();
+</script>
+{% endblock %}

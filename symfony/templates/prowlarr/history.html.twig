@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+{% block title %}Historique — Prowlarr{% endblock %}
+{% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title d-flex align-items-center gap-2">
+                    <svg width="28" height="28" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32zm0 400c-97 0-176-79-176-176S159 80 256 80s176 79 176 176-79 176-176 176z" fill="#E88D1A"/><path d="M256 120c-75 0-136 61-136 136s61 136 136 136 136-61 136-136-61-136-136-136zm0 224c-48.6 0-88-39.4-88-88s39.4-88 88-88 88 39.4 88 88-39.4 88-88 88z" fill="#E88D1A"/><circle cx="256" cy="256" r="48" fill="#E88D1A"/></svg>
+                    Historique <span class="badge bg-secondary-lt ms-1">{{ total }}</span>
+                </h2>
+            </div>
+            <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+                <form class="d-flex gap-2 align-items-center" method="get" action="{{ path('prowlarr_history_page') }}">
+                    <label class="small text-secondary text-nowrap">Depuis :</label>
+                    <input type="date" name="since" class="form-control form-control-sm" style="width:auto;">
+                    <button class="btn btn-sm btn-ghost-secondary">Filtrer</button>
+                </form>
+                {% include 'prowlarr/_prowlarr_nav.html.twig' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+    <div class="alert alert-danger">Impossible de contacter Prowlarr.</div>
+{% endif %}
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table table-sm">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                    <th>Requête</th>
+                    <th>Catégorie</th>
+                    <th>Résultats</th>
+                    <th>Temps</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if records is empty %}
+                    <tr><td colspan="8" class="text-center text-secondary py-3">Aucun historique.</td></tr>
+                {% else %}
+                    {% for r in records %}
+                    {% set data = r.data ?? {} %}
+                    <tr>
+                        <td class="text-secondary small text-nowrap">{{ r.date is defined and r.date ? r.date|date('d/m H:i') : '—' }}</td>
+                        <td>
+                            {% if r.eventType is defined %}
+                                {% if r.eventType == 'indexerRss' %}
+                                    <span class="badge bg-cyan-lt" style="font-size:.55rem;">RSS</span>
+                                {% elseif r.eventType == 'indexerQuery' %}
+                                    <span class="badge bg-indigo-lt" style="font-size:.55rem;">Query</span>
+                                {% elseif r.eventType == 'releaseGrabbed' %}
+                                    <span class="badge bg-green-lt" style="font-size:.55rem;">Grab</span>
+                                {% elseif r.eventType == 'indexerAuth' %}
+                                    <span class="badge bg-warning-lt" style="font-size:.55rem;">Auth</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-lt" style="font-size:.55rem;">{{ r.eventType }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-secondary small">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="small">
+                            {% if data.source is defined and data.source %}
+                                <span class="fw-medium">{{ data.source }}</span>
+                            {% else %}
+                                <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-truncate" style="max-width:250px;" title="{{ data.query is defined ? data.query : '' }}">
+                            {% if data.query is defined and data.query %}
+                                {{ data.query }}
+                            {% elseif data.queryType is defined and data.queryType %}
+                                <span class="text-secondary fst-italic">{{ data.queryType }}</span>
+                            {% else %}
+                                <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-secondary small">{{ data.categories is defined and data.categories ? data.categories : '—' }}</td>
+                        <td>
+                            {% if data.queryResults is defined and data.queryResults %}
+                                <span class="badge bg-green-lt" style="font-size:.55rem;">{{ data.queryResults }}</span>
+                            {% else %}
+                                <span class="text-secondary small">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-secondary small">
+                            {% if data.elapsedTime is defined and data.elapsedTime %}
+                                {{ data.elapsedTime }}ms
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if r.successful is defined and r.successful %}
+                                <span class="d-flex align-items-center gap-1 text-success small"><span class="status-dot status-dot-animated bg-success"></span> OK</span>
+                            {% else %}
+                                <span class="d-flex align-items-center gap-1 text-danger small"><span class="status-dot bg-danger"></span> Échec</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</div>
+</div>
+{% endblock %}

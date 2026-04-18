@@ -1,0 +1,335 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Films manquants — IH-ARGOS{% endblock %}
+
+{% block stylesheets %}
+<style>
+.missing-table td { padding: .35rem .5rem; }
+.missing-table th { padding: .4rem .5rem; font-size: .78rem; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Films manquants
+          {% if missing.totalRecords is defined %}
+            <span class="badge bg-warning-lt text-warning ms-2">{{ missing.totalRecords }}</span>
+          {% endif %}
+        </h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{# Bandeau progression #}
+<div id="page-banner" class="alert d-none mb-3"></div>
+
+{% set records = missing.records ?? [] %}
+{% set total = missing.totalRecords ?? records|length %}
+
+{# Bouton rechercher tout #}
+<div class="d-flex justify-content-end mb-3">
+  <button id="btn-search-all" class="btn btn-primary btn-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    Rechercher tous les manquants
+  </button>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-vcenter card-table mb-0 missing-table">
+      <thead>
+        <tr>
+          <th style="width:20px"></th>
+          <th>Titre</th>
+          <th style="width:50px">Année</th>
+          <th>Profil</th>
+          <th>Sortie</th>
+          <th>Statut</th>
+          <th class="text-end" style="width:120px">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for movie in records %}
+        {% set m = movie.movie ?? movie %}
+        {% set isUnavail = m.status is defined and m.status in ['announced', 'inCinemas'] %}
+        <tr data-id="{{ m.id ?? '' }}">
+          <td>
+            <span style="width:14px;height:14px;border-radius:50%;display:inline-block;border:2px solid rgba(0,0,0,.3);background:{{ isUnavail ? '#6366f1' : '#f59e0b' }};box-shadow:0 0 4px {{ isUnavail ? '#6366f1' : '#f59e0b' }};"
+                  title="{{ isUnavail ? (m.status == 'inCinemas' ? 'En salles' : 'Annoncé') : 'Manquant' }}"></span>
+          </td>
+          <td style="font-size:.85rem;">
+            <div class="fw-medium">{{ m.title ?? '—' }}</div>
+            <div class="search-status small d-none" data-for="{{ m.id }}" style="font-size:.75rem;"></div>
+          </td>
+          <td class="text-muted">{{ m.year ?? '—' }}</td>
+          <td>
+            {% set qpName = '—' %}
+            {% for qp in qualityProfiles %}
+              {% if qp.id == (m.qualityProfileId ?? null) %}{% set qpName = qp.name %}{% endif %}
+            {% endfor %}
+            <span class="badge bg-blue-lt" style="font-size:.7rem;">{{ qpName }}</span>
+          </td>
+          <td class="text-muted" style="font-size:.78rem;">
+            {% if m.digitalRelease is defined and m.digitalRelease %}
+              {{ m.digitalRelease|date('d/m/Y') }}
+            {% elseif m.inCinemas is defined and m.inCinemas %}
+              {{ m.inCinemas|date('d/m/Y') }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            {% if m.status == 'announced' %}
+              <span class="badge" style="background:rgba(99,102,241,.15);color:#6366f1;font-size:.7rem;" title="Ce film est annoncé mais pas encore sorti">Annoncé</span>
+            {% elseif m.status == 'inCinemas' %}
+              <span class="badge" style="background:rgba(99,102,241,.15);color:#6366f1;font-size:.7rem;" title="En salles, pas encore disponible">En salles</span>
+            {% elseif m.status == 'released' %}
+              <span class="badge bg-warning-lt text-warning" style="font-size:.7rem;" title="Sorti mais non téléchargé">Manquant</span>
+            {% else %}
+              <span class="badge bg-secondary-lt" style="font-size:.7rem;">{{ m.status ?? '—' }}</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <div class="d-flex gap-1 justify-content-end align-items-center">
+              {% if m.id is defined and not isUnavail %}
+                <button class="btn btn-ghost-primary btn-icon btn-search-one"
+                        data-id="{{ m.id }}" data-title="{{ m.title ?? '' }}" title="Rechercher">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                </button>
+              {% endif %}
+              {% if m.id is defined %}
+                <button class="btn btn-ghost-secondary btn-icon btn-unmonitor"
+                        data-id="{{ m.id }}" title="Ne plus suivre">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/><path d="m2 2 20 20" stroke-width="2.5"/></svg>
+                </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">Aucun film manquant</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if total > 50 %}
+  <div class="card-footer d-flex align-items-center justify-content-between">
+    <p class="m-0 text-muted small">Page {{ page }} — {{ records|length }} sur {{ total }}</p>
+    <div class="d-flex gap-2">
+      {% if page > 1 %}
+        <a href="{{ path('app_media_films_missing', {page: page - 1}) }}" class="btn btn-sm btn-ghost-secondary">Précédent</a>
+      {% endif %}
+      {% if records|length == 50 %}
+        <a href="{{ path('app_media_films_missing', {page: page + 1}) }}" class="btn btn-sm btn-ghost-secondary">Suivant</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+  var SVG_SEARCH = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  var SVG_SPIN_SM = '<span class="spinner-border spinner-border-sm" style="width:16px;height:16px;"></span>';
+  var SVG_OK = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>';
+  var SVG_FAIL = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+
+  var banner = document.getElementById('page-banner');
+  function showBanner(html, type) {
+    banner.className = 'alert alert-' + (type || 'info') + ' mb-3';
+    banner.innerHTML = html;
+    banner.classList.remove('d-none');
+  }
+  function hideBanner() { banner.classList.add('d-none'); }
+
+  function postJson(url, body) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify(body || {}),
+    }).then(function (r) { return r.json(); });
+  }
+
+  function getJson(url) {
+    return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json(); });
+  }
+
+  // ── Rechercher un film ────────────────────────────────────────────
+  document.querySelectorAll('.btn-search-one').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = btn.dataset.id;
+      var title = btn.dataset.title || '?';
+      var statusEl = document.querySelector('.search-status[data-for="' + id + '"]');
+      btn.disabled = true;
+      btn.innerHTML = SVG_SPIN_SM;
+      statusEl.classList.remove('d-none');
+      statusEl.innerHTML = '<span class="text-muted">Recherche…</span>';
+
+      postJson('/medias/films/' + id + '/search')
+      .then(function (data) {
+        if (!data.ok || !data.cmdId) {
+          btn.innerHTML = SVG_FAIL;
+          statusEl.innerHTML = '<span class="text-danger">Erreur</span>';
+          btn.disabled = false;
+          setTimeout(function() { btn.innerHTML = SVG_SEARCH; statusEl.classList.add('d-none'); }, 3000);
+          return;
+        }
+        var pollTimer = setInterval(function() {
+          getJson('/medias/films/command/' + data.cmdId).then(function(cmd) {
+            var st = (cmd.status || '').toLowerCase();
+            var msg = cmd.message || '';
+            if (st === 'completed') {
+              clearInterval(pollTimer);
+              var dlMatch = msg.match(/(\d+) reports downloaded/);
+              var dlCount = dlMatch ? parseInt(dlMatch[1]) : 0;
+              if (dlCount > 0) {
+                btn.innerHTML = SVG_OK;
+                statusEl.innerHTML = '<span class="text-success">Téléchargement lancé</span>';
+              } else {
+                btn.innerHTML = SVG_FAIL;
+                statusEl.innerHTML = '<span class="text-warning">Rien trouvé</span>';
+              }
+              btn.disabled = false;
+              setTimeout(function() { btn.innerHTML = SVG_SEARCH; }, 5000);
+            } else if (st === 'failed') {
+              clearInterval(pollTimer);
+              btn.innerHTML = SVG_FAIL;
+              statusEl.innerHTML = '<span class="text-danger">Erreur</span>';
+              btn.disabled = false;
+              setTimeout(function() { btn.innerHTML = SVG_SEARCH; }, 3000);
+            } else if (msg) {
+              statusEl.innerHTML = '<span class="text-muted">' + msg + '</span>';
+            }
+          });
+        }, 1500);
+      })
+      .catch(function () {
+        btn.innerHTML = SVG_FAIL;
+        btn.disabled = false;
+        setTimeout(function() { btn.innerHTML = SVG_SEARCH; }, 3000);
+      });
+    });
+  });
+
+  // ── Rechercher tous — avec progression dans le bandeau ────────────
+  document.getElementById('btn-search-all').addEventListener('click', function () {
+    // Count all missing movies (including unavailable — Radarr searches them all)
+    var totalMissing = document.querySelectorAll('tr[data-id]').length;
+    if (!totalMissing) {
+      showBanner('Aucun film manquant.', 'warning');
+      return;
+    }
+    if (!confirm('Lancer la recherche pour ' + totalMissing + ' film(s) manquant(s) ?')) return;
+    var ids = { length: totalMissing }; // for display only
+
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> ' + ids.length + ' films...';
+    showBanner('<span class="spinner-border spinner-border-sm me-2"></span> Recherche en cours pour ' + ids.length + ' film(s) manquant(s)...', 'info');
+
+    postJson('/medias/films/recherche-manquants')
+    .then(function (data) {
+      if (!data.ok || !data.cmdId) {
+        showBanner('Erreur lors du lancement.', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = SVG_SEARCH + ' Rechercher tous les manquants';
+        return;
+      }
+      var lastFilmSeen = '';
+      var filmsDone = 0;
+      var pollCount = 0;
+      var SEARCH_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+
+      var pollTimer = setInterval(function() {
+        pollCount++;
+        var elapsed = Math.round(pollCount * 1.5);
+        getJson('/medias/films/command/' + data.cmdId).then(function(cmd) {
+          var st = (cmd.status || '').toLowerCase();
+          var msg = cmd.message || '';
+
+          if (st === 'completed') {
+            clearInterval(pollTimer);
+            btn.disabled = false;
+            btn.innerHTML = SEARCH_ICON + ' Rechercher tous les manquants';
+            var downloaded = msg.match(/(\d+) reports downloaded/);
+            var searchedMatch = msg.match(/(\d+) movies/);
+            var dlCount = downloaded ? parseInt(downloaded[1]) : 0;
+            var searchedCount = searchedMatch ? parseInt(searchedMatch[1]) : ids.length;
+            if (dlCount > 0) {
+              showBanner('Recherche terminée — ' + dlCount + ' téléchargement(s) lancé(s) sur ' + searchedCount + ' film(s) recherché(s).', 'success');
+            } else {
+              showBanner('Recherche terminée pour ' + searchedCount + ' film(s) — aucun résultat correspondant aux critères.', 'warning');
+            }
+            setTimeout(function() { location.reload(); }, 3000);
+          } else if (st === 'failed') {
+            clearInterval(pollTimer);
+            btn.disabled = false;
+            btn.innerHTML = SEARCH_ICON + ' Rechercher tous les manquants';
+            showBanner('Recherche échouée : ' + (msg || 'erreur inconnue'), 'danger');
+          } else {
+            // Progression
+            var filmMatch = msg.match(/Searching\s+\d+\s+indexers for\s+\[(.+?)\]/i) || msg.match(/for\s+\[(.+?)\]/i);
+            if (filmMatch && filmMatch[1] !== lastFilmSeen) {
+              lastFilmSeen = filmMatch[1];
+              filmsDone++;
+            }
+            var progressText = '';
+            if (filmsDone > 0) {
+              progressText = 'Film ' + filmsDone + '/' + ids.length + ' — ' + lastFilmSeen;
+            } else if (msg) {
+              progressText = msg;
+            } else {
+              progressText = 'Recherche en cours... (' + elapsed + 's)';
+            }
+            showBanner('<span class="spinner-border spinner-border-sm me-2"></span> ' + progressText, 'info');
+          }
+        });
+      }, 1500);
+    })
+    .catch(function () {
+      btn.disabled = false;
+      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Rechercher tous les manquants';
+      showBanner('Erreur réseau.', 'danger');
+    });
+  });
+
+  // ── Ne plus suivre ────────────────────────────────────────────────
+  document.querySelectorAll('.btn-unmonitor').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = btn.dataset.id;
+      var row = btn.closest('tr');
+      if (!confirm('Ne plus suivre ce film ?')) return;
+      btn.disabled = true;
+      postJson('/medias/films/' + id + '/monitor', { monitored: false })
+      .then(function (data) {
+        if (data.ok) {
+          row.style.opacity = '0.3';
+          row.style.textDecoration = 'line-through';
+        }
+        btn.disabled = false;
+      })
+      .catch(function () { btn.disabled = false; });
+    });
+  });
+})();
+</script>
+{% endblock %}

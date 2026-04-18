@@ -1,0 +1,397 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Collections — IH-ARGOS{% endblock %}
+
+{% block stylesheets %}
+<style>
+.collection-card {
+  position: relative;
+  border-radius: .5rem;
+  overflow: hidden;
+  background: var(--tblr-bg-surface);
+  border: 1px solid var(--tblr-border-color);
+  transition: transform .15s, box-shadow .15s;
+}
+.collection-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+.collection-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+.collection-card .no-poster {
+  width: 100%; aspect-ratio: 2/3;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--tblr-bg-surface-secondary);
+  color: var(--tblr-muted); font-size: .8rem; text-align: center; padding: 1rem;
+  font-weight: 600;
+}
+.collection-card .card-overlay {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,.9));
+  padding: .75rem .5rem .5rem;
+}
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: .75rem;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Collections
+          <span class="badge bg-secondary-lt text-secondary ms-2">{{ collections|length }}</span>
+        </h2>
+      </div>
+      <div class="col-auto ms-auto">
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if collections is empty %}
+  <div class="alert alert-info">Aucune collection trouvée dans Radarr.</div>
+{% else %}
+
+{# Stats globales #}
+{% set totalFilms = 0 %}
+{% set downloadedFilms = 0 %}
+{% for col in collections %}
+  {% for film in col.movies ?? [] %}
+    {% set totalFilms = totalFilms + 1 %}
+    {% if film.hasFile ?? false %}{% set downloadedFilms = downloadedFilms + 1 %}{% endif %}
+  {% endfor %}
+{% endfor %}
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-sm-4">
+    <div class="card card-sm text-center">
+      <div class="card-body">
+        <div class="h1 mb-0">{{ collections|length }}</div>
+        <div class="text-muted small">Collections</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-sm-4">
+    <div class="card card-sm text-center">
+      <div class="card-body">
+        <div class="h1 mb-0">{{ totalFilms }}</div>
+        <div class="text-muted small">Films au total</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-sm-4">
+    <div class="card card-sm text-center">
+      <div class="card-body">
+        <div class="h1 mb-0 text-success">
+          {{ downloadedFilms }}
+          <small class="text-muted fs-4">/ {{ totalFilms }}</small>
+        </div>
+        <div class="text-muted small">Téléchargés</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="collection-grid">
+{% for col in collections %}
+  {% set colMovies = col.movies ?? [] %}
+  {% set colTotal = colMovies|length %}
+  {% set colDl = colMovies|filter(m => m.hasFile ?? false)|length %}
+  {% set pct = colTotal > 0 ? (colDl / colTotal * 100)|round : 0 %}
+
+  {# Poster : chercher dans images[] #}
+  {% set poster = null %}
+  {% for img in col.images ?? [] %}
+    {% if img.coverType == 'poster' %}{% set poster = img.remoteUrl ?? null %}{% endif %}
+  {% endfor %}
+
+  <div class="collection-card" role="button"
+       data-bs-toggle="modal" data-bs-target="#modal-collection"
+       data-col="{{ col|json_encode|e('html_attr') }}">
+    {% if poster %}
+      <img src="{{ poster }}" alt="{{ col.title }}" loading="lazy">
+    {% else %}
+      <div class="no-poster">{{ col.title }}</div>
+    {% endif %}
+
+    {# Badge monitored #}
+    {% if col.monitored ?? false %}
+      <div style="position:absolute;top:.4rem;right:.4rem">
+        <span class="badge bg-success" style="font-size:.6rem">Suivi</span>
+      </div>
+    {% endif %}
+
+    <div class="card-overlay">
+      <div style="font-size:.72rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2">
+        {{ col.title }}
+      </div>
+      <div style="font-size:.62rem;color:rgba(255,255,255,.7);margin-top:.2rem">
+        {{ colDl }}/{{ colTotal }} films
+      </div>
+      {# Barre de progression #}
+      <div style="height:3px;background:rgba(255,255,255,.2);border-radius:2px;margin-top:.3rem;overflow:hidden">
+        <div style="height:100%;width:{{ pct }}%;background:{% if pct == 100 %}#22c55e{% else %}#6366f1{% endif %};border-radius:2px"></div>
+      </div>
+      {# Toggle monitored #}
+      <div class="mt-2">
+        <button class="btn btn-xs py-0 px-2 btn-toggle-monitor w-100"
+                style="font-size:.62rem"
+                data-id="{{ col.id }}"
+                data-monitored="{{ col.monitored ? '1' : '0' }}"
+                onclick="event.stopPropagation();">
+          {{ col.monitored ? 'Ne plus suivre' : 'Suivre' }}
+        </button>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+{# ── Modal détail collection ─────────────────────────────────────────── #}
+<div class="modal modal-blur fade" id="modal-collection" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="col-modal-title"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="col-modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
+        <button type="button" class="btn btn-sm" id="col-modal-monitor"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+</div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function () {
+
+  /* ── Modal collection ─────────────────────────────────────────────── */
+  var colModal = document.getElementById('modal-collection');
+  var currentCol = null;
+  var colConfigCache = null;
+
+  function populateAddSelects(cfg, col) {
+    var qSel = document.getElementById('col-add-quality');
+    var fSel = document.getElementById('col-add-folder');
+    if (!qSel || !fSel) return;
+    qSel.innerHTML = '';
+    (cfg.qualityProfiles || []).forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      if (p.id === (col.qualityProfileId || 0)) opt.selected = true;
+      qSel.appendChild(opt);
+    });
+    fSel.innerHTML = '';
+    (cfg.rootFolders || []).forEach(function(f) {
+      var opt = document.createElement('option');
+      opt.value = f.path;
+      opt.textContent = f.path;
+      if (f.path === (col.rootFolderPath || '')) opt.selected = true;
+      fSel.appendChild(opt);
+    });
+  }
+
+  colModal.addEventListener('show.bs.modal', function(e) {
+    var trigger = e.relatedTarget;
+    if (!trigger || !trigger.dataset.col) return;
+    currentCol = JSON.parse(trigger.dataset.col);
+
+    document.getElementById('col-modal-title').textContent = currentCol.title || '—';
+
+    var movies = currentCol.movies || [];
+    var overview = currentCol.overview || '';
+    var html = '';
+
+    if (overview) {
+      html += '<p class="text-muted small mb-3">' + overview + '</p>';
+    }
+
+    // Config selects for adding movies
+    var hasNonAdded = movies.some(function(m) { return !(m.inLibrary || m.isExisting); });
+    if (hasNonAdded) {
+      html += '<div class="col-add-config d-flex gap-2 mb-3 p-2 rounded" style="background:var(--tblr-bg-surface-secondary)">';
+      html += '<div class="flex-fill"><label class="form-label small mb-1">Profil de qualité</label>';
+      html += '<select id="col-add-quality" class="form-select form-select-sm"><option value="">Chargement…</option></select></div>';
+      html += '<div class="flex-fill"><label class="form-label small mb-1">Dossier racine</label>';
+      html += '<select id="col-add-folder" class="form-select form-select-sm"><option value="">Chargement…</option></select></div>';
+      html += '</div>';
+    }
+
+    html += '<div class="mb-2 small text-muted">' + movies.length + ' film(s)</div>';
+    html += '<div class="table-responsive"><table class="table table-vcenter table-hover mb-0"><thead><tr>';
+    html += '<th style="width:50px"></th><th>Titre</th><th>Année</th><th class="text-end">Statut</th>';
+    html += '</tr></thead><tbody>';
+
+    movies.forEach(function(m) {
+      var poster = '';
+      (m.images || []).forEach(function(img) {
+        if (img.coverType === 'poster') poster = img.remoteUrl || '';
+      });
+      var hasFile = m.hasFile || false;
+      var inLib = m.inLibrary || m.isExisting || false;
+
+      html += '<tr>';
+      html += '<td>' + (poster ? '<img src="' + poster + '" style="width:35px;border-radius:3px;" loading="lazy">' : '') + '</td>';
+      html += '<td class="fw-medium">' + (m.title || '—') + '</td>';
+      html += '<td class="text-muted">' + (m.year || '—') + '</td>';
+      html += '<td class="text-end">';
+      if (hasFile) {
+        html += '<span class="badge bg-success-lt">Téléchargé</span>';
+      } else if (inLib) {
+        html += '<span class="badge bg-warning-lt">Manquant</span>';
+      } else {
+        html += '<button class="btn btn-sm btn-primary btn-add-col-movie" data-tmdb="' + m.tmdbId + '" data-title="' + (m.title || '').replace(/"/g,'&quot;') + '">';
+        html += '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg> Ajouter';
+        html += '</button>';
+      }
+      html += '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+
+    document.getElementById('col-modal-body').innerHTML = html;
+
+    // Load config for selects
+    if (hasNonAdded && !colConfigCache) {
+      fetch('/medias/films/config', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.json(); })
+        .then(function(cfg) {
+          colConfigCache = cfg;
+          populateAddSelects(cfg, currentCol);
+        });
+    } else if (hasNonAdded && colConfigCache) {
+      populateAddSelects(colConfigCache, currentCol);
+    }
+
+    // Bind add buttons
+    document.querySelectorAll('.btn-add-col-movie').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var qualSel = document.getElementById('col-add-quality');
+        var folderSel = document.getElementById('col-add-folder');
+        if (!qualSel.value || !folderSel.value) {
+          qualSel.closest('.col-add-config').style.outline = '2px solid #e53e3e';
+          setTimeout(function() { qualSel.closest('.col-add-config').style.outline = ''; }, 2000);
+          return;
+        }
+        var tmdb = parseInt(btn.dataset.tmdb);
+        var title = btn.dataset.title;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span>';
+
+        fetch('/medias/films/add', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+          body: JSON.stringify({
+            tmdbId: tmdb,
+            title: title,
+            qualityProfileId: parseInt(qualSel.value),
+            rootFolderPath: folderSel.value,
+            monitored: true,
+            searchForMovie: true,
+            minimumAvailability: currentCol.minimumAvailability || 'released',
+          }),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.ok) {
+            btn.outerHTML = '<span class="badge bg-success-lt">Ajouté</span>';
+          } else {
+            btn.disabled = false;
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg> Ajouter';
+            btn.classList.replace('btn-primary', 'btn-danger');
+            setTimeout(function() { btn.classList.replace('btn-danger', 'btn-primary'); }, 2000);
+          }
+        })
+        .catch(function() {
+          btn.disabled = false;
+          btn.textContent = 'Erreur';
+        });
+      });
+    });
+
+    // Monitor button
+    var monBtn = document.getElementById('col-modal-monitor');
+    var isMonitored = currentCol.monitored || false;
+    monBtn.textContent = isMonitored ? 'Ne plus suivre' : 'Suivre';
+    monBtn.className = 'btn btn-sm ' + (isMonitored ? 'btn-outline-secondary' : 'btn-primary');
+    monBtn.dataset.id = currentCol.id;
+    monBtn.dataset.monitored = isMonitored ? '1' : '0';
+  });
+
+  document.getElementById('col-modal-monitor').addEventListener('click', function() {
+    var btn = this;
+    var id = btn.dataset.id;
+    var newMonitored = btn.dataset.monitored !== '1';
+    btn.disabled = true;
+
+    fetch('/medias/films/collections/' + id + '/monitor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ monitored: newMonitored }),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.ok) location.reload();
+      else btn.disabled = false;
+    })
+    .catch(function() { btn.disabled = false; });
+  });
+
+  /* ── Toggle monitor (grille) ──────────────────────────────────────── */
+  document.querySelectorAll('.btn-toggle-monitor').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var id = this.dataset.id;
+      var monitored = this.dataset.monitored === '1';
+      var newMonitored = !monitored;
+      var btn = this;
+      btn.disabled = true;
+
+      fetch('/medias/films/collections/' + id + '/monitor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: JSON.stringify({ monitored: newMonitored }),
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok) {
+          btn.dataset.monitored = newMonitored ? '1' : '0';
+          btn.textContent = newMonitored ? 'Ne plus suivre' : 'Suivre';
+          // Mettre à jour le badge
+          var card = btn.closest('.collection-card');
+          var badge = card ? card.querySelector('.badge.bg-success') : null;
+          if (newMonitored && !badge) {
+            var b = document.createElement('span');
+            b.className = 'badge bg-success';
+            b.style.fontSize = '.6rem';
+            b.textContent = 'Suivi';
+            var corner = document.createElement('div');
+            corner.style = 'position:absolute;top:.4rem;right:.4rem';
+            corner.appendChild(b);
+            card.appendChild(corner);
+          } else if (!newMonitored && badge) {
+            badge.closest('div').remove();
+          }
+        }
+        btn.disabled = false;
+      })
+      .catch(function () { btn.disabled = false; });
+    });
+  });
+})();
+</script>
+{% endblock %}

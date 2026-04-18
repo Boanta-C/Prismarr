@@ -1,0 +1,158 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Query Runner — BDD{% endblock %}
+{% block page_title %}Query Runner{% endblock %}
+
+{% block breadcrumb %}
+  <ol class="breadcrumb" aria-label="breadcrumbs">
+    <li class="breadcrumb-item"><a href="{{ path('admin_db_index') }}">Base de données</a></li>
+    <li class="breadcrumb-item active">Query Runner</li>
+  </ol>
+{% endblock %}
+
+{% block body %}
+<div class="page-body">
+  <div class="container-xl">
+
+    <div class="row g-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <h3 class="card-title mb-0">Requête SQL</h3>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-danger-lt">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4l.01 0"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/></svg>
+                DROP / TRUNCATE / ALTER / CREATE interdits
+              </span>
+              <span class="badge bg-blue-lt">Toutes les écritures sont auditées</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <form method="post" id="query-form" data-turbo="false">
+              <input type="hidden" name="_token" value="{{ csrf_token('admin_query') }}">
+
+              <div class="mb-3">
+                <textarea name="sql" id="sql-input" class="form-control font-monospace"
+                          rows="6" style="font-size:.85rem;resize:vertical;"
+                          placeholder="SELECT * FROM infrastructure_metric LIMIT 10;"
+                          spellcheck="false">{{ sql }}</textarea>
+              </div>
+
+              <div class="d-flex align-items-center gap-2">
+                <button type="submit" class="btn btn-primary" id="run-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M7 4v16l13 -8z"/></svg>
+                  Exécuter
+                </button>
+                <button type="button" class="btn btn-ghost-secondary" onclick="document.getElementById('sql-input').value=''">Effacer</button>
+                <div class="ms-auto">
+                  <div class="dropdown" style="position:relative;">
+                    <button type="button" class="btn btn-ghost-secondary btn-sm" data-argos-dropdown="sql-snippets">
+                      Snippets ▾
+                    </button>
+                    <div class="dropdown-menu" id="sql-snippets" style="min-width:240px;position:absolute;right:0;left:auto;top:100%;">
+                      {% set snippets = [
+                        {label: 'Tables + row count',    sql: "SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_ROWS DESC;"},
+                        {label: 'Alertes actives',       sql: "SELECT * FROM infrastructure_alert WHERE resolved_at IS NULL ORDER BY created_at DESC;"},
+                        {label: 'Métriques récentes',    sql: "SELECT name, value, unit, recorded_at FROM infrastructure_metric ORDER BY recorded_at DESC LIMIT 50;"},
+                        {label: 'Audit log récent',      sql: "SELECT * FROM admin_audit_log ORDER BY created_at DESC LIMIT 20;"},
+                        {label: 'Devices',               sql: "SELECT * FROM infrastructure_device;"},
+                        {label: 'Services statuts',      sql: "SELECT * FROM infrastructure_service_status ORDER BY checked_at DESC LIMIT 50;"},
+                        {label: 'Users',                 sql: "SELECT id, email, roles, created_at FROM user;"},
+                      ] %}
+                      {% for s in snippets %}
+                        <a href="#" class="dropdown-item small"
+                           onclick="event.preventDefault();document.getElementById('sql-input').value={{ s.sql|json_encode|raw }};">
+                          {{ s.label }}
+                        </a>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {# Résultats #}
+      {% if error %}
+        <div class="col-12">
+          <div class="alert alert-danger d-flex align-items-start gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div><strong>Erreur SQL</strong><div class="font-monospace small mt-1" style="white-space:pre-wrap;">{{ error }}</div></div>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if affected is not null %}
+        <div class="col-12">
+          <div class="alert alert-success">
+            ✓ Requête exécutée — <strong>{{ affected }}</strong> ligne{{ affected != 1 ? 's' : '' }} affectée{{ affected != 1 ? 's' : '' }}
+            {% if query_time %}<span class="text-muted ms-2">({{ query_time }}ms)</span>{% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if result is not null %}
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+              <h3 class="card-title mb-0">
+                Résultat — {{ result|length }} ligne{{ result|length != 1 ? 's' : '' }}
+              </h3>
+              {% if query_time %}
+                <span class="text-secondary small">{{ query_time }} ms</span>
+              {% endif %}
+            </div>
+            {% if result is empty %}
+              <div class="card-body text-secondary text-center py-4">Aucun résultat.</div>
+            {% else %}
+              <div class="table-responsive">
+                <table class="table table-sm table-vcenter table-hover card-table" style="font-size:.82rem;">
+                  <thead>
+                    <tr>
+                      {% for col in result[0]|keys %}
+                        <th>{{ col }}</th>
+                      {% endfor %}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for row in result %}
+                      <tr>
+                        {% for val in row %}
+                          <td class="text-secondary" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ val }}">
+                            {% if val is null %}<span class="text-muted fst-italic">null</span>
+                            {% elseif val|length > 80 %}{{ val|slice(0, 80) }}…
+                            {% else %}{{ val }}{% endif %}
+                          </td>
+                        {% endfor %}
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Confirmation pour les requêtes d'écriture
+  var form = document.getElementById('query-form');
+  if (!form) return;
+  form.addEventListener('submit', function (e) {
+    var sql = document.getElementById('sql-input').value.trim().toUpperCase();
+    if (/^\s*(INSERT|UPDATE|DELETE)\b/i.test(sql)) {
+      if (!confirm('Cette requête modifie des données.\nElle sera enregistrée dans le journal d\'audit.\n\nContinuer ?')) {
+        e.preventDefault();
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

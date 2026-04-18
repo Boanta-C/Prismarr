@@ -1,0 +1,112 @@
+{#
+  Barre de navigation Radarr — icônes avec tooltip natif (title=).
+  Utilise data-argos-dropdown (handler custom Turbo-safe).
+#}
+{% set _route = app.request.attributes.get('_route') %}
+{% set _activity = ['app_media_films_history','app_media_films_blocklist','radarr_commands'] %}
+{% set _wanted   = ['app_media_films_missing','app_media_films_cutoff','radarr_library_import'] %}
+{% set _discover = ['app_media_films_collections','radarr_suggestions','radarr_exclusions'] %}
+{% set _settings = ['radarr_quality','radarr_delay_profiles','radarr_custom_formats',
+                    'radarr_indexers','radarr_download_clients','radarr_import_lists',
+                    'radarr_notifications','radarr_auto_tags','radarr_tags','radarr_rename',
+                    'radarr_media_management','radarr_settings','radarr_ui','radarr_root_folders',
+                    'radarr_remote_path_mappings','radarr_metadata','radarr_custom_filters',
+                    'app_media_radarr_system',
+                    'radarr_backups','radarr_updates','radarr_tasks','radarr_logs',
+                    'radarr_stats','radarr_parse'] %}
+
+<div class="d-flex gap-2 align-items-center" style="position:relative;">
+
+  <a href="{{ path('app_media_films') }}"
+     class="btn btn-sm btn-primary"
+     title="Bibliothèque Films">
+    Films
+  </a>
+
+  {# ── Activité (horloge) ── #}
+  <div style="position:relative;">
+    <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _activity ? 'btn-secondary' : 'btn-ghost-secondary' }}"
+            type="button" data-argos-dropdown="rnav-activity" title="Activité">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dropdown-menu" id="rnav-activity">
+      <span class="dropdown-header">Activité</span>
+      <a class="dropdown-item {{ _route == 'app_media_films_history'   ? 'active' }}" href="{{ path('app_media_films_history') }}">Historique</a>
+      <a class="dropdown-item {{ _route == 'app_media_films_blocklist' ? 'active' }}" href="{{ path('app_media_films_blocklist') }}">Blocklist</a>
+      <a class="dropdown-item {{ _route == 'radarr_commands'           ? 'active' }}" href="{{ path('radarr_commands') }}">Commandes</a>
+    </div>
+  </div>
+
+  {# ── Recherché (loupe) ── #}
+  <div style="position:relative;">
+    <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _wanted ? 'btn-warning' : 'btn-ghost-secondary' }}"
+            type="button" data-argos-dropdown="rnav-wanted" title="Recherché">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dropdown-menu" id="rnav-wanted">
+      <span class="dropdown-header">Recherché</span>
+      <a class="dropdown-item {{ _route == 'app_media_films_missing' ? 'active' }}" href="{{ path('app_media_films_missing') }}">Manquants</a>
+      <a class="dropdown-item {{ _route == 'app_media_films_cutoff'  ? 'active' }}" href="{{ path('app_media_films_cutoff') }}">Cutoff qualité</a>
+      <a class="dropdown-item {{ _route == 'radarr_library_import'  ? 'active' }}" href="{{ path('radarr_library_import') }}">Import bibliothèque</a>
+    </div>
+  </div>
+
+  {# ── Découverte (étoile) ── #}
+  <div style="position:relative;">
+    <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _discover ? 'btn-secondary' : 'btn-ghost-secondary' }}"
+            type="button" data-argos-dropdown="rnav-discover" title="Découverte">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dropdown-menu" id="rnav-discover">
+      <span class="dropdown-header">Découverte</span>
+      <a class="dropdown-item {{ _route == 'app_media_films_collections' ? 'active' }}" href="{{ path('app_media_films_collections') }}">Collections</a>
+      <a class="dropdown-item {{ _route == 'radarr_suggestions'          ? 'active' }}" href="{{ path('radarr_suggestions') }}">Suggestions</a>
+      <a class="dropdown-item {{ _route == 'radarr_exclusions'           ? 'active' }}" href="{{ path('radarr_exclusions') }}">Exclusions</a>
+    </div>
+  </div>
+
+  {# ── Paramètres (engrenage) ── #}
+  <div style="position:relative;">
+    <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _settings ? 'btn-secondary' : 'btn-ghost-secondary' }}"
+            type="button" data-argos-dropdown="rnav-settings" title="Paramètres">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dropdown-menu" id="rnav-settings" style="min-width:200px;right:0;left:auto;">
+      <span class="dropdown-header">Profils</span>
+      <a class="dropdown-item {{ _route == 'radarr_quality'          ? 'active' }}" href="{{ path('radarr_quality') }}">Qualité</a>
+      <a class="dropdown-item {{ _route == 'radarr_delay_profiles'   ? 'active' }}" href="{{ path('radarr_delay_profiles') }}">Profils délai</a>
+      <a class="dropdown-item {{ _route == 'radarr_custom_formats'   ? 'active' }}" href="{{ path('radarr_custom_formats') }}">Formats custom</a>
+      <a class="dropdown-item {{ _route == 'radarr_custom_filters'  ? 'active' }}" href="{{ path('radarr_custom_filters') }}">Filtres personnalisés</a>
+      <div class="dropdown-divider"></div>
+      <span class="dropdown-header">Intégrations</span>
+      <a class="dropdown-item {{ _route == 'radarr_indexers'         ? 'active' }}" href="{{ path('radarr_indexers') }}">Indexeurs</a>
+      <a class="dropdown-item {{ _route == 'radarr_download_clients' ? 'active' }}" href="{{ path('radarr_download_clients') }}">Clients téléch.</a>
+      <a class="dropdown-item {{ _route == 'radarr_import_lists'     ? 'active' }}" href="{{ path('radarr_import_lists') }}">Listes import</a>
+      <a class="dropdown-item {{ _route == 'radarr_notifications'    ? 'active' }}" href="{{ path('radarr_notifications') }}">Notifications</a>
+      <div class="dropdown-divider"></div>
+      <span class="dropdown-header">Général</span>
+      <a class="dropdown-item {{ _route == 'radarr_auto_tags'        ? 'active' }}" href="{{ path('radarr_auto_tags') }}">Auto-tags</a>
+      <a class="dropdown-item {{ _route == 'radarr_tags'             ? 'active' }}" href="{{ path('radarr_tags') }}">Tags</a>
+      <a class="dropdown-item {{ _route == 'radarr_media_management'  ? 'active' }}" href="{{ path('radarr_media_management') }}">Gestion des médias</a>
+      <a class="dropdown-item {{ _route == 'radarr_ui'              ? 'active' }}" href="{{ path('radarr_ui') }}">Interface (UI)</a>
+      <a class="dropdown-item {{ _route == 'radarr_root_folders'     ? 'active' }}" href="{{ path('radarr_root_folders') }}">Dossiers racine</a>
+      <a class="dropdown-item {{ _route == 'radarr_remote_path_mappings' ? 'active' }}" href="{{ path('radarr_remote_path_mappings') }}">Chemins distants</a>
+      <a class="dropdown-item {{ _route == 'radarr_metadata'        ? 'active' }}" href="{{ path('radarr_metadata') }}">Metadata</a>
+      <div class="dropdown-divider"></div>
+      <span class="dropdown-header">Système</span>
+      <a class="dropdown-item {{ _route == 'app_media_radarr_system' ? 'active' }}" href="{{ path('app_media_radarr_system') }}">Statut</a>
+      <a class="dropdown-item {{ _route == 'radarr_settings'         ? 'active' }}" href="{{ path('radarr_settings') }}">Général</a>
+      <a class="dropdown-item {{ _route == 'radarr_tasks'            ? 'active' }}" href="{{ path('radarr_tasks') }}">Tâches</a>
+      <a class="dropdown-item {{ _route == 'radarr_logs'             ? 'active' }}" href="{{ path('radarr_logs') }}">Logs</a>
+      <a class="dropdown-item {{ _route == 'radarr_stats'            ? 'active' }}" href="{{ path('radarr_stats') }}">Stats</a>
+      <a class="dropdown-item {{ _route == 'radarr_parse'            ? 'active' }}" href="{{ path('radarr_parse') }}">Parser titre</a>
+      <a class="dropdown-item {{ _route == 'radarr_backups'          ? 'active' }}" href="{{ path('radarr_backups') }}">Sauvegardes</a>
+      <a class="dropdown-item {{ _route == 'radarr_updates'          ? 'active' }}" href="{{ path('radarr_updates') }}">Mises à jour</a>
+    </div>
+  </div>
+
+</div>

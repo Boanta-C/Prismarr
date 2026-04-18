@@ -1,0 +1,19 @@
+framework:
+    messenger:
+        failure_transport: failed
+
+        transports:
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+                    max_delay: 0
+            failed: 'redis://redis:6379/messages_failed'
+            sync: 'sync://'
+
+        routing:
+            App\Message\PollDockerMessage: async
+            App\Message\PollSynologyMessage: async
+            App\Message\PollUnifiMessage: async

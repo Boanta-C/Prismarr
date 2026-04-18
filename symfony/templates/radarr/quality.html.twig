@@ -1,0 +1,950 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Qualite — Radarr{% endblock %}
+
+{% block stylesheets %}
+<style>
+.quality-def-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .65rem 1rem;
+  border-bottom: 1px solid var(--tblr-border-color);
+}
+.quality-def-row:last-child { border-bottom: none; }
+.quality-def-name {
+  min-width: 120px;
+  font-weight: 600;
+  font-size: .85rem;
+}
+.quality-def-title {
+  width: 160px;
+}
+.quality-def-slider-wrap {
+  flex: 1;
+  min-width: 200px;
+}
+.quality-def-values {
+  min-width: 280px;
+  font-size: .8rem;
+  color: var(--tblr-secondary);
+  white-space: nowrap;
+}
+.dual-range {
+  position: relative;
+  height: 28px;
+  width: 100%;
+}
+.dual-range input[type="range"] {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 28px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+}
+.dual-range input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #206bc4;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+}
+.dual-range input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #206bc4;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+}
+.dual-range input[type="range"].preferred-slider::-webkit-slider-thumb {
+  background: #f76707;
+  z-index: 4;
+  width: 14px;
+  height: 14px;
+}
+.dual-range input[type="range"].preferred-slider::-moz-range-thumb {
+  background: #f76707;
+  z-index: 4;
+  width: 14px;
+  height: 14px;
+}
+.dual-range-track {
+  position: absolute;
+  top: 11px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--tblr-border-color);
+  z-index: 1;
+}
+.dual-range-fill-green {
+  position: absolute;
+  top: 11px;
+  height: 6px;
+  background: #2fb344;
+  border-radius: 3px 0 0 3px;
+  z-index: 2;
+}
+.dual-range-fill-blue {
+  position: absolute;
+  top: 11px;
+  height: 6px;
+  background: #206bc4;
+  border-radius: 0 3px 3px 0;
+  z-index: 2;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header d-print-none">
+  <div class="container-xl">
+    <div class="row g-2 align-items-center">
+      <div class="col">
+        <h2 class="page-title">Qualite</h2>
+      </div>
+      <div class="col-auto ms-auto d-flex gap-2 align-items-center">
+        {% include 'media/_radarr_nav.html.twig' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+<div class="container-xl">
+
+{% if error %}
+<div class="alert alert-danger">Impossible de joindre Radarr.</div>
+{% endif %}
+
+<div id="quality-feedback" class="alert d-none mb-3"></div>
+
+<div class="row g-3">
+
+{# ── Profils de qualite ──────────────────────────────────────────────── #}
+<div class="col-12">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Profils de qualite</h3>
+      <div class="card-options d-flex gap-2 align-items-center">
+        <span class="badge bg-secondary-lt">{{ profiles|length }} profil(s)</span>
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-profile" data-action="create">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+          Ajouter
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      {% if profiles is empty %}
+        <div class="text-muted text-center py-4">Aucun profil.</div>
+      {% else %}
+        <div class="table-responsive">
+          <table class="table table-vcenter mb-0">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Cutoff</th>
+                <th>Qualites incluses</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for profile in profiles %}
+              <tr>
+                <td class="fw-medium">{{ profile.name ?? '---' }}</td>
+                <td class="small text-muted">
+                  {% set cutoff_name = '---' %}
+                  {% for item in (profile.items ?? []) %}
+                    {% if (item.quality ?? null) is not null and (item.quality.id ?? -1) == profile.cutoff %}
+                      {% set cutoff_name = item.quality.name ?? profile.cutoff %}
+                    {% endif %}
+                  {% endfor %}
+                  {{ cutoff_name }}
+                </td>
+                <td class="small">
+                  <div class="d-flex flex-wrap gap-1">
+                    {% for item in (profile.items ?? []) %}
+                      {% if item.allowed ?? false %}
+                        {% if (item.quality ?? null) is not null %}
+                          <span class="badge bg-blue-lt">{{ item.quality.name ?? '?' }}</span>
+                        {% elseif (item.name ?? null) is not null %}
+                          <span class="badge bg-purple-lt">{{ item.name }}</span>
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </td>
+                <td class="text-end">
+                  <div class="d-flex gap-1 justify-content-end">
+                    <button class="btn btn-ghost-secondary btn-icon btn-profile-edit"
+                            data-bs-toggle="modal" data-bs-target="#modal-profile"
+                            data-profile="{{ profile|json_encode|e('html_attr') }}" title="Modifier">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                    </button>
+                    <button class="btn btn-ghost-danger btn-icon btn-profile-delete"
+                            data-id="{{ profile.id }}"
+                            data-name="{{ profile.name ?? '' }}" title="Supprimer">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Definitions de qualite (sliders) ────────────────────────────────── #}
+<div class="col-12">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Definitions de qualite</h3>
+      <div class="card-options d-flex gap-2 align-items-center">
+        <span class="badge bg-secondary-lt">{{ definitions|length }} qualite(s)</span>
+        <button class="btn btn-primary btn-sm" id="btn-save-definitions">
+          <span class="spinner-border spinner-border-sm d-none me-1" id="def-spinner"></span>
+          Enregistrer
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      {% if definitions is empty %}
+        <div class="text-muted text-center py-4">Aucune definition.</div>
+      {% else %}
+        <div class="quality-def-row fw-medium" style="background:var(--tblr-bg-surface-secondary);">
+          <div class="quality-def-name">Qualite</div>
+          <div class="quality-def-title">Titre</div>
+          <div class="quality-def-slider-wrap text-center" style="font-size:.8rem;">Débit</div>
+          <div class="quality-def-values text-center">Min / Préf. / Max</div>
+        </div>
+        <div id="definitions-container">
+        {% for def in definitions %}
+          <div class="quality-def-row" data-def-id="{{ def.id }}" data-def-json="{{ def|json_encode|e('html_attr') }}">
+            <div class="quality-def-name">{{ def.quality.name ?? '---' }}</div>
+            <div class="quality-def-title">
+              <input type="text" class="form-control form-control-sm def-title"
+                     value="{{ def.title ?? def.quality.name ?? '' }}">
+            </div>
+            <div class="quality-def-slider-wrap">
+              <div class="dual-range" data-min="{{ def.minSize ?? 0 }}" data-pref="{{ def.preferredSize ?? 0 }}" data-max="{{ def.maxSize ?? 0 }}">
+                <div class="dual-range-track"></div>
+                <div class="dual-range-fill-green"></div>
+                <div class="dual-range-fill-blue"></div>
+                {% set sliderMax = (limits.maxQualitySize ?? 400)|round(0) %}
+                <input type="range" class="range-min" min="0" max="{{ sliderMax }}" step="0.1" value="{{ def.minSize ?? 0 }}">
+                <input type="range" class="range-preferred preferred-slider" min="0" max="{{ sliderMax }}" step="0.1" value="{{ def.preferredSize ?? 0 }}">
+                <input type="range" class="range-max" min="0" max="{{ sliderMax }}" step="0.1" value="{{ def.maxSize ?? 0 }}">
+              </div>
+            </div>
+            <div class="quality-def-values d-flex align-items-center gap-1">
+              {% set mn = def.minSize ?? 0 %}
+              {% set pf = def.preferredSize ?? 0 %}
+              {% set mx = def.maxSize ?? 0 %}
+              <input type="number" class="form-control form-control-sm val-input val-input-min" step="0.1" min="0"
+                     value="{{ (mn * 60 / 1024)|number_format(1) }}" style="width:70px;text-align:center;">
+              <span>/</span>
+              <input type="number" class="form-control form-control-sm val-input val-input-pref text-warning fw-medium" step="0.1" min="0"
+                     value="{{ (pf * 60 / 1024)|number_format(1) }}" style="width:70px;text-align:center;">
+              <span>/</span>
+              <input type="number" class="form-control form-control-sm val-input val-input-max" step="0.1" min="0"
+                     value="{{ (mx * 60 / 1024)|number_format(1) }}" style="width:70px;text-align:center;">
+              <span class="text-muted" style="font-size:.75rem;">GiB/h</span>
+            </div>
+          </div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+</div>
+
+{# ── Modal profil de qualite ─────────────────────────────────────────── #}
+<div class="modal modal-blur fade" id="modal-profile" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-profile-title">Nouveau profil de qualite</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="profile-edit-id" value="">
+        <div id="profile-modal-feedback" class="alert d-none mb-3"></div>
+
+        <div class="row g-4">
+          {# ── Colonne gauche : parametres generaux + formats ── #}
+          <div class="col-md-5">
+            <div class="mb-3">
+              <label class="form-label fw-medium">Nom <span class="text-danger">*</span></label>
+              <input type="text" id="profile-name" class="form-control" placeholder="Ex: HD-1080p, Ultra-HD...">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="profile-upgrade-allowed">
+                <span class="form-check-label fw-medium">Mise a niveau autorisee</span>
+              </label>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Langue</label>
+              <select id="profile-language" class="form-select form-select-sm">
+                <option value="-1">Any</option>
+              </select>
+            </div>
+
+            <hr>
+
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label small fw-medium">Score min format</label>
+                <input type="number" id="profile-min-format-score" class="form-control form-control-sm" value="0">
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-medium">Score cutoff format</label>
+                <input type="number" id="profile-cutoff-format-score" class="form-control form-control-sm" value="0">
+              </div>
+            </div>
+
+            <hr>
+
+            <h6 class="mb-2">Formats personnalises</h6>
+            <div class="small text-muted mb-2">Definissez un score pour chaque format custom.</div>
+            <div id="profile-custom-formats" style="max-height:300px; overflow-y:auto;">
+              {# Rempli par JS #}
+            </div>
+          </div>
+
+          {# ── Colonne droite : qualites ── #}
+          <div class="col-md-7">
+            <h6 class="mb-1">Qualites</h6>
+            <div class="small text-muted mb-3">
+              Cochez les qualites autorisees. L'ordre de haut en bas represente la priorite de mise a niveau (haut = meilleur).
+              Les groupes contiennent plusieurs sous-qualites equivalentes.
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-medium">Cutoff</label>
+              <select id="profile-cutoff" class="form-select form-select-sm">
+                <option value="">-- Selectionner --</option>
+              </select>
+              <div class="form-text">Radarr arrete de chercher une meilleure qualite une fois le cutoff atteint.</div>
+            </div>
+
+            <div id="profile-qualities-list">
+              {# Rempli par JS #}
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer d-flex">
+        <button type="button" class="btn btn-danger me-auto d-none" id="btn-profile-delete-modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          Supprimer
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-primary ms-2" id="btn-profile-save">
+          <span class="spinner-border spinner-border-sm d-none me-1" id="profile-spinner"></span>
+          Sauvegarder
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(function(){
+
+var feedback = document.getElementById('quality-feedback');
+function showFeedback(msg, type) {
+  type = type || 'success';
+  feedback.className = 'alert alert-' + type + ' mb-3';
+  feedback.textContent = msg;
+  feedback.classList.remove('d-none');
+  setTimeout(function(){ feedback.classList.add('d-none'); }, 4000);
+}
+
+function showModalFeedback(msg, type) {
+  var fb = document.getElementById('profile-modal-feedback');
+  fb.className = 'alert alert-' + (type || 'danger') + ' mb-3';
+  fb.textContent = msg;
+  fb.classList.remove('d-none');
+}
+
+var allProfiles = {{ profiles|json_encode|raw }};
+var allDefinitions = {{ definitions|json_encode|raw }};
+var allCustomFormats = {{ customFormats|json_encode|raw }};
+var allLanguages = {{ languages|json_encode|raw }};
+var qualityLimits = {{ (limits ?? {})|json_encode|raw }};
+
+/* ── Dual-range slider logic ─────────────────────────────────────────── */
+
+function initSlider(row) {
+  var wrap = row.querySelector('.dual-range');
+  if (!wrap) return;
+  var rMin  = wrap.querySelector('.range-min');
+  var rPref = wrap.querySelector('.range-preferred');
+  var rMax  = wrap.querySelector('.range-max');
+  var fillGreen = wrap.querySelector('.dual-range-fill-green');
+  var fillBlue  = wrap.querySelector('.dual-range-fill-blue');
+  var inMin  = row.querySelector('.val-input-min');
+  var inPref = row.querySelector('.val-input-pref');
+  var inMax  = row.querySelector('.val-input-max');
+  var total = qualityLimits.maxQualitySize || 400;
+
+  function toGiBh(v) { return v * 60 / 1024; }
+  function fromGiBh(v) { return v * 1024 / 60; }
+
+  function sizeForDuration(mbPerMin, minutes) {
+    var gib = mbPerMin * minutes / 1024;
+    if (gib < 0.1) return '0';
+    return gib.toFixed(1) + ' GiB';
+  }
+  function buildTooltip(label, mbPerMin) {
+    return label + '\n60 min : ' + sizeForDuration(mbPerMin, 60) +
+           '\n90 min : ' + sizeForDuration(mbPerMin, 90) +
+           '\n120 min : ' + sizeForDuration(mbPerMin, 120);
+  }
+
+  /* Update fills + sync inputs from sliders */
+  function updateFromSliders() {
+    var mn = parseFloat(rMin.value);
+    var pf = parseFloat(rPref.value);
+    var mx = parseFloat(rMax.value);
+    if (mn > pf) { mn = pf; rMin.value = mn; }
+    if (pf > mx) { pf = mx; rPref.value = pf; }
+    if (mn > mx) { mn = mx; rMin.value = mn; }
+    var pctMin  = (mn / total) * 100;
+    var pctPref = (pf / total) * 100;
+    var pctMax  = (mx / total) * 100;
+    fillGreen.style.left  = pctMin + '%';
+    fillGreen.style.width = Math.max(0, pctPref - pctMin) + '%';
+    fillBlue.style.left   = pctPref + '%';
+    fillBlue.style.width  = Math.max(0, pctMax - pctPref) + '%';
+    inMin.value  = toGiBh(mn).toFixed(1);
+    inPref.value = toGiBh(pf).toFixed(1);
+    inMax.value  = toGiBh(mx).toFixed(1);
+    inMin.title  = buildTooltip('Taille minimum', mn);
+    inPref.title = buildTooltip('Taille préférée', pf);
+    inMax.title  = buildTooltip('Taille maximum', mx);
+  }
+
+  /* Update sliders + fills from inputs */
+  function updateFromInputs() {
+    var mn = fromGiBh(parseFloat(inMin.value) || 0);
+    var pf = fromGiBh(parseFloat(inPref.value) || 0);
+    var mx = fromGiBh(parseFloat(inMax.value) || 0);
+    if (mn < 0) mn = 0;
+    if (pf < mn) pf = mn;
+    if (mx < pf) mx = pf;
+    if (mn > total) mn = total;
+    if (pf > total) pf = total;
+    if (mx > total) mx = total;
+    rMin.value = mn;
+    rPref.value = pf;
+    rMax.value = mx;
+    var pctMin  = (mn / total) * 100;
+    var pctPref = (pf / total) * 100;
+    var pctMax  = (mx / total) * 100;
+    fillGreen.style.left  = pctMin + '%';
+    fillGreen.style.width = Math.max(0, pctPref - pctMin) + '%';
+    fillBlue.style.left   = pctPref + '%';
+    fillBlue.style.width  = Math.max(0, pctMax - pctPref) + '%';
+    inMin.title  = buildTooltip('Taille minimum', mn);
+    inPref.title = buildTooltip('Taille préférée', pf);
+    inMax.title  = buildTooltip('Taille maximum', mx);
+  }
+
+  rMin.addEventListener('input', function() {
+    if (parseFloat(rMin.value) > parseFloat(rPref.value)) rMin.value = rPref.value;
+    updateFromSliders();
+  });
+  rPref.addEventListener('input', function() {
+    var pf = parseFloat(rPref.value);
+    if (pf < parseFloat(rMin.value)) rPref.value = rMin.value;
+    if (pf > parseFloat(rMax.value)) rPref.value = rMax.value;
+    updateFromSliders();
+  });
+  rMax.addEventListener('input', function() {
+    if (parseFloat(rMax.value) < parseFloat(rPref.value)) rMax.value = rPref.value;
+    updateFromSliders();
+  });
+
+  inMin.addEventListener('change', updateFromInputs);
+  inPref.addEventListener('change', updateFromInputs);
+  inMax.addEventListener('change', updateFromInputs);
+
+  updateFromSliders();
+}
+
+document.querySelectorAll('.quality-def-row[data-def-id]').forEach(initSlider);
+
+/* ── Save definitions ────────────────────────────────────────────────── */
+
+document.getElementById('btn-save-definitions').addEventListener('click', function() {
+  var spinner = document.getElementById('def-spinner');
+  spinner.classList.remove('d-none');
+  var rows = document.querySelectorAll('.quality-def-row[data-def-id]');
+  var payload = [];
+  rows.forEach(function(row) {
+    var orig = JSON.parse(row.getAttribute('data-def-json'));
+    var wrap = row.querySelector('.dual-range');
+    orig.title         = row.querySelector('.def-title').value;
+    orig.minSize       = parseFloat(wrap.querySelector('.range-min').value);
+    orig.preferredSize = parseFloat(wrap.querySelector('.range-preferred').value);
+    orig.maxSize       = parseFloat(wrap.querySelector('.range-max').value);
+    payload.push(orig);
+  });
+  fetch('/radarr/qualite/definitions/sauvegarder', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+    body: JSON.stringify(payload),
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    spinner.classList.add('d-none');
+    if (data.ok) { location.reload(); return; }
+    showFeedback('Erreur lors de la sauvegarde des definitions.', 'danger');
+  })
+  .catch(function(){
+    spinner.classList.add('d-none');
+    showFeedback('Erreur reseau.', 'danger');
+  });
+});
+
+/* ── Profile modal logic ─────────────────────────────────────────────── */
+
+var modalEl = document.getElementById('modal-profile');
+var currentEditProfile = null;
+
+/* Helper: build a quality item row (checkbox + label/badges + arrows) */
+function buildQualityRow(item, index) {
+  var isGroup = Array.isArray(item.items) && item.items.length > 0;
+  var allowed = item.allowed || false;
+  var div = document.createElement('div');
+  div.className = 'border rounded px-2 mb-1 d-flex align-items-center gap-2';
+  div.setAttribute('data-item-index', index);
+  div.draggable = true;
+  div.style.cssText = 'cursor:grab;padding-top:3px;padding-bottom:3px;transition:transform .15s,box-shadow .15s;';
+
+  /* Grip handle */
+  var grip = document.createElement('span');
+  grip.className = 'text-muted';
+  grip.style.cssText = 'cursor:grab;font-size:.7rem;letter-spacing:1px;user-select:none;';
+  grip.textContent = '⠿';
+  grip.title = 'Glisser pour réordonner';
+  div.appendChild(grip);
+
+  var checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.className = 'form-check-input mt-0 quality-item-check';
+  checkbox.checked = allowed;
+  checkbox.setAttribute('data-item-index', index);
+  div.appendChild(checkbox);
+
+  var content = document.createElement('div');
+  content.className = 'flex-fill';
+
+  if (isGroup) {
+    content.className = 'flex-fill d-flex align-items-center flex-wrap gap-1';
+    var groupLabel = document.createElement('span');
+    groupLabel.className = 'fw-medium small';
+    groupLabel.textContent = item.name || 'Groupe';
+    content.appendChild(groupLabel);
+
+    item.items.forEach(function(sub) {
+      var badge = document.createElement('span');
+      badge.className = 'badge bg-azure-lt';
+      badge.style.fontSize = '.7rem';
+      badge.textContent = (sub.quality ? sub.quality.name : sub.name) || '?';
+      content.appendChild(badge);
+    });
+  } else {
+    var label = document.createElement('span');
+    label.className = 'small';
+    label.textContent = (item.quality ? item.quality.name : item.name) || '?';
+    content.appendChild(label);
+  }
+
+  div.appendChild(content);
+  return div;
+}
+
+/* Helper: get the "id" that represents a quality item for cutoff selection */
+function getItemCutoffId(item) {
+  if (item.quality && item.quality.id !== undefined) return item.quality.id;
+  /* For groups, Radarr uses a synthetic id (1000+) stored in item.id */
+  if (item.id !== undefined) return item.id;
+  return null;
+}
+
+function getItemCutoffLabel(item) {
+  if (item.quality && item.quality.name) return item.quality.name;
+  return item.name || '?';
+}
+
+/* Rebuild the cutoff dropdown from currently checked quality items */
+function rebuildCutoffDropdown() {
+  var cutoffSelect = document.getElementById('profile-cutoff');
+  var prevValue = cutoffSelect.value;
+  cutoffSelect.innerHTML = '<option value="">-- Selectionner --</option>';
+
+  var rows = document.querySelectorAll('#profile-qualities-list [data-item-index]');
+  rows.forEach(function(row) {
+    var chk = row.querySelector('.quality-item-check');
+    if (!chk || !chk.checked) return;
+    var item = row._qualityItem;
+    if (!item) return;
+    var cId = getItemCutoffId(item);
+    if (cId === null) return;
+    var opt = document.createElement('option');
+    opt.value = cId;
+    opt.textContent = getItemCutoffLabel(item);
+    if (String(cId) === String(prevValue)) opt.selected = true;
+    cutoffSelect.appendChild(opt);
+  });
+}
+
+var currentProfileItems = [];
+
+modalEl.addEventListener('show.bs.modal', function(ev) {
+  var btn = ev.relatedTarget;
+  var profileData = btn ? btn.getAttribute('data-profile') : null;
+  var isEdit = !!profileData;
+  var profile = isEdit ? JSON.parse(profileData) : null;
+  currentEditProfile = profile;
+
+  document.getElementById('modal-profile-title').textContent = isEdit ? 'Modifier le profil' : 'Nouveau profil de qualite';
+  document.getElementById('profile-edit-id').value = isEdit ? profile.id : '';
+  document.getElementById('profile-name').value = isEdit ? (profile.name || '') : '';
+  document.getElementById('profile-upgrade-allowed').checked = isEdit ? (profile.upgradeAllowed || false) : true;
+  document.getElementById('profile-min-format-score').value = isEdit ? (profile.minFormatScore || 0) : 0;
+  document.getElementById('profile-cutoff-format-score').value = isEdit ? (profile.cutoffFormatScore || 0) : 0;
+
+  /* Delete button visibility */
+  var btnDelete = document.getElementById('btn-profile-delete-modal');
+  if (isEdit) {
+    btnDelete.classList.remove('d-none');
+    btnDelete.setAttribute('data-id', profile.id);
+    btnDelete.setAttribute('data-name', profile.name || '');
+  } else {
+    btnDelete.classList.add('d-none');
+  }
+
+  /* ── Language dropdown ── */
+  var langSelect = document.getElementById('profile-language');
+  langSelect.innerHTML = '';
+  allLanguages.forEach(function(lang) {
+    var opt = document.createElement('option');
+    opt.value = lang.id;
+    opt.textContent = lang.name || ('Langue ' + lang.id);
+    if (isEdit && profile.language && profile.language.id == lang.id) opt.selected = true;
+    else if (!isEdit && lang.id == -1) opt.selected = true;
+    langSelect.appendChild(opt);
+  });
+
+  /* ── Custom formats scores ── */
+  var cfContainer = document.getElementById('profile-custom-formats');
+  cfContainer.innerHTML = '';
+  var formatScoreMap = {};
+  if (isEdit && profile.formatItems) {
+    profile.formatItems.forEach(function(fi) {
+      formatScoreMap[fi.format] = fi.score || 0;
+    });
+  }
+  allCustomFormats.forEach(function(cf) {
+    var row = document.createElement('div');
+    row.className = 'd-flex align-items-center gap-2 mb-1';
+    var label = document.createElement('span');
+    label.className = 'flex-fill small';
+    label.textContent = cf.name || ('Format ' + cf.id);
+    row.appendChild(label);
+    var input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'form-control form-control-sm cf-score-input';
+    input.style.width = '80px';
+    input.setAttribute('data-cf-id', cf.id);
+    input.setAttribute('data-cf-name', cf.name || '');
+    input.value = formatScoreMap[cf.id] !== undefined ? formatScoreMap[cf.id] : 0;
+    row.appendChild(input);
+    cfContainer.appendChild(row);
+  });
+
+  /* ── Quality items list ── */
+  var listEl = document.getElementById('profile-qualities-list');
+  listEl.innerHTML = '';
+
+  /* Use the profile's items if editing, else use the first profile's items as template, else definitions */
+  var sourceItems = [];
+  if (isEdit && profile.items) {
+    sourceItems = profile.items;
+  } else if (allProfiles.length > 0 && allProfiles[0].items) {
+    /* Clone structure from first profile but set all to unchecked */
+    sourceItems = JSON.parse(JSON.stringify(allProfiles[0].items));
+    sourceItems.forEach(function(item) { item.allowed = false; });
+  } else {
+    allDefinitions.forEach(function(d) {
+      if (d.quality && d.quality.id !== undefined) {
+        sourceItems.push({ quality: { id: d.quality.id, name: d.quality.name }, allowed: false, items: [] });
+      }
+    });
+  }
+  /* Inverser : API renvoie du moins prioritaire au plus prioritaire,
+     mais on affiche le plus prioritaire en haut (comme Radarr natif) */
+  sourceItems.reverse();
+  currentProfileItems = sourceItems;
+
+  sourceItems.forEach(function(item, idx) {
+    var row = buildQualityRow(item, idx);
+    row._qualityItem = item;  // Stocker l'item sur la row pour reindex stable
+    listEl.appendChild(row);
+    row.querySelector('.quality-item-check').addEventListener('change', rebuildCutoffDropdown);
+  });
+
+  /* Drag-and-drop avec placeholder visuel */
+  var dragSrc = null;
+  var placeholder = document.createElement('div');
+  placeholder.style.cssText = 'height:4px;background:var(--tblr-primary);border-radius:2px;margin:2px 0;transition:all .1s;';
+
+  listEl.addEventListener('dragstart', function(e) {
+    dragSrc = e.target.closest('[data-item-index]');
+    if (dragSrc) {
+      dragSrc.style.opacity = '0.25';
+      dragSrc.style.background = 'var(--tblr-bg-surface-secondary)';
+      e.dataTransfer.effectAllowed = 'move';
+      // Petit délai pour que le navigateur capture l'image du drag
+      setTimeout(function() { dragSrc.style.height = dragSrc.offsetHeight + 'px'; }, 0);
+    }
+  });
+
+  listEl.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    var target = e.target.closest('[data-item-index]');
+    if (!target || target === dragSrc) return;
+
+    var rect = target.getBoundingClientRect();
+    var mid = rect.top + rect.height / 2;
+    if (e.clientY < mid) {
+      listEl.insertBefore(placeholder, target);
+    } else {
+      listEl.insertBefore(placeholder, target.nextSibling);
+    }
+  });
+
+  listEl.addEventListener('drop', function(e) {
+    e.preventDefault();
+    if (dragSrc && placeholder.parentNode) {
+      listEl.insertBefore(dragSrc, placeholder);
+      reindexItems();
+    }
+    if (placeholder.parentNode) placeholder.remove();
+  });
+
+  listEl.addEventListener('dragend', function() {
+    if (dragSrc) {
+      dragSrc.style.opacity = '';
+      dragSrc.style.background = '';
+      dragSrc.style.height = '';
+      dragSrc = null;
+    }
+    if (placeholder.parentNode) placeholder.remove();
+  });
+
+  function reindexItems() {
+    var rows = listEl.querySelectorAll('[data-item-index]');
+    var newItems = [];
+    rows.forEach(function(r, i) {
+      // Lire l'item stocké sur la row, pas via l'ancien index
+      if (r._qualityItem) {
+        newItems.push(r._qualityItem);
+      }
+      r.setAttribute('data-item-index', i);
+      var chk = r.querySelector('.quality-item-check');
+      if (chk) chk.setAttribute('data-item-index', i);
+    });
+    if (newItems.length > 0) currentProfileItems = newItems;
+    rebuildCutoffDropdown();
+  }
+
+  /* Build cutoff dropdown */
+  var cutoffSelect = document.getElementById('profile-cutoff');
+  cutoffSelect.innerHTML = '<option value="">-- Selectionner --</option>';
+  sourceItems.forEach(function(item, idx) {
+    if (!item.allowed) return;
+    var cId = getItemCutoffId(item);
+    if (cId === null) return;
+    var opt = document.createElement('option');
+    opt.value = cId;
+    opt.textContent = getItemCutoffLabel(item);
+    if (isEdit && profile.cutoff == cId) opt.selected = true;
+    cutoffSelect.appendChild(opt);
+  });
+
+  document.getElementById('profile-modal-feedback').classList.add('d-none');
+});
+
+/* ── Save profile ── */
+
+document.getElementById('btn-profile-save').addEventListener('click', function() {
+  var spinner = document.getElementById('profile-spinner');
+  spinner.classList.remove('d-none');
+
+  var editId = document.getElementById('profile-edit-id').value;
+  var isEdit = editId !== '';
+  var name = document.getElementById('profile-name').value.trim();
+  var cutoff = parseInt(document.getElementById('profile-cutoff').value) || 0;
+  var upgradeAllowed = document.getElementById('profile-upgrade-allowed').checked;
+  var minFormatScore = parseInt(document.getElementById('profile-min-format-score').value) || 0;
+  var cutoffFormatScore = parseInt(document.getElementById('profile-cutoff-format-score').value) || 0;
+
+  /* Language */
+  var langSelect = document.getElementById('profile-language');
+  var langId = parseInt(langSelect.value);
+  var langName = langSelect.options[langSelect.selectedIndex] ? langSelect.options[langSelect.selectedIndex].textContent : 'Any';
+
+  if (!name) {
+    spinner.classList.add('d-none');
+    showModalFeedback('Le nom est obligatoire.');
+    return;
+  }
+
+  /* Build items depuis les rows du DOM (ordre visuel) */
+  var rows = document.querySelectorAll('#profile-qualities-list [data-item-index]');
+  var items = [];
+  rows.forEach(function(row) {
+    var origItem = row._qualityItem ? JSON.parse(JSON.stringify(row._qualityItem)) : null;
+    if (!origItem) return;
+    var chk = row.querySelector('.quality-item-check');
+    origItem.allowed = chk ? chk.checked : false;
+    if (Array.isArray(origItem.items) && origItem.items.length > 0) {
+      origItem.items.forEach(function(sub) { sub.allowed = origItem.allowed; });
+    }
+    items.push(origItem);
+  });
+
+  /* Build formatItems from score inputs */
+  var formatItems = [];
+  document.querySelectorAll('.cf-score-input').forEach(function(input) {
+    formatItems.push({
+      format: parseInt(input.getAttribute('data-cf-id')),
+      name: input.getAttribute('data-cf-name'),
+      score: parseInt(input.value) || 0
+    });
+  });
+
+  /* Re-inverser pour l'API (on affiche le plus prioritaire en haut, l'API attend l'inverse) */
+  items.reverse();
+
+  var payload = {
+    name: name,
+    cutoff: cutoff,
+    items: items,
+    upgradeAllowed: upgradeAllowed,
+    minFormatScore: minFormatScore,
+    cutoffFormatScore: cutoffFormatScore,
+    minUpgradeFormatScore: 1,
+    formatItems: formatItems,
+    language: { id: langId, name: langName }
+  };
+
+  /* If editing, merge with existing profile data to preserve unknown fields */
+  if (isEdit) {
+    var origProfile = null;
+    allProfiles.forEach(function(p) { if (p.id == editId) origProfile = p; });
+    if (origProfile) {
+      payload = Object.assign({}, origProfile, payload);
+    }
+    payload.id = parseInt(editId);
+  }
+
+  var url = isEdit
+    ? '/radarr/qualite/profils/' + editId + '/modifier'
+    : '/radarr/qualite/profils/ajouter';
+
+  fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+    body: JSON.stringify(payload),
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    spinner.classList.add('d-none');
+    if (data.ok) { location.reload(); return; }
+    showModalFeedback(data.error || 'Erreur lors de la sauvegarde.');
+  })
+  .catch(function(){
+    spinner.classList.add('d-none');
+    showModalFeedback('Erreur reseau.');
+  });
+});
+
+/* ── Delete profile (from modal footer) ── */
+
+document.getElementById('btn-profile-delete-modal').addEventListener('click', function() {
+  var id = this.getAttribute('data-id');
+  var name = this.getAttribute('data-name');
+  if (!confirm('Supprimer le profil "' + name + '" ?')) return;
+  fetch('/radarr/qualite/profils/' + id + '/supprimer', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+    body: '{}',
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (data.ok) { location.reload(); return; }
+    showModalFeedback('Erreur lors de la suppression.');
+  })
+  .catch(function(){
+    showModalFeedback('Erreur reseau.');
+  });
+});
+
+/* ── Delete profile (from table row buttons) ── */
+
+document.querySelectorAll('.btn-profile-delete').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    if (!confirm('Supprimer le profil "' + btn.dataset.name + '" ?')) return;
+    fetch('/radarr/qualite/profils/' + btn.dataset.id + '/supprimer', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+      body: '{}',
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data.ok) { location.reload(); return; }
+      showFeedback('Erreur lors de la suppression.', 'danger');
+    });
+  });
+});
+
+})();
+</script>
+{% endblock %}
