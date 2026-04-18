@@ -3,40 +3,9 @@
 
 services:
 
-  nginx:
-    volumes:
-      - ./symfony/public:/var/www/html/public
-
-  app:
+  prismarr:
     environment:
       - APP_ENV=dev
       - APP_DEBUG=1
     volumes:
       - ./symfony:/var/www/html
-
-  worker:
-    user: root
-    environment:
-      - APP_ENV=dev
-      - APP_DEBUG=1
-    command: php bin/console messenger:consume async -vv
-    volumes:
-      - ./symfony:/var/www/html
-
-  mercure:
-    environment:
-      SERVER_NAME: ":3000"
-      MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}
-      MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET}
-      MERCURE_EXTRA_DIRECTIVES: |
-        cors_origins "*"
-        anonymous
-        demo
-
-# En dev, symfony_var est inutile — tout symfony/ est bind-monté
-volumes:
-  symfony_var:
-    driver: local
-    driver_opts:
-      type: tmpfs
-      device: tmpfs

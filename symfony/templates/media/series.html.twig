@@ -1151,12 +1151,12 @@
       b.classList.add('btn-ghost-secondary');
       if (b.dataset.view === mode) { b.classList.add('active', 'btn-secondary'); b.classList.remove('btn-ghost-secondary'); }
     });
-    try { localStorage.setItem('argos_series_view', mode); } catch(e) {}
+    try { localStorage.setItem('prismarr_series_view', mode); } catch(e) {}
     applyFilters();
   }
   // Restore saved view
   var savedView = 'grid';
-  try { savedView = localStorage.getItem('argos_series_view') || 'grid'; } catch(e) {}
+  try { savedView = localStorage.getItem('prismarr_series_view') || 'grid'; } catch(e) {}
   if (savedView !== 'grid') setViewMode(savedView);
 
   document.querySelectorAll('.view-btn').forEach(function(btn) {

@@ -1,0 +1,41 @@
+{
+	frankenphp
+	order mercure after encode
+
+	# Pas de HTTPS automatique (on est en local ou derrière un reverse proxy)
+	auto_https off
+}
+
+:7070 {
+	root * /var/www/html/public
+
+	# Compression
+	encode zstd gzip
+
+	# Mercure hub intégré (SSE temps réel)
+	mercure {
+		publisher_jwt {env.MERCURE_JWT_SECRET}
+		subscriber_jwt {env.MERCURE_JWT_SECRET}
+		cors_origins *
+		anonymous
+	}
+
+	# Symfony front controller
+	php_server {
+		resolve_root_symlink
+	}
+
+	# Headers sécurité
+	header {
+		X-Frame-Options "SAMEORIGIN"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-XSS-Protection "1; mode=block"
+		-Server
+	}
+
+	# Upload max 20 Mo
+	request_body {
+		max_size 20MB
+	}
+}

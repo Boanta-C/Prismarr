@@ -319,7 +319,7 @@
       : '<div class="no-poster">🎬</div>';
     var lib = item.in_library ? '<span class="badge-lib" style="background:' + (statusColors[item.lib_status] || '#22c55e') + ';">' + (statusLabels[item.lib_status] || 'Dispo') + '</span>' : '';
     var vote = item.vote ? '<span class="badge-vote ' + vc + '">★ ' + item.vote + '</span>' : '';
-    var wlClass = (window._argosWatchlist && window._argosWatchlist[item.type + '_' + item.id]) ? ' in-wl' : '';
+    var wlClass = (window._prismarrWatchlist && window._prismarrWatchlist[item.type + '_' + item.id]) ? ' in-wl' : '';
     var wlStar = '<button type="button" class="wl-star' + wlClass + '" data-tmdb-id="' + item.id + '" data-tmdb-type="' + item.type + '" data-title="' + (item.title||'').replace(/"/g,'&quot;') + '" data-poster="' + (item.poster||'') + '" data-vote="' + (item.vote||'') + '" data-year="' + (item.year||'') + '"><svg viewBox="0 0 24 24" fill="' + (wlClass ? '#f59e0b' : 'none') + '" stroke="#f59e0b" stroke-width="2"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4-6.2-4.5h7.6z"/></svg></button>';
     return '<div class="ex-card" data-tmdb-id="' + item.id + '" data-type="' + item.type + '">'
       + poster
@@ -424,7 +424,7 @@
 
     // Watchlist
     var wlKey = d.type + '_' + d.id;
-    var isInWl = window._argosWatchlist && window._argosWatchlist[wlKey];
+    var isInWl = window._prismarrWatchlist && window._prismarrWatchlist[wlKey];
 
     var html = '<div class="exd-header">'
       + (d.backdrop ? '<div class="exd-bg" style="background-image:url(\'' + d.backdrop + '\')"></div>' : '')
@@ -499,7 +499,7 @@
     .then(function(r) { return r.json(); })
     .then(function(d) {
       var added = d.action === 'added';
-      if (added) window._argosWatchlist[key] = true; else delete window._argosWatchlist[key];
+      if (added) window._prismarrWatchlist[key] = true; else delete window._prismarrWatchlist[key];
       btn.className = 'btn btn-sm ' + (added ? 'btn-warning' : 'btn-outline-warning') + ' exd-wl-btn';
       btn.querySelector('svg').setAttribute('fill', added ? '#fff' : 'none');
       var txt = btn.childNodes[btn.childNodes.length - 1];
@@ -509,7 +509,7 @@
         s.classList.toggle('in-wl', added);
         s.querySelector('svg').setAttribute('fill', added ? '#f59e0b' : 'none');
       });
-      if (window._argosToast) window._argosToast(added ? 'Ajouté à la watchlist' : 'Retiré de la watchlist', added ? 'success' : 'info');
+      if (window._prismarrToast) window._prismarrToast(added ? 'Ajouté à la watchlist' : 'Retiré de la watchlist', added ? 'success' : 'info');
     });
   });
 
@@ -777,15 +777,15 @@
   });
 
   // ── Watchlist ──
-  window._argosWatchlist = window._argosWatchlist || {};
+  window._prismarrWatchlist = window._prismarrWatchlist || {};
   fetch('/decouverte/watchlist/status', { credentials: 'same-origin' })
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      window._argosWatchlist = d.index || {};
+      window._prismarrWatchlist = d.index || {};
       // Sync étoiles déjà rendues
       document.querySelectorAll('.ex-card .wl-star[data-tmdb-id]').forEach(function(s) {
         var key = s.dataset.tmdbType + '_' + s.dataset.tmdbId;
-        var inWl = !!window._argosWatchlist[key];
+        var inWl = !!window._prismarrWatchlist[key];
         s.classList.toggle('in-wl', inWl);
         s.querySelector('svg').setAttribute('fill', inWl ? '#f59e0b' : 'none');
       });
@@ -809,12 +809,12 @@
       if (m) posterPath = m[1];
     }
     var key = star.dataset.tmdbType + '_' + star.dataset.tmdbId;
-    var wasIn = !!window._argosWatchlist[key];
+    var wasIn = !!window._prismarrWatchlist[key];
     var willAdd = !wasIn;
 
     // Optimiste : MAJ UI immédiate
-    if (willAdd) window._argosWatchlist[key] = true;
-    else delete window._argosWatchlist[key];
+    if (willAdd) window._prismarrWatchlist[key] = true;
+    else delete window._prismarrWatchlist[key];
     syncExWlStar(star.dataset.tmdbId, star.dataset.tmdbType, willAdd);
 
     fetch('/decouverte/watchlist/toggle', {
@@ -832,16 +832,16 @@
     .then(function(r) { return r.json(); })
     .then(function(d) {
       var added = d.action === 'added';
-      if (added) window._argosWatchlist[key] = true;
-      else delete window._argosWatchlist[key];
+      if (added) window._prismarrWatchlist[key] = true;
+      else delete window._prismarrWatchlist[key];
       if (added !== willAdd) syncExWlStar(star.dataset.tmdbId, star.dataset.tmdbType, added);
-      if (window._argosToast) window._argosToast(added ? 'Ajouté à la watchlist' : 'Retiré de la watchlist', added ? 'success' : 'info');
+      if (window._prismarrToast) window._prismarrToast(added ? 'Ajouté à la watchlist' : 'Retiré de la watchlist', added ? 'success' : 'info');
     })
     .catch(function() {
-      if (wasIn) window._argosWatchlist[key] = true;
-      else delete window._argosWatchlist[key];
+      if (wasIn) window._prismarrWatchlist[key] = true;
+      else delete window._prismarrWatchlist[key];
       syncExWlStar(star.dataset.tmdbId, star.dataset.tmdbType, wasIn);
-      if (window._argosToast) window._argosToast('Erreur réseau', 'danger');
+      if (window._prismarrToast) window._prismarrToast('Erreur réseau', 'danger');
     });
   });
 })();

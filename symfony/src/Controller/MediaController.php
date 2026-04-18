@@ -1622,7 +1622,7 @@ class MediaController extends AbstractController
         $results = [];
 
         // Cache léger dédié recherche (60s TTL) — ne stocke que titre/id/poster/year
-        $movies = $this->cache->get('argos_search_movies', function (ItemInterface $item) {
+        $movies = $this->cache->get('prismarr_search_movies', function (ItemInterface $item) {
             $item->expiresAfter(60);
             try {
                 $raw = $this->radarr->getRawMovies();
@@ -1641,7 +1641,7 @@ class MediaController extends AbstractController
             }
         });
 
-        $series = $this->cache->get('argos_search_series', function (ItemInterface $item) {
+        $series = $this->cache->get('prismarr_search_series', function (ItemInterface $item) {
             $item->expiresAfter(60);
             try {
                 $raw = $this->sonarr->getRawAllSeries();
@@ -1701,11 +1701,11 @@ class MediaController extends AbstractController
 
         // IDs locaux pour marquer "déjà en bibliothèque"
         $localMovieIds = array_column(
-            $this->cache->get('argos_search_movies', fn(ItemInterface $item) => ($item->expiresAfter(60)) ?: []),
+            $this->cache->get('prismarr_search_movies', fn(ItemInterface $item) => ($item->expiresAfter(60)) ?: []),
             'id'
         );
         $localSeriesIds = array_column(
-            $this->cache->get('argos_search_series', fn(ItemInterface $item) => ($item->expiresAfter(60)) ?: []),
+            $this->cache->get('prismarr_search_series', fn(ItemInterface $item) => ($item->expiresAfter(60)) ?: []),
             'id'
         );
 

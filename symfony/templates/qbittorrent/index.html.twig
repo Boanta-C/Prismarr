@@ -963,8 +963,8 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
         return qbtPost(url, body)
             .then(function(d){
                 var ok = d && d.ok !== false && !d.error;
-                if (window._argosToast) {
-                    window._argosToast(
+                if (window._prismarrToast) {
+                    window._prismarrToast(
                         ok ? (successMsg || 'Action envoyée') : ('Échec : ' + (d && d.error ? d.error : 'erreur')),
                         ok ? 'success' : 'danger'
                     );
@@ -972,7 +972,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
                 return d;
             })
             .catch(function(){
-                if (window._argosToast) window._argosToast('Erreur réseau', 'danger');
+                if (window._prismarrToast) window._prismarrToast('Erreur réseau', 'danger');
             })
             .finally(function(){
                 if (btn) {
@@ -988,7 +988,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
 
     // ── Helper Turbo-safe : remplace au lieu d'empiler ──────────────────────
     function bindDoc(event, key, handler) {
-        var fullKey = '_argosQbt_' + key;
+        var fullKey = '_prismarrQbt_' + key;
         if (window[fullKey]) document.removeEventListener(event, window[fullKey]);
         window[fullKey] = handler;
         document.addEventListener(event, handler);
@@ -1499,12 +1499,12 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
                     window.location.href = d.url;
                 } else {
                     tag.innerHTML = original;
-                    if (window._argosToast) window._argosToast('Aucun match trouvé pour "' + (name || '').substring(0, 50) + '"', 'warning');
+                    if (window._prismarrToast) window._prismarrToast('Aucun match trouvé pour "' + (name || '').substring(0, 50) + '"', 'warning');
                 }
             })
             .catch(function(){
                 tag.innerHTML = original;
-                if (window._argosToast) window._argosToast('Erreur de résolution', 'danger');
+                if (window._prismarrToast) window._prismarrToast('Erreur de résolution', 'danger');
             });
     });
 
@@ -1784,7 +1784,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
         for (var i = 0; i < fileList.length; i++) {
             var f = fileList[i];
             if (f.name.toLowerCase().endsWith('.torrent')) pendingTorrentFiles.push(f);
-            else if (window._argosToast) window._argosToast('Ignoré (pas .torrent) : ' + f.name, 'warning');
+            else if (window._prismarrToast) window._prismarrToast('Ignoré (pas .torrent) : ' + f.name, 'warning');
         }
         renderPendingFiles();
     }
@@ -1818,7 +1818,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
         var hasUrls = urls.length > 0;
 
         if (!hasFiles && !hasUrls) {
-            if (window._argosToast) window._argosToast('Ajoute un magnet/URL ou un fichier .torrent', 'warning');
+            if (window._prismarrToast) window._prismarrToast('Ajoute un magnet/URL ou un fichier .torrent', 'warning');
             return;
         }
 
@@ -1846,7 +1846,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
             filesDone = fetch(BASE + '/api/add-file', { method: 'POST', body: fd })
                 .then(function(r){ return r.json(); })
                 .then(function(d){
-                    if (window._argosToast) window._argosToast(d && d.ok ? (d.count + ' fichier(s) ajouté(s)') : 'Échec upload fichier', d && d.ok ? 'success' : 'danger');
+                    if (window._prismarrToast) window._prismarrToast(d && d.ok ? (d.count + ' fichier(s) ajouté(s)') : 'Échec upload fichier', d && d.ok ? 'success' : 'danger');
                     return d && d.ok;
                 })
                 .catch(function(){ return false; });
@@ -1858,7 +1858,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
                 return qbtPost(BASE + '/api/add', { urls: urls, category: cat || null, paused: paused })
                     .then(function(d){
                         var ok = d && d.ok;
-                        if (window._argosToast) window._argosToast(ok ? 'Torrent(s) ajouté(s)' : 'Échec ajout URL', ok ? 'success' : 'danger');
+                        if (window._prismarrToast) window._prismarrToast(ok ? 'Torrent(s) ajouté(s)' : 'Échec ajout URL', ok ? 'success' : 'danger');
                         return ok;
                     })
                     .catch(function(){ return false; });
@@ -1894,8 +1894,8 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
         {% endif %}
     })();
     // Refresh VPN toutes les 30s (ne change pas vite) — protégé contre les fuites Turbo
-    if (window._argosQbtVpnTimer) clearInterval(window._argosQbtVpnTimer);
-    window._argosQbtVpnTimer = setInterval(refreshVpn, 30000);
+    if (window._prismarrQbtVpnTimer) clearInterval(window._prismarrQbtVpnTimer);
+    window._prismarrQbtVpnTimer = setInterval(refreshVpn, 30000);
     var initDl = {{ (stats.dl_speed ?? 0)|json_encode|raw }};
     var initUp = {{ (stats.up_speed ?? 0)|json_encode|raw }};
     var speedDl = document.getElementById('qbt-speed-dl');

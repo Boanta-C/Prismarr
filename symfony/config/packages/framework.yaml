@@ -2,8 +2,16 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
-    # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    # Sessions persistantes dans var/sessions (survivent aux restarts FrankenPHP)
+    # Cookie name dédié pour cohabiter avec d'autres apps sur le même domaine (ex: Argos)
+    session:
+        handler_id: ~
+        name: PRISMARR_SESSION
+        cookie_secure: auto
+        cookie_samesite: lax
+        cookie_lifetime: 604800       # 7 jours
+        gc_maxlifetime: 604800        # 7 jours d'inactivité avant expiration
+        save_path: '%kernel.project_dir%/var/sessions'
 
     #esi: true
     #fragments: true

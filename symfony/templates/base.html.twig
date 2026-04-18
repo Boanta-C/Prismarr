@@ -4,7 +4,12 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
-  <title>{% block title %}IH-ARGOS{% endblock %} — IH-ARGOS</title>
+  <title>{% block title %}Prismarr{% endblock %} — Prismarr</title>
+
+  <link rel="icon" type="image/x-icon" href="{{ asset('img/prismarr/favicon.ico') }}"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/prismarr/favicon-192.png') }}"/>
+  <link rel="apple-touch-icon" href="{{ asset('img/prismarr/prismarr-icon-512.png') }}"/>
+
   {% block head_meta %}{% endblock %}
 
   <style>
@@ -30,14 +35,14 @@
     .skeleton-bar { height: 8px; border-radius: 4px; }
 
     /* ── Toasts SSE ── */
-    #argos-toasts { position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column-reverse; gap: .5rem; max-width: 360px; pointer-events: none; }
-    .argos-toast { pointer-events: auto; padding: .6rem 1rem; border-radius: .5rem; font-size: .8rem; box-shadow: 0 4px 16px rgba(0,0,0,.3); display: flex; align-items: center; gap: .5rem; animation: toast-in .3s ease-out; backdrop-filter: blur(8px); }
-    .argos-toast-success { background: rgba(34,197,94,.9); color: #fff; }
-    .argos-toast-warning { background: rgba(245,158,11,.9); color: #000; }
-    .argos-toast-danger { background: rgba(239,68,68,.9); color: #fff; }
-    .argos-toast-info { background: rgba(99,102,241,.9); color: #fff; }
+    #prismarr-toasts { position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column-reverse; gap: .5rem; max-width: 360px; pointer-events: none; }
+    .prismarr-toast { pointer-events: auto; padding: .6rem 1rem; border-radius: .5rem; font-size: .8rem; box-shadow: 0 4px 16px rgba(0,0,0,.3); display: flex; align-items: center; gap: .5rem; animation: toast-in .3s ease-out; backdrop-filter: blur(8px); }
+    .prismarr-toast-success { background: rgba(34,197,94,.9); color: #fff; }
+    .prismarr-toast-warning { background: rgba(245,158,11,.9); color: #000; }
+    .prismarr-toast-danger { background: rgba(239,68,68,.9); color: #fff; }
+    .prismarr-toast-info { background: rgba(99,102,241,.9); color: #fff; }
     @keyframes toast-in { from { opacity:0; transform:translateX(100px); } to { opacity:1; transform:translateX(0); } }
-    .argos-toast.toast-out { animation: toast-out .3s ease-in forwards; }
+    .prismarr-toast.toast-out { animation: toast-out .3s ease-in forwards; }
     @keyframes toast-out { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(100px); } }
 
     /* ── Badge DL sidebar (visible sur Médias + Téléchargements) ── */
@@ -278,7 +283,7 @@
 <body>
 
   {# ── Toasts SSE ── #}
-  <div id="argos-toasts"></div>
+  <div id="prismarr-toasts"></div>
 
   <div class="page">
 
@@ -475,7 +480,7 @@
 
                 {# Profil #}
                 <div class="dropdown" style="position:relative;">
-                  <button type="button" class="btn btn-icon btn-ghost-secondary" data-argos-dropdown="profile-menu">
+                  <button type="button" class="btn btn-icon btn-ghost-secondary" data-prismarr-dropdown="profile-menu">
                     <span style="display:inline-flex;width:1.375rem;height:1.375rem;border-radius:50%;background-image:url(https://ui-avatars.com/api/?name={{ app.user ? app.user.email|url_encode : 'U' }}&background=6366f1&color=fff&size=64);background-size:cover;background-position:center;flex-shrink:0;"></span>
                   </button>
                   <div class="dropdown-menu" id="profile-menu" style="min-width:220px;position:absolute;right:0;left:auto;top:100%;">
@@ -735,7 +740,7 @@
               // Stocker les IDs locaux pour marquer "En bibliothèque" dans les résultats en ligne
               var localIds = {};
               localItems.forEach(function (item) { localIds[item.type + '_' + (item.title || '')] = true; });
-              window._argosLocalIds = localIds;
+              window._prismarrLocalIds = localIds;
 
               resultsDiv.innerHTML = '<div id="search-online-section"><div class="py-2 text-center"><div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div><span class="small text-secondary ms-2">Recherche en ligne…</span></div></div>';
               resultsDiv.style.display = 'block';
@@ -797,8 +802,8 @@
 
     /* ── Quick Add modal ── */
     function initQuickAdd() {
-      if (window._argosQAInit) return;
-      window._argosQAInit = true;
+      if (window._prismarrQAInit) return;
+      window._prismarrQAInit = true;
 
       var qaItem  = null;
       var qaCache = {};
@@ -973,7 +978,7 @@
               result.textContent = (isFilm ? 'Film' : 'Série') + ' ajouté(e) avec succès !';
               btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg> Ajouté !';
               btn.className = 'btn btn-outline-success';
-              if (window._argosToast) window._argosToast((isFilm ? 'Film' : 'Série') + ' ajouté(e) à ' + (isFilm ? 'Radarr' : 'Sonarr'), 'success');
+              if (window._prismarrToast) window._prismarrToast((isFilm ? 'Film' : 'Série') + ' ajouté(e) à ' + (isFilm ? 'Radarr' : 'Sonarr'), 'success');
               setTimeout(function () {
                 closeQA();
               }, 1000);
@@ -999,12 +1004,12 @@
     }
     initQuickAdd();
 
-    if (!window._argosDD) {
-      window._argosDD = true;
+    if (!window._prismarrDD) {
+      window._prismarrDD = true;
       document.addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-argos-dropdown]');
+        var btn = e.target.closest('[data-prismarr-dropdown]');
         if (btn) {
-          var menuId = btn.getAttribute('data-argos-dropdown');
+          var menuId = btn.getAttribute('data-prismarr-dropdown');
           var menu = document.getElementById(menuId);
           if (!menu) return;
           var open = menu.classList.contains('show');
@@ -1031,21 +1036,21 @@
   /* ── Collapse sidebar custom (indépendant de Bootstrap/Turbo) ── */
   (function () {
     function syncCollapses() {
-      document.querySelectorAll('[data-argos-collapse]').forEach(function (toggle) {
-        var targetId = toggle.getAttribute('data-argos-collapse');
+      document.querySelectorAll('[data-prismarr-collapse]').forEach(function (toggle) {
+        var targetId = toggle.getAttribute('data-prismarr-collapse');
         var target = document.getElementById(targetId);
         if (!target) return;
         var open = toggle.getAttribute('aria-expanded') === 'true';
         if (open) { target.classList.add('show'); } else { target.classList.remove('show'); }
       });
     }
-    if (!window._argosCollapseInit) {
-      window._argosCollapseInit = true;
+    if (!window._prismarrCollapseInit) {
+      window._prismarrCollapseInit = true;
       document.addEventListener('click', function (e) {
-        var toggle = e.target.closest('[data-argos-collapse]');
+        var toggle = e.target.closest('[data-prismarr-collapse]');
         if (!toggle) return;
         e.preventDefault();
-        var targetId = toggle.getAttribute('data-argos-collapse');
+        var targetId = toggle.getAttribute('data-prismarr-collapse');
         var target = document.getElementById(targetId);
         if (!target) return;
         var open = target.classList.contains('show');
@@ -1097,21 +1102,21 @@
     /* ── 1bis. Cleanup timers globaux à la navigation (évite les timers orphelins
        sur les pages où le script qBit n'est pas ré-injecté). Ils seront recréés
        par la page suivante si elle est une page média. ── */
-    if (!window._argosQbtCleanupBound) {
-      window._argosQbtCleanupBound = true;
+    if (!window._prismarrQbtCleanupBound) {
+      window._prismarrQbtCleanupBound = true;
       document.addEventListener('turbo:before-render', function () {
-        ['_argosQbtPollTimer', '_argosQbtVpnTimer'].forEach(function (key) {
+        ['_prismarrQbtPollTimer', '_prismarrQbtVpnTimer'].forEach(function (key) {
           if (window[key]) { clearInterval(window[key]); window[key] = null; }
         });
       });
     }
 
     /* ── 2. Toasts SSE ── */
-    window._argosToast = function (msg, type, duration) {
-      var container = document.getElementById('argos-toasts');
+    window._prismarrToast = function (msg, type, duration) {
+      var container = document.getElementById('prismarr-toasts');
       if (!container) return;
       var toast = document.createElement('div');
-      toast.className = 'argos-toast argos-toast-' + (type || 'info');
+      toast.className = 'prismarr-toast prismarr-toast-' + (type || 'info');
       var icons = {
         success: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg>',
         warning: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 16h.01"/></svg>',
@@ -1150,15 +1155,15 @@
   (function () {
     var QBT_POLL_URL = '{{ path('app_qbittorrent_api_poll_summary') }}';
     var QBT_POLL_INTERVAL = 15000; // 15s : pas besoin de plus, évite la charge NAS
-    var STATE_KEY = 'argos_qbt_last_state';
-    var NOTIFIED_KEY = 'argos_qbt_notified';  // hashs déjà notifiés (dédup cross-tab)
+    var STATE_KEY = 'prismarr_qbt_last_state';
+    var NOTIFIED_KEY = 'prismarr_qbt_notified';  // hashs déjà notifiés (dédup cross-tab)
     var NOTIFIED_TTL = 60 * 60 * 1000; // 1h — au-delà on réautorise la notif (torrent re-DL par ex)
 
     // Canal cross-tab pour synchroniser les notifs entre plusieurs onglets ouverts
     var bchan = null;
-    try { if (typeof BroadcastChannel !== 'undefined') bchan = new BroadcastChannel('argos-qbt-toasts'); } catch (e) {}
-    if (bchan && !window._argosQbtBchanBound) {
-      window._argosQbtBchanBound = true;
+    try { if (typeof BroadcastChannel !== 'undefined') bchan = new BroadcastChannel('prismarr-qbt-toasts'); } catch (e) {}
+    if (bchan && !window._prismarrQbtBchanBound) {
+      window._prismarrQbtBchanBound = true;
       bchan.onmessage = function (e) {
         // Un autre onglet a déjà notifié ce hash → on marque localement pour skip
         if (e.data && e.data.type === 'notified' && e.data.hash) markNotified(e.data.hash);
@@ -1224,17 +1229,17 @@
             }
           });
 
-          if (window._argosToast) {
+          if (window._prismarrToast) {
             justCompleted.forEach(function (it) {
               if (alreadyNotified(it.hash)) return;  // dédup cross-tab
               var truncated = (it.name || '').length > 60 ? it.name.substring(0, 60) + '…' : it.name;
-              window._argosToast('✅ ' + truncated + ' — ' + fmtGo(it.size), 'success', 6000);
+              window._prismarrToast('✅ ' + truncated + ' — ' + fmtGo(it.size), 'success', 6000);
               markNotified(it.hash);
             });
             justErrored.forEach(function (it) {
               if (alreadyNotified(it.hash)) return;
               var truncated = (it.name || '').length > 60 ? it.name.substring(0, 60) + '…' : it.name;
-              window._argosToast('⚠ Erreur sur : ' + truncated, 'danger', 8000);
+              window._prismarrToast('⚠ Erreur sur : ' + truncated, 'danger', 8000);
               markNotified(it.hash);
             });
           }
@@ -1245,19 +1250,19 @@
     }
 
     // Pattern singleton Turbo-safe : un seul poll global même avec re-exec
-    if (window._argosQbtPollTimer) clearInterval(window._argosQbtPollTimer);
+    if (window._prismarrQbtPollTimer) clearInterval(window._prismarrQbtPollTimer);
     pollQbt();
-    window._argosQbtPollTimer = setInterval(pollQbt, QBT_POLL_INTERVAL);
+    window._prismarrQbtPollTimer = setInterval(pollQbt, QBT_POLL_INTERVAL);
 
     // Pause quand onglet caché, reprise au retour
-    if (!window._argosQbtVisibilityBound) {
-      window._argosQbtVisibilityBound = true;
+    if (!window._prismarrQbtVisibilityBound) {
+      window._prismarrQbtVisibilityBound = true;
       document.addEventListener('visibilitychange', function () {
         if (document.hidden) {
-          if (window._argosQbtPollTimer) { clearInterval(window._argosQbtPollTimer); window._argosQbtPollTimer = null; }
+          if (window._prismarrQbtPollTimer) { clearInterval(window._prismarrQbtPollTimer); window._prismarrQbtPollTimer = null; }
         } else {
           pollQbt();
-          window._argosQbtPollTimer = setInterval(pollQbt, QBT_POLL_INTERVAL);
+          window._prismarrQbtPollTimer = setInterval(pollQbt, QBT_POLL_INTERVAL);
         }
       });
     }

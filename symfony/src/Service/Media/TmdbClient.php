@@ -211,7 +211,7 @@ class TmdbClient
 
     private function cachedGet(string $cacheKey, string $path, array $params, int $ttl): array
     {
-        $full = "argos_tmdb_{$this->locale}_{$cacheKey}";
+        $full = "prismarr_tmdb_{$this->locale}_{$cacheKey}";
 
         return $this->cache->get($full, function (ItemInterface $item) use ($path, $params, $ttl) {
             $item->expiresAfter($ttl);

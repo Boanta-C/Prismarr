@@ -3830,11 +3830,11 @@
       b.classList.add('btn-ghost-secondary');
       if (b.dataset.view === mode) { b.classList.add('active', 'btn-secondary'); b.classList.remove('btn-ghost-secondary'); }
     });
-    try { localStorage.setItem('argos_films_view', mode); } catch(e) {}
+    try { localStorage.setItem('prismarr_films_view', mode); } catch(e) {}
   }
 
   var savedFilmsView = 'grid';
-  try { savedFilmsView = localStorage.getItem('argos_films_view') || 'grid'; } catch(e) {}
+  try { savedFilmsView = localStorage.getItem('prismarr_films_view') || 'grid'; } catch(e) {}
   if (savedFilmsView !== 'grid') setFilmsViewMode(savedFilmsView);
 
   document.querySelectorAll('.view-btn').forEach(function(btn) {

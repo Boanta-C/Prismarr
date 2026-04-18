@@ -1,0 +1,3 @@
+#!/command/with-contenv sh
+sleep 3
+exec php /var/www/html/bin/console messenger:consume async --time-limit=3600 --memory-limit=256M -v

@@ -3,44 +3,40 @@ COMPOSER    = docker run --rm -v "$(shell pwd)/symfony:/app" composer:2
 
 # Dev (bind mounts live, APP_ENV=dev)
 dev:
-	$(DEV_COMPOSE) up -d
+	$(DEV_COMPOSE) up -d --build
 
-# Prod (images baked)
+# Prod (image baked)
 prod:
-	docker compose --env-file symfony/.env.local up -d
+	docker compose --env-file symfony/.env.local up -d --build
 
-# Force-recreate app + worker en dev (après changement d'env/config)
+# Force-recreate le container après changement d'env/config (rebuild inclus)
 restart:
-	$(DEV_COMPOSE) up -d --force-recreate app worker
+	$(DEV_COMPOSE) up -d --build --force-recreate prismarr
 
 # Arrêt complet
 stop:
 	docker compose down
 
-# Logs worker en temps réel
+# Logs du container (FrankenPHP + worker mélangés)
 logs:
-	docker logs prismarr_worker -f
+	docker logs prismarr -f
 
-# Logs app en temps réel
-logs-app:
-	docker logs prismarr_app -f
-
-# Rebuild images prod sans cache
+# Rebuild image sans cache
 build:
-	docker compose build --no-cache
+	$(DEV_COMPOSE) build --no-cache
 
 # Installer un package Composer
 composer:
 	$(COMPOSER) $(filter-out $@,$(MAKECMDGOALS))
 
-# Commande console Symfony dans le container dev
+# Commande console Symfony dans le container
 console:
-	docker exec prismarr_app php bin/console $(filter-out $@,$(MAKECMDGOALS))
+	docker exec prismarr php bin/console $(filter-out $@,$(MAKECMDGOALS))
 
-# Initialisation premier démarrage : créer la BDD SQLite + appliquer les migrations
+# Initialisation premier démarrage : créer la BDD SQLite
 init:
-	docker exec prismarr_app mkdir -p var/data
-	docker exec prismarr_app php bin/console doctrine:migrations:migrate --no-interaction
+	docker exec prismarr mkdir -p var/data
+	docker exec prismarr php bin/console doctrine:schema:create --no-interaction
 
 %:
 	@:

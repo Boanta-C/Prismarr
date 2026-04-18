@@ -1,94 +1,41 @@
 services:
 
-  nginx:
+  prismarr:
     build:
       context: .
-      dockerfile: docker/nginx/Dockerfile
-    container_name: prismarr_nginx
+      dockerfile: docker/frankenphp/Dockerfile
+    container_name: prismarr
     restart: unless-stopped
     ports:
-      - "${PRISMARR_PORT:-7070}:80"
-    depends_on:
-      - app
-    networks:
-      - prismarr_net
-
-  app:
-    build:
-      context: .
-      dockerfile: docker/php/Dockerfile
-    container_name: prismarr_app
-    restart: unless-stopped
+      - "${PRISMARR_PORT:-7070}:7070"
     environment:
       - APP_ENV=${APP_ENV:-prod}
       - APP_SECRET=${APP_SECRET}
       - DATABASE_URL=${DATABASE_URL}
       - JWT_PASSPHRASE=${JWT_PASSPHRASE}
       - MERCURE_JWT_SECRET=${MERCURE_JWT_SECRET}
+      - MERCURE_URL=http://localhost:7070/.well-known/mercure
+      - MERCURE_PUBLIC_URL=http://localhost:${PRISMARR_PORT:-7070}/.well-known/mercure
+      # APIs externes — injectées depuis .env.local
+      - RADARR_URL=${RADARR_URL}
+      - RADARR_API_KEY=${RADARR_API_KEY}
+      - SONARR_URL=${SONARR_URL}
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - PROWLARR_URL=${PROWLARR_URL}
+      - PROWLARR_API_KEY=${PROWLARR_API_KEY}
+      - JELLYSEERR_URL=${JELLYSEERR_URL}
+      - JELLYSEERR_API_KEY=${JELLYSEERR_API_KEY}
+      - QBITTORRENT_URL=${QBITTORRENT_URL}
+      - QBITTORRENT_USER=${QBITTORRENT_USER}
+      - QBITTORRENT_PASSWORD=${QBITTORRENT_PASSWORD}
+      - GLUETUN_URL=${GLUETUN_URL}
+      - GLUETUN_API_KEY=${GLUETUN_API_KEY}
+      - GLUETUN_PROTOCOL=${GLUETUN_PROTOCOL}
+      - TMDB_API_KEY=${TMDB_API_KEY}
+      - PRISMARR_PRIMARY_COLOR=${PRISMARR_PRIMARY_COLOR:-#6366f1}
+      - PRISMARR_LOGO_URL=${PRISMARR_LOGO_URL}
     volumes:
-      - symfony_var:/var/www/html/var
-      - symfony_data:/var/www/html/var/data
-    depends_on:
-      - redis
-    networks:
-      - prismarr_net
-
-  worker:
-    build:
-      context: .
-      dockerfile: docker/php/Dockerfile
-    container_name: prismarr_worker
-    restart: unless-stopped
-    command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=256M
-    environment:
-      - APP_ENV=${APP_ENV:-prod}
-      - APP_SECRET=${APP_SECRET}
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_PASSPHRASE=${JWT_PASSPHRASE}
-      - MERCURE_JWT_SECRET=${MERCURE_JWT_SECRET}
-    volumes:
-      - symfony_var:/var/www/html/var
-      - symfony_data:/var/www/html/var/data
-    depends_on:
-      - app
-      - redis
-    networks:
-      - prismarr_net
-
-  redis:
-    image: redis:7-alpine
-    container_name: prismarr_redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-    networks:
-      - prismarr_net
-
-  mercure:
-    image: dunglas/mercure
-    container_name: prismarr_mercure
-    restart: unless-stopped
-    environment:
-      SERVER_NAME: ":3000"
-      MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET}
-      MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET}
-      MERCURE_EXTRA_DIRECTIVES: |
-        cors_origins "*"
-        anonymous
-    volumes:
-      - mercure_data:/data
-      - mercure_config:/config
-    networks:
-      - prismarr_net
+      - prismarr_data:/var/www/html/var/data
 
 volumes:
-  redis_data:
-  mercure_data:
-  mercure_config:
-  symfony_var:
-  symfony_data:      # SQLite + uploads
-
-networks:
-  prismarr_net:
-    driver: bridge
+  prismarr_data:  # SQLite + uploads persistants

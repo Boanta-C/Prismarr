@@ -991,7 +991,7 @@
   });
 
   // ── Vu récemment (localStorage) ────────────────────────
-  var RECENT_KEY = 'argos_tmdb_recent';
+  var RECENT_KEY = 'prismarr_tmdb_recent';
   var RECENT_MAX = 10;
   var recentBlock = document.getElementById('tmdb-recent');
   var recentRow   = document.getElementById('tmdb-recent-row');
@@ -1017,7 +1017,7 @@
     if (!list.length) { recentBlock.style.display = 'none'; return; }
     recentBlock.style.display = '';
     recentRow.innerHTML = list.map(renderCardHTML).join('');
-    if (window._argosWatchlistSync) window._argosWatchlistSync();
+    if (window._prismarrWatchlistSync) window._prismarrWatchlistSync();
   }
 
   renderRecent();
@@ -1071,8 +1071,8 @@
         btn.disabled = false;
         btn.innerHTML = orig;
         if (!res.ok) {
-          if (window._argosToast) {
-            window._argosToast('Impossible : ' + (res.body.error || 'erreur'), 'danger');
+          if (window._prismarrToast) {
+            window._prismarrToast('Impossible : ' + (res.body.error || 'erreur'), 'danger');
           }
           return;
         }
@@ -1081,7 +1081,7 @@
       .catch(function() {
         btn.disabled = false;
         btn.innerHTML = orig;
-        if (window._argosToast) window._argosToast('Erreur réseau', 'danger');
+        if (window._prismarrToast) window._prismarrToast('Erreur réseau', 'danger');
       });
   }
 
@@ -1095,7 +1095,7 @@
     }
   });
 
-  // ── Clic card → modal détail Argos (ouverture manuelle Turbo-safe)
+  // ── Clic card → modal détail Prismarr (ouverture manuelle Turbo-safe)
   var detailModal    = document.getElementById('tmdb-detail-modal');
   var detailLoading  = document.getElementById('tmdb-detail-loading');
   var detailContent  = document.getElementById('tmdb-detail-content');
@@ -1262,7 +1262,7 @@
     }
     // Bouton watchlist dans la modal
     var wlKey = d.type + '_' + d.id;
-    var isInWl = window._argosWatchlist && window._argosWatchlist[wlKey];
+    var isInWl = window._prismarrWatchlist && window._prismarrWatchlist[wlKey];
     actions.push('<button class="btn ' + (isInWl ? 'btn-warning' : 'btn-outline-warning') + ' tmdb-wl-modal-btn" data-tmdb-id="' + d.id + '" data-tmdb-type="' + d.type + '" data-tmdb-title="' + safeTitle + '" data-poster-path="' + (d.poster_path || '') + '" data-vote="' + (d.vote || '') + '" data-year="' + (d.year || '') + '">'
       + '<svg width="15" height="15" viewBox="0 0 24 24" fill="' + (isInWl ? '#fff' : 'none') + '" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4-6.2-4.5h7.6z"/></svg>'
       + (isInWl ? 'Dans la watchlist' : 'Watchlist') + '</button>');
@@ -1631,7 +1631,7 @@
       ? '<a href="' + (item.type === 'movie' ? '/medias/films' : '/medias/series') + '?open=' + (item.lib_id||'') + '" class="btn btn-sm" style="background:' + ({downloaded:'#22c55e',missing:'#f59e0b',announced:'#6366f1',inCinemas:'#6366f1',partial:'#3b82f6',unmonitored:'#6b7280'}[item.lib_status]||'#22c55e') + ';color:#fff;">' + (statusLabels[item.lib_status]||'En bibli.') + '</a>'
       : '<button type="button" class="btn btn-primary btn-sm tmdb-add-btn" data-tmdb-id="' + item.id + '" data-tmdb-type="' + item.type + '" data-tmdb-title="' + safeTitle + '">Ajouter</button>';
 
-    var wlClass = (window._argosWatchlist && window._argosWatchlist[item.type + '_' + item.id]) ? ' in-wl' : '';
+    var wlClass = (window._prismarrWatchlist && window._prismarrWatchlist[item.type + '_' + item.id]) ? ' in-wl' : '';
     var wlStar = '<button type="button" class="wl-star' + wlClass + '" data-tmdb-id="' + item.id + '" data-tmdb-type="' + item.type + '" title="Watchlist"><svg viewBox="0 0 24 24" fill="' + (wlClass ? '#f59e0b' : 'none') + '" stroke="#f59e0b" stroke-width="2"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4-6.2-4.5h7.6z"/></svg></button>';
 
     // Countdown J-X
@@ -1698,7 +1698,7 @@
         searchGrid.innerHTML = (d.results || []).map(renderCardHTML).join('');
         searchCount.textContent = '(' + (d.results || []).length + ')';
         searchBlock.style.display = (d.results || []).length > 0 ? '' : 'none';
-        if (window._argosWatchlistSync) window._argosWatchlistSync();
+        if (window._prismarrWatchlistSync) window._prismarrWatchlistSync();
       })
       .catch(function() {});
   }
@@ -1711,7 +1711,7 @@
     });
   }
 
-  // Bouton hero "Voir les détails" → ouvre modal Argos (pas TMDb externe)
+  // Bouton hero "Voir les détails" → ouvre modal Prismarr (pas TMDb externe)
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('.tmdb-hero-details-btn');
     if (!btn) return;
@@ -1728,7 +1728,7 @@
     myRecsRow.innerHTML = list.map(renderCardHTML).join('')
       || '<div class="text-secondary py-4 px-2">Aucun résultat pour ce filtre.</div>';
     if (myRecsCountEl) myRecsCountEl.textContent = '(' + list.length + ')';
-    if (window._argosWatchlistSync) window._argosWatchlistSync();
+    if (window._prismarrWatchlistSync) window._prismarrWatchlistSync();
   }
   document.querySelectorAll('input[name="myrecs-filter"]').forEach(function(r) {
     r.addEventListener('change', function() { renderMyRecs(r.value); });
@@ -1758,7 +1758,7 @@
       myRecsSets.tv    = d.tv      || [];
       renderMyRecs('all');
       myRecsBlock.style.display = '';
-      if (window._argosWatchlistSync) window._argosWatchlistSync();
+      if (window._prismarrWatchlistSync) window._prismarrWatchlistSync();
     })
     .catch(function() { myRecsBlock.style.display = 'none'; });
 
@@ -1864,7 +1864,7 @@
         searchGrid.innerHTML = (d.results || []).map(renderCardHTML).join('')
           || '<div class="text-secondary p-3">Aucun résultat avec ces filtres.</div>';
         searchCount.textContent = '(' + (d.total_results || (d.results||[]).length) + ' résultats)';
-        if (window._argosWatchlistSync) window._argosWatchlistSync();
+        if (window._prismarrWatchlistSync) window._prismarrWatchlistSync();
       })
       .catch(function() {
         searchGrid.innerHTML = '<div class="alert alert-danger">Erreur lors de la recherche</div>';
@@ -1890,30 +1890,30 @@
   }
 
   // ── Watchlist ───────────────────────────────────────────
-  window._argosWatchlist = {};
+  window._prismarrWatchlist = {};
 
   // Charger l'index watchlist au démarrage
   function syncAllWlStars() {
     document.querySelectorAll('.wl-star[data-tmdb-id]').forEach(function(btn) {
       var key = btn.dataset.tmdbType + '_' + btn.dataset.tmdbId;
-      var inWl = !!window._argosWatchlist[key];
+      var inWl = !!window._prismarrWatchlist[key];
       btn.classList.toggle('in-wl', inWl);
       btn.querySelector('svg').setAttribute('fill', inWl ? '#f59e0b' : 'none');
     });
     // Badge compteur
-    var count = Object.keys(window._argosWatchlist).length;
+    var count = Object.keys(window._prismarrWatchlist).length;
     var badge = document.getElementById('tmdb-wl-count');
     if (badge) {
       badge.textContent = count;
       badge.style.display = count > 0 ? '' : 'none';
     }
   }
-  window._argosWatchlistSync = syncAllWlStars;
+  window._prismarrWatchlistSync = syncAllWlStars;
 
   fetch('/decouverte/watchlist/status', { credentials: 'same-origin' })
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      window._argosWatchlist = d.index || {};
+      window._prismarrWatchlist = d.index || {};
       syncAllWlStars();
     });
 
@@ -1930,17 +1930,17 @@
       var textNode = modalBtn.childNodes[modalBtn.childNodes.length - 1];
       textNode.textContent = added ? 'Dans la watchlist' : 'Watchlist';
     }
-    if (window._argosWatchlistSync) window._argosWatchlistSync();
+    if (window._prismarrWatchlistSync) window._prismarrWatchlistSync();
   }
 
   function toggleWatchlist(tmdbId, type, title, posterPath, vote, year, btn) {
     var key = type + '_' + tmdbId;
-    var wasIn = !!window._argosWatchlist[key];
+    var wasIn = !!window._prismarrWatchlist[key];
     var willAdd = !wasIn;
 
     // Optimiste : MAJ UI immédiate
-    if (willAdd) window._argosWatchlist[key] = true;
-    else delete window._argosWatchlist[key];
+    if (willAdd) window._prismarrWatchlist[key] = true;
+    else delete window._prismarrWatchlist[key];
     syncWlUI(tmdbId, type, willAdd);
 
     fetch('/decouverte/watchlist/toggle', {
@@ -1960,17 +1960,17 @@
     .then(function(d) {
       // Confirmer ou corriger l'état
       var added = d.action === 'added';
-      if (added) window._argosWatchlist[key] = true;
-      else delete window._argosWatchlist[key];
+      if (added) window._prismarrWatchlist[key] = true;
+      else delete window._prismarrWatchlist[key];
       if (added !== willAdd) syncWlUI(tmdbId, type, added);
-      if (window._argosToast) window._argosToast(added ? 'Ajouté à la watchlist' : 'Retiré de la watchlist', added ? 'success' : 'info');
+      if (window._prismarrToast) window._prismarrToast(added ? 'Ajouté à la watchlist' : 'Retiré de la watchlist', added ? 'success' : 'info');
     })
     .catch(function() {
       // Rollback en cas d'erreur réseau
-      if (wasIn) window._argosWatchlist[key] = true;
-      else delete window._argosWatchlist[key];
+      if (wasIn) window._prismarrWatchlist[key] = true;
+      else delete window._prismarrWatchlist[key];
       syncWlUI(tmdbId, type, wasIn);
-      if (window._argosToast) window._argosToast('Erreur réseau', 'danger');
+      if (window._prismarrToast) window._prismarrToast('Erreur réseau', 'danger');
     });
   }
 

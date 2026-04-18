@@ -10,7 +10,7 @@ framework:
                     delay: 1000
                     multiplier: 2
                     max_delay: 0
-            failed: 'redis://redis:6379/messages_failed'
+            failed: 'doctrine://default?queue_name=failed'
             sync: 'sync://'
 
         # Pas de routing async actif pour l'instant — les futurs messages Prismarr
