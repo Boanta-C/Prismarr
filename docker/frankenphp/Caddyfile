@@ -2,17 +2,44 @@
 	frankenphp
 	order mercure after encode
 
-	# Pas de HTTPS automatique (on est en local ou derrière un reverse proxy)
+	# No HTTPS (local or behind a reverse proxy)
 	auto_https off
+
+	# Quiet Caddy system logs (cache maintenance, TLS, etc.)
+	log {
+		level WARN
+	}
 }
 
 :7070 {
 	root * /var/www/html/public
 
+	# Access log on stdout — compact: method, uri, status, duration.
+	log {
+		output stdout
+		format filter {
+			wrap console
+			fields {
+				request>headers delete
+				request>tls delete
+				request>remote_port delete
+				request>client_ip delete
+				request>proto delete
+				request>host delete
+				resp_headers delete
+				user_id delete
+				bytes_read delete
+				size delete
+				logger delete
+			}
+		}
+		level INFO
+	}
+
 	# Compression
 	encode zstd gzip
 
-	# Mercure hub intégré (SSE temps réel)
+	# Mercure hub (real-time SSE)
 	mercure {
 		publisher_jwt {env.MERCURE_JWT_SECRET}
 		subscriber_jwt {env.MERCURE_JWT_SECRET}
@@ -25,7 +52,7 @@
 		resolve_root_symlink
 	}
 
-	# Headers sécurité
+	# Security headers
 	header {
 		X-Frame-Options "SAMEORIGIN"
 		X-Content-Type-Options "nosniff"
@@ -34,7 +61,7 @@
 		-Server
 	}
 
-	# Upload max 20 Mo
+	# Upload max 20 MB
 	request_body {
 		max_size 20MB
 	}
