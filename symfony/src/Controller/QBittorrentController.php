@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\ConfigService;
 use App\Service\Media\GluetunClient;
 use App\Service\Media\QBittorrentClient;
 use App\Service\Media\TorrentResolverService;
@@ -20,6 +21,7 @@ class QBittorrentController extends AbstractController
         private readonly QBittorrentClient $qbt,
         private readonly GluetunClient $gluetun,
         private readonly TorrentResolverService $resolver,
+        private readonly ConfigService $config,
     ) {}
 
     /**
@@ -85,13 +87,17 @@ class QBittorrentController extends AbstractController
         $error      = false;
 
         try {
-            // Rendu initial rapide : les 50 plus récents (tri par défaut).
-            // Le JS refresh 2s remplace ensuite selon les préférences utilisateur (pagination serveur).
-            $all        = $this->qbt->getTorrents();
-            $torrents   = array_slice($all, 0, 50);
-            $stats      = $this->qbt->getStats($all);
-            $categories = $this->qbt->getCategories();
-            $tags       = $this->qbt->getTags();
+            if ($this->qbt->getVersion() === null) {
+                $error = true;
+            } else {
+                // Rendu initial rapide : les 50 plus récents (tri par défaut).
+                // Le JS refresh 2s remplace ensuite selon les préférences utilisateur (pagination serveur).
+                $all        = $this->qbt->getTorrents();
+                $torrents   = array_slice($all, 0, 50);
+                $stats      = $this->qbt->getStats($all);
+                $categories = $this->qbt->getCategories();
+                $tags       = $this->qbt->getTags();
+            }
         } catch (\Throwable) {
             $error = true;
         }
@@ -99,11 +105,15 @@ class QBittorrentController extends AbstractController
         // VPN (Gluetun) + port qBit — non bloquant, fail gracieux
         $vpn = null;
         try {
-            $vpn = $this->gluetun->getSummary();
-            $vpn['qbt_port']  = $this->qbt->getListenPort();
-            $vpn['port_sync'] = ($vpn['forwarded_port'] !== null && $vpn['qbt_port'] !== null)
-                ? ($vpn['forwarded_port'] === $vpn['qbt_port'])
-                : null;
+            $summary = $this->gluetun->getSummary();
+            $listenPort = null;
+            try { $listenPort = $this->qbt->getListenPort(); } catch (\Throwable) {}
+            $vpn = array_merge($summary, [
+                'qbt_port'  => $listenPort,
+                'port_sync' => ($summary['forwarded_port'] ?? null) !== null && $listenPort !== null
+                    ? ($summary['forwarded_port'] === $listenPort)
+                    : null,
+            ]);
         } catch (\Throwable) {}
 
         return $this->render('qbittorrent/index.html.twig', [
@@ -113,6 +123,7 @@ class QBittorrentController extends AbstractController
             'tags'       => $tags,
             'error'      => $error,
             'vpn'        => $vpn,
+            'service_url' => $this->config->get('qbittorrent_url'),
         ]);
     }
 

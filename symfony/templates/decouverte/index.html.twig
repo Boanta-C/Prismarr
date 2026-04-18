@@ -438,6 +438,17 @@
 <div class="page-body">
   <div class="container-xl">
 
+    {% if error %}
+      {% include 'error/_service_banner.html.twig' with {
+        service: 'TMDb',
+        wizard_route: 'app_setup_tmdb',
+        configured_url: service_url,
+        reason: 'unreachable'
+      } %}
+    {% endif %}
+
+    {% if not error %}
+
     {# Barre de recherche + bouton filtres — version peaufinée #}
     <div class="tmdb-searchbar">
       <div class="tmdb-search-wrap">
@@ -851,6 +862,8 @@
     </div>
   </div>
 </div>
+
+{% endif %} {# /if not error #}
 
 {# ── Macro hero (film ou série) ─────────────────────────────────────────────── #}
 {% macro hero(item, label) %}

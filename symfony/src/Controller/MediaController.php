@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\ConfigService;
 use App\Service\Media\ProwlarrClient;
 use App\Service\Media\QBittorrentClient;
 use App\Service\Media\RadarrClient;
@@ -25,6 +26,7 @@ class MediaController extends AbstractController
         private readonly ProwlarrClient    $prowlarr,
         private readonly QBittorrentClient $qbittorrent,
         private readonly CacheInterface    $cache,
+        private readonly ConfigService     $config,
     ) {}
 
     #[Route('/films', name: 'films')]
@@ -84,6 +86,7 @@ class MediaController extends AbstractController
             'movies' => $movies,
             'queue'  => $queue,
             'error'  => $error,
+            'service_url' => $this->config->get('radarr_url'),
             'warnings' => $warnings,
             'stats'  => compact('total', 'downloaded', 'monitored', 'totalGb'),
             'indexerCount' => $indexerCount,
@@ -99,9 +102,13 @@ class MediaController extends AbstractController
         $error    = false;
 
         try {
-            $series   = $this->sonarr->getSeries();
-            $queue    = $this->sonarr->getQueue();
-            $calendar = $this->sonarr->getCalendar(14);
+            if ($this->sonarr->getSystemStatus() === null) {
+                $error = true;
+            } else {
+                $series   = $this->sonarr->getSeries();
+                $queue    = $this->sonarr->getQueue();
+                $calendar = $this->sonarr->getCalendar(14);
+            }
         } catch (\Throwable) {
             $error = true;
         }
@@ -118,6 +125,7 @@ class MediaController extends AbstractController
             'queue'    => $queue,
             'calendar' => $calendar,
             'error'    => $error,
+            'service_url' => $this->config->get('sonarr_url'),
             'stats'    => compact('total', 'continuing', 'ended', 'totalGb'),
         ]);
     }

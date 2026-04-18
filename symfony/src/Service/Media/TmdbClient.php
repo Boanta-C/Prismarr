@@ -2,13 +2,14 @@
 
 namespace App\Service\Media;
 
+use App\Service\ConfigService;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 class TmdbClient
 {
+    private const SERVICE    = 'TMDb';
     private const BASE_URL   = 'https://api.themoviedb.org/3';
     private const IMG_BASE   = 'https://image.tmdb.org/t/p';
     private const TTL_LIST   = 3600;   // 1h pour les listes (trending/populaires/upcoming)
@@ -16,12 +17,30 @@ class TmdbClient
     private const TTL_SEARCH = 600;    // 10min pour les recherches
 
     private string $locale = 'fr-FR';
+    private string $apiKey = '';
 
     public function __construct(
-        #[Autowire(env: 'TMDB_API_KEY')] private readonly string $apiKey,
+        private readonly ConfigService $config,
         private readonly CacheInterface $cache,
         private readonly LoggerInterface $logger,
     ) {}
+
+    private function ensureConfig(): void
+    {
+        if ($this->apiKey === '') {
+            $this->apiKey = $this->config->require('tmdb_api_key', self::SERVICE);
+        }
+    }
+
+    /** Ping léger — true si TMDb répond avec la clé valide. Bypass cache. */
+    public function ping(): bool
+    {
+        try {
+            return $this->request('/genre/movie/list') !== null;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
 
     public function getTrendingAll(string $window = 'week'): array
     {
@@ -221,6 +240,7 @@ class TmdbClient
 
     private function request(string $path, array $params = []): ?array
     {
+        $this->ensureConfig();
         $params['api_key']       = $this->apiKey;
         $params['language']      = $params['language']      ?? $this->locale;
         $params['include_adult'] = $params['include_adult'] ?? 'false';

@@ -1,0 +1,77 @@
+{% extends 'setup/_layout.html.twig' %}
+
+{% block title %}Téléchargements — Prismarr{% endblock %}
+
+{% block max_width %}720px{% endblock %}
+
+{% block wizard_body %}
+  <div class="wizard-eyebrow">Étape 6 sur 7 · Optionnel</div>
+  <h2 class="wizard-title">Client de téléchargement</h2>
+  <p class="wizard-subtitle">
+    qBittorrent est votre client BitTorrent. Gluetun est un routeur VPN optionnel
+    qui tourne devant qBittorrent pour masquer votre IP.
+  </p>
+
+  <form action="{{ path('app_setup_downloads') }}" method="post" autocomplete="off" novalidate>
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('setup_downloads') }}"/>
+
+    <div class="wizard-section">
+      <div class="wizard-section-title">⬇️ qBittorrent</div>
+      <div class="wizard-section-subtitle">Authentification via l'interface Web UI de qBittorrent.</div>
+      <div class="row g-3">
+        <div class="col-md-12">
+          <label class="form-label" for="qbittorrent_url">URL</label>
+          <input type="text" id="qbittorrent_url" name="qbittorrent_url" class="form-control"
+                 placeholder="http://host.docker.internal:8080" value="{{ values.qbittorrent_url }}"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="qbittorrent_user">Utilisateur</label>
+          <input type="text" id="qbittorrent_user" name="qbittorrent_user" class="form-control"
+                 placeholder="admin" value="{{ values.qbittorrent_user }}"
+                 autocomplete="off"/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="qbittorrent_password">Mot de passe</label>
+          <input type="password" id="qbittorrent_password" name="qbittorrent_password" class="form-control"
+                 placeholder="••••••••" value="{{ values.qbittorrent_password }}"
+                 autocomplete="new-password"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-section">
+      <div class="wizard-section-title">🛡️ Gluetun <span class="text-muted" style="font-weight:400;font-size:.75rem;">VPN — optionnel</span></div>
+      <div class="wizard-section-subtitle">Laissez vide si qBittorrent ne passe pas par un VPN.</div>
+      <div class="row g-3">
+        <div class="col-md-7">
+          <label class="form-label" for="gluetun_url">URL (Control Server)</label>
+          <input type="text" id="gluetun_url" name="gluetun_url" class="form-control"
+                 placeholder="http://host.docker.internal:8000" value="{{ values.gluetun_url }}"/>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label" for="gluetun_protocol">Protocole</label>
+          <select id="gluetun_protocol" name="gluetun_protocol" class="form-select">
+            {% set p = values.gluetun_protocol %}
+            <option value=""          {{ p == ''          ? 'selected' }}>Auto</option>
+            <option value="openvpn"   {{ p == 'openvpn'   ? 'selected' }}>OpenVPN</option>
+            <option value="wireguard" {{ p == 'wireguard' ? 'selected' }}>WireGuard</option>
+          </select>
+        </div>
+        <div class="col-md-12">
+          <label class="form-label" for="gluetun_api_key">Clé API <span class="text-muted">(optionnel)</span></label>
+          <input type="text" id="gluetun_api_key" name="gluetun_api_key" class="form-control"
+                 placeholder="Bearer token si le Control Server est protégé"
+                 value="{{ values.gluetun_api_key }}"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-actions">
+      <button type="submit" name="_action" value="back" class="btn-wizard-back" formnovalidate>← Précédent</button>
+      <div class="wizard-actions-right">
+        <button type="submit" name="_action" value="skip" class="btn-wizard-skip" formnovalidate>Passer cette étape</button>
+        <button type="submit" name="_action" value="save" class="btn-wizard-next">Enregistrer et continuer →</button>
+      </div>
+    </div>
+  </form>
+{% endblock %}

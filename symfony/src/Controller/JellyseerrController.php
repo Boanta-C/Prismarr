@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\ConfigService;
 use App\Service\Media\JellyseerrClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +19,7 @@ class JellyseerrController extends AbstractController
 
     public function __construct(
         private readonly JellyseerrClient $jellyseerr,
+        private readonly ConfigService $config,
     ) {}
 
     // ── Page principale — Requêtes ───────────────────────────────────────────
@@ -49,7 +51,14 @@ class JellyseerrController extends AbstractController
         $status = null;
 
         try {
-            if ($needsPhpFilter) {
+            // /api/v1/status est public côté Jellyseerr : on tape getAbout()
+            // (admin settings) pour valider à la fois URL et clé API.
+            if ($this->jellyseerr->getAbout() === null) {
+                $error = true;
+            }
+            $status = $this->jellyseerr->getStatus();
+
+            if (!$error && $needsPhpFilter) {
                 // Filtres non supportés par l'API → charger tout et filtrer côté PHP
                 $allData = $this->jellyseerr->getRequests(500, 0, $apiFilter, $apiSort);
                 $results = $allData['results'] ?? [];
@@ -70,18 +79,19 @@ class JellyseerrController extends AbstractController
                     'pageInfo' => ['pages' => max(1, (int) ceil($total / $take)), 'results' => $total, 'page' => $page],
                     'results'  => array_slice($filtered, $skip, $take),
                 ];
-            } else {
+            } elseif (!$error) {
                 $data = $this->jellyseerr->getRequests($take, $skip, $apiFilter, $apiSort);
             }
 
-            $counts = $this->jellyseerr->getRequestCount();
-            $status = $this->jellyseerr->getStatus();
+            if (!$error) {
+                $counts = $this->jellyseerr->getRequestCount();
 
-            // Enrichir chaque requête avec les infos TMDb
-            foreach ($data['results'] as &$req) {
-                $req = $this->enrichRequest($req);
+                // Enrichir chaque requête avec les infos TMDb
+                foreach ($data['results'] as &$req) {
+                    $req = $this->enrichRequest($req);
+                }
+                unset($req);
             }
-            unset($req);
         } catch (\Throwable) {
             $error = true;
         }
@@ -95,6 +105,7 @@ class JellyseerrController extends AbstractController
             'page'      => $page,
             'status'    => $status,
             'error'     => $error,
+            'service_url' => $this->config->get('jellyseerr_url'),
         ]);
     }
 

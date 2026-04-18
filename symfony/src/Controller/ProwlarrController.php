@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\ConfigService;
 use App\Service\Media\ProwlarrClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,6 +17,7 @@ class ProwlarrController extends AbstractController
 {
     public function __construct(
         private readonly ProwlarrClient $prowlarr,
+        private readonly ConfigService $config,
     ) {}
 
     // ── Page principale — Indexeurs ───────────────────────────────────────────
@@ -32,15 +34,19 @@ class ProwlarrController extends AbstractController
         $error    = false;
 
         try {
-            $indexers = $this->prowlarr->getIndexers();
-            $status   = $this->prowlarr->getIndexerStatus();
-            $stats    = $this->prowlarr->getStats();
-            $health   = $this->prowlarr->getHealth();
-            $apps     = $this->prowlarr->getApplications();
-            // Stats par indexeur (requêtes, grabs, fails)
-            $rawStats = $this->prowlarr->getIndexerStats();
-            foreach ($rawStats['indexers'] ?? [] as $s) {
-                $idxStats[$s['indexerId']] = $s;
+            if ($this->prowlarr->getSystemStatus() === null) {
+                $error = true;
+            } else {
+                $indexers = $this->prowlarr->getIndexers();
+                $status   = $this->prowlarr->getIndexerStatus();
+                $stats    = $this->prowlarr->getStats();
+                $health   = $this->prowlarr->getHealth();
+                $apps     = $this->prowlarr->getApplications();
+                // Stats par indexeur (requêtes, grabs, fails)
+                $rawStats = $this->prowlarr->getIndexerStats();
+                foreach ($rawStats['indexers'] ?? [] as $s) {
+                    $idxStats[$s['indexerId']] = $s;
+                }
             }
         } catch (\Throwable) {
             $error = true;
@@ -54,6 +60,7 @@ class ProwlarrController extends AbstractController
             'apps'       => $apps,
             'idxStats'   => $idxStats,
             'error'     => $error,
+            'service_url' => $this->config->get('prowlarr_url'),
         ]);
     }
 

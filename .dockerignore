@@ -1,0 +1,28 @@
+# Git / éditeur
+.git
+.gitignore
+.idea
+.vscode
+
+# Secrets — toujours hors image (générés au boot via init.sh)
+**/.env.local
+**/.env.*.local
+
+# Caches + logs (régénérés au runtime)
+symfony/var/cache/
+symfony/var/log/
+symfony/var/sessions/
+
+# Données persistantes (vont dans le volume Docker)
+symfony/var/data/
+
+# Vendor local (on réinstalle dans l'image)
+# (commenté car on garde le vendor local pour accélérer le build dev)
+
+# Documentation / méta
+*.md
+!README.md
+LICENSE
+
+# Autres
+.DS_Store

@@ -1,0 +1,57 @@
+<?php
+
+namespace App\EventSubscriber;
+
+use App\Exception\ServiceNotConfiguredException;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
+use Twig\Environment;
+
+/**
+ * Transforme ServiceNotConfiguredException en page d'erreur propre indiquant
+ * à l'utilisateur qu'il doit configurer le service depuis l'administration.
+ */
+class ServiceNotConfiguredSubscriber implements EventSubscriberInterface
+{
+    public function __construct(
+        private readonly Environment $twig,
+        private readonly RequestStack $requestStack,
+    ) {}
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            KernelEvents::EXCEPTION => ['onException', 0],
+        ];
+    }
+
+    public function onException(ExceptionEvent $event): void
+    {
+        $throwable = $event->getThrowable();
+        while ($throwable !== null && !$throwable instanceof ServiceNotConfiguredException) {
+            $throwable = $throwable->getPrevious();
+        }
+        if (!$throwable instanceof ServiceNotConfiguredException) {
+            return;
+        }
+
+        $session = $this->requestStack->getSession();
+        if (method_exists($session, 'getFlashBag')) {
+            $session->getFlashBag()->add(
+                'warning',
+                sprintf('Le service « %s » n\'est pas encore configuré.', $throwable->service),
+            );
+        }
+
+        $response = new \Symfony\Component\HttpFoundation\Response(
+            $this->twig->render('error/service_not_configured.html.twig', [
+                'service' => $throwable->service,
+                'key'     => $throwable->missingKey,
+            ]),
+            \Symfony\Component\HttpFoundation\Response::HTTP_SERVICE_UNAVAILABLE,
+        );
+        $event->setResponse($response);
+    }
+}

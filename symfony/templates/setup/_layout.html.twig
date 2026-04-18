@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>{% block title %}Configuration — Prismarr{% endblock %}</title>
+
+  <link rel="icon" type="image/x-icon" href="{{ asset('img/prismarr/favicon.ico') }}"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/prismarr/favicon-192.png') }}"/>
+  <link rel="apple-touch-icon" href="{{ asset('img/prismarr/prismarr-icon-512.png') }}"/>
+
+  <script>
+    (function () {
+      var t = localStorage.getItem('tablerTheme') || 'dark';
+      document.documentElement.setAttribute('data-bs-theme', t);
+    })();
+  </script>
+
+  <link rel="stylesheet" href="{{ asset('static/tabler/css/tabler.min.css') }}"/>
+  <link rel="stylesheet" href="{{ asset('static/tabler/css/tabler-themes.min.css') }}"/>
+
+  <style>
+    @import url("https://rsms.me/inter/inter.css");
+
+    :root {
+      --tblr-primary: #6366f1;
+      --tblr-primary-rgb: 99, 102, 241;
+      --tblr-font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html, body { min-height: 100%; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    [data-bs-theme="dark"] body          { background-color: #111111 !important; color: #e4e4e7; }
+    [data-bs-theme="light"] body         { background-color: #f4f6fb !important; }
+
+    .wizard-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1.5rem;
+    }
+
+    .wizard-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    .wizard-logo img { height: 44px; }
+
+    .wizard-container {
+      width: 100%;
+      max-width: {% block max_width %}640px{% endblock %};
+      margin: 0 auto;
+      flex: 1;
+    }
+
+    /* ── Stepper ── */
+    .wizard-steps {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: .5rem;
+      margin-bottom: 2rem;
+    }
+    .wizard-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .4rem;
+      font-size: .7rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.35);
+      text-align: center;
+      position: relative;
+      padding-top: 8px;
+    }
+    [data-bs-theme="light"] .wizard-step { color: rgba(0,0,0,.35); }
+
+    .wizard-step-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.15);
+      transition: all .15s ease;
+    }
+    [data-bs-theme="light"] .wizard-step-dot {
+      background: rgba(0,0,0,.08);
+      border-color: rgba(0,0,0,.15);
+    }
+    .wizard-step.is-done .wizard-step-dot {
+      background: #22c55e;
+      border-color: #22c55e;
+      box-shadow: 0 0 10px rgba(34,197,94,.4);
+    }
+    .wizard-step.is-active .wizard-step-dot {
+      background: #6366f1;
+      border-color: #6366f1;
+      box-shadow: 0 0 12px rgba(99,102,241,.5);
+      transform: scale(1.3);
+    }
+    .wizard-step.is-active { color: #6366f1; font-weight: 600; }
+    [data-bs-theme="light"] .wizard-step.is-active { color: #4f46e5; }
+
+    .wizard-step-line {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      width: 100%;
+      height: 1px;
+      background: rgba(255,255,255,.1);
+      z-index: -1;
+    }
+    [data-bs-theme="light"] .wizard-step-line { background: rgba(0,0,0,.1); }
+    .wizard-step:last-child .wizard-step-line { display: none; }
+
+    /* ── Card ── */
+    .wizard-card {
+      background: #1c1c1c;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,.35);
+    }
+    [data-bs-theme="light"] .wizard-card {
+      background: #ffffff;
+      border-color: rgba(0,0,0,.08);
+      box-shadow: 0 1px 8px rgba(0,0,0,.06);
+    }
+
+    .wizard-eyebrow {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      opacity: .55;
+      margin-bottom: .4rem;
+    }
+    .wizard-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: .4rem;
+      letter-spacing: -0.01em;
+    }
+    .wizard-subtitle {
+      opacity: .6;
+      margin-bottom: 1.5rem;
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    .form-label {
+      font-size: .78rem;
+      font-weight: 500;
+      letter-spacing: .02em;
+      opacity: .75;
+    }
+
+    .form-control, .form-select {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 8px;
+      padding: .6rem .8rem;
+      transition: all .15s ease;
+      color: inherit;
+    }
+    [data-bs-theme="light"] .form-control,
+    [data-bs-theme="light"] .form-select {
+      background: rgba(0,0,0,.02);
+      border-color: rgba(0,0,0,.1);
+    }
+
+    .form-control:focus, .form-select:focus {
+      background: rgba(99, 102, 241, 0.05);
+      border-color: rgba(99, 102, 241, 0.55);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      color: inherit;
+    }
+
+    .form-text { opacity: .55; font-size: .78rem; }
+
+    .wizard-section {
+      padding-top: 1rem;
+      margin-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    [data-bs-theme="light"] .wizard-section { border-top-color: rgba(0,0,0,.07); }
+    .wizard-section:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+    .wizard-section-title {
+      font-size: .82rem;
+      font-weight: 600;
+      margin-bottom: .2rem;
+    }
+    .wizard-section-subtitle {
+      font-size: .78rem;
+      opacity: .55;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Actions footer ── */
+    .wizard-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    [data-bs-theme="light"] .wizard-actions { border-top-color: rgba(0,0,0,.07); }
+    .wizard-actions-right { display: flex; gap: .75rem; align-items: center; }
+
+    /* Bouton principal (Continuer / Enregistrer) */
+    .btn-wizard-next {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      border: none;
+      border-radius: 8px;
+      padding: .6rem 1.25rem;
+      font-weight: 500;
+      color: #fff;
+      font-size: .9rem;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+      transition: all .15s ease;
+    }
+    .btn-wizard-next:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.45);
+      color: #fff;
+    }
+    .btn-wizard-next:active { transform: translateY(0); }
+
+    /* Bouton secondaire (Précédent) — outline */
+    .btn-wizard-back {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
+      padding: .55rem 1rem;
+      color: inherit;
+      font-size: .88rem;
+      font-weight: 500;
+      transition: all .15s ease;
+    }
+    .btn-wizard-back:hover {
+      background: rgba(255,255,255,.05);
+      border-color: rgba(255,255,255,.25);
+      color: inherit;
+    }
+    [data-bs-theme="light"] .btn-wizard-back { border-color: rgba(0,0,0,.15); }
+    [data-bs-theme="light"] .btn-wizard-back:hover { background: rgba(0,0,0,.03); border-color: rgba(0,0,0,.25); }
+
+    /* Bouton tertiaire (Passer) — texte souligné */
+    .btn-wizard-skip {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      font-size: .85rem;
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-color: rgba(156,163,175,.35);
+      padding: .55rem .5rem;
+      transition: all .15s ease;
+    }
+    .btn-wizard-skip:hover {
+      color: #e4e4e7;
+      text-decoration-color: currentColor;
+    }
+    [data-bs-theme="light"] .btn-wizard-skip { color: #64748b; }
+    [data-bs-theme="light"] .btn-wizard-skip:hover { color: #1e293b; }
+
+    .alert { border-radius: 8px; font-size: .85rem; }
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+    }
+    [data-bs-theme="light"] .alert-danger { color: #991b1b; }
+
+    .wizard-footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: .75rem;
+      opacity: .4;
+    }
+
+    /* ── Theme switcher ── */
+    .theme-toggle {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      color: inherit;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .theme-toggle:hover { background: rgba(255,255,255,.08); }
+    [data-bs-theme="light"] .theme-toggle { background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.08); }
+    [data-bs-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,.08); }
+    .theme-toggle .icon-moon { display: inline; }
+    .theme-toggle .icon-sun  { display: none; }
+    [data-bs-theme="light"] .theme-toggle .icon-moon { display: none; }
+    [data-bs-theme="light"] .theme-toggle .icon-sun  { display: inline; }
+
+    /* ── Service badge (récap) ── */
+    .service-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: .75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    [data-bs-theme="light"] .service-row { border-bottom-color: rgba(0,0,0,.06); }
+    .service-row:last-child { border-bottom: 0; }
+    .service-row-name { font-weight: 500; }
+    .service-row-sub { font-size: .78rem; opacity: .55; margin-top: .1rem; }
+    .service-badge {
+      font-size: .7rem;
+      padding: .2rem .55rem;
+      border-radius: 999px;
+      font-weight: 500;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+    .service-badge.ok { background: rgba(34,197,94,.15); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+    .service-badge.skipped { background: rgba(255,255,255,.05); color: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.08); }
+    [data-bs-theme="light"] .service-badge.ok { color: #16a34a; }
+    [data-bs-theme="light"] .service-badge.skipped { background: rgba(0,0,0,.04); color: rgba(0,0,0,.5); border-color: rgba(0,0,0,.08); }
+
+    /* ── Welcome screen ── */
+    .welcome-hero {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .welcome-hero img {
+      height: 72px;
+      margin-bottom: 1.5rem;
+    }
+    .welcome-title { font-size: 1.8rem; font-weight: 600; margin-bottom: .5rem; letter-spacing: -0.02em; }
+    .welcome-subtitle { opacity: .65; font-size: 1rem; max-width: 460px; margin: 0 auto 2rem; line-height: 1.6; }
+    .welcome-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .welcome-feature {
+      padding: 1rem .8rem;
+      background: rgba(99,102,241,.06);
+      border: 1px solid rgba(99,102,241,.15);
+      border-radius: 10px;
+      font-size: .82rem;
+      text-align: center;
+    }
+    .welcome-feature-icon {
+      font-size: 1.4rem;
+      margin-bottom: .3rem;
+      color: #6366f1;
+    }
+
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+
+  <div class="wizard-wrapper">
+
+    <div class="wizard-header">
+      <div class="wizard-logo">
+        <img src="{{ asset('img/prismarr/prismarr-logo-horizontal.png') }}" alt="Prismarr"/>
+      </div>
+      <button type="button" class="theme-toggle" id="theme-toggle" title="Changer de thème">
+        <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
+        </svg>
+        <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="wizard-container">
+
+      {% set steps = [
+        { key: 'welcome',   label: 'Accueil',        route: 'app_setup_welcome' },
+        { key: 'admin',     label: 'Compte',         route: 'app_setup_admin' },
+        { key: 'tmdb',      label: 'TMDb',           route: 'app_setup_tmdb' },
+        { key: 'managers',  label: 'Gestion médias', route: 'app_setup_managers' },
+        { key: 'indexers',  label: 'Indexeurs',      route: 'app_setup_indexers' },
+        { key: 'downloads', label: 'Téléchargement', route: 'app_setup_downloads' },
+        { key: 'finish',    label: 'Finalisation',   route: 'app_setup_finish' },
+      ] %}
+
+      <div class="wizard-steps">
+        {% for step in steps %}
+          {% set state = 'todo' %}
+          {% if step.key == active_step %}{% set state = 'active' %}{% endif %}
+          {% if completed_steps is defined and step.key in completed_steps %}{% set state = 'done' %}{% endif %}
+          <div class="wizard-step {% if state == 'active' %}is-active{% elseif state == 'done' %}is-done{% endif %}">
+            <div class="wizard-step-line"></div>
+            <span class="wizard-step-dot"></span>
+            <span>{{ loop.index }} · {{ step.label }}</span>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if errors is defined and errors|length > 0 %}
+        <div class="alert alert-danger mb-3">
+          <ul class="mb-0 ps-3">
+            {% for err in errors %}<li>{{ err }}</li>{% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <div class="wizard-card">
+        {% block wizard_body %}{% endblock %}
+      </div>
+
+      <div class="wizard-footer">
+        Prismarr &copy; {{ "now"|date("Y") }} · AGPLv3
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('theme-toggle').addEventListener('click', function() {
+      var current = document.documentElement.getAttribute('data-bs-theme');
+      var next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-bs-theme', next);
+      localStorage.setItem('tablerTheme', next);
+    });
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

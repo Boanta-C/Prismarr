@@ -2,11 +2,13 @@
 
 namespace App\Service\Media;
 
+use App\Service\ConfigService;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class QBittorrentClient
 {
+    private const SERVICE = 'qBittorrent';
+
     /** Session qBittorrent réutilisée entre appels (évite un curl POST auth par méthode). */
     private ?string $sid = null;
 
@@ -15,12 +17,33 @@ class QBittorrentClient
     private float $serverStateCacheAt = 0.0;
     private const SERVER_STATE_TTL = 10.0; // secondes
 
+    private string $baseUrl = '';
+    private string $user = '';
+    private string $password = '';
+
     public function __construct(
-        #[Autowire(env: 'QBITTORRENT_URL')]      private readonly string $baseUrl,
-        #[Autowire(env: 'QBITTORRENT_USER')]     private readonly string $user,
-        #[Autowire(env: 'QBITTORRENT_PASSWORD')] private readonly string $password,
+        private readonly ConfigService $config,
         private readonly LoggerInterface $logger,
     ) {}
+
+    private function ensureConfig(): void
+    {
+        if ($this->baseUrl === '') {
+            $this->baseUrl  = $this->config->require('qbittorrent_url', self::SERVICE);
+            $this->user     = $this->config->require('qbittorrent_user', self::SERVICE);
+            $this->password = $this->config->require('qbittorrent_password', self::SERVICE);
+        }
+    }
+
+    /** Ping léger — true si qBit répond et accepte les credentials. */
+    public function ping(): bool
+    {
+        try {
+            return $this->getVersion() !== null;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
 
     // ══════════════════════════════════════════════════════════════════════════
     //  Torrents — Lecture
@@ -264,6 +287,7 @@ class QBittorrentClient
         $sid = $this->login();
         if (!$sid) return false;
 
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . '/api/v2/torrents/add';
 
         $postFields = [];
@@ -585,6 +609,7 @@ class QBittorrentClient
         // Réutilise le SID déjà obtenu (survit entre requêtes dans le même PHP-FPM worker).
         if ($this->sid !== null) return $this->sid;
 
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . '/api/v2/auth/login';
         $ch  = curl_init($url);
         curl_setopt_array($ch, [
@@ -627,6 +652,7 @@ class QBittorrentClient
 
     private function getRaw(string $path, array $params = [], ?string $sid = null): ?string
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) $url .= '?' . http_build_query($params);
 
@@ -667,6 +693,7 @@ class QBittorrentClient
         $sid = $this->login();
         if (!$sid) return false;
 
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         $headers = ['Cookie: SID=' . $sid];
 

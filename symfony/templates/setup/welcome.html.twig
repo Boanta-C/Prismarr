@@ -1,0 +1,40 @@
+{% extends 'setup/_layout.html.twig' %}
+
+{% block title %}Bienvenue — Prismarr{% endblock %}
+
+{% block wizard_body %}
+  <div class="welcome-hero">
+    <img src="{{ asset('img/prismarr/prismarr-icon-512.png') }}" alt=""/>
+    <h1 class="welcome-title">Bienvenue sur Prismarr</h1>
+    <p class="welcome-subtitle">
+      Un dashboard unifié pour votre stack médias self-hosted.
+      Quelques minutes suffisent pour tout configurer.
+    </p>
+
+    <div class="welcome-features">
+      <div class="welcome-feature">
+        <div class="welcome-feature-icon">🎬</div>
+        <div>Films & Séries</div>
+      </div>
+      <div class="welcome-feature">
+        <div class="welcome-feature-icon">🔎</div>
+        <div>Indexeurs</div>
+      </div>
+      <div class="welcome-feature">
+        <div class="welcome-feature-icon">⬇️</div>
+        <div>Téléchargements</div>
+      </div>
+      <div class="welcome-feature">
+        <div class="welcome-feature-icon">✨</div>
+        <div>Découverte TMDb</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wizard-actions">
+    <span></span>
+    <a href="{{ path('app_setup_admin') }}" class="btn-wizard-next">
+      Commencer la configuration →
+    </a>
+  </div>
+{% endblock %}

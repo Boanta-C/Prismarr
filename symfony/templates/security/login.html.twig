@@ -28,181 +28,123 @@
       --tblr-font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    html, body { height: 100%; }
+    html, body { min-height: 100%; }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background:
-        radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.18), transparent 45%),
-        radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.14), transparent 45%),
-        radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.08), transparent 60%);
-      background-color: #0b0d14;
-      overflow: hidden;
     }
 
-    [data-bs-theme="light"] body {
-      background:
-        radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.10), transparent 45%),
-        radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.08), transparent 45%);
-      background-color: #f5f6fb;
-    }
+    [data-bs-theme="dark"] body  { background-color: #111111 !important; color: #e4e4e7; }
+    [data-bs-theme="light"] body { background-color: #f4f6fb !important; }
 
-    /* ── Bokeh / particles background ── */
-    .bg-orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.35;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .bg-orb-1 { width: 480px; height: 480px; background: #6366f1; top: -120px; left: -140px; animation: float1 14s ease-in-out infinite; }
-    .bg-orb-2 { width: 380px; height: 380px; background: #a855f7; bottom: -120px; right: -100px; animation: float2 18s ease-in-out infinite; }
-    .bg-orb-3 { width: 260px; height: 260px; background: #3b82f6; top: 40%; right: 20%; animation: float3 22s ease-in-out infinite; opacity: 0.22; }
-
-    @keyframes float1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(40px, 30px); } }
-    @keyframes float2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-30px, -40px); } }
-    @keyframes float3 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(20px, -20px); } }
-
-    /* ── Wrapper ── */
     .login-wrapper {
-      position: relative;
-      z-index: 1;
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1.5rem;
+      padding: 2rem 1.5rem;
     }
 
-    .login-box {
-      width: 100%;
-      max-width: 420px;
-    }
+    .login-box { width: 100%; max-width: 400px; }
 
-    /* ── Logo ── */
     .login-logo {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1.75rem;
     }
-    .login-logo img {
-      height: 72px;
-      filter: drop-shadow(0 6px 24px rgba(99, 102, 241, 0.35));
-    }
-    .login-tagline {
-      font-size: .85rem;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.55);
-      margin-top: 1rem;
-      font-weight: 500;
-    }
-    [data-bs-theme="light"] .login-tagline { color: rgba(0,0,0,.55); }
+    .login-logo img { height: 52px; }
 
-    /* ── Card glass ── */
     .login-card {
-      background: rgba(20, 24, 38, 0.55);
-      backdrop-filter: blur(20px) saturate(140%);
-      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      background: #1c1c1c;
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 18px;
-      padding: 2rem;
-      box-shadow:
-        0 20px 60px rgba(0,0,0,0.45),
-        inset 0 1px 0 rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 1.75rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,.35);
     }
     [data-bs-theme="light"] .login-card {
-      background: rgba(255, 255, 255, 0.78);
-      border: 1px solid rgba(0,0,0,0.06);
-      box-shadow:
-        0 20px 60px rgba(99, 102, 241, 0.12),
-        inset 0 1px 0 rgba(255,255,255,0.6);
+      background: #ffffff;
+      border-color: rgba(0,0,0,.08);
+      box-shadow: 0 1px 8px rgba(0,0,0,.06);
     }
 
     .login-title {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
       font-weight: 600;
-      text-align: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       letter-spacing: -0.01em;
     }
 
-    /* ── Inputs ── */
     .form-label {
-      font-size: .8rem;
+      font-size: .78rem;
       font-weight: 500;
       letter-spacing: .02em;
-      text-transform: uppercase;
-      opacity: .7;
+      opacity: .75;
     }
 
     .form-control, .input-group-text {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 8px;
+      padding: .6rem .8rem;
       color: inherit;
-      border-radius: 10px;
-      padding: .65rem .85rem;
       transition: all .15s ease;
     }
     [data-bs-theme="light"] .form-control,
     [data-bs-theme="light"] .input-group-text {
-      background: rgba(0,0,0,0.02);
-      border-color: rgba(0,0,0,0.08);
+      background: rgba(0,0,0,.02);
+      border-color: rgba(0,0,0,.1);
     }
 
     .form-control:focus {
-      background: rgba(99, 102, 241, 0.06);
-      border-color: rgba(99, 102, 241, 0.5);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      background: rgba(99, 102, 241, 0.05);
+      border-color: rgba(99, 102, 241, 0.55);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
       color: inherit;
     }
 
     .input-group-flat .form-control { border-right: 0; }
-    .input-group-flat .input-group-text { border-left: 0; background: rgba(255,255,255,0.04); }
-    [data-bs-theme="light"] .input-group-flat .input-group-text { background: rgba(0,0,0,0.02); }
+    .input-group-flat .input-group-text { border-left: 0; }
 
-    /* ── Submit ── */
     .btn-login {
       background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
       border: none;
-      border-radius: 10px;
-      padding: .75rem 1rem;
-      font-weight: 600;
+      border-radius: 8px;
+      padding: .65rem 1rem;
+      font-weight: 500;
       color: #fff;
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
       transition: all .2s ease;
     }
     .btn-login:hover {
       transform: translateY(-1px);
-      box-shadow: 0 6px 22px rgba(99, 102, 241, 0.5);
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.45);
       color: #fff;
     }
     .btn-login:active { transform: translateY(0); }
 
-    /* ── Alert ── */
     .alert-danger {
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #fecaca;
-      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #fca5a5;
+      border-radius: 8px;
+      font-size: .85rem;
     }
+    [data-bs-theme="light"] .alert-danger { color: #991b1b; }
 
-    /* ── Footer ── */
     .login-footer {
       text-align: center;
       margin-top: 1.5rem;
       font-size: .75rem;
-      opacity: .55;
+      opacity: .4;
     }
 
-    /* ── Theme switcher ── */
     .theme-toggle {
       position: fixed;
       top: 1rem;
       right: 1rem;
       z-index: 10;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
       color: inherit;
       width: 36px;
       height: 36px;
@@ -213,10 +155,9 @@
       cursor: pointer;
       transition: all .15s ease;
     }
-    .theme-toggle:hover { background: rgba(255,255,255,0.1); }
-    [data-bs-theme="light"] .theme-toggle { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
-    [data-bs-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,0.08); }
-
+    .theme-toggle:hover { background: rgba(255,255,255,.08); }
+    [data-bs-theme="light"] .theme-toggle { background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.08); }
+    [data-bs-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,.08); }
     .theme-toggle .icon-moon { display: inline; }
     .theme-toggle .icon-sun  { display: none; }
     [data-bs-theme="light"] .theme-toggle .icon-moon { display: none; }
@@ -225,17 +166,11 @@
 </head>
 <body>
 
-  <!-- Bokeh background -->
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-orb bg-orb-3"></div>
-
-  <!-- Theme switcher -->
   <button type="button" class="theme-toggle" id="theme-toggle" title="Changer de thème">
-    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
     </svg>
-    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="4"/>
       <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
     </svg>
@@ -246,7 +181,6 @@
 
       <div class="login-logo">
         <img src="{{ asset('img/prismarr/prismarr-logo-horizontal.png') }}" alt="Prismarr"/>
-        <div class="login-tagline">Stack médias self-hosted</div>
       </div>
 
       {% if error %}
@@ -256,39 +190,28 @@
       {% endif %}
 
       <div class="login-card">
-        <div class="login-title">Connexion à votre espace</div>
+        <div class="login-title">Connexion</div>
 
         <form action="{{ path('app_login') }}" method="post" autocomplete="off" novalidate>
           <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}"/>
 
           <div class="mb-3">
             <label class="form-label" for="email">Adresse email</label>
-            <input type="email"
-                   id="email"
-                   name="_username"
-                   class="form-control"
+            <input type="email" id="email" name="_username" class="form-control"
                    placeholder="votre@email.com"
                    value="{{ last_username }}"
-                   autocomplete="email"
-                   autofocus
-                   required/>
+                   autocomplete="email" autofocus required/>
           </div>
 
           <div class="mb-3">
             <label class="form-label" for="password">Mot de passe</label>
             <div class="input-group input-group-flat">
-              <input type="password"
-                     id="password"
-                     name="_password"
-                     class="form-control"
-                     placeholder="••••••••"
-                     autocomplete="current-password"
-                     required/>
+              <input type="password" id="password" name="_password" class="form-control"
+                     placeholder="••••••••" autocomplete="current-password" required/>
               <span class="input-group-text">
                 <a href="#" class="link-secondary" id="toggle-password" title="Afficher le mot de passe">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                       fill="none" stroke="currentColor" stroke-width="2"
-                       stroke-linecap="round" stroke-linejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
                     <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/>
                   </svg>
@@ -304,28 +227,24 @@
             </label>
           </div>
 
-          <button type="submit" class="btn btn-login w-100">
-            Se connecter
-          </button>
+          <button type="submit" class="btn btn-login w-100">Se connecter</button>
         </form>
       </div>
 
       <div class="login-footer">
-        Prismarr &copy; {{ "now"|date("Y") }} &middot; AGPLv3
+        Prismarr &copy; {{ "now"|date("Y") }} · AGPLv3
       </div>
 
     </div>
   </div>
 
   <script>
-    // Toggle password visibility
     document.getElementById('toggle-password').addEventListener('click', function(e) {
       e.preventDefault();
       var input = document.getElementById('password');
       input.type = input.type === 'password' ? 'text' : 'password';
     });
 
-    // Theme toggle
     document.getElementById('theme-toggle').addEventListener('click', function() {
       var current = document.documentElement.getAttribute('data-bs-theme');
       var next = current === 'dark' ? 'light' : 'dark';

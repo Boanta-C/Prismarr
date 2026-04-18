@@ -1,0 +1,41 @@
+{% extends 'setup/_layout.html.twig' %}
+
+{% block title %}Finalisation — Prismarr{% endblock %}
+
+{% block wizard_body %}
+  <div class="wizard-eyebrow">Étape 7 sur 7</div>
+  <h2 class="wizard-title">Tout est prêt !</h2>
+  <p class="wizard-subtitle">
+    Voici un récapitulatif de la configuration. Vous pourrez modifier ou ajouter
+    des services à tout moment depuis l'administration.
+  </p>
+
+  <div class="wizard-section">
+    {% for service in services %}
+      <div class="service-row">
+        <div>
+          <div class="service-row-name">{{ service.name }}</div>
+          {% if service.configured and service.detail %}
+            <div class="service-row-sub">{{ service.detail }}</div>
+          {% endif %}
+        </div>
+        {% if service.configured %}
+          <span class="service-badge ok">Configuré</span>
+        {% else %}
+          <span class="service-badge skipped">Ignoré</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <form action="{{ path('app_setup_finish') }}" method="post" class="mt-4">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('setup_finish') }}"/>
+
+    <div class="wizard-actions">
+      <a href="{{ path('app_setup_downloads') }}" class="btn-wizard-back">← Précédent</a>
+      <button type="submit" class="btn-wizard-next">
+        Lancer Prismarr →
+      </button>
+    </div>
+  </form>
+{% endblock %}

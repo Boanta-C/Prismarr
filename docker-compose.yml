@@ -1,3 +1,6 @@
+# Prismarr — stack médias self-hosted (compose par défaut pour le développement).
+# Pour la distribution publique, voir docker-compose.example.yml.
+
 services:
 
   prismarr:
@@ -9,33 +12,13 @@ services:
     ports:
       - "${PRISMARR_PORT:-7070}:7070"
     environment:
+      # Tout le reste (APP_SECRET, MERCURE_JWT_SECRET, JWT_PASSPHRASE) est
+      # auto-généré par docker/frankenphp/init.sh au premier démarrage et
+      # persisté dans /var/www/html/var/data/.env.local (volume).
       - APP_ENV=${APP_ENV:-prod}
-      - APP_SECRET=${APP_SECRET}
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_PASSPHRASE=${JWT_PASSPHRASE}
-      - MERCURE_JWT_SECRET=${MERCURE_JWT_SECRET}
-      - MERCURE_URL=http://localhost:7070/.well-known/mercure
-      - MERCURE_PUBLIC_URL=http://localhost:${PRISMARR_PORT:-7070}/.well-known/mercure
-      # APIs externes — injectées depuis .env.local
-      - RADARR_URL=${RADARR_URL}
-      - RADARR_API_KEY=${RADARR_API_KEY}
-      - SONARR_URL=${SONARR_URL}
-      - SONARR_API_KEY=${SONARR_API_KEY}
-      - PROWLARR_URL=${PROWLARR_URL}
-      - PROWLARR_API_KEY=${PROWLARR_API_KEY}
-      - JELLYSEERR_URL=${JELLYSEERR_URL}
-      - JELLYSEERR_API_KEY=${JELLYSEERR_API_KEY}
-      - QBITTORRENT_URL=${QBITTORRENT_URL}
-      - QBITTORRENT_USER=${QBITTORRENT_USER}
-      - QBITTORRENT_PASSWORD=${QBITTORRENT_PASSWORD}
-      - GLUETUN_URL=${GLUETUN_URL}
-      - GLUETUN_API_KEY=${GLUETUN_API_KEY}
-      - GLUETUN_PROTOCOL=${GLUETUN_PROTOCOL}
-      - TMDB_API_KEY=${TMDB_API_KEY}
-      - PRISMARR_PRIMARY_COLOR=${PRISMARR_PRIMARY_COLOR:-#6366f1}
-      - PRISMARR_LOGO_URL=${PRISMARR_LOGO_URL}
+      - PRISMARR_PORT=${PRISMARR_PORT:-7070}
     volumes:
       - prismarr_data:/var/www/html/var/data
 
 volumes:
-  prismarr_data:  # SQLite + uploads persistants
+  prismarr_data:  # SQLite + .env.local + sessions + cache persistants

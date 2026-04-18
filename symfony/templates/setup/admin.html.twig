@@ -1,0 +1,52 @@
+{% extends 'setup/_layout.html.twig' %}
+
+{% block title %}Compte admin — Prismarr{% endblock %}
+
+{% block wizard_body %}
+  <div class="wizard-eyebrow">Étape 2 sur 7</div>
+  <h2 class="wizard-title">Créez votre compte administrateur</h2>
+  <p class="wizard-subtitle">
+    Ce compte aura accès à toute la configuration de Prismarr. Vous pourrez créer
+    d'autres utilisateurs plus tard depuis l'administration.
+  </p>
+
+  <form action="{{ path('app_setup_admin') }}" method="post" autocomplete="off" novalidate>
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('setup_admin') }}"/>
+
+    <div class="mb-3">
+      <label class="form-label" for="email">Adresse email</label>
+      <input type="email" id="email" name="email" class="form-control"
+             placeholder="admin@exemple.com"
+             value="{{ email }}"
+             autocomplete="email" autofocus required/>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="display_name">Nom d'affichage <span class="text-muted">(optionnel)</span></label>
+      <input type="text" id="display_name" name="display_name" class="form-control"
+             placeholder="Admin"
+             value="{{ display_name }}"
+             autocomplete="name"/>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="password">Mot de passe <span class="text-muted">(8 min.)</span></label>
+        <input type="password" id="password" name="password" class="form-control"
+               placeholder="••••••••" autocomplete="new-password" required minlength="8"/>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="password_confirm">Confirmation</label>
+        <input type="password" id="password_confirm" name="password_confirm" class="form-control"
+               placeholder="••••••••" autocomplete="new-password" required minlength="8"/>
+      </div>
+    </div>
+
+    <div class="wizard-actions">
+      <a href="{{ path('app_setup_welcome') }}" class="btn-wizard-back">← Précédent</a>
+      <button type="submit" class="btn-wizard-next">
+        Créer le compte →
+      </button>
+    </div>
+  </form>
+{% endblock %}

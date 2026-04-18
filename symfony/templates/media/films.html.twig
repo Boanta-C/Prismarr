@@ -212,30 +212,29 @@
 {% endblock %}
 
 {% block body %}
+{% if not error %}
 <div class="container-xl py-2">
   <div class="d-flex align-items-center justify-content-end">
     {% include 'media/_radarr_nav.html.twig' %}
   </div>
 </div>
+{% endif %}
 
 <div class="page-body">
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger mb-3">
-  <div class="d-flex align-items-center gap-3">
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-    <div>
-      <h4 class="alert-title mb-1">Radarr est inaccessible</h4>
-      <div class="text-muted">Vérifiez que le container Radarr est démarré et accessible sur <code>{{ app.request.server.get('RADARR_URL', '192.168.10.220:7878') }}</code></div>
-    </div>
-  </div>
-</div>
+  {% include 'error/_service_banner.html.twig' with {
+    service: 'Radarr',
+    wizard_route: 'app_setup_managers',
+    configured_url: service_url,
+    reason: 'unreachable'
+  } %}
 {% endif %}
 
+{% if not error %}
 <div id="warnings-banner"></div>
 
-{% if not error %}
 {# ── Stats ── #}
 <div class="row g-3 mb-3">
   <div class="col-6 col-sm-3">

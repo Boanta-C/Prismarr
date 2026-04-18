@@ -1,0 +1,35 @@
+{% extends 'setup/_layout.html.twig' %}
+
+{% block title %}TMDb — Prismarr{% endblock %}
+
+{% block wizard_body %}
+  <div class="wizard-eyebrow">Étape 3 sur 7 · Optionnel</div>
+  <h2 class="wizard-title">The Movie Database (TMDb)</h2>
+  <p class="wizard-subtitle">
+    Nécessaire pour la page <strong>Découverte</strong> (films & séries tendance,
+    recommandations, watchlist). Créez une clé gratuite sur
+    <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">themoviedb.org</a>.
+    Si vous passez cette étape, la Découverte sera désactivée.
+  </p>
+
+  <form action="{{ path('app_setup_tmdb') }}" method="post" autocomplete="off" novalidate>
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('setup_tmdb') }}"/>
+
+    <div class="mb-3">
+      <label class="form-label" for="tmdb_api_key">Clé API v3</label>
+      <input type="text" id="tmdb_api_key" name="tmdb_api_key" class="form-control"
+             placeholder="ex. 7a2f4…"
+             value="{{ values.tmdb_api_key }}"
+             autocomplete="off"/>
+      <div class="form-text mt-1">Version v3 uniquement — la v4 (token Bearer) n'est pas encore supportée.</div>
+    </div>
+
+    <div class="wizard-actions">
+      <button type="submit" name="_action" value="back" class="btn-wizard-back" formnovalidate>← Précédent</button>
+      <div class="wizard-actions-right">
+        <button type="submit" name="_action" value="skip" class="btn-wizard-skip" formnovalidate>Passer cette étape</button>
+        <button type="submit" name="_action" value="save" class="btn-wizard-next">Enregistrer et continuer →</button>
+      </div>
+    </div>
+  </form>
+{% endblock %}

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Media\WatchlistItem;
 use App\Repository\Media\WatchlistItemRepository;
+use App\Service\ConfigService;
 use App\Service\Media\RadarrClient;
 use App\Service\Media\SonarrClient;
 use App\Service\Media\TmdbClient;
@@ -24,22 +25,37 @@ class TmdbController extends AbstractController
         private readonly SonarrClient              $sonarr,
         private readonly WatchlistItemRepository   $watchlistRepo,
         private readonly EntityManagerInterface     $em,
+        private readonly ConfigService             $config,
     ) {}
 
     #[Route('/decouverte', name: 'tmdb_index')]
     public function index(): Response
     {
-        $library = $this->buildLibraryIndex();
+        $error = false;
+        $trending = $trendingMovies = $trendingTv = [];
+        $popMovies = $popTv = $upcoming = $onAir = $topMovies = $topTv = [];
+        $library = [];
 
-        $trending       = $this->enrich($this->tmdb->getTrendingAll('week')['results'] ?? [], $library);
-        $trendingMovies = $this->enrich($this->tmdb->getTrendingMovies('week')['results'] ?? [], $library, 'movie');
-        $trendingTv     = $this->enrich($this->tmdb->getTrendingTv('week')['results'] ?? [],     $library, 'tv');
-        $popMovies      = $this->enrich($this->tmdb->getPopularMovies()['results'] ?? [],   $library, 'movie');
-        $popTv          = $this->enrich($this->tmdb->getPopularTv()['results'] ?? [],       $library, 'tv');
-        $upcoming       = $this->enrich($this->tmdb->getUpcomingMovies()['results'] ?? [],  $library, 'movie');
-        $onAir          = $this->enrich($this->tmdb->getOnTheAirTv()['results'] ?? [],      $library, 'tv');
-        $topMovies      = $this->enrich($this->tmdb->getTopRatedMovies()['results'] ?? [],  $library, 'movie');
-        $topTv          = $this->enrich($this->tmdb->getTopRatedTv()['results'] ?? [],      $library, 'tv');
+        try {
+            $library = $this->buildLibraryIndex();
+
+            $trendingRaw = $this->tmdb->getTrendingAll('week');
+            if ($trendingRaw === null || ($trendingRaw['results'] ?? null) === null) {
+                $error = true;
+            } else {
+                $trending       = $this->enrich($trendingRaw['results'] ?? [], $library);
+                $trendingMovies = $this->enrich($this->tmdb->getTrendingMovies('week')['results'] ?? [], $library, 'movie');
+                $trendingTv     = $this->enrich($this->tmdb->getTrendingTv('week')['results'] ?? [],     $library, 'tv');
+                $popMovies      = $this->enrich($this->tmdb->getPopularMovies()['results'] ?? [],        $library, 'movie');
+                $popTv          = $this->enrich($this->tmdb->getPopularTv()['results'] ?? [],            $library, 'tv');
+                $upcoming       = $this->enrich($this->tmdb->getUpcomingMovies()['results'] ?? [],       $library, 'movie');
+                $onAir          = $this->enrich($this->tmdb->getOnTheAirTv()['results'] ?? [],           $library, 'tv');
+                $topMovies      = $this->enrich($this->tmdb->getTopRatedMovies()['results'] ?? [],       $library, 'movie');
+                $topTv          = $this->enrich($this->tmdb->getTopRatedTv()['results'] ?? [],           $library, 'tv');
+            }
+        } catch (\Throwable) {
+            $error = true;
+        }
 
         return $this->render('decouverte/index.html.twig', [
             'heroMovie' => $trendingMovies[0] ?? null,
@@ -51,6 +67,8 @@ class TmdbController extends AbstractController
             'onAir'     => $onAir,
             'topMovies' => $topMovies,
             'topTv'     => $topTv,
+            'error'     => $error,
+            'service_url' => $this->config->get('tmdb_api_key') !== null ? 'api.themoviedb.org' : null,
         ]);
     }
 

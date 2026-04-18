@@ -51,6 +51,10 @@ COPY docker/frankenphp/Caddyfile /etc/caddy/Caddyfile
 # ── s6 services ─────────────────────────────────────────────────────────
 COPY docker/frankenphp/s6/ /etc/s6-overlay/s6-rc.d/
 
+# ── Script d'initialisation (génération secrets + schéma BDD) ───────────
+COPY docker/frankenphp/init.sh /usr/local/bin/prismarr-init
+RUN chmod +x /usr/local/bin/prismarr-init
+
 # ── Code Symfony ────────────────────────────────────────────────────────
 WORKDIR /var/www/html
 COPY symfony/ .

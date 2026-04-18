@@ -207,18 +207,27 @@
 {% endblock %}
 
 {% block body %}
+{% if not error %}
 <div class="container-xl py-2">
   <div class="d-flex align-items-center justify-content-end">
     {% include 'media/_sonarr_nav.html.twig' ignore missing %}
   </div>
 </div>
+{% endif %}
 
 <div class="page-body">
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger">Impossible de joindre Sonarr — vérifiez <code>SONARR_URL</code> et <code>SONARR_API_KEY</code>.</div>
+  {% include 'error/_service_banner.html.twig' with {
+    service: 'Sonarr',
+    wizard_route: 'app_setup_managers',
+    configured_url: service_url,
+    reason: 'unreachable'
+  } %}
 {% endif %}
+
+{% if not error %}
 
 <div id="sonarr-warnings-banner"></div>
 
@@ -920,6 +929,8 @@
     </div>
   </div>
 </div>
+
+{% endif %} {# /if not error #}
 
 </div>
 {% endblock %}

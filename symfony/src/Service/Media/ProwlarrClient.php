@@ -2,16 +2,38 @@
 
 namespace App\Service\Media;
 
+use App\Service\ConfigService;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class ProwlarrClient
 {
+    private const SERVICE = 'Prowlarr';
+
+    private string $baseUrl = '';
+    private string $apiKey = '';
+
     public function __construct(
-        #[Autowire(env: 'PROWLARR_URL')]     private readonly string $baseUrl,
-        #[Autowire(env: 'PROWLARR_API_KEY')] private readonly string $apiKey,
+        private readonly ConfigService $config,
         private readonly LoggerInterface $logger,
     ) {}
+
+    private function ensureConfig(): void
+    {
+        if ($this->baseUrl === '') {
+            $this->baseUrl = $this->config->require('prowlarr_url', self::SERVICE);
+            $this->apiKey  = $this->config->require('prowlarr_api_key', self::SERVICE);
+        }
+    }
+
+    /** Ping léger — true si l'API répond et accepte la clé. */
+    public function ping(): bool
+    {
+        try {
+            return $this->getSystemStatus() !== null;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
 
     // ── Indexeurs ─────────────────────────────────────────────────────────────
 
@@ -502,6 +524,7 @@ class ProwlarrClient
 
     private function get(string $path, array $params = []): ?array
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) {
             $url .= '?' . http_build_query($params);
@@ -529,6 +552,7 @@ class ProwlarrClient
 
     private function request(string $method, string $path, array $params = [], array $body = []): ?array
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) $url .= '?' . http_build_query($params);
 
@@ -555,6 +579,7 @@ class ProwlarrClient
 
     private function requestWithError(string $method, string $path, array $body): array
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
 
         $ch = curl_init($url);
@@ -586,6 +611,7 @@ class ProwlarrClient
 
     private function deleteWithBody(string $path, array $body): bool
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -603,6 +629,7 @@ class ProwlarrClient
 
     private function delete(string $path): bool
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
 
         $ch = curl_init($url);

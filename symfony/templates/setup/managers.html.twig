@@ -1,0 +1,60 @@
+{% extends 'setup/_layout.html.twig' %}
+
+{% block title %}Gestionnaires médias — Prismarr{% endblock %}
+
+{% block max_width %}720px{% endblock %}
+
+{% block wizard_body %}
+  <div class="wizard-eyebrow">Étape 4 sur 7 · Optionnel</div>
+  <h2 class="wizard-title">Gestionnaires médias</h2>
+  <p class="wizard-subtitle">
+    Radarr gère votre bibliothèque de films, Sonarr gère les séries. Vous pouvez
+    configurer les deux, un seul, ou passer cette étape.
+  </p>
+
+  <form action="{{ path('app_setup_managers') }}" method="post" autocomplete="off" novalidate>
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('setup_managers') }}"/>
+
+    <div class="wizard-section">
+      <div class="wizard-section-title">🎬 Radarr — Films</div>
+      <div class="wizard-section-subtitle">Service de gestion automatisée des films.</div>
+      <div class="row g-3">
+        <div class="col-md-7">
+          <label class="form-label" for="radarr_url">URL</label>
+          <input type="text" id="radarr_url" name="radarr_url" class="form-control"
+                 placeholder="http://host.docker.internal:7878" value="{{ values.radarr_url }}"/>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label" for="radarr_api_key">Clé API</label>
+          <input type="text" id="radarr_api_key" name="radarr_api_key" class="form-control"
+                 placeholder="X-Api-Key" value="{{ values.radarr_api_key }}"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-section">
+      <div class="wizard-section-title">📺 Sonarr — Séries</div>
+      <div class="wizard-section-subtitle">Service de gestion automatisée des séries TV.</div>
+      <div class="row g-3">
+        <div class="col-md-7">
+          <label class="form-label" for="sonarr_url">URL</label>
+          <input type="text" id="sonarr_url" name="sonarr_url" class="form-control"
+                 placeholder="http://host.docker.internal:8989" value="{{ values.sonarr_url }}"/>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label" for="sonarr_api_key">Clé API</label>
+          <input type="text" id="sonarr_api_key" name="sonarr_api_key" class="form-control"
+                 placeholder="X-Api-Key" value="{{ values.sonarr_api_key }}"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="wizard-actions">
+      <button type="submit" name="_action" value="back" class="btn-wizard-back" formnovalidate>← Précédent</button>
+      <div class="wizard-actions-right">
+        <button type="submit" name="_action" value="skip" class="btn-wizard-skip" formnovalidate>Passer cette étape</button>
+        <button type="submit" name="_action" value="save" class="btn-wizard-next">Enregistrer et continuer →</button>
+      </div>
+    </div>
+  </form>
+{% endblock %}

@@ -2,13 +2,13 @@
 
 namespace App\Service\Media;
 
+use App\Service\ConfigService;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Client pour l'API de contrôle Gluetun (HTTP Control Server).
- * Gluetun héberge qBittorrent derrière son VPN — on interroge son API pour
- * récupérer l'IP publique VPN + l'état de connexion.
+ * Service optionnel — si `gluetun.url` n'est pas configuré, les appels retournent null
+ * sans exception (Gluetun n'est pas obligatoire pour utiliser Prismarr).
  * Doc : https://github.com/qdm12/gluetun-wiki/blob/main/setup/advanced/control-server.md
  */
 class GluetunClient
@@ -28,13 +28,24 @@ class GluetunClient
     private float $portCacheAt = 0.0;
     private const PORT_TTL = 10.0;
 
+    private ?string $baseUrl = null;
+    private string $apiKey = '';
+    private string $protocol = '';
+    private bool $configLoaded = false;
+
     public function __construct(
-        #[Autowire(env: 'GLUETUN_URL')]      private readonly string $baseUrl,
-        #[Autowire(env: 'GLUETUN_API_KEY')]  private readonly string $apiKey,
-        /** 'openvpn', 'wireguard' ou '' pour auto (essaie les deux). */
-        #[Autowire(env: 'GLUETUN_PROTOCOL')] private readonly string $protocol,
+        private readonly ConfigService $config,
         private readonly LoggerInterface $logger,
     ) {}
+
+    private function ensureConfig(): void
+    {
+        if ($this->configLoaded) return;
+        $this->baseUrl  = $this->config->get('gluetun_url');
+        $this->apiKey   = $this->config->get('gluetun_api_key') ?? '';
+        $this->protocol = $this->config->get('gluetun_protocol') ?? '';
+        $this->configLoaded = true;
+    }
 
     /**
      * Retourne IP publique + localisation + organization (provider VPN).
@@ -67,6 +78,7 @@ class GluetunClient
             return $this->statusCache;
         }
 
+        $this->ensureConfig();
         $fallback = match (strtolower($this->protocol)) {
             'openvpn'   => ['/v1/openvpn/status'],
             'wireguard' => ['/v1/wireguard/status'],
@@ -96,6 +108,7 @@ class GluetunClient
             return $this->portCache;
         }
 
+        $this->ensureConfig();
         $legacy = match (strtolower($this->protocol)) {
             'openvpn'   => ['/v1/openvpn/portforwarded'],
             'wireguard' => ['/v1/wireguard/portforwarded'],
@@ -135,6 +148,10 @@ class GluetunClient
 
     private function get(string $path): ?array
     {
+        $this->ensureConfig();
+        if ($this->baseUrl === null || $this->baseUrl === '') {
+            return null;
+        }
         $url = rtrim($this->baseUrl, '/') . $path;
         $opts = [
             CURLOPT_RETURNTRANSFER => true,

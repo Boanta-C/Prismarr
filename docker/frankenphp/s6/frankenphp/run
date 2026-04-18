@@ -1,2 +1,9 @@
 #!/command/with-contenv sh
+# Charger les secrets générés par init.sh (.env.local) dans l'environnement
+# du process — Caddy lit {env.MERCURE_JWT_SECRET} au démarrage.
+if [ -f /var/www/html/.env.local ]; then
+  set -a
+  . /var/www/html/.env.local
+  set +a
+fi
 exec frankenphp run --config /etc/caddy/Caddyfile

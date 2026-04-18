@@ -2,16 +2,38 @@
 
 namespace App\Service\Media;
 
+use App\Service\ConfigService;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class RadarrClient
 {
+    private const SERVICE = 'Radarr';
+
+    private string $baseUrl = '';
+    private string $apiKey = '';
+
     public function __construct(
-        #[Autowire(env: 'RADARR_URL')]     private readonly string $baseUrl,
-        #[Autowire(env: 'RADARR_API_KEY')] private readonly string $apiKey,
+        private readonly ConfigService $config,
         private readonly LoggerInterface $logger,
     ) {}
+
+    private function ensureConfig(): void
+    {
+        if ($this->baseUrl === '') {
+            $this->baseUrl = $this->config->require('radarr_url', self::SERVICE);
+            $this->apiKey  = $this->config->require('radarr_api_key', self::SERVICE);
+        }
+    }
+
+    /** Ping léger — true si l'API répond et accepte la clé. */
+    public function ping(): bool
+    {
+        try {
+            return $this->getSystemStatus() !== null;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
 
     // ── Movies ────────────────────────────────────────────────────────────────
 
@@ -266,6 +288,7 @@ class RadarrClient
 
     public function getReleasesForMovie(int $id): array
     {
+        $this->ensureConfig();
         // Radarr queries all indexers in real-time — needs a longer timeout than the default 10s
         $url = rtrim($this->baseUrl, '/') . '/api/v3/release?' . http_build_query(['movieId' => $id]);
 
@@ -292,6 +315,7 @@ class RadarrClient
 
     public function grabRelease(string $guid, int $indexerId): array
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . '/api/v3/release';
 
         $ch = curl_init($url);
@@ -527,6 +551,7 @@ class RadarrClient
 
     public function testNotification(int $id): bool
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . '/api/v3/notification/test';
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -744,6 +769,7 @@ class RadarrClient
 
     public function restoreBackup(int $id): bool
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . "/api/v3/system/backup/restore/{$id}";
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -1339,6 +1365,7 @@ class RadarrClient
 
     private function get(string $path, array $params = []): ?array
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if (!empty($params)) {
             $url .= '?' . http_build_query($params);
@@ -1372,6 +1399,7 @@ class RadarrClient
 
     private function delete(string $path, array $params = []): bool
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) $url .= '?' . http_build_query($params);
 
@@ -1390,6 +1418,7 @@ class RadarrClient
 
     private function deleteWithBody(string $path, array $body): bool
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -1407,6 +1436,7 @@ class RadarrClient
 
     private function request(string $method, string $path, array $params, array $body): ?array
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) $url .= '?' . http_build_query($params);
 
@@ -1436,6 +1466,7 @@ class RadarrClient
      */
     private function requestWithError(string $method, string $path, array $body): array
     {
+        $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
 
         $ch = curl_init($url);
