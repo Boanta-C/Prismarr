@@ -5,7 +5,7 @@ COMPOSER    = docker run --rm -v "$(shell pwd)/symfony:/app" composer:2
 dev:
 	$(DEV_COMPOSE) up -d
 
-# Prod (images baked, APP_ENV=prod) — simule Portainer avec les vars locales
+# Prod (images baked)
 prod:
 	docker compose --env-file symfony/.env.local up -d
 
@@ -19,31 +19,28 @@ stop:
 
 # Logs worker en temps réel
 logs:
-	docker logs argos_worker -f
+	docker logs prismarr_worker -f
 
 # Logs app en temps réel
 logs-app:
-	docker logs argos_app -f
+	docker logs prismarr_app -f
 
 # Rebuild images prod sans cache
 build:
 	docker compose build --no-cache
 
-# Installer un package Composer (ex: make composer require symfony/http-client)
+# Installer un package Composer
 composer:
 	$(COMPOSER) $(filter-out $@,$(MAKECMDGOALS))
 
-# Commande console Symfony dans le container dev (ex: make console cache:clear)
+# Commande console Symfony dans le container dev
 console:
-	docker exec argos_app php bin/console $(filter-out $@,$(MAKECMDGOALS))
+	docker exec prismarr_app php bin/console $(filter-out $@,$(MAKECMDGOALS))
 
-# Vérifier les handlers Messenger enregistrés
-debug-messenger:
-	docker exec argos_worker php bin/console debug:messenger
-
-# Vérifier les tâches planifiées
-debug-scheduler:
-	docker exec argos_worker php bin/console debug:scheduler
+# Initialisation premier démarrage : créer la BDD SQLite + appliquer les migrations
+init:
+	docker exec prismarr_app mkdir -p var/data
+	docker exec prismarr_app php bin/console doctrine:migrations:migrate --no-interaction
 
 %:
 	@:

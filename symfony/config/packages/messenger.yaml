@@ -13,7 +13,6 @@ framework:
             failed: 'redis://redis:6379/messages_failed'
             sync: 'sync://'
 
-        routing:
-            App\Message\PollDockerMessage: async
-            App\Message\PollSynologyMessage: async
-            App\Message\PollUnifiMessage: async
+        # Pas de routing async actif pour l'instant — les futurs messages Prismarr
+        # (notifications, scheduled tasks) s'ajouteront ici.
+        routing: {}

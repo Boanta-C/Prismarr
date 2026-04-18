@@ -1,13 +1,8 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
-
-        # IMPORTANT: You MUST configure your server version,
-        # either here or in the DATABASE_URL env var (see .env file)
-        # MariaDB sur NAS DS-MEDUSA — version définie dans DATABASE_URL
+        # SQLite zero-config — le fichier est créé au premier démarrage dans var/data/
         profiling_collect_backtrace: '%kernel.debug%'
-
-        # Timeout de connexion court — via le DSN (voir connect_timeout dans DATABASE_URL)
     orm:
         validate_xml_mapping: true
         naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware

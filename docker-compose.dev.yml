@@ -1,4 +1,4 @@
-# Surcharges pour le développement local (depuis le Mac via terminal)
+# Prismarr — surcharges développement (hot reload)
 # Usage : docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 services:
@@ -13,17 +13,15 @@ services:
       - APP_DEBUG=1
     volumes:
       - ./symfony:/var/www/html
-      - /var/run/docker.sock:/var/run/docker.sock:ro
 
   worker:
     user: root
     environment:
       - APP_ENV=dev
       - APP_DEBUG=1
-    command: php bin/console messenger:consume async scheduler_default -vv
+    command: php bin/console messenger:consume async -vv
     volumes:
       - ./symfony:/var/www/html
-      - /var/run/docker.sock:/var/run/docker.sock:ro
 
   mercure:
     environment:

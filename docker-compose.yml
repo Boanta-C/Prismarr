@@ -4,80 +4,70 @@ services:
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
-    container_name: argos_nginx
+    container_name: prismarr_nginx
     restart: unless-stopped
     ports:
-      - "8888:80"
+      - "${PRISMARR_PORT:-7070}:80"
     depends_on:
       - app
     networks:
-      - argos_net
+      - prismarr_net
 
   app:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: argos_app
+    container_name: prismarr_app
     restart: unless-stopped
     environment:
-      - APP_ENV=prod
+      - APP_ENV=${APP_ENV:-prod}
       - APP_SECRET=${APP_SECRET}
       - DATABASE_URL=${DATABASE_URL}
       - JWT_PASSPHRASE=${JWT_PASSPHRASE}
       - MERCURE_JWT_SECRET=${MERCURE_JWT_SECRET}
-      - SYNOLOGY_USER=${SYNOLOGY_USER}
-      - SYNOLOGY_PASSWORD=${SYNOLOGY_PASSWORD}
-      - UNIFI_URL=${UNIFI_URL:-https://192.168.10.254}
-      - UNIFI_USER=${UNIFI_USER}
-      - UNIFI_PASSWORD=${UNIFI_PASSWORD}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - symfony_var:/var/www/html/var
+      - symfony_data:/var/www/html/var/data
     depends_on:
       - redis
     networks:
-      - argos_net
+      - prismarr_net
 
   worker:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: argos_worker
+    container_name: prismarr_worker
     restart: unless-stopped
-    command: php bin/console messenger:consume async scheduler_default --time-limit=3600 --memory-limit=256M
+    command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=256M
     environment:
-      - APP_ENV=prod
+      - APP_ENV=${APP_ENV:-prod}
       - APP_SECRET=${APP_SECRET}
       - DATABASE_URL=${DATABASE_URL}
       - JWT_PASSPHRASE=${JWT_PASSPHRASE}
       - MERCURE_JWT_SECRET=${MERCURE_JWT_SECRET}
-      - SYNOLOGY_USER=${SYNOLOGY_USER}
-      - SYNOLOGY_PASSWORD=${SYNOLOGY_PASSWORD}
-      - UNIFI_URL=${UNIFI_URL:-https://192.168.10.254}
-      - UNIFI_USER=${UNIFI_USER}
-      - UNIFI_PASSWORD=${UNIFI_PASSWORD}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - symfony_var:/var/www/html/var
+      - symfony_data:/var/www/html/var/data
     depends_on:
       - app
       - redis
     networks:
-      - argos_net
+      - prismarr_net
 
   redis:
     image: redis:7-alpine
-    container_name: argos_redis
+    container_name: prismarr_redis
     restart: unless-stopped
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     networks:
-      - argos_net
+      - prismarr_net
 
   mercure:
     image: dunglas/mercure
-    container_name: argos_mercure
+    container_name: prismarr_mercure
     restart: unless-stopped
     environment:
       SERVER_NAME: ":3000"
@@ -90,14 +80,15 @@ services:
       - mercure_data:/data
       - mercure_config:/config
     networks:
-      - argos_net
+      - prismarr_net
 
 volumes:
   redis_data:
   mercure_data:
   mercure_config:
   symfony_var:
+  symfony_data:      # SQLite + uploads
 
 networks:
-  argos_net:
+  prismarr_net:
     driver: bridge
