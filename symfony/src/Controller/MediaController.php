@@ -39,7 +39,7 @@ class MediaController extends AbstractController
         $indexerCount = 0;
         $warnings = [];
         try {
-            // Vérifier que Radarr est accessible
+            // Check that Radarr is reachable
             $status = $this->radarr->getSystemStatus();
             if ($status === null) {
                 $error = true;
@@ -52,12 +52,12 @@ class MediaController extends AbstractController
             $activeIndexers = array_filter($indexers, fn($i) => ($i['enableAutomaticSearch'] ?? false) || ($i['enableInteractiveSearch'] ?? false));
             $indexerCount = count($activeIndexers);
 
-            // Vérifier l'état des indexeurs
+            // Check indexer status
             if ($indexerCount === 0) {
                 $warnings[] = 'Aucun indexeur actif — les recherches ne fonctionneront pas.';
             }
 
-            // Vérifier la santé Radarr
+            // Check Radarr health
             try {
                 $health = $this->radarr->getSystemHealth();
                 foreach ($health as $h) {
@@ -65,7 +65,7 @@ class MediaController extends AbstractController
                 }
             } catch (\Throwable) {}
 
-            // Vérifier les items bloqués dans la queue
+            // Check for blocked items in the queue
             $blocked = array_filter($queue, fn($q) => ($q['trackedState'] ?? '') === 'importBlocked');
             if (count($blocked) > 0) {
                 $warnings[] = count($blocked) . ' import(s) bloqué(s) — intervention manuelle nécessaire.';
@@ -130,7 +130,7 @@ class MediaController extends AbstractController
         ]);
     }
 
-    // ── Actions Films ─────────────────────────────────────────────────────────
+    // ── Movie actions ─────────────────────────────────────────────────────────
 
     #[Route('/films/warnings', name: 'films_warnings', methods: ['GET'])]
     public function filmWarnings(): JsonResponse
@@ -207,7 +207,7 @@ class MediaController extends AbstractController
     {
         set_time_limit(90);
 
-        // Récupérer le profil qualité du film pour le détail des scores
+        // Fetch the movie's quality profile for score details
         $movie = $this->radarr->getMovie($id);
         $profileScores = [];
         if ($movie) {
@@ -224,7 +224,7 @@ class MediaController extends AbstractController
 
         $raw = $this->radarr->getReleasesForMovie($id);
         $releases = array_map(function($r) use ($profileScores) {
-            // Détail des scores par format custom
+            // Per-custom-format score breakdown
             $scoreDetails = [];
             foreach ($r['customFormats'] ?? [] as $cf) {
                 $cfId = $cf['id'] ?? 0;
@@ -299,7 +299,7 @@ class MediaController extends AbstractController
         return $this->json(['ok' => $ok]);
     }
 
-    // ── Lookup + ajout ────────────────────────────────────────────────────────
+    // ── Lookup + add ──────────────────────────────────────────────────────────
 
     #[Route('/films/lookup', name: 'films_lookup', methods: ['GET'])]
     public function filmLookup(Request $request): JsonResponse
@@ -442,14 +442,14 @@ class MediaController extends AbstractController
     #[Route('/films/files/{fileId}/update', name: 'films_file_update', methods: ['POST'])]
     public function filmFileUpdate(int $fileId, Request $request): JsonResponse
     {
-        // 1. Récupérer le moviefile brut depuis Radarr
+        // 1. Fetch the raw moviefile from Radarr
         $current = $this->radarr->getMovieFile($fileId);
 
         if ($current === null) {
             return $this->json(['ok' => false, 'error' => 'Fichier introuvable'], 404);
         }
 
-        // 2. Merger les données modifiées
+        // 2. Merge in the modified fields
         $data = $request->toArray();
 
         if (isset($data['quality'])) {
@@ -559,7 +559,7 @@ class MediaController extends AbstractController
         return $this->json(['ok' => $cmdId !== null, 'cmdId' => $cmdId]);
     }
 
-    // ── Pages Sonarr dédiées ──────────────────────────────────────────────────
+    // ── Dedicated Sonarr pages ────────────────────────────────────────────────
 
     #[Route('/series/manquants', name: 'series_missing')]
     public function seriesMissing(Request $request): Response
@@ -673,7 +673,7 @@ class MediaController extends AbstractController
         $tvdbId = (int) ($data['tvdbId'] ?? 0);
         if (!$tvdbId) return $this->json(['ok' => false, 'error' => 'tvdbId manquant']);
 
-        // Lookup pour récupérer les données complètes
+        // Lookup to retrieve full data
         $lookup = $this->sonarr->lookupSeries('tvdb:' . $tvdbId);
         if (empty($lookup)) return $this->json(['ok' => false, 'error' => 'Série introuvable']);
 
@@ -681,7 +681,7 @@ class MediaController extends AbstractController
         if (empty($lookupRaw)) return $this->json(['ok' => false, 'error' => 'Données série introuvables']);
         $raw = $lookupRaw[0];
 
-        // Appliquer les options
+        // Apply options
         $raw['qualityProfileId'] = (int) ($data['qualityProfileId'] ?? $raw['qualityProfileId'] ?? 1);
         $raw['rootFolderPath'] = $data['rootFolderPath'] ?? '/jellyfin/Séries';
         $raw['monitored'] = (bool) ($data['monitored'] ?? true);
@@ -705,7 +705,7 @@ class MediaController extends AbstractController
         $ids = $data['seriesIds'] ?? [];
         if (!$ids) return $this->json(['ok' => false]);
 
-        // Construire le payload pour PUT /series/editor (endpoint natif bulk)
+        // Build the payload for PUT /series/editor (native bulk endpoint)
         $payload = ['seriesIds' => $ids];
         if (isset($data['monitored'])) $payload['monitored'] = (bool) $data['monitored'];
         if (isset($data['qualityProfileId'])) $payload['qualityProfileId'] = (int) $data['qualityProfileId'];
@@ -777,7 +777,7 @@ class MediaController extends AbstractController
     public function filmQueueImport(int $queueId): JsonResponse
     {
         try {
-            // Récupérer les infos de la queue pour avoir qualité + langues + path
+            // Fetch queue info to get quality + languages + path
             $queue = $this->radarr->getQueue();
             $item = null;
             foreach ($queue as $q) {
@@ -787,7 +787,7 @@ class MediaController extends AbstractController
                 return $this->json(['ok' => false, 'error' => 'Item non trouvé dans la queue']);
             }
 
-            // Récupérer les données brutes de la queue pour avoir quality/languages au format Radarr
+            // Fetch the raw queue data to get quality/languages in Radarr format
             $rawQueue = $this->radarr->getRawQueue();
             $rawItem = null;
             foreach ($rawQueue as $r) {
@@ -956,9 +956,9 @@ class MediaController extends AbstractController
             return $this->json(['ok' => false, 'error' => 'Film introuvable'], 404);
         }
 
-        // Recharger les données brutes pour le PUT (normalizeMovie retourne un tableau normalisé, pas brut)
+        // Reload raw data for the PUT (normalizeMovie returns a normalized array, not raw)
         $raw = [];
-        // On reconstruit les champs modifiables
+        // Rebuild the editable fields
         if (isset($data['qualityProfileId']))    $raw['qualityProfileId']    = (int) $data['qualityProfileId'];
         if (isset($data['minimumAvailability'])) $raw['minimumAvailability'] = $data['minimumAvailability'];
         if (isset($data['rootFolderPath']))   $raw['rootFolderPath']   = $data['rootFolderPath'];
@@ -966,7 +966,7 @@ class MediaController extends AbstractController
         if (isset($data['tags']))             $raw['tags']             = (array) $data['tags'];
         if (isset($data['monitored']))        $raw['monitored']        = (bool) $data['monitored'];
 
-        // Merge dans le film brut (rechargement nécessaire pour le PUT)
+        // Merge into the raw movie (reload required for the PUT)
         $fullMovie = $this->radarr->getRawMovie($id);
         if ($fullMovie === null) {
             return $this->json(['ok' => false, 'error' => 'Impossible de récupérer le film brut'], 500);
@@ -1099,7 +1099,7 @@ class MediaController extends AbstractController
         ]);
     }
 
-    // ── Détail Série ─────────────────────────────────────────────────────────
+    // ── Series detail ────────────────────────────────────────────────────────
 
     #[Route('/series/{id}', name: 'series_detail', requirements: ['id' => '\d+'])]
     public function serieDetail(int $id): Response
@@ -1168,7 +1168,7 @@ class MediaController extends AbstractController
         return $this->json(['ok' => $cmdId !== null, 'cmdId' => $cmdId]);
     }
 
-    // ── Queue Séries (AJAX) ─────────────────────────────────────────────────
+    // ── Series queue (AJAX) ──────────────────────────────────────────────────
 
     #[Route('/series/queue', name: 'series_queue', methods: ['GET'])]
     public function seriesQueue(): JsonResponse
@@ -1215,7 +1215,7 @@ class MediaController extends AbstractController
         return $this->json(['ok' => $cmdId !== null]);
     }
 
-    // ── Fichiers épisodes + Historique série ────────────────────────────────
+    // ── Episode files + series history ───────────────────────────────────────
 
     #[Route('/series/{id}/files', name: 'series_files', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function seriesFiles(int $id): JsonResponse
@@ -1265,7 +1265,7 @@ class MediaController extends AbstractController
     {
         set_time_limit(50);
 
-        // Récupérer le profil qualité de la série pour les scores custom formats
+        // Fetch the series' quality profile for custom format scores
         $episode = $this->sonarr->getEpisode($id);
         $profileScores = [];
         if ($episode) {
@@ -1418,7 +1418,7 @@ class MediaController extends AbstractController
         return $this->json(['ok' => $cmdId !== null, 'cmdId' => $cmdId]);
     }
 
-    // ── Actions Séries ────────────────────────────────────────────────────────
+    // ── Series actions ────────────────────────────────────────────────────────
 
     #[Route('/series/{seriesId}/season/{seasonNumber}/releases', name: 'series_season_releases', methods: ['GET'], requirements: ['seriesId' => '\d+', 'seasonNumber' => '\d+'])]
     public function seasonReleases(int $seriesId, int $seasonNumber): JsonResponse
@@ -1546,17 +1546,17 @@ class MediaController extends AbstractController
     #[Route('/series/{id}/search', name: 'series_search', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function serieSearch(int $id): JsonResponse
     {
-        // Chercher uniquement les épisodes surveillés ET manquants (pas d'upgrade)
+        // Search only monitored AND missing episodes (no upgrades)
         $episodes = $this->sonarr->getEpisodes($id);
 
-        // Regrouper les manquants par saison
-        $missingSeason = []; // saison => [episodeIds manquants]
-        $totalSeason = [];   // saison => total épisodes surveillés (sortis)
+        // Group missing episodes by season
+        $missingSeason = []; // season => [missing episodeIds]
+        $totalSeason = [];   // season => total monitored (aired) episodes
         foreach ($episodes as $ep) {
             $sn = $ep['seasonNumber'] ?? 0;
-            if ($sn === 0) continue; // ignorer les spéciaux
+            if ($sn === 0) continue; // ignore specials
             if (!($ep['monitored'] ?? false)) continue;
-            // Compter uniquement les épisodes déjà sortis (avec airDate passé)
+            // Only count episodes already aired (airDate in the past)
             $aired = !empty($ep['airDateUtc']) && strtotime($ep['airDateUtc']) <= time();
             if (!$aired) continue;
             $totalSeason[$sn] = ($totalSeason[$sn] ?? 0) + 1;
@@ -1575,12 +1575,12 @@ class MediaController extends AbstractController
 
         foreach ($missingSeason as $sn => $ids) {
             $totalMissing += count($ids);
-            // Si tous les épisodes surveillés de la saison sont manquants → SeasonSearch (trouve les packs)
+            // If every monitored episode in the season is missing → SeasonSearch (finds packs)
             if (count($ids) === ($totalSeason[$sn] ?? 0) && count($ids) > 1) {
                 $cmdId = $this->sonarr->searchSeason($id, $sn);
                 if ($cmdId) $cmdIds[] = $cmdId;
             } else {
-                // Épisodes isolés → on accumule pour un EpisodeSearch groupé
+                // Isolated episodes → accumulate for a grouped EpisodeSearch
                 $episodeIds = array_merge($episodeIds, $ids);
             }
         }
@@ -1590,7 +1590,7 @@ class MediaController extends AbstractController
             if ($cmdId) $cmdIds[] = $cmdId;
         }
 
-        // Retourner le premier cmdId pour le polling (les autres tournent en parallèle)
+        // Return the first cmdId for polling (the others run in parallel)
         $firstCmd = !empty($cmdIds) ? $cmdIds[0] : null;
         return $this->json(['ok' => $firstCmd !== null, 'cmdId' => $firstCmd, 'count' => $totalMissing]);
     }
@@ -1617,7 +1617,7 @@ class MediaController extends AbstractController
         return $this->redirectToRoute('app_qbittorrent_index', [], 301);
     }
 
-    // ── Recherche globale ────────────────────────────────────────────────────
+    // ── Global search ────────────────────────────────────────────────────────
 
     #[Route('/search', name: 'search', methods: ['GET'])]
     public function globalSearch(Request $request): JsonResponse
@@ -1629,7 +1629,7 @@ class MediaController extends AbstractController
 
         $results = [];
 
-        // Cache léger dédié recherche (60s TTL) — ne stocke que titre/id/poster/year
+        // Lightweight search-only cache (60s TTL) — stores only title/id/poster/year
         $movies = $this->cache->get('prismarr_search_movies', function (ItemInterface $item) {
             $item->expiresAfter(60);
             try {
@@ -1668,7 +1668,7 @@ class MediaController extends AbstractController
             }
         });
 
-        // Filtre local insensible accents + casse
+        // Local filter, case- and accent-insensitive
         $normalize = fn(string $s) => mb_strtolower(transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $s));
         $termNorm = $normalize($term);
 
@@ -1688,7 +1688,7 @@ class MediaController extends AbstractController
             }
         }
 
-        // Tri : titre commence par le terme en premier, puis alphabétique
+        // Sort: titles starting with the term first, then alphabetical
         usort($results, function ($a, $b) use ($termNorm, $normalize) {
             $aStarts = str_starts_with($normalize($a['title'] ?? ''), $termNorm);
             $bStarts = str_starts_with($normalize($b['title'] ?? ''), $termNorm);
@@ -1707,7 +1707,7 @@ class MediaController extends AbstractController
             return $this->json([]);
         }
 
-        // IDs locaux pour marquer "déjà en bibliothèque"
+        // Local IDs used to flag "already in library"
         $localMovieIds = array_column(
             $this->cache->get('prismarr_search_movies', fn(ItemInterface $item) => ($item->expiresAfter(60)) ?: []),
             'id'
@@ -1754,9 +1754,9 @@ class MediaController extends AbstractController
         return $this->json($results);
     }
 
-    // Prowlarr indexeurs — déplacé dans ProwlarrController
+    // Prowlarr indexers — moved to ProwlarrController
 
-    /** Extrait l'URL poster depuis les données brutes Radarr/Sonarr */
+    /** Extract the poster URL from raw Radarr/Sonarr data */
     private function extractPoster(array $item): ?string
     {
         foreach ($item['images'] ?? [] as $img) {

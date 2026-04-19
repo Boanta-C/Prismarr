@@ -25,7 +25,7 @@ class SonarrClient
         }
     }
 
-    /** Ping léger — true si l'API répond et accepte la clé. */
+    /** Light ping — true if the API responds and accepts the key. */
     public function ping(): bool
     {
         try {
@@ -35,7 +35,7 @@ class SonarrClient
         }
     }
 
-    // ── Bibliothèque complète ─────────────────────────────────────────────────
+    // ── Full library ──────────────────────────────────────────────────────────
 
     public function getSeries(): array
     {
@@ -45,7 +45,7 @@ class SonarrClient
         return array_map(fn($s) => $this->normalizeSeries($s), $data);
     }
 
-    /** Retourne les séries brutes sans normalisation (pour cache léger) */
+    /** Returns raw series without normalization (for lightweight cache) */
     public function getRawAllSeries(): array
     {
         return $this->get('/api/v3/series') ?? [];
@@ -62,7 +62,7 @@ class SonarrClient
         return $this->get("/api/v3/series/{$id}");
     }
 
-    // ── Lookup & CRUD Séries ──────────────────────────────────────────────────
+    // ── Lookup & CRUD series ──────────────────────────────────────────────────
 
     public function lookupSeries(string $term): array
     {
@@ -96,7 +96,7 @@ class SonarrClient
     }
 
     /**
-     * PUT /api/v3/series/editor — bulk edit natif (monitored, qualityProfileId, seriesType, seasonFolder, rootFolderPath, tags, applyTags)
+     * PUT /api/v3/series/editor — native bulk edit (monitored, qualityProfileId, seriesType, seasonFolder, rootFolderPath, tags, applyTags)
      */
     public function bulkEditSeries(array $payload): array
     {
@@ -104,7 +104,7 @@ class SonarrClient
     }
 
     /**
-     * DELETE /api/v3/series/editor — bulk delete natif
+     * DELETE /api/v3/series/editor — native bulk delete
      */
     public function bulkDeleteSeries(array $ids, bool $deleteFiles = false, bool $addImportExclusion = false): bool
     {
@@ -116,7 +116,7 @@ class SonarrClient
     }
 
     /**
-     * POST /api/v3/series/import — batch import de séries
+     * POST /api/v3/series/import — batch series import
      */
     public function importSeries(array $series): array
     {
@@ -217,7 +217,7 @@ class SonarrClient
     }
 
     /**
-     * Réassigne un fichier existant à un épisode via ManualImport command.
+     * Reassigns an existing file to an episode via the ManualImport command.
      */
     public function reassignEpisodeFile(array $file, int $seriesId, array $episodeIds): ?int
     {
@@ -255,8 +255,8 @@ class SonarrClient
 
     public function getSeriesHistory(int $seriesId): array
     {
-        // /api/v3/history paginé avec seriesIds (pluriel) + includeEpisode fonctionne
-        // /api/v3/history/series ne supporte PAS includeEpisode malgré la doc
+        // /api/v3/history paginated with seriesIds (plural) + includeEpisode works
+        // /api/v3/history/series does NOT support includeEpisode despite the docs
         $data = $this->get('/api/v3/history', [
             'seriesIds'      => $seriesId,
             'includeEpisode' => 'true',
@@ -272,7 +272,7 @@ class SonarrClient
         return $this->request('POST', "/api/v3/history/failed/{$historyId}", [], []) !== null;
     }
 
-    // ── File de téléchargement (Queue) ────────────────────────────────────────
+    // ── Download queue ────────────────────────────────────────────────────────
 
     public function getQueue(): array
     {
@@ -344,7 +344,7 @@ class SonarrClient
         ]);
     }
 
-    // ── Calendrier (épisodes à venir) ─────────────────────────────────────────
+    // ── Calendar (upcoming episodes) ──────────────────────────────────────────
 
     public function getCalendar(int $daysAhead = 30, int $daysBefore = 0): array
     {
@@ -1101,8 +1101,8 @@ class SonarrClient
 
     public function getImportListSeriesWithRecommendations(): array
     {
-        // L'endpoint /api/v3/importlist/series n'existe pas dans Sonarr v4
-        // Retourner un tableau vide — les suggestions Sonarr ne sont pas supportées
+        // The /api/v3/importlist/series endpoint does not exist in Sonarr v4
+        // Return an empty array — Sonarr suggestions are not supported
         return [];
     }
 
@@ -1157,7 +1157,7 @@ class SonarrClient
         return $data['id'] ?? null;
     }
 
-    // ── Normalisation ─────────────────────────────────────────────────────────
+    // ── Normalization ─────────────────────────────────────────────────────────
 
     private function normalizeSeries(array $s): array
     {
@@ -1270,7 +1270,7 @@ class SonarrClient
     }
 
     /**
-     * Comme request() mais retourne toujours un tableau avec 'ok' + détails erreur Sonarr.
+     * Like request() but always returns an array with 'ok' + Sonarr error details.
      */
     private function requestWithError(string $method, string $path, array $body): array
     {

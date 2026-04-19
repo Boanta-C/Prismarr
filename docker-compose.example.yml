@@ -1,14 +1,14 @@
-# Prismarr — docker-compose.yml user-facing.
+# Prismarr — user-facing docker-compose.yml.
 #
-# Usage :
-#   1. Téléchargez ce fichier
+# Usage:
+#   1. Download this file
 #   2. docker compose up -d
-#   3. Ouvrez http://localhost:7070
-#   4. Suivez le wizard de configuration
+#   3. Open http://localhost:7070
+#   4. Follow the setup wizard
 #
-# Au premier démarrage, Prismarr génère automatiquement ses secrets
-# (APP_SECRET, MERCURE_JWT_SECRET) et crée la base SQLite. Tout est
-# persisté dans le volume `prismarr_data`.
+# On first boot, Prismarr automatically generates its secrets
+# (APP_SECRET, MERCURE_JWT_SECRET) and creates the SQLite database.
+# Everything is persisted in the `prismarr_data` volume.
 
 services:
 
@@ -17,11 +17,11 @@ services:
     container_name: prismarr
     restart: unless-stopped
 
-    # Port exposé (changez à gauche du `:` si 7070 est déjà pris).
+    # Exposed port (change the left side of `:` if 7070 is already taken).
     ports:
       - "7070:7070"
 
-    # Volume persistant — contient BDD SQLite, .env.local, sessions, cache.
+    # Persistent volume — contains SQLite DB, .env.local, sessions, cache.
     volumes:
       - prismarr_data:/var/www/html/var/data
 

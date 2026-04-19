@@ -37,7 +37,7 @@ class SetupController extends AbstractController
             : 'app_setup_tmdb');
     }
 
-    // ─── Étape 1 : Bienvenue ───────────────────────────────────────────────
+    // ─── Step 1: Welcome ───────────────────────────────────────────────────
 
     #[Route('/welcome', name: 'app_setup_welcome')]
     public function welcome(): Response
@@ -48,7 +48,7 @@ class SetupController extends AbstractController
         ]);
     }
 
-    // ─── Étape 2 : Compte admin (obligatoire) ──────────────────────────────
+    // ─── Step 2: Admin account (required) ──────────────────────────────────
 
     #[Route('/admin', name: 'app_setup_admin', methods: ['GET', 'POST'])]
     public function admin(
@@ -57,7 +57,7 @@ class SetupController extends AbstractController
         Security $security,
     ): Response {
         if ($this->users->count([]) > 0) {
-            // Admin déjà créé : on passe à la suite sans repasser par ici.
+            // Admin already created: move on without going through this step again.
             return $this->redirectToRoute('app_setup_tmdb');
         }
 
@@ -106,7 +106,7 @@ class SetupController extends AbstractController
         ]);
     }
 
-    // ─── Étape 3 : TMDb (optionnel) ────────────────────────────────────────
+    // ─── Step 3: TMDb (optional) ───────────────────────────────────────────
 
     #[Route('/tmdb', name: 'app_setup_tmdb', methods: ['GET', 'POST'])]
     public function tmdb(Request $request): Response
@@ -136,7 +136,7 @@ class SetupController extends AbstractController
         ]);
     }
 
-    // ─── Étape 4 : Gestionnaires médias (Radarr + Sonarr) ──────────────────
+    // ─── Step 4: Media managers (Radarr + Sonarr) ──────────────────────────
 
     #[Route('/managers', name: 'app_setup_managers', methods: ['GET', 'POST'])]
     public function managers(Request $request): Response
@@ -173,7 +173,7 @@ class SetupController extends AbstractController
         ]);
     }
 
-    // ─── Étape 5 : Indexeurs & requêtes (Prowlarr + Jellyseerr) ────────────
+    // ─── Step 5: Indexers & requests (Prowlarr + Jellyseerr) ───────────────
 
     #[Route('/indexers', name: 'app_setup_indexers', methods: ['GET', 'POST'])]
     public function indexers(Request $request): Response
@@ -210,7 +210,7 @@ class SetupController extends AbstractController
         ]);
     }
 
-    // ─── Étape 6 : Téléchargements (qBittorrent + Gluetun) ─────────────────
+    // ─── Step 6: Downloads (qBittorrent + Gluetun) ─────────────────────────
 
     #[Route('/downloads', name: 'app_setup_downloads', methods: ['GET', 'POST'])]
     public function downloads(Request $request): Response
@@ -249,7 +249,7 @@ class SetupController extends AbstractController
         ]);
     }
 
-    // ─── Étape 7 : Finalisation ────────────────────────────────────────────
+    // ─── Step 7: Finalization ──────────────────────────────────────────────
 
     #[Route('/finish', name: 'app_setup_finish', methods: ['GET', 'POST'])]
     public function finish(Request $request): Response
@@ -283,7 +283,7 @@ class SetupController extends AbstractController
     }
 
     /**
-     * @param array<string, string> $fields Référence : rempli depuis la BDD si la clé existe.
+     * @param array<string, string> $fields Reference: populated from DB if the key exists.
      */
     private function prefill(array &$fields): void
     {
@@ -296,7 +296,7 @@ class SetupController extends AbstractController
     }
 
     /**
-     * Sauvegarde en BDD ; `skip` = on écrit des nulls pour marquer intentionnellement vide.
+     * Persists to DB; `skip` = write nulls to intentionally mark as empty.
      * @param array<string, string> $fields
      */
     private function save(array $fields, bool $skip): void

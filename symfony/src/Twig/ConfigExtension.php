@@ -9,7 +9,7 @@ use Twig\TwigFunction;
 class ConfigExtension extends AbstractExtension
 {
     /**
-     * Clés minimales qui signent la présence d'un service configuré.
+     * Minimal keys that indicate a configured service.
      * @var array<string, string>
      */
     private const SERVICE_KEYS = [

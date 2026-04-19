@@ -6,8 +6,8 @@ use App\Exception\ServiceNotConfiguredException;
 use App\Repository\SettingRepository;
 
 /**
- * Fournit l'accès aux paramètres stockés en BDD (table `setting`).
- * Cache en mémoire pendant la durée de la requête.
+ * Provides access to settings stored in DB (table `setting`).
+ * Memory cache for the duration of the request.
  */
 class ConfigService
 {
@@ -26,7 +26,7 @@ class ConfigService
     }
 
     /**
-     * Retourne la valeur ou jette ServiceNotConfiguredException si absente.
+     * Returns the value or throws ServiceNotConfiguredException if missing.
      */
     public function require(string $key, string $service): string
     {
@@ -49,7 +49,7 @@ class ConfigService
     }
 
     /**
-     * Invalide le cache — utile après un update en masse (wizard, admin).
+     * Invalidate the cache — useful after a bulk update (wizard, admin).
      */
     public function invalidate(): void
     {

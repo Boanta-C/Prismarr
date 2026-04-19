@@ -10,8 +10,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Twig\Environment;
 
 /**
- * Transforme ServiceNotConfiguredException en page d'erreur propre indiquant
- * à l'utilisateur qu'il doit configurer le service depuis l'administration.
+ * Turns ServiceNotConfiguredException into a clean error page telling
+ * the user to configure the service from the administration area.
  */
 class ServiceNotConfiguredSubscriber implements EventSubscriberInterface
 {

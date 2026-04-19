@@ -10,8 +10,8 @@ use App\Service\Media\SonarrClient;
 use App\Service\Media\TmdbClient;
 
 /**
- * Teste la disponibilité des services tiers. Cache mémoire par-process :
- * une seule vérification HTTP par worker FrankenPHP (qui dure quelques minutes).
+ * Tests third-party service availability. Per-process memory cache:
+ * one HTTP check per FrankenPHP worker (which lasts a few minutes).
  */
 class HealthService
 {
@@ -46,7 +46,7 @@ class HealthService
         return $this->cache[$service] = $ok;
     }
 
-    /** Invalide le cache — utile après une reconfiguration via l'admin. */
+    /** Invalidate the cache — useful after a reconfiguration via admin. */
     public function invalidate(?string $service = null): void
     {
         if ($service === null) {

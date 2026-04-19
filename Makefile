@@ -9,31 +9,31 @@ dev:
 prod:
 	docker compose --env-file symfony/.env.local up -d --build
 
-# Force-recreate le container après changement d'env/config (rebuild inclus)
+# Force-recreate the container after env/config change (rebuild included)
 restart:
 	$(DEV_COMPOSE) up -d --build --force-recreate prismarr
 
-# Arrêt complet
+# Full stop
 stop:
 	docker compose down
 
-# Logs du container (FrankenPHP + worker mélangés)
+# Container logs (FrankenPHP + worker interleaved)
 logs:
 	docker logs prismarr -f
 
-# Rebuild image sans cache
+# Rebuild image without cache
 build:
 	$(DEV_COMPOSE) build --no-cache
 
-# Installer un package Composer
+# Install a Composer package
 composer:
 	$(COMPOSER) $(filter-out $@,$(MAKECMDGOALS))
 
-# Commande console Symfony dans le container
+# Symfony console command inside the container
 console:
 	docker exec prismarr php bin/console $(filter-out $@,$(MAKECMDGOALS))
 
-# Initialisation premier démarrage : créer la BDD SQLite
+# First-boot initialization: create the SQLite DB
 init:
 	docker exec prismarr mkdir -p var/data
 	docker exec prismarr php bin/console doctrine:schema:create --no-interaction

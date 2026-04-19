@@ -2,15 +2,15 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
-    # Sessions persistantes dans var/sessions (survivent aux restarts FrankenPHP)
-    # Cookie name dédié pour cohabiter avec d'autres apps sur le même domaine (ex: Argos)
+    # Persistent sessions in var/sessions (survive FrankenPHP restarts)
+    # Dedicated cookie name to coexist with other apps on the same domain (e.g. Argos)
     session:
         handler_id: ~
         name: PRISMARR_SESSION
         cookie_secure: auto
         cookie_samesite: lax
-        cookie_lifetime: 604800       # 7 jours
-        gc_maxlifetime: 604800        # 7 jours d'inactivité avant expiration
+        cookie_lifetime: 604800       # 7 days
+        gc_maxlifetime: 604800        # 7 days of inactivity before expiration
         save_path: '%kernel.project_dir%/var/sessions'
 
     #esi: true

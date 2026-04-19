@@ -22,7 +22,7 @@ class JellyseerrController extends AbstractController
         private readonly ConfigService $config,
     ) {}
 
-    // ── Page principale — Requêtes ───────────────────────────────────────────
+    // ── Main page — Requests ─────────────────────────────────────────────────
 
     #[Route('', name: 'index')]
     public function index(Request $request): Response
@@ -51,24 +51,24 @@ class JellyseerrController extends AbstractController
         $status = null;
 
         try {
-            // /api/v1/status est public côté Jellyseerr : on tape getAbout()
-            // (admin settings) pour valider à la fois URL et clé API.
+            // /api/v1/status is public on Jellyseerr: we hit getAbout()
+            // (admin settings) to validate both URL and API key.
             if ($this->jellyseerr->getAbout() === null) {
                 $error = true;
             }
             $status = $this->jellyseerr->getStatus();
 
             if (!$error && $needsPhpFilter) {
-                // Filtres non supportés par l'API → charger tout et filtrer côté PHP
+                // Filters not supported by the API → load all and filter in PHP
                 $allData = $this->jellyseerr->getRequests(500, 0, $apiFilter, $apiSort);
                 $results = $allData['results'] ?? [];
 
-                // Filtre par type (movie/tv)
+                // Filter by type (movie/tv)
                 if (in_array($type, ['movie', 'tv'], true)) {
                     $results = array_filter($results, fn($r) => ($r['type'] ?? '') === $type);
                 }
 
-                // Filtre partial (media.status === 4)
+                // Partial filter (media.status === 4)
                 if ($filter === 'partial') {
                     $results = array_filter($results, fn($r) => ($r['media']['status'] ?? 0) === 4);
                 }
@@ -86,7 +86,7 @@ class JellyseerrController extends AbstractController
             if (!$error) {
                 $counts = $this->jellyseerr->getRequestCount();
 
-                // Enrichir chaque requête avec les infos TMDb
+                // Enrich each request with TMDb info
                 foreach ($data['results'] as &$req) {
                     $req = $this->enrichRequest($req);
                 }
@@ -109,7 +109,7 @@ class JellyseerrController extends AbstractController
         ]);
     }
 
-    // ── Page Utilisateurs ────────────────────────────────────────────────────
+    // ── Users page ───────────────────────────────────────────────────────────
 
     #[Route('/utilisateurs', name: 'users')]
     public function users(): Response
@@ -123,7 +123,7 @@ class JellyseerrController extends AbstractController
             $users  = $data['results'] ?? [];
             $counts = $this->jellyseerr->getRequestCount();
 
-            // Enrichir avec les quotas
+            // Enrich with quotas
             foreach ($users as &$u) {
                 $u['_role'] = $this->decodeRole($u['permissions'] ?? 0);
                 $u['_permList'] = $this->decodePermissions($u['permissions'] ?? 0);
@@ -165,7 +165,7 @@ class JellyseerrController extends AbstractController
         }
         unset($req);
 
-        // Si AJAX → retourne JSON (pour la modal)
+        // If AJAX → return JSON (for the modal)
         if ($request->headers->get('X-Requested-With') === 'XMLHttpRequest') {
             $user['_recentRequests'] = $userRequests;
             return $this->json($user);
@@ -175,7 +175,7 @@ class JellyseerrController extends AbstractController
         $notifSettings = $this->jellyseerr->getUserSettingsNotifications($id) ?? [];
         $mainSettings = $this->jellyseerr->getMainSettings() ?? [];
 
-        // Vérifier si un serveur 4K est configuré
+        // Check whether a 4K server is configured
         $radarrSettings = $this->jellyseerr->getRadarrSettings();
         $sonarrSettings = $this->jellyseerr->getSonarrSettings();
         $has4k = false;
@@ -232,7 +232,7 @@ class JellyseerrController extends AbstractController
             return $this->json(['ok' => false, 'error' => 'Le compte propriétaire ne peut pas être supprimé.']);
         }
 
-        // Vérifier si l'utilisateur existe et a des droits admin/gestionnaire
+        // Check whether the user exists and has admin/manager rights
         $user = $this->jellyseerr->getUser($id);
         if (!$user) {
             return $this->json(['ok' => false, 'error' => 'Utilisateur introuvable.']);
@@ -303,7 +303,7 @@ class JellyseerrController extends AbstractController
         return $this->json(['ok' => $result !== null]);
     }
 
-    // ── Pages Paramètres ─────────────────────────────────────────────────────
+    // ── Settings pages ───────────────────────────────────────────────────────
 
     #[Route('/parametres', name: 'settings')]
     public function settings(): Response
@@ -373,7 +373,7 @@ class JellyseerrController extends AbstractController
     {
         $radarr = $this->jellyseerr->getRadarrSettings();
         $sonarr = $this->jellyseerr->getSonarrSettings();
-        // Charger les profils/dossiers pour chaque service
+        // Load profiles/folders for each service
         $radarrProfiles = [];
         $sonarrProfiles = [];
         foreach ($radarr as $srv) {
@@ -387,7 +387,7 @@ class JellyseerrController extends AbstractController
         $rules = $this->jellyseerr->getOverrideRules();
         $users = $this->jellyseerr->getUsers(100, 0);
         $genres = array_merge($this->jellyseerr->getGenresMovie(), $this->jellyseerr->getGenresTv());
-        // Dédupliquer les genres par ID
+        // Deduplicate genres by ID
         $uniqueGenres = [];
         foreach ($genres as $g) { $uniqueGenres[$g['id'] ?? 0] = $g; }
         $languages = $this->jellyseerr->getLanguages();
@@ -604,7 +604,7 @@ class JellyseerrController extends AbstractController
         return $this->json(['ok' => $ok]);
     }
 
-    // ── Actions requêtes ─────────────────────────────────────────────────────
+    // ── Request actions ──────────────────────────────────────────────────────
 
     #[Route('/request/{id}/approve', name: 'request_approve', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function approveRequest(int $id): JsonResponse
@@ -678,7 +678,7 @@ class JellyseerrController extends AbstractController
         $existingUsers = $this->jellyseerr->getUsers(200, 0);
         $settings = $this->jellyseerr->getMainSettings();
 
-        // Collecter les jellyfinUserId déjà importés
+        // Collect jellyfinUserIds already imported
         $importedIds = [];
         foreach (($existingUsers['results'] ?? []) as $u) {
             if (!empty($u['jellyfinUserId'])) {
@@ -686,7 +686,7 @@ class JellyseerrController extends AbstractController
             }
         }
 
-        // Filtrer : ne garder que ceux pas encore importés
+        // Filter: keep only those not yet imported
         $available = array_values(array_filter($jfUsers, fn($u) => !isset($importedIds[$u['id'] ?? ''])));
 
         return $this->json([
@@ -698,7 +698,7 @@ class JellyseerrController extends AbstractController
     #[Route('/service/{type}', name: 'service_info', methods: ['GET'], requirements: ['type' => 'radarr|sonarr'])]
     public function serviceInfo(string $type): JsonResponse
     {
-        // Récupérer la liste des serveurs pour trouver l'ID du serveur par défaut
+        // Fetch the server list to find the default server ID
         $servers = match ($type) {
             'radarr' => $this->jellyseerr->getRadarrSettings(),
             'sonarr' => $this->jellyseerr->getSonarrSettings(),
@@ -808,15 +808,15 @@ class JellyseerrController extends AbstractController
                     ];
                 }
             } catch (\Throwable) {
-                // Pas grave, on affiche sans enrichissement
+                // No big deal, render without enrichment
             }
         }
 
-        // Statut lisible — basé sur media.status (pas request.status pour dispo)
+        // Human-readable status — based on media.status (not request.status for availability)
         $mediaStatus   = $req['media']['status'] ?? 1;
         $requestStatus = $req['status'] ?? 0;
 
-        // Priorité : request status d'abord, puis media status pour available
+        // Priority: request status first, then media status for availability
         if ($requestStatus === 3) {
             $req['_statusLabel'] = 'Refusée';
             $req['_statusColor'] = 'danger';

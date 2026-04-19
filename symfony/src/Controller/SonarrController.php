@@ -18,7 +18,7 @@ class SonarrController extends AbstractController
         private readonly SonarrClient $sonarr,
     ) {}
 
-    // ── Mises à jour ──────────────────────────────────────────────────────────
+    // ── Updates ───────────────────────────────────────────────────────────────
 
     #[Route('/mises-a-jour', name: 'updates')]
     public function updates(): Response
@@ -276,7 +276,7 @@ class SonarrController extends AbstractController
         }
     }
 
-    // ── Profils de qualité ────────────────────────────────────────────────────
+    // ── Quality profiles ──────────────────────────────────────────────────────
 
     #[Route('/qualite', name: 'quality')]
     public function quality(): Response
@@ -356,7 +356,7 @@ class SonarrController extends AbstractController
         return $this->json($limits ?? []);
     }
 
-    // ── Profils de délai ──────────────────────────────────────────────────────
+    // ── Delay profiles ────────────────────────────────────────────────────────
 
     #[Route('/profils-delai', name: 'delay_profiles')]
     public function delayProfiles(): Response
@@ -559,7 +559,7 @@ class SonarrController extends AbstractController
         }
     }
 
-    // ── Paramètres ────────────────────────────────────────────────────────────
+    // ── Settings ──────────────────────────────────────────────────────────────
 
     #[Route('/parametres', name: 'settings')]
     public function settings(): Response
@@ -707,7 +707,7 @@ class SonarrController extends AbstractController
         }
     }
 
-    // ── Clients de téléchargement ─────────────────────────────────────────────
+    // ── Download clients ──────────────────────────────────────────────────────
 
     #[Route('/clients-telechargement', name: 'download_clients')]
     public function downloadClients(): Response
@@ -867,7 +867,7 @@ class SonarrController extends AbstractController
         }
     }
 
-    // ── Tâches système ────────────────────────────────────────────────────────
+    // ── System tasks ──────────────────────────────────────────────────────────
 
     #[Route('/taches', name: 'tasks')]
     public function tasks(): Response
@@ -926,7 +926,7 @@ class SonarrController extends AbstractController
         ]);
     }
 
-    // ── Stats séries ──────────────────────────────────────────────────────────
+    // ── Series stats ──────────────────────────────────────────────────────────
 
     #[Route('/stats', name: 'stats')]
     public function stats(): Response
@@ -995,7 +995,7 @@ class SonarrController extends AbstractController
         return $this->render('sonarr/parse.html.twig', ['title' => $title, 'result' => $result, 'error' => $error]);
     }
 
-    // ── Dossiers racine ───────────────────────────────────────────────────────
+    // ── Root folders ──────────────────────────────────────────────────────────
 
     #[Route('/dossiers-racine', name: 'root_folders')]
     public function rootFolders(): Response
@@ -1031,7 +1031,7 @@ class SonarrController extends AbstractController
         }
     }
 
-    // ── Gestion des médias ──────────────────────────────────────────────
+    // ── Media management ────────────────────────────────────────────────
 
     #[Route('/gestion-medias', name: 'media_management')]
     public function mediaManagement(): Response

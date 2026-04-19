@@ -1,10 +1,10 @@
 FROM dunglas/frankenphp:1.3.6-php8.4-alpine
 
-# ── s6-overlay (init system multi-process) ──────────────────────────────
+# ── s6-overlay (multi-process init system) ──────────────────────────────
 ARG S6_OVERLAY_VERSION=3.2.0.2
 ARG TARGETARCH
 
-# Télécharger s6-overlay (noarch + arch-specific)
+# Download s6-overlay (noarch + arch-specific)
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp/
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
       wget -q -O /tmp/s6-overlay-arch.tar.xz https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-aarch64.tar.xz; \
@@ -15,7 +15,7 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
     tar -C / -Jxpf /tmp/s6-overlay-arch.tar.xz && \
     rm /tmp/s6-overlay-*.tar.xz
 
-# ── Extensions système ──────────────────────────────────────────────────
+# ── System extensions ───────────────────────────────────────────────────
 RUN apk add --no-cache \
     bash \
     curl \
@@ -29,7 +29,7 @@ RUN apk add --no-cache \
     sqlite-dev \
     $PHPIZE_DEPS
 
-# ── Extensions PHP (pas de Redis, pas de pdo_mysql) ─────────────────────
+# ── PHP extensions (no Redis, no pdo_mysql) ─────────────────────────────
 RUN docker-php-ext-install \
     pdo_sqlite \
     intl \
@@ -42,24 +42,24 @@ RUN docker-php-ext-install \
 # ── Composer ────────────────────────────────────────────────────────────
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# ── Config PHP ──────────────────────────────────────────────────────────
+# ── PHP config ──────────────────────────────────────────────────────────
 COPY docker/frankenphp/php.ini $PHP_INI_DIR/conf.d/prismarr.ini
 
-# ── Caddyfile (HTTP + Mercure intégré) ──────────────────────────────────
+# ── Caddyfile (HTTP + embedded Mercure) ─────────────────────────────────
 COPY docker/frankenphp/Caddyfile /etc/caddy/Caddyfile
 
 # ── s6 services ─────────────────────────────────────────────────────────
 COPY docker/frankenphp/s6/ /etc/s6-overlay/s6-rc.d/
 
-# ── Script d'initialisation (génération secrets + schéma BDD) ───────────
+# ── Init script (secret generation + DB schema) ─────────────────────────
 COPY docker/frankenphp/init.sh /usr/local/bin/prismarr-init
 RUN chmod +x /usr/local/bin/prismarr-init
 
-# ── Code Symfony ────────────────────────────────────────────────────────
+# ── Symfony code ────────────────────────────────────────────────────────
 WORKDIR /var/www/html
 COPY symfony/ .
 
-# Dépendances + assets
+# Dependencies + assets
 RUN composer install --no-dev --optimize-autoloader --no-scripts || true
 RUN php bin/console importmap:install 2>/dev/null || true
 
@@ -73,5 +73,5 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 
 EXPOSE 7070
 
-# s6-overlay comme PID 1
+# s6-overlay as PID 1
 ENTRYPOINT ["/init"]

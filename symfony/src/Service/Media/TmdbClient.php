@@ -12,9 +12,9 @@ class TmdbClient
     private const SERVICE    = 'TMDb';
     private const BASE_URL   = 'https://api.themoviedb.org/3';
     private const IMG_BASE   = 'https://image.tmdb.org/t/p';
-    private const TTL_LIST   = 3600;   // 1h pour les listes (trending/populaires/upcoming)
-    private const TTL_DETAIL = 21600;  // 6h pour les fiches détail
-    private const TTL_SEARCH = 600;    // 10min pour les recherches
+    private const TTL_LIST   = 3600;   // 1h for lists (trending/popular/upcoming)
+    private const TTL_DETAIL = 21600;  // 6h for detail pages
+    private const TTL_SEARCH = 600;    // 10min for searches
 
     private string $locale = 'fr-FR';
     private string $apiKey = '';
@@ -32,7 +32,7 @@ class TmdbClient
         }
     }
 
-    /** Ping léger — true si TMDb répond avec la clé valide. Bypass cache. */
+    /** Light ping — true if TMDb responds with a valid key. Bypasses cache. */
     public function ping(): bool
     {
         try {
@@ -163,7 +163,7 @@ class TmdbClient
         return $this->cachedGet($key, '/discover/tv', $params, self::TTL_LIST);
     }
 
-    /** Résout un tmdbId pour une série à partir d'un tvdbId (via /find). */
+    /** Resolve a series' tmdbId from a tvdbId (via /find). */
     public function findTmdbIdByTvdbId(int $tvdbId): ?int
     {
         $cacheKey = "find_tvdb_{$tvdbId}";
@@ -172,7 +172,7 @@ class TmdbClient
         return $first && isset($first['id']) ? (int) $first['id'] : null;
     }
 
-    /** Résout un tmdbId pour un film à partir d'un imdbId (via /find). */
+    /** Resolve a movie's tmdbId from an imdbId (via /find). */
     public function findTmdbIdByImdbId(string $imdbId): ?int
     {
         $cacheKey = "find_imdb_{$imdbId}";

@@ -26,8 +26,8 @@ class JellyseerrClient
     }
 
     /**
-     * Ping léger — true si l'API répond et accepte la clé.
-     * /api/v1/settings/about est gardé par l'auth admin (contrairement à /status).
+     * Light ping — true if the API responds and accepts the key.
+     * /api/v1/settings/about is guarded by admin auth (unlike /status).
      */
     public function ping(): bool
     {
@@ -38,7 +38,7 @@ class JellyseerrClient
         }
     }
 
-    // ── Requêtes ─────────────────────────────────────────────────────────────
+    // ── Requests ─────────────────────────────────────────────────────────────
 
     public function getRequests(int $take = 20, int $skip = 0, ?string $filter = null, ?string $sort = null, ?string $requestedBy = null): array
     {
@@ -85,7 +85,7 @@ class JellyseerrClient
         return $this->request('PUT', "/api/v1/request/{$id}", [], $data);
     }
 
-    // ── Services (profils qualité, dossiers racine) ──────────────────────────
+    // ── Services (quality profiles, root folders) ────────────────────────────
 
     public function getServiceRadarr(int $serverId = 0): ?array
     {
@@ -97,7 +97,7 @@ class JellyseerrClient
         return $this->get("/api/v1/service/sonarr/{$serverId}");
     }
 
-    // ── Utilisateurs ─────────────────────────────────────────────────────────
+    // ── Users ────────────────────────────────────────────────────────────────
 
     public function getUsers(int $take = 20, int $skip = 0, ?string $sort = null): array
     {
@@ -177,7 +177,7 @@ class JellyseerrClient
         return $this->request('POST', '/api/v1/user/import-from-jellyfin', [], ['jellyfinUserIds' => $jellyfinUserIds]);
     }
 
-    // ── Médias ───────────────────────────────────────────────────────────────
+    // ── Media ────────────────────────────────────────────────────────────────
 
     public function getMedia(int $take = 20, int $skip = 0, ?string $filter = null, ?string $sort = null): array
     {
@@ -222,7 +222,7 @@ class JellyseerrClient
     public function updateIssueStatus(int $issueId, string $status): ?array
     {
         if (!in_array($status, ['open', 'resolved'], true)) {
-            $this->logger->warning("JellyseerrClient updateIssueStatus — statut invalide : {$status}");
+            $this->logger->warning("JellyseerrClient updateIssueStatus — invalid status: {$status}");
             return null;
         }
         return $this->request('POST', "/api/v1/issue/{$issueId}/{$status}", [], []);
@@ -240,7 +240,7 @@ class JellyseerrClient
         return $this->get('/api/v1/blocklist', ['take' => $take, 'skip' => $skip]) ?? ['pageInfo' => [], 'results' => []];
     }
 
-    // ── Statut & Infos ───────────────────────────────────────────────────────
+    // ── Status & Info ────────────────────────────────────────────────────────
 
     public function getStatus(): ?array
     {
@@ -252,7 +252,7 @@ class JellyseerrClient
         return $this->get('/api/v1/settings/about');
     }
 
-    // ── Paramètres ───────────────────────────────────────────────────────────
+    // ── Settings ─────────────────────────────────────────────────────────────
 
     public function getMainSettings(): ?array
     {
@@ -359,7 +359,7 @@ class JellyseerrClient
         return $this->get('/api/v1/settings/logs', $params) ?? ['pageInfo' => [], 'results' => []];
     }
 
-    // ── Tâches (Jobs) ───────────────────────────────────────────────────────
+    // ── Jobs ─────────────────────────────────────────────────────────────────
 
     public function getJobs(): array
     {
@@ -398,7 +398,7 @@ class JellyseerrClient
         return $this->request('POST', "/api/v1/settings/cache/{$cacheId}/flush", [], []) !== null;
     }
 
-    // ── Règles de substitution ──────────────────────────────────────────────
+    // ── Override rules ──────────────────────────────────────────────────────
 
     public function getOverrideRules(): array
     {
@@ -420,7 +420,7 @@ class JellyseerrClient
         return $this->delete("/api/v1/overrideRule/{$id}");
     }
 
-    // ── Métadonnées (genres, langues, régions) ─────────────────────────────
+    // ── Metadata (genres, languages, regions) ──────────────────────────────
 
     public function getGenresMovie(): array
     {
@@ -442,7 +442,7 @@ class JellyseerrClient
         return $this->get('/api/v1/regions') ?? [];
     }
 
-    // ── Recherche & Détails TMDb ────────────────────────────────────────────
+    // ── Search & TMDb details ───────────────────────────────────────────────
 
     public function searchMovie(int $tmdbId): ?array
     {
@@ -459,7 +459,7 @@ class JellyseerrClient
         return $this->get("/api/v1/tv/{$tmdbId}/season/{$seasonNumber}");
     }
 
-    // ── Médias — actions ─────────────────────────────────────────────────────
+    // ── Media — actions ──────────────────────────────────────────────────────
 
     public function updateMediaStatus(int $mediaId, string $status): ?array
     {

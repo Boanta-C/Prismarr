@@ -11,8 +11,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Redirige vers le wizard de setup tant qu'il n'a pas été finalisé
- * (table `user` vide ou flag `setup.completed` absent).
+ * Redirects to the setup wizard until it has been finalized
+ * (empty `user` table or missing `setup.completed` flag).
  */
 class SetupRedirectSubscriber implements EventSubscriberInterface
 {
@@ -74,7 +74,7 @@ class SetupRedirectSubscriber implements EventSubscriberInterface
         try {
             return $this->setupDone = $this->settings->get(SetupController::SETUP_DONE_KEY) === '1';
         } catch (\Throwable) {
-            // Schéma pas encore appliqué : on laisse passer pour que `make init` puisse créer les tables.
+            // Schema not applied yet: let it through so `make init` can create the tables.
             return $this->setupDone = true;
         }
     }

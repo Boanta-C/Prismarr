@@ -1,6 +1,6 @@
-# Prismarr — configuration des services applicatifs.
-# Le gros de l'autowiring fait le travail (attributs #[Autowire(env: ...)]
-# sur les clients Media). Ce fichier reste volontairement minimal.
+# Prismarr — application services configuration.
+# Most of the work is done by autowiring (#[Autowire(env: ...)] attributes
+# on the Media clients). This file is intentionally minimal.
 
 parameters:
 

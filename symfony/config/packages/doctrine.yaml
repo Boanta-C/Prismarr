@@ -1,7 +1,7 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
-        # SQLite zero-config — le fichier est créé au premier démarrage dans var/data/
+        # Zero-config SQLite — the file is created on first boot under var/data/
         profiling_collect_backtrace: '%kernel.debug%'
     orm:
         validate_xml_mapping: true

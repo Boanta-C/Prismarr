@@ -3,13 +3,13 @@
 namespace App\Service\Media;
 
 /**
- * Résout un nom de release torrent (ex: "Dune.Part.Two.2024.2160p.BluRay")
- * vers un film Radarr ou une série Sonarr déjà en bibliothèque.
- * Logique extraite de QBittorrentController pour testabilité + réutilisation.
+ * Resolves a torrent release name (e.g. "Dune.Part.Two.2024.2160p.BluRay")
+ * to a Radarr movie or a Sonarr series already in the library.
+ * Logic extracted from QBittorrentController for testability + reuse.
  */
 class TorrentResolverService
 {
-    /** Seuil minimum du score de matching pour considérer un résultat valide. */
+    /** Minimum matching score required to consider a result valid. */
     public const MIN_SCORE = 70;
 
     public function __construct(
@@ -75,12 +75,12 @@ class TorrentResolverService
         return ['found' => false, 'error' => 'Aucun match dans la bibliothèque', 'parsed' => $parsed];
     }
 
-    /** Longueur minimale de needle pour accepter un match `contains` (évite "It" qui matche "Split"). */
+    /** Minimum needle length to accept a `contains` match (avoids "It" matching "Split"). */
     private const MIN_CONTAINS_LEN = 4;
 
     /**
-     * Score de matching entre un titre bibliothèque et un titre parsé.
-     * 100 = exact, 70 = contains (si needle >= 4 chars), +20 si même année, 0 sinon.
+     * Matching score between a library title and a parsed title.
+     * 100 = exact, 70 = contains (if needle >= 4 chars), +20 if same year, 0 otherwise.
      */
     private function scoreMatch(string $libTitle, string $needle, ?int $libYear, ?int $parsedYear): int
     {
@@ -104,22 +104,22 @@ class TorrentResolverService
     }
 
     /**
-     * Extrait titre + année d'un nom de release torrent.
+     * Extract title + year from a torrent release name.
      * @return array{title: string, year: int|null}
      */
     public static function parseReleaseName(string $raw): array
     {
-        // Remplace les séparateurs par des espaces
+        // Replace separators with spaces
         $clean = preg_replace('/[\._]+/', ' ', $raw);
         $year  = null;
 
-        // Cherche la DERNIÈRE année qui précède un marker de release (1080p, BluRay, S01E01, etc.)
-        // — évite de couper à une année qui fait partie du titre (ex: "1917 2019 1080p" → année=2019, pas 1917).
+        // Find the LAST year preceding a release marker (1080p, BluRay, S01E01, etc.)
+        // — avoids cutting at a year that is part of the title (e.g. "1917 2019 1080p" → year=2019, not 1917).
         if (preg_match('/\b(19\d{2}|20\d{2})\b(?=[^0-9]*(?:\b(?:2160p|1080p|720p|480p|BluRay|WEBRip|WEB-DL|HDRip|DVDRip|BDRip|REMUX|DV|HDR|x264|x265|H\.?264|H\.?265|HEVC|S\d{2}E?\d*|COMPLETE)\b|$))/i', $clean, $m, PREG_OFFSET_CAPTURE)) {
             $year  = (int)$m[1][0];
             $clean = trim(substr($clean, 0, $m[1][1]));
         } else {
-            // Pas d'année détectable : coupe au premier token quality/source
+            // No detectable year: cut at the first quality/source token
             $clean = preg_split('/\b(2160p|1080p|720p|480p|BluRay|WEBRip|WEB-DL|HDRip|DVDRip|BDRip|S\d{2}E\d{2})\b/i', $clean)[0] ?? $clean;
         }
         $clean = trim(preg_replace('/\s+/', ' ', (string)$clean));

@@ -6,24 +6,24 @@ use App\Service\ConfigService;
 use Psr\Log\LoggerInterface;
 
 /**
- * Client pour l'API de contrôle Gluetun (HTTP Control Server).
- * Service optionnel — si `gluetun.url` n'est pas configuré, les appels retournent null
- * sans exception (Gluetun n'est pas obligatoire pour utiliser Prismarr).
- * Doc : https://github.com/qdm12/gluetun-wiki/blob/main/setup/advanced/control-server.md
+ * Client for the Gluetun control API (HTTP Control Server).
+ * Optional service — if `gluetun.url` is not configured, calls return null
+ * without exception (Gluetun is not required to use Prismarr).
+ * Docs: https://github.com/qdm12/gluetun-wiki/blob/main/setup/advanced/control-server.md
  */
 class GluetunClient
 {
-    /** Cache court pour /publicip/ip (change rarement, mais requête légère). */
+    /** Short cache for /publicip/ip (rarely changes, but it's a light call). */
     private ?array $publicIpCache = null;
     private float  $publicIpCacheAt = 0.0;
     private const PUBLIC_IP_TTL = 30.0;
 
-    /** Cache status VPN (running/stopped) — stable entre reconnexions VPN. */
+    /** VPN status cache (running/stopped) — stable across VPN reconnections. */
     private ?string $statusCache = null;
     private float   $statusCacheAt = 0.0;
     private const STATUS_TTL = 10.0;
 
-    /** Cache port forwarded (peut changer à chaque reconnexion VPN mais rare). */
+    /** Forwarded port cache (may change on every VPN reconnection but rarely does). */
     private ?int $portCache = null;
     private float $portCacheAt = 0.0;
     private const PORT_TTL = 10.0;
@@ -48,8 +48,8 @@ class GluetunClient
     }
 
     /**
-     * Retourne IP publique + localisation + organization (provider VPN).
-     * Format : { public_ip, region, country, city, organization, ... }
+     * Returns public IP + location + organization (VPN provider).
+     * Format: { public_ip, region, country, city, organization, ... }
      */
     public function getPublicIp(): ?array
     {
@@ -67,9 +67,9 @@ class GluetunClient
     }
 
     /**
-     * Status du VPN — 'running', 'stopped', 'crashed'.
-     * Utilise /v1/vpn/status (protocol-agnostic, Gluetun v3.40+) puis fallback protocol-specific.
-     * Cache 10s (évite jusqu'à 3 requêtes cURL séquentielles à chaque /api/vpn).
+     * VPN status — 'running', 'stopped', 'crashed'.
+     * Uses /v1/vpn/status (protocol-agnostic, Gluetun v3.40+) then falls back to protocol-specific.
+     * 10s cache (avoids up to 3 sequential cURL requests on every /api/vpn).
      */
     public function getVpnStatus(): ?string
     {
@@ -96,10 +96,10 @@ class GluetunClient
     }
 
     /**
-     * Port forwarded par le provider VPN (celui que Gluetun doit pousser vers qBit via port-update).
-     * Gluetun v3.40+ expose /v1/portforward (protégé par défaut — config HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH requise).
-     * Fallback sur les anciens /v1/openvpn/portforwarded et /v1/wireguard/portforwarded selon GLUETUN_PROTOCOL.
-     * Cache 10s.
+     * Port forwarded by the VPN provider (the one Gluetun should push to qBit via port-update).
+     * Gluetun v3.40+ exposes /v1/portforward (protected by default — HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH config required).
+     * Falls back to the legacy /v1/openvpn/portforwarded and /v1/wireguard/portforwarded per GLUETUN_PROTOCOL.
+     * 10s cache.
      */
     public function getForwardedPort(): ?int
     {
@@ -126,7 +126,7 @@ class GluetunClient
     }
 
     /**
-     * Aggregat complet prêt pour la UI.
+     * Full aggregate ready for the UI.
      */
     public function getSummary(): array
     {
@@ -157,7 +157,7 @@ class GluetunClient
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 4,
             CURLOPT_CONNECTTIMEOUT => 2,
-            CURLOPT_FOLLOWLOCATION => true, // /v1/openvpn/portforwarded redirige vers /v1/portforward
+            CURLOPT_FOLLOWLOCATION => true, // /v1/openvpn/portforwarded redirects to /v1/portforward
         ];
         if ($this->apiKey !== '') {
             $opts[CURLOPT_HTTPHEADER] = ['Authorization: Bearer ' . $this->apiKey];

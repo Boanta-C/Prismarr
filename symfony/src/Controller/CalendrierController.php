@@ -81,7 +81,7 @@ class CalendrierController extends AbstractController
             }
         } catch (\Throwable) {}
 
-        // Fusionner et trier par date
+        // Merge and sort by date
         $events = [];
         foreach ($radarrCal as $item) {
             $d = $item['date'];
@@ -95,7 +95,7 @@ class CalendrierController extends AbstractController
         }
         usort($events, fn($a, $b) => $a['sortDate'] <=> $b['sortDate']);
 
-        // Convertir dates pour JSON
+        // Convert dates for JSON
         $eventsJson = array_map(function ($ev) {
             $d = $ev['date'] ?? $ev['sortDate'] ?? null;
             if ($d instanceof \DateTimeInterface) $d = $d->format('Y-m-d');

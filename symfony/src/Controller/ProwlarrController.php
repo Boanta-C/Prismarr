@@ -42,7 +42,7 @@ class ProwlarrController extends AbstractController
                 $stats    = $this->prowlarr->getStats();
                 $health   = $this->prowlarr->getHealth();
                 $apps     = $this->prowlarr->getApplications();
-                // Stats par indexeur (requêtes, grabs, fails)
+                // Per-indexer stats (queries, grabs, fails)
                 $rawStats = $this->prowlarr->getIndexerStats();
                 foreach ($rawStats['indexers'] ?? [] as $s) {
                     $idxStats[$s['indexerId']] = $s;
@@ -119,7 +119,7 @@ class ProwlarrController extends AbstractController
         return $this->json(['ok' => $result !== null, 'enabled' => $raw['enable']]);
     }
 
-    // ── Recherche ─────────────────────────────────────────────────────────────
+    // ── Search ────────────────────────────────────────────────────────────────
 
     #[Route('/search', name: 'search', methods: ['GET'])]
     public function search(Request $request): JsonResponse
@@ -298,7 +298,7 @@ class ProwlarrController extends AbstractController
         try {
             if ($since) {
                 $raw = $this->prowlarr->getHistorySince($since);
-                // getHistorySince retourne un tableau plat d'objets
+                // getHistorySince returns a flat array of objects
                 $records = is_array($raw) && !isset($raw['records']) ? $raw : ($raw['records'] ?? []);
                 $total = count($records);
             } else {
@@ -315,7 +315,7 @@ class ProwlarrController extends AbstractController
         ]);
     }
 
-    // ── Statut système (page) ────────────────────────────────────────────────
+    // ── System status (page) ─────────────────────────────────────────────────
 
     #[Route('/systeme', name: 'system_page')]
     public function systemPage(): Response

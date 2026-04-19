@@ -25,7 +25,7 @@ class ProwlarrClient
         }
     }
 
-    /** Ping léger — true si l'API répond et accepte la clé. */
+    /** Light ping — true if the API responds and accepts the key. */
     public function ping(): bool
     {
         try {
@@ -35,7 +35,7 @@ class ProwlarrClient
         }
     }
 
-    // ── Indexeurs ─────────────────────────────────────────────────────────────
+    // ── Indexers ──────────────────────────────────────────────────────────────
 
     public function getIndexers(): array
     {
@@ -91,7 +91,7 @@ class ProwlarrClient
         return $this->get('/api/v1/indexer/schema') ?? [];
     }
 
-    // ── Statut de santé des indexeurs ─────────────────────────────────────────
+    // ── Indexer health status ─────────────────────────────────────────────────
 
     public function getIndexerStatus(): array
     {
@@ -110,7 +110,7 @@ class ProwlarrClient
         return $byId;
     }
 
-    // ── Recherche ─────────────────────────────────────────────────────────────
+    // ── Search ────────────────────────────────────────────────────────────────
 
     public function search(string $query, ?int $indexerId = null, string $type = 'search', int $limit = 100): array
     {
@@ -143,7 +143,7 @@ class ProwlarrClient
         ], $data);
     }
 
-    // ── Historique ────────────────────────────────────────────────────────────
+    // ── History ───────────────────────────────────────────────────────────────
 
     public function getRecentSearches(int $limit = 20): array
     {
@@ -180,7 +180,7 @@ class ProwlarrClient
         ]) ?? [];
     }
 
-    // ── Applications (Radarr/Sonarr connectés) ───────────────────────────────
+    // ── Applications (connected Radarr/Sonarr) ───────────────────────────────
 
     public function getApplications(): array
     {
@@ -371,7 +371,7 @@ class ProwlarrClient
         return $this->get('/api/v1/indexerstats') ?? [];
     }
 
-    // ── Indexer Categories (défaut) ──────────────────────────────────────
+    // ── Indexer Categories (default) ─────────────────────────────────────
 
     public function getIndexerDefaultCategories(): array
     {
@@ -450,7 +450,7 @@ class ProwlarrClient
         return $this->delete("/api/v1/tag/{$id}");
     }
 
-    // ── Santé & Système ──────────────────────────────────────────────────────
+    // ── Health & System ──────────────────────────────────────────────────────
 
     public function getHealth(): array
     {
@@ -493,7 +493,7 @@ class ProwlarrClient
         return compact('total', 'enabled', 'failing', 'torrent', 'usenet');
     }
 
-    // ── Normalisation ────────────────────────────────────────────────────────
+    // ── Normalization ────────────────────────────────────────────────────────
 
     private function normalizeIndexer(array $i): array
     {

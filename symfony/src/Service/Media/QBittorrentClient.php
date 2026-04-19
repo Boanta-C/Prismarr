@@ -9,13 +9,13 @@ class QBittorrentClient
 {
     private const SERVICE = 'qBittorrent';
 
-    /** Session qBittorrent réutilisée entre appels (évite un curl POST auth par méthode). */
+    /** qBittorrent session reused between calls (avoids a curl POST auth per method). */
     private ?string $sid = null;
 
-    /** Cache court pour server_state (alltime_dl/ul change lentement, /sync/maindata est coûteux). */
+    /** Short cache for server_state (alltime_dl/ul changes slowly, /sync/maindata is expensive). */
     private ?array $serverStateCache = null;
     private float $serverStateCacheAt = 0.0;
-    private const SERVER_STATE_TTL = 10.0; // secondes
+    private const SERVER_STATE_TTL = 10.0; // seconds
 
     private string $baseUrl = '';
     private string $user = '';
@@ -35,7 +35,7 @@ class QBittorrentClient
         }
     }
 
-    /** Ping léger — true si qBit répond et accepte les credentials. */
+    /** Light ping — true if qBit responds and accepts the credentials. */
     public function ping(): bool
     {
         try {
@@ -46,7 +46,7 @@ class QBittorrentClient
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Torrents — Lecture
+    //  Torrents — Read
     // ══════════════════════════════════════════════════════════════════════════
 
     public function getTorrents(string $filter = 'all', ?string $category = null, ?string $tag = null, ?string $sort = 'added_on', bool $reverse = true): array
@@ -115,7 +115,7 @@ class QBittorrentClient
 
     public function pauseTorrents(array $hashes): bool
     {
-        // qBittorrent 5.0+ renomme pause → stop (ancien endpoint /pause retourne 404 sur WebAPI 2.11+)
+        // qBittorrent 5.0+ renames pause → stop (legacy /pause endpoint returns 404 on WebAPI 2.11+)
         return $this->postAction('/api/v2/torrents/stop', ['hashes' => implode('|', $hashes)]);
     }
 
@@ -159,7 +159,7 @@ class QBittorrentClient
         ]);
     }
 
-    // @todo Tags par torrent : non exposés côté UI (filtre tag OK, édition à faire dans page Paramètres)
+    // @todo Per-torrent tags: not exposed in UI (tag filter OK, editing TBD in Settings page)
     public function addTorrentTags(array $hashes, array $tags): bool
     {
         return $this->postAction('/api/v2/torrents/addTags', [
@@ -215,7 +215,7 @@ class QBittorrentClient
         ]);
     }
 
-    // @todo Priorités torrent : non exposées côté UI, réservées à la future page Paramètres qBit
+    // @todo Torrent priorities: not exposed in UI, reserved for the future qBit Settings page
     public function increasePriority(array $hashes): bool
     {
         return $this->postAction('/api/v2/torrents/increasePrio', ['hashes' => implode('|', $hashes)]);
@@ -246,7 +246,7 @@ class QBittorrentClient
         return $this->postAction('/api/v2/torrents/setLocation', ['hashes' => $hash, 'location' => $location]);
     }
 
-    // @todo Options avancées par torrent : super-seeding, auto-management — future page Paramètres
+    // @todo Advanced per-torrent options: super-seeding, auto-management — future Settings page
     public function setSuperSeeding(array $hashes, bool $value = true): bool
     {
         return $this->postAction('/api/v2/torrents/setSuperSeeding', [
@@ -264,7 +264,7 @@ class QBittorrentClient
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Ajout de torrent
+    //  Add torrent
     // ══════════════════════════════════════════════════════════════════════════
 
     public function addTorrentFromUrl(string $urls, ?string $category = null, ?string $savepath = null, bool $paused = false): bool
@@ -278,7 +278,7 @@ class QBittorrentClient
     }
 
     /**
-     * Ajoute un ou plusieurs fichiers .torrent à qBit via multipart/form-data.
+     * Add one or more .torrent files to qBit via multipart/form-data.
      * @param array<array{content: string, name: string}> $files
      */
     public function addTorrentFromFiles(array $files, ?string $category = null, ?string $savepath = null, bool $paused = false): bool
@@ -297,7 +297,7 @@ class QBittorrentClient
 
         $tmpPaths = [];
         try {
-            // Support multi-fichiers : name[0]=... ou nom unique
+            // Multi-file support: name[0]=... or a single name
             foreach ($files as $i => $file) {
                 $tmpPath = tempnam(sys_get_temp_dir(), 'qbt_');
                 if ($tmpPath === false) continue;
@@ -306,7 +306,7 @@ class QBittorrentClient
                 $postFields['torrents' . (count($files) > 1 ? "[$i]" : '')] = new \CURLFile($tmpPath, 'application/x-bittorrent', $file['name']);
             }
 
-            // Guard : si tous les tempnam() ont échoué (disque plein, perms), on abort proprement
+            // Guard: if every tempnam() failed (full disk, perms), abort cleanly
             if (empty($tmpPaths)) {
                 $this->logger->error('QBittorrentClient addTorrentFromFiles: tempnam failed for all files');
                 return false;
@@ -328,10 +328,10 @@ class QBittorrentClient
                 $this->logger->warning('QBittorrentClient addTorrentFromFiles failed', ['code' => $code]);
                 return false;
             }
-            // qBit renvoie "Ok." en 200, ou "Fails." si échec
+            // qBit returns "Ok." with 200, or "Fails." on error
             return stripos((string)$response, 'fail') === false;
         } finally {
-            // Nettoyage garanti même en cas d'exception
+            // Guaranteed cleanup even on exception
             foreach ($tmpPaths as $tmp) {
                 if (is_file($tmp)) @unlink($tmp);
             }
@@ -339,7 +339,7 @@ class QBittorrentClient
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Catégories & Tags
+    //  Categories & Tags
     // ══════════════════════════════════════════════════════════════════════════
 
     public function getCategories(): array
@@ -356,7 +356,7 @@ class QBittorrentClient
         return $data ?? [];
     }
 
-    // @todo CRUD catégories & tags : non exposé côté UI (lecture seule actuellement) — future page Paramètres
+    // @todo CRUD categories & tags: not exposed in UI (read-only currently) — future Settings page
     public function createCategory(string $name, string $savePath = ''): bool
     {
         return $this->postAction('/api/v2/torrents/createCategory', [
@@ -383,7 +383,7 @@ class QBittorrentClient
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Transfert global
+    //  Global transfer
     // ══════════════════════════════════════════════════════════════════════════
 
     public function getTransferInfo(): array
@@ -403,8 +403,8 @@ class QBittorrentClient
     }
 
     /**
-     * Récupère le server_state via /sync/maindata — expose alltime_dl/ul, global_ratio, free_space.
-     * Cache 10s (endpoint coûteux, valeurs changent lentement).
+     * Fetch server_state via /sync/maindata — exposes alltime_dl/ul, global_ratio, free_space.
+     * 10s cache (expensive endpoint, values change slowly).
      */
     public function getServerState(): array
     {
@@ -430,7 +430,7 @@ class QBittorrentClient
         return $this->serverStateCache;
     }
 
-    // @todo Limites de vitesse globales + mode alternatif : setGlobalLimit déjà exposé (api_global_limit) mais getters/toggle non branchés — future page Paramètres
+    // @todo Global speed limits + alternative mode: setGlobalLimit already exposed (api_global_limit) but getters/toggle not wired — future Settings page
     public function getGlobalDownloadLimit(): int
     {
         $sid = $this->login();
@@ -471,7 +471,7 @@ class QBittorrentClient
     //  Application
     // ══════════════════════════════════════════════════════════════════════════
 
-    // @todo getVersion : non exposé côté UI — utile pour future page Paramètres (version qBit affichée)
+    // @todo getVersion: not exposed in UI — useful for the future Settings page (qBit version displayed)
     public function getVersion(): ?string
     {
         $sid = $this->login();
@@ -484,14 +484,14 @@ class QBittorrentClient
         return $this->get('/api/v2/app/preferences', [], $sid);
     }
 
-    /** Port BitTorrent sur lequel qBit écoute (à synchroniser avec le port forwarded Gluetun). */
+    /** BitTorrent port qBit is listening on (should sync with the Gluetun forwarded port). */
     public function getListenPort(): ?int
     {
         $prefs = $this->getPreferences();
         return isset($prefs['listen_port']) ? (int)$prefs['listen_port'] : null;
     }
 
-    // @todo Dossier de téléchargement par défaut — future page Paramètres
+    // @todo Default download folder — future Settings page
     public function getDefaultSavePath(): ?string
     {
         $sid = $this->login();
@@ -499,11 +499,11 @@ class QBittorrentClient
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Statistiques agrégées
+    //  Aggregated statistics
     // ══════════════════════════════════════════════════════════════════════════
 
     /**
-     * @param array|null $torrents Si fourni, évite un re-fetch de /torrents/info.
+     * @param array|null $torrents If provided, avoids a re-fetch of /torrents/info.
      */
     public function getStats(?array $torrents = null): array
     {
@@ -541,7 +541,7 @@ class QBittorrentClient
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Normalisation
+    //  Normalization
     // ══════════════════════════════════════════════════════════════════════════
 
     private function normalizeTorrent(array $t): array
@@ -588,25 +588,25 @@ class QBittorrentClient
         return match(true) {
             in_array($state, ['downloading', 'metaDL', 'checkingDL', 'forcedDL', 'forcedMetaDL', 'allocating']) => 'downloading',
             in_array($state, ['uploading', 'forcedUP', 'stalledUP'])       => 'seeding',
-            // qBit v5.x : stoppedDL/stoppedUP (renommés depuis pausedDL/pausedUP)
+            // qBit v5.x: stoppedDL/stoppedUP (renamed from pausedDL/pausedUP)
             in_array($state, ['pausedDL', 'pausedUP', 'stoppedDL', 'stoppedUP']) => 'paused',
             in_array($state, ['queuedDL', 'queuedUP'])                     => 'queued',
             in_array($state, ['checkingUP', 'checkingResumeData'])         => 'checking',
             $state === 'stalledDL'                                         => 'stalled',
             $state === 'error' || $state === 'missingFiles'                => 'error',
             $state === 'moving'                                            => 'moving',
-            $state === ''                                                  => 'completed', // string vide = torrent complété sans précision qBit
+            $state === ''                                                  => 'completed', // empty string = completed torrent without qBit details
             default                                                        => 'unknown',
         };
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Authentification
+    //  Authentication
     // ══════════════════════════════════════════════════════════════════════════
 
     private function login(): ?string
     {
-        // Réutilise le SID déjà obtenu (survit entre requêtes dans le même PHP-FPM worker).
+        // Reuse the already-obtained SID (survives between requests in the same PHP-FPM worker).
         if ($this->sid !== null) return $this->sid;
 
         $this->ensureConfig();
@@ -633,7 +633,7 @@ class QBittorrentClient
         return $this->sid;
     }
 
-    /** Invalide la session (à appeler si qBit rejette un appel : SID expiré). */
+    /** Invalidate the session (call this if qBit rejects a call: expired SID). */
     private function invalidateSession(): void
     {
         $this->sid = null;
@@ -677,7 +677,7 @@ class QBittorrentClient
         curl_close($ch);
 
         if ($code !== 200) {
-            // SID expiré → on invalide, un prochain appel re-login automatiquement
+            // Expired SID → invalidate; the next call will auto re-login
             if ($code === 403 || $code === 401) {
                 $this->invalidateSession();
             }
@@ -717,7 +717,7 @@ class QBittorrentClient
         curl_close($ch);
 
         if ($code !== 200) {
-            // SID expiré → invalide + 1 retry après re-login auto
+            // Expired SID → invalidate + 1 retry after auto re-login
             if (($code === 401 || $code === 403) && !$retried) {
                 $this->invalidateSession();
                 return $this->postAction($path, $params, true);

@@ -18,7 +18,7 @@ class RadarrController extends AbstractController
         private readonly RadarrClient $radarr,
     ) {}
 
-    // ── Mises à jour ──────────────────────────────────────────────────────────
+    // ── Updates ───────────────────────────────────────────────────────────────
 
     #[Route('/mises-a-jour', name: 'updates')]
     public function updates(): Response
@@ -46,7 +46,7 @@ class RadarrController extends AbstractController
         }
     }
 
-    // ── Sauvegardes ───────────────────────────────────────────────────────────
+    // ── Backups ───────────────────────────────────────────────────────────────
 
     #[Route('/sauvegardes', name: 'backups')]
     public function backups(): Response
@@ -251,7 +251,7 @@ class RadarrController extends AbstractController
         ]);
     }
 
-    // ── Import de bibliothèque ──────────────────────────────────────────────
+    // ── Library import ──────────────────────────────────────────────────────
 
     #[Route('/import-bibliotheque', name: 'library_import')]
     public function libraryImport(): Response
@@ -317,7 +317,7 @@ class RadarrController extends AbstractController
         $error  = false;
         try {
             $allMovies = $this->radarr->getMovies();
-            // Juste titre + id pour le select
+            // Just title + id for the select
             $movies = array_map(fn($m) => ['id' => $m['id'], 'title' => $m['title'], 'year' => $m['year']], $allMovies);
             usort($movies, fn($a, $b) => strcmp($a['title'] ?? '', $b['title'] ?? ''));
         } catch (\Throwable) {
@@ -347,7 +347,7 @@ class RadarrController extends AbstractController
         }
     }
 
-    // ── Profils de qualité ────────────────────────────────────────────────────
+    // ── Quality profiles ──────────────────────────────────────────────────────
 
     #[Route('/qualite', name: 'quality')]
     public function quality(): Response
@@ -427,7 +427,7 @@ class RadarrController extends AbstractController
         return $this->json($limits ?? []);
     }
 
-    // ── Profils de délai ──────────────────────────────────────────────────────
+    // ── Delay profiles ────────────────────────────────────────────────────────
 
     #[Route('/profils-delai', name: 'delay_profiles')]
     public function delayProfiles(): Response
@@ -638,7 +638,7 @@ class RadarrController extends AbstractController
         }
     }
 
-    // ── Paramètres ────────────────────────────────────────────────────────────
+    // ── Settings ──────────────────────────────────────────────────────────────
 
     #[Route('/parametres', name: 'settings')]
     public function settings(): Response
@@ -785,7 +785,7 @@ class RadarrController extends AbstractController
         }
     }
 
-    // ── Clients de téléchargement ─────────────────────────────────────────────
+    // ── Download clients ──────────────────────────────────────────────────────
 
     #[Route('/clients-telechargement', name: 'download_clients')]
     public function downloadClients(): Response
@@ -945,7 +945,7 @@ class RadarrController extends AbstractController
         }
     }
 
-    // ── Tâches système ────────────────────────────────────────────────────────
+    // ── System tasks ──────────────────────────────────────────────────────────
 
     #[Route('/taches', name: 'tasks')]
     public function tasks(): Response
@@ -1091,7 +1091,7 @@ class RadarrController extends AbstractController
         return $this->render('radarr/parse.html.twig', ['title' => $title, 'result' => $result, 'error' => $error]);
     }
 
-    // ── Dossiers racine ───────────────────────────────────────────────────────
+    // ── Root folders ──────────────────────────────────────────────────────────
 
     #[Route('/dossiers-racine', name: 'root_folders')]
     public function rootFolders(): Response
@@ -1127,7 +1127,7 @@ class RadarrController extends AbstractController
         }
     }
 
-    // ── Gestion des médias ──────────────────────────────────────────────
+    // ── Media management ────────────────────────────────────────────────
 
     #[Route('/gestion-medias', name: 'media_management')]
     public function mediaManagement(): Response

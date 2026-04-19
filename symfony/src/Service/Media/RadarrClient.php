@@ -25,7 +25,7 @@ class RadarrClient
         }
     }
 
-    /** Ping léger — true si l'API répond et accepte la clé. */
+    /** Light ping — true if the API responds and accepts the key. */
     public function ping(): bool
     {
         try {
@@ -45,7 +45,7 @@ class RadarrClient
         return array_map(fn($m) => $this->normalizeMovie($m), $data);
     }
 
-    /** Retourne les films bruts sans normalisation (pour cache léger) */
+    /** Returns raw movies without normalization (for lightweight cache) */
     public function getRawMovies(): array
     {
         return $this->get('/api/v3/movie') ?? [];
@@ -1271,7 +1271,7 @@ class RadarrClient
         return $this->requestWithError('PUT', "/api/v3/config/metadata/{$d['id']}", $d);
     }
 
-    // ── Normalisation ─────────────────────────────────────────────────────────
+    // ── Normalization ─────────────────────────────────────────────────────────
 
     private function normalizeMovie(array $m): array
     {
@@ -1462,7 +1462,7 @@ class RadarrClient
     }
 
     /**
-     * Comme request() mais retourne toujours un tableau avec 'ok' + détails erreur Radarr.
+     * Like request() but always returns an array with 'ok' + Radarr error details.
      */
     private function requestWithError(string $method, string $path, array $body): array
     {
@@ -1491,7 +1491,7 @@ class RadarrClient
 
         if ($code < 200 || $code >= 300) {
             $this->logger->warning("RadarrClient {$method} {$path} → HTTP {$code}", ['response' => $resp]);
-            // Radarr peut retourner un objet {message} ou un tableau [{propertyName, errorMessage}]
+            // Radarr may return either a {message} object or an array [{propertyName, errorMessage}]
             if (isset($data[0]['errorMessage'])) {
                 $messages = array_map(fn($e) => ($e['propertyName'] ?? '') . ' : ' . ($e['errorMessage'] ?? '?'), $data);
                 $msg = implode(' | ', $messages);

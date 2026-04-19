@@ -3,8 +3,8 @@
 namespace App\Exception;
 
 /**
- * Levée par ConfigService quand un service tiers (Radarr, TMDb…) est requis
- * mais n'a pas encore été configuré via le wizard ou la page d'administration.
+ * Thrown by ConfigService when a third-party service (Radarr, TMDb…) is required
+ * but has not yet been configured via the wizard or the administration page.
  */
 class ServiceNotConfiguredException extends \RuntimeException
 {

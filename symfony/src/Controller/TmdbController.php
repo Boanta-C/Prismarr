@@ -106,17 +106,17 @@ class TmdbController extends AbstractController
         $library = $this->buildLibraryIndex();
         $seeds   = [];
 
-        // Seeds films : 8 derniers films ajoutés (sans filtrer sur monitored car c'est de la reco)
+        // Movie seeds: the 8 most recently added movies (no monitored filter, this is for recommendations)
         try {
             $movies = $this->radarr->getMovies();
-            // Tri par added desc
+            // Sort by added desc
             usort($movies, fn($a, $b) => strcmp($b['added'] ?? '', $a['added'] ?? ''));
             foreach (array_slice($movies, 0, 8) as $m) {
                 if (!empty($m['tmdbId'])) $seeds[] = ['type' => 'movie', 'id' => (int) $m['tmdbId']];
             }
         } catch (\Throwable) {}
 
-        // Seeds séries : 8 dernières ajoutées
+        // Series seeds: the 8 most recently added
         try {
             $series = $this->sonarr->getRawAllSeries();
             usort($series, fn($a, $b) => strcmp($b['added'] ?? '', $a['added'] ?? ''));
@@ -129,7 +129,7 @@ class TmdbController extends AbstractController
             return $this->json(['results' => [], 'seeds' => 0]);
         }
 
-        // Agrégation : fetch /recommendations pour chaque seed, compte les occurrences pondéré par rating
+        // Aggregation: fetch /recommendations for each seed, count occurrences weighted by rating
         $aggregated = [];
         foreach ($seeds as $seed) {
             $recs = $seed['type'] === 'movie'
@@ -141,7 +141,7 @@ class TmdbController extends AbstractController
                 if (!$tmdbId) continue;
                 $key = $seed['type'] . '_' . $tmdbId;
 
-                // Skip si déjà en bibliothèque
+                // Skip if already in library
                 if ($seed['type'] === 'movie' && isset($library['movie'][$tmdbId])) continue;
                 if ($seed['type'] === 'tv' && isset($library['tv']['tmdb_' . $tmdbId])) continue;
 
@@ -153,18 +153,18 @@ class TmdbController extends AbstractController
             }
         }
 
-        // Tri par (hits DESC, score DESC)
+        // Sort by (hits DESC, score DESC)
         $sortFn = function ($a, $b) {
             if ($a['hits'] !== $b['hits']) return $b['hits'] <=> $a['hits'];
             return $b['score'] <=> $a['score'];
         };
         usort($aggregated, $sortFn);
 
-        // Séparation films / séries
+        // Split movies / series
         $moviesAgg = array_filter($aggregated, fn($x) => $x['type'] === 'movie');
         $tvAgg     = array_filter($aggregated, fn($x) => $x['type'] === 'tv');
 
-        // Top 40 pour chaque catégorie + top 40 mixés
+        // Top 40 per category + top 40 mixed
         $mapItem = function (array $x) use ($library): array {
             $it = $x['item'];
             $type = $x['type'];
@@ -191,7 +191,7 @@ class TmdbController extends AbstractController
         $moviesList = array_map($mapItem, array_slice(array_values($moviesAgg), 0, 40));
         $tvList     = array_map($mapItem, array_slice(array_values($tvAgg),     0, 40));
 
-        // Si une catégorie a < 20 items, on complète avec /popular filtré (pas en biblio, pas déjà dedans)
+        // If a category has < 20 items, top up with filtered /popular (not in library, not already included)
         if (count($moviesList) < 20) {
             $existingIds = array_flip(array_column($moviesList, 'id'));
             $popular     = $this->tmdb->getPopularMovies()['results'] ?? [];
@@ -289,7 +289,7 @@ class TmdbController extends AbstractController
             ]);
         }
 
-        // TV — il nous faut un tvdbId pour Sonarr
+        // TV — we need a tvdbId for Sonarr
         $tvdbId = $detail['external_ids']['tvdb_id'] ?? null;
         $year   = !empty($detail['first_air_date']) ? (int) substr($detail['first_air_date'], 0, 4) : 0;
         $inLib  = isset($library['tv']['tmdb_' . (int) $detail['id']])
@@ -301,7 +301,7 @@ class TmdbController extends AbstractController
             ], 422);
         }
 
-        // Détection anime (TMDb genre 16 = Animation + origine japonaise)
+        // Anime detection (TMDb genre 16 = Animation + Japanese origin)
         $genres   = array_column($detail['genres'] ?? [], 'id');
         $origin   = $detail['origin_country'] ?? [];
         $isAnime  = in_array(16, $genres, true) && in_array('JP', $origin, true);
@@ -356,12 +356,12 @@ class TmdbController extends AbstractController
             ];
         }
 
-        // Crew : réalisateur, créateur (séries), scénaristes clés
+        // Crew: director, creator (TV), key writers
         $crew = $this->pickCrew($d, $isMovie);
 
-        // Trailer : priorité Official EN > EN > Official FR > FR > Official any > any
+        // Trailer: priority Official EN > EN > Official FR > FR > Official any > any
         $trailer = $this->pickTrailer($d['videos']['results'] ?? []);
-        // Galerie trailers supplémentaires (4 max)
+        // Additional trailers gallery (max 4)
         $gallery = $this->pickVideoGallery($d['videos']['results'] ?? [], $trailer['key'] ?? null);
 
         $similar = $isMovie
@@ -369,10 +369,10 @@ class TmdbController extends AbstractController
             : ($this->tmdb->getTvSimilar($id)['results'] ?? []);
         $similar = $this->enrich(array_slice($similar, 0, 16), $library, $isMovie ? 'movie' : 'tv');
 
-        // Watch providers (JustWatch via TMDb) — préférer FR, puis US
+        // Watch providers (JustWatch via TMDb) — prefer FR, then US
         $providers = $this->pickProviders($d['watch/providers']['results'] ?? []);
 
-        // Compagnies de production + pays d'origine + langues
+        // Production companies + origin countries + languages
         $companies = [];
         foreach (array_slice($d['production_companies'] ?? [], 0, 6) as $c) {
             $companies[] = [
@@ -390,12 +390,12 @@ class TmdbController extends AbstractController
             if (!empty($k['name'])) $keywords[] = $k['name'];
         }
 
-        // Certification / classification selon pays (FR prioritaire)
+        // Certification / rating per country (FR priority)
         $certification = $isMovie
             ? $this->pickMovieCertification($d['release_dates']['results'] ?? [])
             : $this->pickTvCertification($d['content_ratings']['results'] ?? []);
 
-        // Champs spécifiques films
+        // Movie-specific fields
         $budget  = $isMovie ? ($d['budget'] ?? 0)  : null;
         $revenue = $isMovie ? ($d['revenue'] ?? 0) : null;
         $collection = null;
@@ -409,7 +409,7 @@ class TmdbController extends AbstractController
             ];
         }
 
-        // Champs spécifiques séries
+        // Series-specific fields
         $creators        = $isMovie ? [] : array_column($d['created_by'] ?? [], 'name');
         $nextEpisode     = !$isMovie && !empty($d['next_episode_to_air']) ? [
             'season'   => (int) ($d['next_episode_to_air']['season_number'] ?? 0),
@@ -428,7 +428,7 @@ class TmdbController extends AbstractController
             'logo' => !empty($n['logo_path']) ? TmdbClient::posterUrl($n['logo_path'], 'w154') : null,
         ], $d['networks'] ?? []);
 
-        // Saisons (séries) — hors saison 0 (specials) en tête, mais on les garde en bas
+        // Seasons (series) — season 0 (specials) not featured on top but kept at the bottom
         $seasonsList = [];
         if (!$isMovie) {
             foreach ($d['seasons'] ?? [] as $s) {
@@ -444,7 +444,7 @@ class TmdbController extends AbstractController
             }
         }
 
-        // Titres alternatifs (FR + EN en priorité)
+        // Alternative titles (FR + EN priority)
         $altTitles = [];
         $altSource = $isMovie ? ($d['alternative_titles']['titles'] ?? []) : ($d['alternative_titles']['results'] ?? []);
         foreach ($altSource as $at) {
@@ -466,7 +466,7 @@ class TmdbController extends AbstractController
             ];
         }
 
-        // Galerie images (backdrops TMDb, jusqu'à 8)
+        // Image gallery (TMDb backdrops, up to 8)
         $backdrops = [];
         foreach (array_slice($d['images']['backdrops'] ?? [], 0, 8) as $img) {
             $backdrops[] = [
@@ -540,9 +540,9 @@ class TmdbController extends AbstractController
             elseif (($v['type'] ?? '') === 'Teaser') $s += 50;
             if (($v['official'] ?? false) === true) $s += 40;
             $lang = strtolower($v['iso_639_1'] ?? '');
-            if ($lang === 'en') $s += 20;           // EN plus fiable en terme de disponibilité
+            if ($lang === 'en') $s += 20;           // EN is more reliable in terms of availability
             elseif ($lang === 'fr') $s += 15;
-            // Préférer les plus récents
+            // Prefer the most recent
             if (!empty($v['published_at'])) {
                 $ts = strtotime($v['published_at']);
                 if ($ts) $s += (int) (($ts - strtotime('2000-01-01')) / 86400 / 365);
@@ -670,7 +670,7 @@ class TmdbController extends AbstractController
         ]);
     }
 
-    // ─── Découverte enrichie ────────────────────────────────
+    // ─── Enriched discovery ─────────────────────────────────
 
     #[Route('/decouverte/explorer', name: 'tmdb_explorer')]
     public function explorer(): Response
@@ -742,7 +742,7 @@ class TmdbController extends AbstractController
 
         $library = $this->buildLibraryIndex();
 
-        // Fusionner cast + crew, dédupliquer par id+type
+        // Merge cast + crew, deduplicate by id+type
         $all = array_merge($credits['cast'] ?? [], $credits['crew'] ?? []);
         $seen = [];
         $items = [];
@@ -755,7 +755,7 @@ class TmdbController extends AbstractController
             $items[] = $c;
         }
 
-        // Trier par popularité desc
+        // Sort by popularity desc
         usort($items, fn($a, $b) => ($b['popularity'] ?? 0) <=> ($a['popularity'] ?? 0));
 
         return $this->json([
@@ -798,7 +798,7 @@ class TmdbController extends AbstractController
         ]);
     }
 
-    // Pas de token CSRF : app interne, routes protégées par #[IsGranted('ROLE_USER')] au niveau classe.
+    // No CSRF token: internal app, routes protected by class-level #[IsGranted('ROLE_USER')].
     #[Route('/decouverte/watchlist/toggle', name: 'tmdb_watchlist_toggle', methods: ['POST'])]
     public function watchlistToggle(Request $request): JsonResponse
     {
@@ -830,7 +830,7 @@ class TmdbController extends AbstractController
         return $this->json(['action' => 'added', 'tmdb_id' => $tmdbId, 'type' => $type, 'id' => $item->getId()]);
     }
 
-    // Pas de token CSRF : app interne, routes protégées par #[IsGranted('ROLE_USER')] au niveau classe.
+    // No CSRF token: internal app, routes protected by class-level #[IsGranted('ROLE_USER')].
     #[Route('/decouverte/watchlist/notes/{id}', name: 'tmdb_watchlist_notes', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function watchlistNotes(int $id, Request $request): JsonResponse
     {
@@ -846,7 +846,7 @@ class TmdbController extends AbstractController
         return $this->json(['ok' => true]);
     }
 
-    // Pas de token CSRF : app interne, routes protégées par #[IsGranted('ROLE_USER')] au niveau classe.
+    // No CSRF token: internal app, routes protected by class-level #[IsGranted('ROLE_USER')].
     #[Route('/decouverte/watchlist/remove/{id}', name: 'tmdb_watchlist_remove', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function watchlistRemove(int $id): JsonResponse
     {
@@ -868,8 +868,8 @@ class TmdbController extends AbstractController
     }
 
     /**
-     * Construit un index {movie:[tmdbIds], tv:[tvdbIds/tmdbIds]} pour marquer
-     * "déjà en bibliothèque" sur les cartes TMDb.
+     * Build an index {movie:[tmdbIds], tv:[tvdbIds/tmdbIds]} to flag
+     * "already in library" on TMDb cards.
      */
     private function buildLibraryIndex(): array
     {
@@ -879,7 +879,7 @@ class TmdbController extends AbstractController
         try {
             foreach ($this->radarr->getMovies() as $m) {
                 if (!empty($m['tmdbId'])) {
-                    // Statut : downloaded / missing / announced / inCinemas / unmonitored
+                    // Status: downloaded / missing / announced / inCinemas / unmonitored
                     $hasFile   = !empty($m['hasFile']);
                     $monitored = !empty($m['monitored']);
                     $status    = $m['status'] ?? 'released';
@@ -903,7 +903,7 @@ class TmdbController extends AbstractController
                 }
             }
         } catch (\Throwable) {
-            // Radarr HS → on continue sans badge
+            // Radarr down → carry on without the badge
         }
 
         try {
@@ -942,15 +942,15 @@ class TmdbController extends AbstractController
                 }
             }
         } catch (\Throwable) {
-            // Sonarr HS → idem
+            // Sonarr down → same
         }
 
         return ['movie' => $movieIds, 'tv' => $tvIds];
     }
 
     /**
-     * Enrichit chaque item TMDb avec : type normalisé, titre, année, poster URL,
-     * flag in_library.
+     * Enrich each TMDb item with: normalized type, title, year, poster URL,
+     * in_library flag.
      */
     private function enrich(array $items, array $library, ?string $forceType = null): array
     {

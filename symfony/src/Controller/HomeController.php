@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * Page d'accueil Prismarr — redirige vers la Découverte par défaut.
+ * Prismarr home page — redirects to the Discovery section by default.
  */
 class HomeController extends AbstractController
 {

@@ -1,4 +1,4 @@
 framework:
     cache:
-        # Filesystem — zéro dépendance externe (plus de Redis)
+        # Filesystem — zero external dependencies (no more Redis)
         app: cache.adapter.filesystem

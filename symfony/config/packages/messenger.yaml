@@ -13,6 +13,6 @@ framework:
             failed: 'doctrine://default?queue_name=failed'
             sync: 'sync://'
 
-        # Pas de routing async actif pour l'instant — les futurs messages Prismarr
-        # (notifications, scheduled tasks) s'ajouteront ici.
+        # No active async routing for now — future Prismarr messages
+        # (notifications, scheduled tasks) will be added here.
         routing: {}

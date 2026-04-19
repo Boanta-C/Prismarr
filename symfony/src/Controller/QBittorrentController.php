@@ -25,8 +25,8 @@ class QBittorrentController extends AbstractController
     ) {}
 
     /**
-     * Endpoint léger pour le poll global (sidebar + toasts) — renvoie juste les transitions importantes.
-     * Ne retourne que les hash + state + name — pas de détails lourds.
+     * Lightweight endpoint for the global poll (sidebar + toasts) — returns only important transitions.
+     * Returns only hash + state + name — no heavy details.
      */
     #[Route('/api/poll-summary', name: 'api_poll_summary', methods: ['GET'])]
     public function apiPollSummary(): JsonResponse
@@ -38,7 +38,7 @@ class QBittorrentController extends AbstractController
             foreach ($torrents as $t) {
                 $state = $t['state'] ?? '';
                 if ($state === 'downloading') $active++;
-                // Seuls les états qu'on surveille pour les toasts : completed + error
+                // Only the states watched for toasts: completed + error
                 if (in_array($state, ['completed', 'error', 'downloading', 'seeding'], true)) {
                     $items[] = [
                         'hash'  => $t['hash'] ?? '',
@@ -62,7 +62,7 @@ class QBittorrentController extends AbstractController
         try { $listenPort = $this->qbt->getListenPort(); } catch (\Throwable) {}
 
         $fwdPort  = $summary['forwarded_port'] ?? null;
-        $portSync = null; // null = inconnu, true = match, false = désync
+        $portSync = null; // null = unknown, true = match, false = out-of-sync
         if ($fwdPort !== null && $listenPort !== null) {
             $portSync = $fwdPort === $listenPort;
         }
@@ -74,7 +74,7 @@ class QBittorrentController extends AbstractController
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Page principale
+    //  Main page
     // ══════════════════════════════════════════════════════════════════════════
 
     #[Route('', name: 'index')]
@@ -90,8 +90,8 @@ class QBittorrentController extends AbstractController
             if ($this->qbt->getVersion() === null) {
                 $error = true;
             } else {
-                // Rendu initial rapide : les 50 plus récents (tri par défaut).
-                // Le JS refresh 2s remplace ensuite selon les préférences utilisateur (pagination serveur).
+                // Fast initial render: the 50 most recent (default sort).
+                // JS refresh every 2s then replaces it based on user preferences (server-side pagination).
                 $all        = $this->qbt->getTorrents();
                 $torrents   = array_slice($all, 0, 50);
                 $stats      = $this->qbt->getStats($all);
@@ -102,7 +102,7 @@ class QBittorrentController extends AbstractController
             $error = true;
         }
 
-        // VPN (Gluetun) + port qBit — non bloquant, fail gracieux
+        // VPN (Gluetun) + qBit port — non-blocking, graceful failure
         $vpn = null;
         try {
             $summary = $this->gluetun->getSummary();
@@ -128,7 +128,7 @@ class QBittorrentController extends AbstractController
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  API JSON — Refresh temps réel
+    //  JSON API — real-time refresh
     // ══════════════════════════════════════════════════════════════════════════
 
     #[Route('/api/torrents', name: 'api_torrents', methods: ['GET'])]
@@ -147,29 +147,29 @@ class QBittorrentController extends AbstractController
             $all   = $this->qbt->getTorrents();
             $stats = $this->qbt->getStats($all);
 
-            // Filtre état
+            // State filter
             if ($filter === 'active') {
                 $all = array_values(array_filter($all, fn($t) => ($t['dlspeed'] ?? 0) > 0 || ($t['upspeed'] ?? 0) > 0));
             } elseif ($filter !== 'all') {
                 $all = array_values(array_filter($all, fn($t) => $t['state'] === $filter));
             }
-            // Filtre catégorie
+            // Category filter
             if ($category !== '') {
                 $all = array_values(array_filter($all, fn($t) => ($t['category'] ?? '') === $category));
             }
-            // Filtre tag (les tags qBit sont une string "tag1,tag2")
+            // Tag filter (qBit tags come as a "tag1,tag2" string)
             if ($tag !== '') {
                 $all = array_values(array_filter($all, function($t) use ($tag) {
                     $tags = array_map('trim', explode(',', (string)($t['tags'] ?? '')));
                     return in_array($tag, $tags, true);
                 }));
             }
-            // Recherche texte (case-insensitive)
+            // Text search (case-insensitive)
             if ($search !== '') {
                 $needle = mb_strtolower($search);
                 $all = array_values(array_filter($all, fn($t) => str_contains(mb_strtolower($t['name'] ?? ''), $needle)));
             }
-            // Tri
+            // Sort
             $sortKey = match($sort) {
                 'name'     => 'name',
                 'size'     => 'size',
@@ -212,8 +212,8 @@ class QBittorrentController extends AbstractController
     }
 
     /**
-     * Résout un torrent vers son film Radarr ou sa série Sonarr (via nom + année).
-     * Délègue à TorrentResolverService (logique métier extraite pour testabilité).
+     * Resolves a torrent to its Radarr movie or Sonarr series (via name + year).
+     * Delegates to TorrentResolverService (business logic extracted for testability).
      */
     #[Route('/api/resolve/{pipeline}/{hash}', name: 'api_resolve', methods: ['GET'], requirements: ['pipeline' => 'radarr|sonarr', 'hash' => '[a-fA-F0-9]{32,64}'])]
     public function apiResolve(string $pipeline, string $hash): JsonResponse
@@ -252,7 +252,7 @@ class QBittorrentController extends AbstractController
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Actions unitaires
+    //  Single-item actions
     // ══════════════════════════════════════════════════════════════════════════
 
     #[Route('/api/torrent/{hash}/pause', name: 'api_pause', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
@@ -340,10 +340,10 @@ class QBittorrentController extends AbstractController
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Actions bulk
+    //  Bulk actions
     // ══════════════════════════════════════════════════════════════════════════
 
-    /** Filtre un tableau de hashes : garde seulement les hex valides (+ 'all' accepté). */
+    /** Filter an array of hashes: keep only valid hex (+ 'all' accepted). */
     private static function sanitizeHashes(mixed $raw): array
     {
         if (!is_array($raw)) return [];
@@ -397,7 +397,7 @@ class QBittorrentController extends AbstractController
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Ajout torrent
+    //  Add torrent
     // ══════════════════════════════════════════════════════════════════════════
 
     #[Route('/api/add', name: 'api_add', methods: ['POST'])]
@@ -414,7 +414,7 @@ class QBittorrentController extends AbstractController
         return $this->json(['ok' => $this->qbt->addTorrentFromUrl($urls, $category, $savepath, $paused)]);
     }
 
-    /** Upload d'un ou plusieurs fichiers .torrent (multipart/form-data). */
+    /** Upload one or more .torrent files (multipart/form-data). */
     #[Route('/api/add-file', name: 'api_add_file', methods: ['POST'])]
     public function addTorrentFile(Request $request): JsonResponse
     {
@@ -428,7 +428,7 @@ class QBittorrentController extends AbstractController
         foreach ($uploaded as $file) {
             /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $file */
             if (!$file->isValid()) continue;
-            if ($file->getSize() > 10 * 1024 * 1024) { // 10 Mo max, un .torrent normal fait < 1 Mo
+            if ($file->getSize() > 10 * 1024 * 1024) { // 10 MB max, a normal .torrent is < 1 MB
                 return $this->json(['ok' => false, 'error' => 'Fichier trop volumineux (>10 Mo)'], 400);
             }
             $ext = strtolower($file->getClientOriginalExtension());
@@ -439,12 +439,12 @@ class QBittorrentController extends AbstractController
             if ($content === false || $content === '') {
                 return $this->json(['ok' => false, 'error' => 'Fichier illisible'], 400);
             }
-            // Vérification magic bytes : un torrent bencoded commence toujours par 'd' (dict)
-            // + contient typiquement "announce" ou "info" dans les premiers Ko
+            // Magic-bytes check: a bencoded torrent always starts with 'd' (dict)
+            // + typically contains "announce" or "info" within the first few KB
             if (!str_starts_with($content, 'd') || (!str_contains(substr($content, 0, 4096), 'info') && !str_contains(substr($content, 0, 4096), 'announce'))) {
                 return $this->json(['ok' => false, 'error' => 'Fichier .torrent invalide (bencoding non reconnu)'], 400);
             }
-            // Nom sanitizé (basename, pas de slash ni nullbyte)
+            // Sanitized name (basename, no slashes or null bytes)
             $origName  = $file->getClientOriginalName() ?: 'upload.torrent';
             $cleanName = basename(str_replace("\0", '', $origName));
             $files[] = [
@@ -466,7 +466,7 @@ class QBittorrentController extends AbstractController
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  Vitesse globale
+    //  Global speed
     // ══════════════════════════════════════════════════════════════════════════
 
     #[Route('/api/speed-mode', name: 'api_speed_mode', methods: ['POST'])]

@@ -1,5 +1,5 @@
-# Prismarr — surcharges développement (hot reload)
-# Usage : docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Prismarr — development overrides (hot reload)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 services:
 

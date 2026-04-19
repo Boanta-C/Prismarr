@@ -11,14 +11,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Deux niveaux de garde pour les sections services :
- *   1. Si le service n'est PAS configuré (clé manquante en BDD) → redirect wizard.
- *   2. Si le service est configuré mais INJOIGNABLE → redirect vers l'index de la
- *      section (qui affiche le bandeau) — évite d'atterrir sur une sous-page cassée.
+ * Two guard levels for service sections:
+ *   1. If the service is NOT configured (key missing in DB) → redirect to wizard.
+ *   2. If the service is configured but UNREACHABLE → redirect to the section
+ *      index (which displays the banner) — avoids landing on a broken sub-page.
  *
- * Le health-check est caché par-process via HealthService (1 ping par worker).
- * Les routes index elles-mêmes sont exemptées du health-check (elles gèrent leur
- * propre bandeau, sinon on ferait une boucle de redirect).
+ * The health-check is cached per-process via HealthService (1 ping per worker).
+ * The index routes themselves are exempt from the health-check (they handle
+ * their own banner, otherwise we would create a redirect loop).
  */
 class ServiceRouteGuardSubscriber implements EventSubscriberInterface
 {
@@ -47,7 +47,7 @@ class ServiceRouteGuardSubscriber implements EventSubscriberInterface
 
     public static function getSubscribedEvents(): array
     {
-        // Priorité 15 : après SetupRedirectSubscriber (prio 20), avant le firewall Symfony.
+        // Priority 15: after SetupRedirectSubscriber (prio 20), before the Symfony firewall.
         return [
             KernelEvents::REQUEST => ['onKernelRequest', 15],
         ];
@@ -69,7 +69,7 @@ class ServiceRouteGuardSubscriber implements EventSubscriberInterface
             return;
         }
 
-        // 1. Service pas configuré → wizard
+        // 1. Service not configured → wizard
         foreach ($rule['keys'] as $key) {
             if (!$this->config->has($key)) {
                 $this->flash($event, sprintf('Configurez %s pour accéder à cette section.', $rule['service']));
@@ -78,8 +78,8 @@ class ServiceRouteGuardSubscriber implements EventSubscriberInterface
             }
         }
 
-        // 2. Service configuré mais inaccessible → redirect vers index de section
-        //    (on skip si on EST déjà sur l'index, qui a son propre bandeau).
+        // 2. Service configured but unreachable → redirect to section index
+        //    (skip if we ARE already on the index, which has its own banner).
         if ($route !== $rule['index'] && !$this->health->isHealthy($rule['service_id'])) {
             $event->setResponse(new RedirectResponse($this->urls->generate($rule['index'])));
         }
