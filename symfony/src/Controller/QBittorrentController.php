@@ -411,7 +411,66 @@ class QBittorrentController extends AbstractController
 
         if (!$urls) return $this->json(['ok' => false, 'error' => 'URL/magnet manquant'], 400);
 
+        $error = $this->validateTorrentUrls($urls);
+        if ($error !== null) {
+            return $this->json(['ok' => false, 'error' => $error], 400);
+        }
+
         return $this->json(['ok' => $this->qbt->addTorrentFromUrl($urls, $category, $savepath, $paused)]);
+    }
+
+    /**
+     * SSRF guard on user-provided URLs passed to qBittorrent.
+     *
+     * qBittorrent fetches whichever URL we hand it, so an unsanitized
+     * URL can be abused to probe the cloud metadata endpoint or an
+     * internal admin interface via CSRF on the Prismarr admin.
+     *
+     * Rules: only http(s) and magnet: are accepted; cloud metadata
+     * hosts are blocked. LAN/localhost remain allowed (legitimate
+     * homelab use — private trackers, etc.).
+     *
+     * @return string|null  error message to return to the client, or null if safe
+     */
+    private function validateTorrentUrls(string $raw): ?string
+    {
+        $blockedHosts = [
+            '169.254.169.254',
+            'fd00:ec2::254',
+            'metadata.google.internal',
+            'metadata.goog',
+            'metadata.azure.com',
+            'metadata.azure.net',
+        ];
+
+        foreach (preg_split('/[\r\n|]+/', trim($raw)) as $url) {
+            $url = trim($url);
+            if ($url === '') continue;
+
+            if (stripos($url, 'magnet:') === 0) {
+                continue;
+            }
+
+            $parts = parse_url($url);
+            $scheme = strtolower($parts['scheme'] ?? '');
+            if (!in_array($scheme, ['http', 'https'], true)) {
+                return 'Seuls les liens http(s) et magnet: sont acceptés';
+            }
+
+            $host = strtolower($parts['host'] ?? '');
+            if ($host === '') {
+                return 'URL invalide';
+            }
+            // parse_url keeps IPv6 brackets — strip them for blocklist comparison.
+            $host = trim($host, '[]');
+            foreach ($blockedHosts as $blocked) {
+                if ($host === $blocked) {
+                    return 'Cette URL pointe vers un hôte interdit (métadonnées cloud)';
+                }
+            }
+        }
+
+        return null;
     }
 
     /** Upload one or more .torrent files (multipart/form-data). */

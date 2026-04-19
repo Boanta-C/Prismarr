@@ -47,6 +47,8 @@ COPY docker/frankenphp/php.ini $PHP_INI_DIR/conf.d/prismarr.ini
 
 # ── Caddyfile (HTTP + embedded Mercure) ─────────────────────────────────
 COPY docker/frankenphp/Caddyfile /etc/caddy/Caddyfile
+RUN chmod 0644 /etc/caddy/Caddyfile && \
+    chown -R www-data:www-data /data/caddy /config/caddy
 
 # ── s6 services ─────────────────────────────────────────────────────────
 COPY docker/frankenphp/s6/ /etc/s6-overlay/s6-rc.d/
@@ -73,5 +75,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 
 EXPOSE 7070
 
-# s6-overlay as PID 1
+# s6-overlay must run as root (PID 1 requirement). Individual services
+# (frankenphp, messenger-worker) drop privileges to www-data via
+# `s6-setuidgid` in their respective run scripts under s6/*/run.
 ENTRYPOINT ["/init"]

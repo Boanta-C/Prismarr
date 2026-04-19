@@ -39,11 +39,16 @@
 	# Compression
 	encode zstd gzip
 
-	# Mercure hub (real-time SSE)
+	# Mercure hub (real-time SSE).
+	# Bolt DB stored in var/data (volume) so www-data can write to it.
+	# cors_origins is exposed via env so public deployments can restrict
+	# which origins may subscribe to the hub. Default '*' keeps local/LAN
+	# homelab setups working out of the box.
 	mercure {
+		transport_url bolt:///var/www/html/var/data/mercure.db
 		publisher_jwt {env.MERCURE_JWT_SECRET}
 		subscriber_jwt {env.MERCURE_JWT_SECRET}
-		cors_origins *
+		cors_origins {$PRISMARR_MERCURE_CORS_ORIGINS:*}
 		anonymous
 	}
 
@@ -53,6 +58,8 @@
 	}
 
 	# Security headers
+	# CSP is emitted dynamically from PHP (CspHeaderSubscriber) so that
+	# user-configured service hosts (Jellyseerr avatars, etc.) are included.
 	header {
 		X-Frame-Options "SAMEORIGIN"
 		X-Content-Type-Options "nosniff"

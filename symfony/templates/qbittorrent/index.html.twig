@@ -1864,7 +1864,8 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
                 return qbtPost(BASE + '/api/add', { urls: urls, category: cat || null, paused: paused })
                     .then(function(d){
                         var ok = d && d.ok;
-                        if (window._prismarrToast) window._prismarrToast(ok ? 'Torrent(s) ajouté(s)' : 'Échec ajout URL', ok ? 'success' : 'danger');
+                        var msg = ok ? 'Torrent(s) ajouté(s)' : ((d && d.error) ? d.error : 'Échec ajout URL');
+                        if (window._prismarrToast) window._prismarrToast(msg, ok ? 'success' : 'danger');
                         return ok;
                     })
                     .catch(function(){ return false; });

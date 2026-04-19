@@ -27,7 +27,8 @@ secrets_action="already configured"
 schema_action="already up to date"
 
 # ── 1. Writable volume ──────────────────────────────────────────────────────
-mkdir -p "$DATA_DIR" "$APP_DIR/var/cache" "$APP_DIR/var/log" "$APP_DIR/var/sessions"
+# var/caddy = HOME of the FrankenPHP process (XDG data store, autosave files).
+mkdir -p "$DATA_DIR" "$APP_DIR/var/cache" "$APP_DIR/var/log" "$APP_DIR/var/sessions" "$APP_DIR/var/caddy"
 chown -R www-data:www-data "$APP_DIR/var"
 
 # ── 2. Secrets generation on first boot ─────────────────────────────────────

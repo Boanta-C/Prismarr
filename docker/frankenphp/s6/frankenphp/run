@@ -6,4 +6,8 @@ if [ -f /var/www/html/.env.local ]; then
   . /var/www/html/.env.local
   set +a
 fi
-exec frankenphp run --config /etc/caddy/Caddyfile
+# Caddy needs a writable HOME for its internal data store (XDG paths).
+# var/caddy is created and chowned by init.sh.
+export HOME=/var/www/html/var/caddy
+# Drop privileges: FrankenPHP and all PHP scripts run as www-data (UID 82).
+exec s6-setuidgid www-data frankenphp run --config /etc/caddy/Caddyfile
