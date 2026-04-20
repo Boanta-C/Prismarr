@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
-#[IsGranted('ROLE_USER')]
+#[IsGranted('ROLE_ADMIN')]
 #[Route('/medias', name: 'app_media_')]
 class MediaController extends AbstractController
 {

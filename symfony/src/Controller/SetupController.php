@@ -88,8 +88,12 @@ class SetupController extends AbstractController
                 $user->setRoles(['ROLE_ADMIN']);
                 $user->setPassword($hasher->hashPassword($user, $password));
 
-                $this->em->persist($user);
-                $this->em->flush();
+                try {
+                    $this->em->persist($user);
+                    $this->em->flush();
+                } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException) {
+                    return $this->redirectToRoute('app_login');
+                }
 
                 $security->login($user, 'form_login', 'main');
 
