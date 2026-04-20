@@ -15,29 +15,33 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
     tar -C / -Jxpf /tmp/s6-overlay-arch.tar.xz && \
     rm /tmp/s6-overlay-*.tar.xz
 
-# ── System extensions ───────────────────────────────────────────────────
+# ── System libs + extensions (build-time deps purged after compilation) ──
 RUN apk add --no-cache \
-    bash \
-    curl \
-    git \
-    unzip \
-    zip \
-    icu-dev \
-    libzip-dev \
-    oniguruma-dev \
-    linux-headers \
-    sqlite-dev \
-    $PHPIZE_DEPS
-
-# ── PHP extensions (no Redis, no pdo_mysql) ─────────────────────────────
-RUN docker-php-ext-install \
-    pdo_sqlite \
-    intl \
-    zip \
-    opcache \
-    pcntl \
-    sockets \
-    mbstring
+        bash \
+        curl \
+        git \
+        unzip \
+        zip \
+        icu-libs \
+        libzip \
+        oniguruma \
+        sqlite-libs \
+    && apk add --no-cache --virtual .build-deps \
+        icu-dev \
+        libzip-dev \
+        oniguruma-dev \
+        linux-headers \
+        sqlite-dev \
+        $PHPIZE_DEPS \
+    && docker-php-ext-install \
+        pdo_sqlite \
+        intl \
+        zip \
+        opcache \
+        pcntl \
+        sockets \
+        mbstring \
+    && apk del --purge .build-deps
 
 # ── Composer ────────────────────────────────────────────────────────────
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

@@ -17,6 +17,10 @@ services:
     container_name: prismarr
     restart: unless-stopped
 
+    # Give the messenger worker time to finish the current job on shutdown
+    # before Docker forces SIGKILL (default is 10s, too tight for long tasks).
+    stop_grace_period: 30s
+
     # Exposed port (change the left side of `:` if 7070 is already taken).
     ports:
       - "7070:7070"
