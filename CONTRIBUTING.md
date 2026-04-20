@@ -116,12 +116,37 @@ of tests, new security concerns), amend it:
 
 ---
 
-## Non-negotiable rules (even under pressure)
+## 🔒 Absolute golden rules (non-negotiable, no exceptions)
 
-- **No credentials** in code, commits, logs, or docs — ever.
-- **No modified migrations after push** — create a new migration to fix.
-- **No bug fix without a regression test** — write the test first (red), then
-  fix (green).
+These five rules override every other concern, including urgency. Breaking them
+is what kills a public project. If a contribution requires violating any of
+them, reject it and propose an alternative.
 
-These three carry the same weight as the rest of the checklist combined.
-If `make check` is green but any of these are violated, the commit is invalid.
+1. **No credentials** in code, commits, logs, docs, or messages. Prismarr's
+   repo is public; a leaked secret is exploited by a bot within minutes.
+   Credentials live in `.env.local` (gitignored) or the `setting` DB table.
+
+2. **No modified migrations after push.** Once a `migrations/Version*.php`
+   is on `main`, it is immutable. To fix a bad schema, write a NEW migration.
+   Editing a released migration corrupts every user's database on upgrade.
+
+3. **No destructive or breaking changes for production users.** Covers:
+   renaming a public env var, renaming a `setting` DB key (users lose their
+   config), changing the default port, breaking the `.env.local` /
+   `prismarr.db` format without a migration path, removing a feature without
+   a deprecation cycle, hard-deleting entities instead of soft-deleting.
+   **If `docker compose pull` can break an existing install, the change
+   needs a documented migration plan or must be rethought.**
+
+4. **`make check` must be green before every commit.** Runs lint + full
+   PHPUnit suite. Completes the Definition of Done checklist above — no
+   test for new logic = no commit. No regression test for a bug fix = no
+   commit.
+
+5. **No silent weakening of existing security checks.** CSP, CSRF,
+   rate-limiter login, SSRF guard, ProfilerGuard, CURLOPT_REDIR_PROTOCOLS,
+   `ROLE_ADMIN` attributes — each one has a documented reason (see commit
+   history for Sessions 7a–7d + 8a). If a check blocks a legitimate feature,
+   refine it (e.g. extend the CSP with justification) — do not disable it.
+
+Violating any of these, even if `make check` passes, makes the commit invalid.
