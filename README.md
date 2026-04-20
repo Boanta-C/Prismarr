@@ -22,7 +22,7 @@
 
 Conçu pour les homelabs : installation en une commande, zéro configuration de base de données, une seule image Docker à jour.
 
-> **Statut actuel** : version 0.1-alpha — en développement actif. API et UI peuvent évoluer avant la release 1.0.
+> **Statut actuel** : version 1.0 en préparation — durcissement sécurité et polissage avant la publication publique.
 
 ---
 
@@ -50,10 +50,10 @@ Conçu pour les homelabs : installation en une commande, zéro configuration de 
 - Intégration Gluetun : IP publique, pays, port forwarded
 - Vérification automatique que le port-update pousse bien vers qBittorrent
 
-### 👥 Multi-utilisateurs
-- Authentification Symfony Security
-- Rôles : admin / user
-- Tokens API
+### 🛡️ Sécurité
+- Authentification Symfony Security + rate-limiter login (5 tentatives / 15 min)
+- Container non-root, Content Security Policy dynamique
+- Garde SSRF sur les URLs configurées par l'utilisateur
 
 ---
 
@@ -68,19 +68,21 @@ Conçu pour les homelabs : installation en une commande, zéro configuration de 
 ### Démarrage rapide
 
 ```bash
-# 1. Clonez le dépôt
-git clone https://github.com/joshua/prismarr.git
-cd prismarr
+# 1. Téléchargez le docker-compose.yml
+curl -O https://raw.githubusercontent.com/joshuabv2005/prismarr/main/docker-compose.example.yml
+mv docker-compose.example.yml docker-compose.yml
 
-# 2. Copiez le template d'env
-cp .env.example .env
-
-# 3. Lancez
+# 2. Lancez
 docker compose up -d
 
-# 4. Ouvrez http://localhost:7070
-# Le setup wizard vous guidera pour configurer vos API keys
+# 3. Ouvrez http://localhost:7070
+# Le setup wizard guide la création du compte admin et la configuration
+# des services (TMDb, Radarr, Sonarr, Prowlarr, Jellyseerr, qBittorrent).
 ```
+
+Les secrets (`APP_SECRET`, `MERCURE_JWT_SECRET`) sont auto-générés au premier
+démarrage et persistés dans le volume `prismarr_data`. Aucune configuration
+manuelle n'est requise.
 
 ### Upgrade
 
@@ -95,58 +97,72 @@ Les migrations SQLite sont appliquées automatiquement au démarrage.
 
 ## Configuration
 
-Tout se configure via l'**UI setup wizard** au premier démarrage. Aucune variable d'environnement n'est nécessaire pour les API keys.
+Tout se configure via l'**UI setup wizard** au premier démarrage. Aucune variable d'environnement n'est nécessaire pour les clés API — elles sont stockées dans la base SQLite (table `setting`) et peuvent être modifiées après coup depuis l'interface.
 
-Le fichier `.env` ne contient que :
-- `APP_SECRET` : clé secrète Symfony (auto-générée)
-- `PRISMARR_PRIMARY_COLOR` : couleur d'accent UI (défaut indigo)
-- `PRISMARR_LOGO_URL` : logo custom optionnel
+Variables d'environnement optionnelles (`docker-compose.yml`) :
 
-Les données (SQLite, logs, uploads) sont persistées dans le volume `./data`.
+- `APP_ENV=prod` (défaut) — basculer en `dev` uniquement pour le développement
+- `PRISMARR_PORT=7070` (défaut) — port exposé
+- `TRUSTED_PROXIES=127.0.0.1,REMOTE_ADDR` (défaut) — à ajuster si derrière Traefik, nginx, Cloudflare Tunnel
+
+Les données (SQLite, logs, sessions) sont persistées dans le volume Docker `prismarr_data`.
+
+### Mot de passe admin oublié
+
+```bash
+docker exec -it prismarr php bin/console app:user:reset-password <email>
+```
 
 ---
 
 ## Roadmap
 
-### v1.0 — Release publique
-- [ ] Setup wizard complet
-- [ ] Multi-utilisateurs (login, register, permissions)
-- [ ] Documentation install / troubleshoot
-- [ ] Tests d'intégration critiques
-- [ ] Image Docker Hub officielle
+### v1.0 — Release publique (en cours)
+- [x] Setup wizard 7 étapes
+- [x] Authentification + rate-limiter login
+- [x] Migrations Doctrine (upgrades propres)
+- [x] Suite PHPUnit (~100 tests)
+- [x] Image Docker multi-arch
+- [ ] Traduction anglaise (EN/FR switcher)
+- [ ] Page admin paramètres
+- [ ] Publication Docker Hub
 
 ### v1.x — Améliorations
+- [ ] Multi-utilisateurs avec rôles distincts (lecture seule vs admin)
 - [ ] Widget Jellyfin (sessions live + stats)
-- [ ] RSS feeds qBittorrent
+- [ ] Notifications Discord / Ntfy / Telegram
 - [ ] Graphiques de vitesse historiques
 - [ ] API REST publique pour intégrations tierces
-- [ ] Support MariaDB/PostgreSQL en option
 
 ### v2.0 — Automation
 - [ ] Auto-import bibliothèque existante
 - [ ] Règles de traitement customisées
-- [ ] Notifications Discord / Ntfy / Telegram
+- [ ] Support MariaDB / PostgreSQL en option
 
 ---
 
 ## Stack technique
 
 - **Backend** : PHP 8.4 / Symfony 8
-- **Frontend** : Tabler UI + Alpine.js + Turbo (Hotwire)
-- **BDD** : SQLite (zéro-config)
-- **Cache** : Redis
-- **Temps réel** : Mercure SSE
+- **Serveur** : FrankenPHP (Caddy + PHP embed, worker mode) avec s6-overlay
+- **Frontend** : Tabler UI + Alpine.js + Turbo (Hotwire) via AssetMapper
+- **BDD** : SQLite (zéro-config, migrations Doctrine automatiques)
+- **Cache + sessions** : filesystem (pas de Redis requis)
+- **Queue** : Symfony Messenger (transport Doctrine)
+- **Temps réel** : Mercure SSE intégré à Caddy
 
 ---
 
 ## Contribuer
 
-Les contributions sont bienvenues ! Ouvrez une issue avant de commencer une PR pour discuter du scope.
+Les contributions sont bienvenues — ouvrez une issue pour discuter du scope avant d'attaquer une PR.
 
-Conventions :
-- Commits en français ou anglais, clairs, atomiques
-- Respecter les patterns Turbo-safe (`var`, IIFE, `.then()`)
-- Tester en local avant PR
+- **Guide contributeur** : voir [CONTRIBUTING.md](CONTRIBUTING.md) (checklist Definition of Done + règles d'or)
+- **Code of Conduct** : voir [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) (Contributor Covenant v2.1)
+- **Vulnérabilité de sécurité** : voir [SECURITY.md](SECURITY.md) — **ne pas ouvrir d'issue publique**, contact par email
+- **Historique** : voir [CHANGELOG.md](CHANGELOG.md)
+
+Avant tout commit : `make check` (lint PHP + lint Twig + suite PHPUnit complète).
 
 ---
 
