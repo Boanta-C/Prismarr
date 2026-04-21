@@ -11,6 +11,24 @@ Work toward the first public release of Prismarr. Entries here will be rolled
 into `[1.0.0]` at publication time.
 
 ### Added
+- **Main dashboard** at `/tableau-de-bord` — the new default landing page
+  for logged-in users. Aggregates seven widgets with graceful degradation
+  when a service is offline: hero spotlight (random library pick with
+  fanart, genres, rating, quality and a CTA), upcoming releases
+  (seven-day mini-calendar), pending Jellyseerr requests enriched with
+  TMDb metadata, live health of the six services, personal watchlist,
+  weekly TMDb trending, and most-recent library additions merged
+  across movies and series.
+- **Display preferences** in `/admin/settings` — nine typed options
+  (home page, toasts, timezone, date/time format, theme colour,
+  default Radarr/Sonarr view, qBit auto-refresh, UI density) stored
+  as `display_*` keys. The admin page now uses tab navigation
+  (Services / Display) with URL-hash + `sessionStorage` persistence so
+  the admin stays on the same section across POST/Redirect/GET.
+  Effective behaviour wiring for these preferences lands in a follow-up.
+- **Collapsible sidebar** with a toggle button at the bottom: 4 rem
+  icons-only width when collapsed, CSS-only tooltips on hover, state
+  persisted in `localStorage` with FOUC-prevention in `<head>`.
 - **Admin settings page** at `/admin/settings` — edit service URLs and API keys
   without replaying the setup wizard. Per-service "test connection" button,
   live status pill, show/hide toggle for each service in the sidebar, and
@@ -77,6 +95,13 @@ into `[1.0.0]` at publication time.
   FrankenPHP worker is re-used.
 
 ### Changed
+- Home route (`/`) now resolves to the admin's `display_home_page`
+  preference (dashboard by default), instead of always falling through
+  to the first configured service. The legacy fallback chain
+  (tmdb → radarr → sonarr → qbit → welcome) still kicks in when the
+  preferred target isn't configured.
+- Gluetun HTTP client timeout raised from 4 s to 8 s (connect 2 s → 3 s) —
+  the previous values were too aggressive on slow VPN handshakes.
 - Migrated from a multi-container stack (PHP-FPM + nginx + Redis) to a single
   FrankenPHP container with filesystem cache and sessions.
 - Retired `api-platform/core` and `lexik/jwt-authentication-bundle` — unused.
@@ -100,6 +125,23 @@ into `[1.0.0]` at publication time.
   previous values were too aggressive on slow VPN handshakes.
 
 ### Fixed
+- qBittorrent client cURL calls now set `CURLOPT_NOSIGNAL=1` and an
+  explicit 3 s connect timeout on the four entry points
+  (login / getRaw / request / post). Without `NOSIGNAL`, libcurl falls
+  back to `SIGALRM` for DNS resolution — a signal PHP masks — leaving
+  DNS lookups stuck for 30+ seconds whenever qBittorrent is unreachable
+  and producing a `FatalError` on Alpine PHP. Calls are now capped at
+  ~11 s total regardless of the backing service's state.
+- The browser-side qBittorrent summary poll now uses an exponential
+  backoff (15 s → 30 s → 60 s → 120 s cap) on failure, resetting to the
+  base interval on success. Previously a 1 s retry loop hammered the
+  endpoint whenever the NAS or qBit was down.
+- Dashboard "Upcoming releases" widget now shows only each movie's next
+  future release date (rather than surfacing items whose digital or
+  physical release was weeks in the past).
+- Pending Jellyseerr requests on the dashboard now display the real
+  title/year by enriching each request with a cached TMDb lookup,
+  instead of showing raw "TMDb #&lt;id&gt;" placeholders.
 - Media clients (Radarr, Sonarr, Prowlarr, Jellyseerr, qBittorrent, TMDb,
   Gluetun) implement `ResetInterface` so FrankenPHP worker instances
   reload the API key/URL between requests. Previously, an admin updating
