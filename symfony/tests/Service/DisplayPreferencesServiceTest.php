@@ -37,7 +37,6 @@ class DisplayPreferencesServiceTest extends TestCase
         $this->assertSame('24h', $prefs->getTimeFormat());
         $this->assertSame('indigo', $prefs->getThemeColor());
         $this->assertSame('#6366f1', $prefs->getThemeColorHex());
-        $this->assertSame('poster', $prefs->getDefaultView());
         $this->assertSame(2, $prefs->getQbitRefreshSeconds());
         $this->assertSame('comfortable', $prefs->getUiDensity());
     }
@@ -51,7 +50,6 @@ class DisplayPreferencesServiceTest extends TestCase
             'display_date_format'   => 'iso',
             'display_time_format'   => '12h',
             'display_theme_color'   => 'green',
-            'display_default_view'  => 'table',
             'display_qbit_refresh'  => '5',
             'display_ui_density'    => 'compact',
         ]);
@@ -63,7 +61,6 @@ class DisplayPreferencesServiceTest extends TestCase
         $this->assertSame('12h', $prefs->getTimeFormat());
         $this->assertSame('green', $prefs->getThemeColor());
         $this->assertSame('#22c55e', $prefs->getThemeColorHex());
-        $this->assertSame('table', $prefs->getDefaultView());
         $this->assertSame(5, $prefs->getQbitRefreshSeconds());
         $this->assertSame('compact', $prefs->getUiDensity());
     }
@@ -115,5 +112,67 @@ class DisplayPreferencesServiceTest extends TestCase
         $this->assertFalse($all['toasts']);
         $this->assertSame(10, $all['qbit_refresh_seconds']);
         $this->assertSame('#6366f1', $all['theme_color_hex']);
+        $this->assertSame('99, 102, 241', $all['theme_color_rgb']);
+    }
+
+    public function testThemeColorRgbMatchesEachPaletteEntry(): void
+    {
+        $this->assertSame('99, 102, 241',   $this->serviceWith(['display_theme_color' => 'indigo'])->getThemeColorRgb());
+        $this->assertSame('239, 68, 68',    $this->serviceWith(['display_theme_color' => 'red'])->getThemeColorRgb());
+        $this->assertSame('34, 197, 94',    $this->serviceWith(['display_theme_color' => 'green'])->getThemeColorRgb());
+        $this->assertSame('245, 158, 11',   $this->serviceWith(['display_theme_color' => 'orange'])->getThemeColorRgb());
+        $this->assertSame('236, 72, 153',   $this->serviceWith(['display_theme_color' => 'pink'])->getThemeColorRgb());
+        $this->assertSame('59, 130, 246',   $this->serviceWith(['display_theme_color' => 'blue'])->getThemeColorRgb());
+        $this->assertSame('99, 102, 241',   $this->serviceWith(['display_theme_color' => 'neon-yellow'])->getThemeColorRgb());
+    }
+
+    public function testFormatDateHonorsPreference(): void
+    {
+        $dt = new \DateTimeImmutable('2026-04-21 14:30:00', new \DateTimeZone('Europe/Paris'));
+
+        $this->assertSame('21/04/2026', $this->serviceWith(['display_date_format' => 'fr'])->formatDate($dt));
+        $this->assertSame('Apr 21, 2026', $this->serviceWith(['display_date_format' => 'us'])->formatDate($dt));
+        $this->assertSame('2026-04-21', $this->serviceWith(['display_date_format' => 'iso'])->formatDate($dt));
+        $this->assertNull($this->serviceWith([])->formatDate(null));
+    }
+
+    public function testFormatTimeHonorsPreference(): void
+    {
+        $dt = new \DateTimeImmutable('2026-04-21 14:30:00', new \DateTimeZone('Europe/Paris'));
+
+        $this->assertSame('14:30', $this->serviceWith(['display_time_format' => '24h'])->formatTime($dt));
+        $this->assertSame('2:30 PM', $this->serviceWith(['display_time_format' => '12h'])->formatTime($dt));
+    }
+
+    public function testFormatTimeAppliesTimezone(): void
+    {
+        // 14:30 Paris = 08:30 New York (summer DST).
+        $dt = new \DateTimeImmutable('2026-06-15 14:30:00', new \DateTimeZone('Europe/Paris'));
+
+        $this->assertSame('08:30', $this->serviceWith([
+            'display_timezone'    => 'America/New_York',
+            'display_time_format' => '24h',
+        ])->formatTime($dt));
+    }
+
+    public function testFormatDateTimeJoinsDateAndTime(): void
+    {
+        $dt = new \DateTimeImmutable('2026-04-21 14:30:00', new \DateTimeZone('Europe/Paris'));
+        $prefs = $this->serviceWith(['display_date_format' => 'iso', 'display_time_format' => '24h']);
+
+        $this->assertSame('2026-04-21 · 14:30', $prefs->formatDateTime($dt));
+    }
+
+    public function testInvalidStoredTimezoneFallsBackToRawDatetime(): void
+    {
+        // An invalid timezone in the DB must not crash the render.
+        $dt = new \DateTimeImmutable('2026-04-21 14:30:00', new \DateTimeZone('Europe/Paris'));
+        $prefs = $this->serviceWith([
+            'display_timezone'    => 'Not/A-Real/Zone',
+            'display_time_format' => '24h',
+        ]);
+
+        // The raw Paris-tz datetime is used verbatim.
+        $this->assertSame('14:30', $prefs->formatTime($dt));
     }
 }

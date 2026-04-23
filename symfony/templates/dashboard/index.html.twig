@@ -84,9 +84,9 @@
       rgba(10,10,15,.98) 0%,
       rgba(10,10,15,.82) 30%,
       rgba(10,10,15,.45) 55%,
-      rgba(99,102,241,.18) 100%);
+      rgba(var(--tblr-primary-rgb),.18) 100%);
   }
-  .hero-noBg { background: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #8b5cf6 100%); }
+  .hero-noBg { background: linear-gradient(135deg, #4338ca 0%, var(--tblr-primary) 50%, #8b5cf6 100%); }
   .hero-inner { position: relative; z-index: 1; width: 100%; }
   .hero-kicker { font-size: .78rem; opacity: .8; letter-spacing: .1em; text-transform: uppercase; margin-bottom: .35rem; font-weight: 500; }
   .hero-greeting {
@@ -106,8 +106,8 @@
     display: inline-block;
     font-size: .7rem; font-weight: 600;
     padding: .28rem .7rem;
-    background: rgba(99,102,241,.28);
-    border: 1px solid rgba(99,102,241,.55);
+    background: rgba(var(--tblr-primary-rgb),.28);
+    border: 1px solid rgba(var(--tblr-primary-rgb),.55);
     border-radius: 999px;
     text-transform: uppercase; letter-spacing: .08em;
     backdrop-filter: blur(8px);
@@ -180,76 +180,115 @@
   .mini-cal {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-    padding: .85rem;
+    gap: 8px;
+    padding: 1rem;
   }
-  @media (max-width: 768px) { .mini-cal { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 992px) { .mini-cal { grid-template-columns: repeat(7, minmax(140px, 1fr)); overflow-x: auto; } }
+  @media (max-width: 576px) { .mini-cal { grid-template-columns: repeat(1, 1fr); overflow-x: visible; } }
 
   .mini-cal-day {
     display: flex; flex-direction: column;
     background: var(--tblr-bg-surface-secondary);
-    border: 1px solid rgba(148,163,184,.12);
-    border-radius: 8px;
-    padding: .45rem .4rem .5rem;
-    min-height: 140px;
-    transition: border-color .15s ease;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 10px;
+    padding: .6rem .55rem .65rem;
+    min-height: 200px;
+    transition: border-color .15s ease, box-shadow .15s ease;
   }
   .mini-cal-day.is-today {
-    background: rgba(var(--tblr-primary-rgb, 99,102,241), .08);
-    border-color: rgba(var(--tblr-primary-rgb, 99,102,241), .4);
+    background: rgba(var(--tblr-primary-rgb), .1);
+    border-color: rgba(var(--tblr-primary-rgb), .45);
+    box-shadow: 0 0 0 1px rgba(var(--tblr-primary-rgb), .15) inset;
   }
   .mini-cal-day-head {
     text-align: center;
-    padding: .15rem 0 .35rem;
-    border-bottom: 1px dashed rgba(148,163,184,.18);
-    margin-bottom: .4rem;
+    padding: .1rem 0 .45rem;
+    border-bottom: 1px dashed var(--tblr-border-color);
+    margin-bottom: .55rem;
   }
   .mini-cal-dow {
-    font-size: .62rem; font-weight: 600;
+    font-size: .65rem; font-weight: 700;
     color: var(--tblr-secondary);
-    text-transform: uppercase; letter-spacing: .08em;
+    text-transform: uppercase; letter-spacing: .09em;
   }
   .mini-cal-dom {
-    font-size: 1.2rem; font-weight: 700;
+    font-size: 1.35rem; font-weight: 800;
     color: var(--tblr-body-color); line-height: 1;
-    margin-top: .15rem;
+    margin-top: .2rem;
   }
   .mini-cal-day.is-today .mini-cal-dow,
   .mini-cal-day.is-today .mini-cal-dom { color: var(--tblr-primary); }
 
-  .mini-cal-items { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .mini-cal-items {
+    flex: 1; display: flex; flex-direction: column; gap: 4px;
+  }
+  .mini-cal-more {
+    display: block; text-align: center;
+    padding: .3rem .4rem;
+    font-size: .65rem; font-weight: 600;
+    color: var(--tblr-primary);
+    background: rgba(var(--tblr-primary-rgb), .08);
+    border: 1px dashed rgba(var(--tblr-primary-rgb), .3);
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .mini-cal-more:hover {
+    background: rgba(var(--tblr-primary-rgb), .18);
+    border-color: rgba(var(--tblr-primary-rgb), .55);
+    color: var(--tblr-primary);
+  }
   .mini-cal-item {
-    display: flex; align-items: center; gap: 5px;
-    padding: 3px 4px;
+    display: flex; align-items: stretch; gap: 0;
     background: var(--tblr-bg-surface);
-    border-radius: 4px;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 6px;
+    overflow: hidden;
     text-decoration: none !important;
     color: var(--tblr-body-color);
     min-width: 0;
-    transition: background .1s ease;
+    transition: transform .1s ease, border-color .12s ease, box-shadow .12s ease;
+    cursor: pointer;
   }
-  .mini-cal-item:hover { background: rgba(var(--tblr-primary-rgb, 99,102,241), .12); color: var(--tblr-body-color); }
+  @media (hover: hover) and (pointer: fine) {
+    .mini-cal-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(var(--tblr-primary-rgb), .5);
+      box-shadow: 0 4px 10px rgba(0,0,0,.15);
+      color: var(--tblr-body-color);
+    }
+  }
   .mini-cal-item-thumb {
-    width: 18px; height: 26px; flex-shrink: 0; border-radius: 2px;
+    width: 30px; flex-shrink: 0;
     background-size: cover; background-position: center;
     background-color: var(--tblr-bg-surface-secondary);
   }
   .mini-cal-item-thumb.is-placeholder {
     display: flex; align-items: center; justify-content: center;
-    font-size: .7rem; color: var(--tblr-secondary);
+    font-size: .85rem;
   }
-  .mini-cal-item-body { min-width: 0; flex: 1; }
+  .mini-cal-item-body { min-width: 0; flex: 1; padding: .3rem .45rem; }
+  .mini-cal-item-type {
+    display: inline-block;
+    font-size: .55rem; font-weight: 700;
+    padding: .05rem .3rem; border-radius: 2px;
+    text-transform: uppercase; letter-spacing: .04em;
+    margin-bottom: .1rem;
+  }
+  .mini-cal-item-type.is-movie   { background: rgba(245,158,11,.18); color: #f59e0b; }
+  .mini-cal-item-type.is-episode { background: rgba(14,165,233,.18); color: #0ea5e9; }
   .mini-cal-item-title {
-    font-size: .68rem; font-weight: 500; line-height: 1.2;
+    font-size: .72rem; font-weight: 600; line-height: 1.25;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .mini-cal-item-meta {
-    font-size: .58rem; color: var(--tblr-secondary); line-height: 1;
-    margin-top: 1px;
+    font-size: .6rem; color: var(--tblr-secondary); line-height: 1.2;
+    margin-top: .12rem;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .mini-cal-empty {
-    font-size: .65rem; color: var(--tblr-secondary); opacity: .5;
-    text-align: center; margin: auto 0; padding: .5rem 0;
+    font-size: .7rem; color: var(--tblr-secondary); opacity: .55;
+    text-align: center; margin: auto 0; padding: 1rem 0;
     font-style: italic;
   }
 
@@ -331,15 +370,19 @@
     border-color: rgba(0,0,0,.1);
     box-shadow: 0 1px 4px rgba(0,0,0,.06);
   }
-  .poster-tile:hover,
-  .poster-tile:focus,
-  .poster-tile:hover .poster-tile-title,
-  .poster-tile:hover .poster-tile-sub {
-    transform: translateY(-2px);
-    border-color: rgba(var(--tblr-primary-rgb, 99,102,241), .45);
-    box-shadow: 0 6px 16px rgba(var(--tblr-primary-rgb, 99,102,241), .22);
-    color: inherit;
-    text-decoration: none !important;
+  /* Keep hover lift only on pointer-capable devices — tap-hover on mobile
+     leaves the tile in a "stuck-selected" state until another tap. */
+  @media (hover: hover) and (pointer: fine) {
+    .poster-tile:hover,
+    .poster-tile:focus,
+    .poster-tile:hover .poster-tile-title,
+    .poster-tile:hover .poster-tile-sub {
+      transform: translateY(-2px);
+      border-color: rgba(var(--tblr-primary-rgb, 99,102,241), .45);
+      box-shadow: 0 6px 16px rgba(var(--tblr-primary-rgb, 99,102,241), .22);
+      color: inherit;
+      text-decoration: none !important;
+    }
   }
   .poster-tile-title, .poster-tile-sub { text-decoration: none !important; }
   .poster-tile-wrap { position: relative; }
@@ -406,7 +449,8 @@
       {% endif %}
       <div class="hero-fade"></div>
       <div class="hero-inner">
-        <p class="hero-kicker">{{ 'now'|date('l j F Y')|capitalize }}</p>
+        {% set weekday = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche']['now'|date('N') - 1] %}
+        <p class="hero-kicker">{{ weekday }} · {{ 'now'|prismarr_date }} · {{ 'now'|prismarr_time }}</p>
         <h1 class="hero-greeting">{{ greeting }}, {{ username }}</h1>
 
         {% if hero_spotlight and hero_spotlight.title %}
@@ -503,19 +547,36 @@
                     {% if day.items is empty %}
                       <div class="mini-cal-empty">—</div>
                     {% else %}
-                      {% for item in day.items %}
-                        <div class="mini-cal-item" title="{{ item.title }}{% if item.subtitle %} — {{ item.subtitle }}{% endif %} · {{ item.date|date('H:i') }}">
+                      {% set max_shown = 3 %}
+                      {% for item in day.items|slice(0, max_shown) %}
+                        {% set item_href = item.id ? (item.type == 'movie'
+                            ? path('app_media_films')  ~ '?open=' ~ item.id
+                            : path('app_media_series') ~ '?open=' ~ item.id) : '#' %}
+                        <a href="{{ item_href }}" class="mini-cal-item"
+                           title="{{ item.title }}{% if item.subtitle %} — {{ item.subtitle }}{% endif %} · {{ item.date|prismarr_time }}{% if item.badge %} · {{ item.badge }}{% endif %}">
                           {% if item.poster %}
                             <div class="mini-cal-item-thumb" style="background-image: url('{{ item.poster }}');"></div>
                           {% else %}
                             <div class="mini-cal-item-thumb is-placeholder">{{ item.type == 'movie' ? '🎬' : '📺' }}</div>
                           {% endif %}
                           <div class="mini-cal-item-body">
+                            <span class="mini-cal-item-type {{ item.type == 'movie' ? 'is-movie' : 'is-episode' }}">
+                              {{ item.type == 'movie' ? 'Film' : 'Série' }}
+                            </span>
                             <div class="mini-cal-item-title">{{ item.title }}</div>
-                            <div class="mini-cal-item-meta">{{ item.date|date('H:i') }}{% if item.badge %} · {{ item.badge }}{% endif %}</div>
+                            <div class="mini-cal-item-meta">
+                              {{ item.date|prismarr_time }}
+                              {%- if item.subtitle and item.type == 'episode' %} · {{ item.subtitle }}{% endif -%}
+                              {%- if item.badge %} · {{ item.badge }}{% endif -%}
+                            </div>
                           </div>
-                        </div>
+                        </a>
                       {% endfor %}
+                      {% if day.items|length > max_shown %}
+                        <a href="{{ path('app_calendrier') }}?view=day&amp;date={{ iso }}" class="mini-cal-more">
+                          + {{ day.items|length - max_shown }} autre{{ day.items|length - max_shown > 1 ? 's' }}
+                        </a>
+                      {% endif %}
                     {% endif %}
                   </div>
                 </div>
@@ -559,7 +620,7 @@
                     <div class="dash-item-title text-truncate">{{ req.title }}</div>
                     <div class="dash-item-sub">
                       par {{ req.requestedBy }}
-                      {%- if req.requestedAt %} · {{ req.requestedAt|date('d/m') }}{% endif -%}
+                      {%- if req.requestedAt %} · {{ req.requestedAt|prismarr_date }}{% endif -%}
                     </div>
                   </div>
                   <div class="dash-item-aside">

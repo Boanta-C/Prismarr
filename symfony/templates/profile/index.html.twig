@@ -1,0 +1,290 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil{% endblock %}
+{% block page_title %}<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--tblr-primary);"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg> Mon profil{% endblock %}
+
+{% block stylesheets %}
+<style>
+  .profile-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (max-width: 768px) { .profile-layout { grid-template-columns: 1fr; } }
+
+  .profile-card {
+    background: var(--tblr-bg-surface);
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .avatar-preview {
+    width: 140px; height: 140px; border-radius: 50%;
+    background-size: cover; background-position: center;
+    background-color: var(--tblr-bg-surface-secondary);
+    margin: 0 auto 1rem;
+    border: 3px solid rgba(var(--tblr-primary-rgb), .35);
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  }
+  .avatar-actions { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+  .avatar-upload-btn {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .45rem .85rem;
+    background: var(--tblr-primary);
+    border: 0; border-radius: 6px;
+    color: #fff; font-size: .82rem; font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .avatar-upload-btn:hover { background: rgba(var(--tblr-primary-rgb), .85); color: #fff; }
+  .avatar-upload-btn input[type="file"] { display: none; }
+  .avatar-delete-btn {
+    padding: .45rem .85rem;
+    background: transparent;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 6px;
+    color: var(--tblr-secondary); font-size: .82rem;
+    cursor: pointer;
+  }
+  .avatar-delete-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+  .profile-info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .55rem 0;
+    border-bottom: 1px solid var(--tblr-border-color);
+    font-size: .82rem;
+  }
+  .profile-info-row:last-child { border-bottom: 0; }
+  .profile-info-row .label { color: var(--tblr-secondary); }
+  .profile-info-row .value { font-weight: 500; color: var(--tblr-body-color); }
+  .profile-info-row .value.badge-role { padding: .2rem .55rem; border-radius: 999px; background: rgba(var(--tblr-primary-rgb), .15); color: var(--tblr-primary); font-size: .7rem; }
+
+  .profile-form-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--tblr-border-color);
+  }
+  .profile-form-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+  .profile-form-section h3 {
+    font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--tblr-secondary); margin-bottom: .85rem;
+  }
+
+  /* Profile stats tiles */
+  .profile-stat {
+    padding: 1rem .75rem;
+    background: var(--tblr-bg-surface-secondary);
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 8px;
+    height: 100%;
+  }
+  .profile-stat-value { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+  .profile-stat-label { font-size: .75rem; color: var(--tblr-secondary); margin-top: .4rem; }
+
+  /* Watchlist preview tiles */
+  .profile-watchlist-tile {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--tblr-bg-surface-secondary);
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .profile-watchlist-tile:hover {
+      transform: translateY(-2px);
+      border-color: rgba(var(--tblr-primary-rgb), .4);
+      color: inherit;
+    }
+  }
+  .profile-watchlist-tile img {
+    width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block;
+    background: var(--tblr-bg-surface-secondary);
+  }
+  .profile-watchlist-tile .placeholder {
+    width: 100%; aspect-ratio: 2/3;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; color: var(--tblr-secondary);
+  }
+  .profile-watchlist-tile .title { padding: .4rem .5rem 0; font-size: .78rem; font-weight: 600; }
+  .profile-watchlist-tile .sub   { padding: 0 .5rem .5rem; font-size: .68rem; color: var(--tblr-secondary); margin-top: .15rem; }
+</style>
+{% endblock %}
+
+{% block body %}
+{% set avatar_url = user.avatarPath
+    ? path('app_profile_avatar_serve', {filename: user.avatarPath})
+    : 'https://ui-avatars.com/api/?name=' ~ user.email|url_encode ~ '&background=6366f1&color=fff&size=256' %}
+
+<div class="page-body">
+  <div class="container-xl">
+
+    {% if errors|default([]) is not empty %}
+      <div class="alert alert-danger">
+        <ul class="mb-0 ps-3">
+          {% for err in errors %}<li>{{ err }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <div class="profile-layout">
+
+      {# ── Card avatar + infos rapides ────────────────────────────── #}
+      <div class="profile-card text-center">
+        <div class="avatar-preview" style="background-image: url('{{ avatar_url }}');"></div>
+
+        <form action="{{ path('app_profile_avatar_upload') }}" method="post" enctype="multipart/form-data" class="avatar-actions">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile_avatar') }}">
+          <label class="avatar-upload-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M12 17v-6"/><path d="M9.5 13.5l2.5 -2.5l2.5 2.5"/></svg>
+            Choisir une image
+            <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" onchange="this.form.submit()">
+          </label>
+        </form>
+
+        {% if user.avatarPath %}
+          <form action="{{ path('app_profile_avatar_delete') }}" method="post" style="margin-top: .5rem;">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile_avatar') }}">
+            <button type="submit" class="avatar-delete-btn" onclick="return confirm('Supprimer la photo de profil ?')">Supprimer la photo</button>
+          </form>
+        {% endif %}
+
+        <p class="small text-secondary mt-3 mb-0" style="font-size: .72rem;">
+          JPG, PNG, WebP, GIF · 2 Mo max
+        </p>
+
+        <hr style="margin: 1.25rem 0; opacity: .4;">
+
+        <div class="profile-info-row">
+          <span class="label">Email</span>
+          <span class="value text-truncate ms-2" title="{{ user.email }}">{{ user.email }}</span>
+        </div>
+        <div class="profile-info-row">
+          <span class="label">Rôle</span>
+          <span class="value badge-role">{% if is_granted('ROLE_ADMIN') %}Administrateur{% else %}Utilisateur{% endif %}</span>
+        </div>
+        {% if user.createdAt %}
+        <div class="profile-info-row">
+          <span class="label">Inscrit le</span>
+          <span class="value">{{ user.createdAt|prismarr_date }}</span>
+        </div>
+        {% endif %}
+        {% if user.lastLoginAt %}
+        <div class="profile-info-row">
+          <span class="label">Dernière connexion</span>
+          <span class="value">{{ user.lastLoginAt|prismarr_date }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      {# ── Card formulaire (nom + password) ────────────────────────── #}
+      <div class="profile-card">
+        <form action="{{ path('app_profile') }}" method="post" autocomplete="off">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile') }}">
+
+          <div class="profile-form-section">
+            <h3>Informations</h3>
+            <div class="mb-3">
+              <label class="form-label small" for="display_name">Nom d'affichage</label>
+              <input type="text" id="display_name" name="display_name" class="form-control"
+                     value="{{ user.displayName ?? '' }}" placeholder="{{ user.email|split('@')|first }}">
+              <div class="form-text small">Affiché dans le dashboard et la sidebar. Vide = email utilisé.</div>
+            </div>
+          </div>
+
+          <div class="profile-form-section">
+            <h3>Changer le mot de passe</h3>
+            <p class="small text-secondary mb-3">Laissez vide pour ne pas modifier. 8 caractères minimum.</p>
+
+            <div class="mb-3">
+              <label class="form-label small" for="current_password">Mot de passe actuel</label>
+              <input type="password" id="current_password" name="current_password" class="form-control" autocomplete="current-password">
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small" for="new_password">Nouveau mot de passe</label>
+                <input type="password" id="new_password" name="new_password" class="form-control" autocomplete="new-password" minlength="8">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small" for="confirm_password">Confirmation</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" autocomplete="new-password" minlength="8">
+              </div>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    {# ── Statistiques perso ─────────────────────────────────────── #}
+    <div class="profile-card" style="margin-top: 1.25rem;">
+      <h3 style="font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tblr-secondary); margin-bottom: 1rem;">
+        Statistiques personnelles
+      </h3>
+      <div class="row g-3 text-center">
+        <div class="col-sm-4">
+          <div class="profile-stat">
+            <div class="profile-stat-value" style="color: #f59e0b;">{{ watchlist_count }}</div>
+            <div class="profile-stat-label">Film{{ watchlist_count > 1 ? 's' }} / série{{ watchlist_count > 1 ? 's' }} dans ma liste</div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="profile-stat">
+            <div class="profile-stat-value" style="color: var(--tblr-primary);">
+              {%- if days_since is null -%}—
+              {%- elseif days_since < 1 -%}Aujourd'hui
+              {%- elseif days_since < 30 -%}{{ days_since }} j
+              {%- elseif days_since < 365 -%}{{ (days_since / 30)|round }} mois
+              {%- else -%}{{ (days_since / 365)|round(1) }} an{{ days_since >= 730 ? 's' }}
+              {%- endif -%}
+            </div>
+            <div class="profile-stat-label">Membre depuis</div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="profile-stat">
+            <div class="profile-stat-value" style="color: {{ is_granted('ROLE_ADMIN') ? '#8b5cf6' : '#22c55e' }};">
+              {{ is_granted('ROLE_ADMIN') ? 'Admin' : 'Utilisateur' }}
+            </div>
+            <div class="profile-stat-label">Rôle actuel</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Ma bibliothèque perso (watchlist preview) ─────────────── #}
+    {% if recent_watchlist is not empty %}
+    <div class="profile-card" style="margin-top: 1.25rem;">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h3 style="font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tblr-secondary); margin: 0;">
+          Derniers ajouts à ma watchlist
+        </h3>
+        <a href="{{ path('tmdb_watchlist') }}" class="small text-primary text-decoration-none">Tout voir →</a>
+      </div>
+      <div class="row g-3">
+        {% for w in recent_watchlist %}
+          <div class="col-6 col-md-3">
+            <a href="{{ path('tmdb_index') }}?detail={{ w.mediaType }}/{{ w.tmdbId }}" class="profile-watchlist-tile">
+              {% if w.posterPath %}
+                <img src="https://image.tmdb.org/t/p/w342{{ w.posterPath }}" alt="{{ w.title }}" loading="lazy">
+              {% else %}
+                <div class="placeholder">{{ w.mediaType == 'tv' ? '📺' : '🎬' }}</div>
+              {% endif %}
+              <div class="title text-truncate">{{ w.title }}</div>
+              <div class="sub">{{ w.mediaType == 'tv' ? 'Série' : 'Film' }}{% if w.year %} · {{ w.year }}{% endif %}</div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Calendrier — IH-ARGOS{% endblock %}
+{% block title %}Calendrier{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
 {% block stylesheets %}
@@ -12,7 +12,7 @@
 .cal-toolbar-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--tblr-secondary); }
 .cal-filter-pill { display:inline-flex; align-items:center; gap:.35rem; padding:.25rem .6rem; border:1px solid var(--tblr-border-color); background:none; border-radius:2rem; font-size:.72rem; color:var(--tblr-body-color); cursor:pointer; transition:all .15s; white-space:nowrap; }
 .cal-filter-pill:hover { background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.15); }
-.cal-filter-pill.active { background:rgba(99,102,241,.15); border-color:#6366f1; color:#a5b4fc; font-weight:600; }
+.cal-filter-pill.active { background:rgba(var(--tblr-primary-rgb),.15); border-color:var(--tblr-primary); color:#a5b4fc; font-weight:600; }
 .cal-filter-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
 .cal-filter-count { font-size:.6rem; color:var(--tblr-secondary); }
 .cal-toolbar-sep { width:1px; height:1.5rem; background:var(--tblr-border-color); margin:0 .25rem; }
@@ -21,19 +21,147 @@
 .cal-main-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; flex-wrap:wrap; gap:.5rem; }
 .cal-main-title { font-size:1.15rem; font-weight:700; }
 
-/* Grille mois */
-.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:rgba(255,255,255,.04); border:1px solid var(--tblr-border-color); border-radius:.75rem; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.2); }
-.cal-grid-dow { background:rgba(99,102,241,.08); padding:.5rem .35rem; text-align:center; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#818cf8; }
+/* Toggle Mois / Semaine / Jour */
+.cal-view-switch {
+  display: inline-flex;
+  background: var(--tblr-bg-surface);
+  border: 1px solid var(--tblr-border-color);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 1px;
+}
+.cal-view-btn {
+  border: 0;
+  background: transparent;
+  color: var(--tblr-body-color);
+  padding: .28rem .75rem;
+  font-size: .75rem; font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease;
+}
+.cal-view-btn:hover { background: rgba(var(--tblr-primary-rgb), .08); }
+.cal-view-btn.is-active {
+  background: var(--tblr-primary);
+  color: #fff;
+}
+
+/* Vue Semaine : 7 col × 1 row. Sur mobile, scroll horizontal pour ne pas
+   écraser les cellules à moins de 100px. */
+.cal-week-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.cal-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--tblr-border-color);
+  border-radius: .75rem;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+}
+@media (max-width: 768px) {
+  .cal-week-grid { grid-template-columns: repeat(7, minmax(140px, 1fr)); min-width: 1000px; }
+}
+.cal-week-cell {
+  background: var(--tblr-bg-surface);
+  min-height: 340px;
+  padding: .6rem .5rem .7rem;
+  display: flex; flex-direction: column;
+}
+.cal-week-cell.is-today { background: rgba(var(--tblr-primary-rgb), .08); }
+.cal-week-cell.is-past { background: rgba(0,0,0,.15); }
+.cal-week-cell.is-past .cal-block { opacity: .55; text-decoration: line-through; filter: grayscale(.3); }
+.cal-week-head {
+  text-align: center;
+  padding-bottom: .45rem;
+  margin-bottom: .45rem;
+  border-bottom: 1px dashed var(--tblr-border-color);
+}
+.cal-week-dow { font-size: .65rem; font-weight: 700; color: var(--tblr-secondary); text-transform: uppercase; letter-spacing: .08em; }
+.cal-week-dom {
+  font-size: 1.2rem; font-weight: 700; line-height: 1;
+  margin-top: .2rem;
+}
+.cal-week-cell.is-today .cal-week-dow,
+.cal-week-cell.is-today .cal-week-dom { color: var(--tblr-primary); }
+.cal-week-events { display: flex; flex-direction: column; gap: 3px; flex: 1; overflow-y: auto; }
+.cal-week-empty { text-align: center; font-size: .7rem; color: var(--tblr-secondary); opacity: .5; margin: auto 0; font-style: italic; }
+
+/* Vue Jour : timeline verticale avec events */
+.cal-day-wrap {
+  background: var(--tblr-bg-surface);
+  border: 1px solid var(--tblr-border-color);
+  border-radius: .75rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+}
+.cal-day-header {
+  display: flex; align-items: baseline; gap: .75rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--tblr-border-color);
+}
+.cal-day-date-big { font-size: 2.2rem; font-weight: 800; line-height: 1; color: var(--tblr-primary); }
+.cal-day-date-lbl { font-size: 1rem; font-weight: 600; color: var(--tblr-body-color); text-transform: capitalize; }
+.cal-day-count { margin-left: auto; font-size: .78rem; color: var(--tblr-secondary); }
+.cal-day-list { display: flex; flex-direction: column; gap: .5rem; }
+.cal-day-row {
+  display: flex; align-items: center; gap: .85rem;
+  padding: .7rem .9rem;
+  background: var(--tblr-bg-surface-secondary);
+  border: 1px solid var(--tblr-border-color);
+  border-radius: 8px;
+  transition: border-color .15s ease;
+}
+.cal-day-row:hover { border-color: rgba(var(--tblr-primary-rgb), .45); }
+.cal-day-row-poster {
+  width: 48px; height: 72px; border-radius: 5px;
+  object-fit: cover; flex-shrink: 0;
+  background: var(--tblr-bg-surface-secondary);
+}
+.cal-day-row-placeholder {
+  width: 48px; height: 72px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--tblr-bg-surface-secondary);
+  font-size: 1.5rem; flex-shrink: 0;
+}
+.cal-day-row-body { flex: 1; min-width: 0; }
+.cal-day-row-type {
+  display: inline-block;
+  font-size: .62rem; font-weight: 700;
+  padding: .1rem .4rem; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: .05em;
+  margin-bottom: .3rem;
+}
+.cal-day-row-title { font-weight: 600; font-size: .92rem; line-height: 1.2; }
+.cal-day-row-sub { font-size: .75rem; color: var(--tblr-secondary); margin-top: .2rem; }
+.cal-day-empty {
+  padding: 3rem 1rem; text-align: center; color: var(--tblr-secondary);
+  font-size: .9rem;
+}
+
+/* Grille mois — scroll horizontal forcé sur petit écran pour que les cellules restent lisibles au lieu de s'écraser à 40px de large. */
+.cal-grid-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:1px; background:rgba(255,255,255,.04); border:1px solid var(--tblr-border-color); border-radius:.75rem; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.2); }
+@media (max-width: 768px) {
+  .cal-grid { grid-template-columns:repeat(7, minmax(92px, 1fr)); min-width:680px; }
+}
+.cal-grid-dow { background:rgba(var(--tblr-primary-rgb),.08); padding:.5rem .35rem; text-align:center; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#818cf8; }
 .cal-grid-dow.is-weekend { color:#f59e0b; }
 .cal-cell { background:var(--tblr-bg-surface); min-height:110px; padding:.3rem .35rem; position:relative; transition:background .15s; }
 .cal-cell:hover { background:rgba(255,255,255,.02); }
 .cal-cell.other-month { background:rgba(0,0,0,.12); }
 .cal-cell.other-month .cal-cell-num { opacity:.25; }
-.cal-cell.is-today { background:rgba(99,102,241,.07); }
-.cal-cell.is-selected { box-shadow:inset 0 0 0 2px #6366f1; }
+.cal-cell.is-today { background:rgba(var(--tblr-primary-rgb),.07); }
+/* Dates passées : grisaille + events atténués + rayé — séparation visuelle claire entre ce qui est déjà sorti et ce qui arrive. */
+.cal-cell.is-past { background:rgba(0,0,0,.18); }
+.cal-cell.is-past .cal-cell-num { opacity:.5; }
+.cal-cell.is-past .cal-block { opacity:.55; text-decoration:line-through; filter:grayscale(.3); }
+.cal-cell.is-past .cal-block:hover { opacity:.85; filter:grayscale(0); }
+.cal-cell.is-selected { box-shadow:inset 0 0 0 2px var(--tblr-primary); }
 .cal-cell.is-weekend { background:rgba(255,255,255,.01); }
 .cal-cell-num { font-size:.75rem; font-weight:700; color:rgba(255,255,255,.45); padding:.15rem .3rem; display:inline-block; border-radius:.25rem; cursor:pointer; }
-.cal-cell.is-today .cal-cell-num { background:#6366f1; color:#fff; border-radius:50%; width:1.5rem; height:1.5rem; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+.cal-cell.is-today .cal-cell-num { background:var(--tblr-primary); color:#fff; border-radius:50%; width:1.5rem; height:1.5rem; display:inline-flex; align-items:center; justify-content:center; padding:0; }
 .cal-cell-events { display:flex; flex-direction:column; gap:2px; margin-top:3px; }
 
 /* ── Blocs événements ── */
@@ -97,17 +225,17 @@
 /* ── Mini calendrier inline ── */
 .cal-mini-inline { display:inline-flex; align-items:center; gap:.15rem; background:var(--tblr-bg-surface); border:1px solid var(--tblr-border-color); border-radius:.5rem; padding:.25rem .4rem; position:relative; }
 .cal-mini-inline button { background:none; border:none; color:var(--tblr-secondary); cursor:pointer; padding:1px; line-height:1; font-size:.75rem; }
-.cal-mini-inline button:hover { color:#6366f1; }
+.cal-mini-inline button:hover { color:var(--tblr-primary); }
 .cal-mini-dropdown { position:absolute; top:100%; right:0; margin-top:.35rem; background:#1e1e2e; border:1px solid rgba(255,255,255,.12); border-radius:.75rem; box-shadow:0 8px 24px rgba(0,0,0,.4); padding:.6rem; width:240px; z-index:100; display:none; }
 .cal-mini-dropdown.show { display:block; }
 .cal-mini-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; text-align:center; }
 .cal-mini-dow { font-size:.55rem; font-weight:600; color:var(--tblr-secondary); padding:.15rem 0; }
 .cal-mini-day { font-size:.65rem; padding:.25rem .1rem; border-radius:.2rem; cursor:pointer; color:rgba(255,255,255,.5); transition:background .1s; }
-.cal-mini-day:hover { background:rgba(99,102,241,.15); }
-.cal-mini-day.is-today { background:#6366f1; color:#fff; font-weight:700; border-radius:50%; }
+.cal-mini-day:hover { background:rgba(var(--tblr-primary-rgb),.15); }
+.cal-mini-day.is-today { background:var(--tblr-primary); color:#fff; font-weight:700; border-radius:50%; }
 .cal-mini-day.other-month { opacity:.2; }
 .cal-mini-day.has-events { font-weight:700; color:#fff; }
-.cal-mini-day.has-events::after { content:''; display:block; width:3px; height:3px; border-radius:50%; background:#6366f1; margin:0 auto; }
+.cal-mini-day.has-events::after { content:''; display:block; width:3px; height:3px; border-radius:50%; background:var(--tblr-primary); margin:0 auto; }
 
 /* ── Stats bottom ── */
 .cal-bottom-stats { display:flex; gap:1.5rem; margin-top:.75rem; font-size:.75rem; color:var(--tblr-secondary); }
@@ -131,11 +259,11 @@ Calendrier
 
         {# Card : Tout #}
         <div class="cal-toolbar" style="flex:0 0 auto;">
-            <button class="cal-filter-pill active" data-filter="all"><div class="cal-filter-dot" style="background:#6366f1;"></div> Tout <span class="cal-filter-count" id="fc-all"></span></button>
+            <button class="cal-filter-pill active" data-filter="all"><div class="cal-filter-dot" style="background:var(--tblr-primary);"></div> Tout <span class="cal-filter-count" id="fc-all"></span></button>
         </div>
 
         {# Card : Médias #}
-        <div class="cal-toolbar" style="flex:1 1 auto;">
+        <div class="cal-toolbar" style="flex:0 1 auto;">
             <span class="cal-toolbar-label">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFC230" stroke-width="2" class="me-1"><path d="M7 4v16l13 -8z"/></svg>
                 Médias
@@ -146,21 +274,10 @@ Calendrier
             <button class="cal-filter-pill" data-filter="episode"><div class="cal-filter-dot" style="background:#38bdf8;"></div> Épisodes <span class="cal-filter-count" id="fc-episode"></span></button>
         </div>
 
-        {# Card : Personnel (futur) #}
-        <div class="cal-toolbar" style="flex:0 1 auto;opacity:.4;">
-            <span class="cal-toolbar-label">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                Futur
-            </span>
-            <button class="cal-filter-pill" disabled><div class="cal-filter-dot" style="background:#f472b6;"></div> Personnel</button>
-            <button class="cal-filter-pill" disabled><div class="cal-filter-dot" style="background:#fb923c;"></div> Infra</button>
-            <button class="cal-filter-pill" disabled><div class="cal-filter-dot" style="background:#a78bfa;"></div> Rappels</button>
-        </div>
-
         {# Card : Statut #}
         <div class="cal-toolbar" style="flex:0 1 auto;">
             <span class="cal-toolbar-label">Statut</span>
-            <button class="cal-filter-pill active" data-status="all"><div class="cal-filter-dot" style="background:#6366f1;"></div> Tous</button>
+            <button class="cal-filter-pill active" data-status="all"><div class="cal-filter-dot" style="background:var(--tblr-primary);"></div> Tous</button>
             <button class="cal-filter-pill" data-status="monitored"><div class="cal-filter-dot" style="background:#818cf8;"></div> Suivis</button>
             <button class="cal-filter-pill" data-status="missing"><div class="cal-filter-dot" style="background:#f59e0b;"></div> Non suivis</button>
             <button class="cal-filter-pill" data-status="available"><div class="cal-filter-dot" style="background:#22c55e;"></div> Disponibles</button>
@@ -171,7 +288,17 @@ Calendrier
     {# ── Navigation ── #}
     <div class="cal-main-header">
         <div class="cal-main-title" id="main-title"></div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            {# Toggle de vues #}
+            <div class="cal-view-switch" role="tablist" aria-label="Vue calendrier">
+                <button type="button" class="cal-view-btn is-active" data-view="month" role="tab" aria-selected="true">Mois</button>
+                <button type="button" class="cal-view-btn" data-view="week" role="tab" aria-selected="false">Semaine</button>
+                <button type="button" class="cal-view-btn" data-view="day" role="tab" aria-selected="false">Jour</button>
+            </div>
+            <a href="{{ path('app_calendrier_ical') }}" class="btn btn-sm btn-ghost-secondary" title="Abonnement iCal (Apple Calendar / Google / Thunderbird)" download>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:.3rem;"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/><polyline points="7 11 12 16 17 11"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+                iCal
+            </a>
             <button id="main-today" class="btn btn-sm btn-outline-indigo">Aujourd'hui</button>
             <button id="main-prev" class="btn btn-sm btn-ghost-secondary btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
             <button id="main-next" class="btn btn-sm btn-ghost-secondary btn-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
@@ -196,20 +323,6 @@ Calendrier
     {# ── Grille pleine largeur ── #}
     <div id="main-grid"></div>
 
-    <div class="cal-bottom-stats">
-        <span class="text-secondary" style="font-size:.65rem;font-weight:600;">MÉDIAS :</span>
-        <div class="cal-bottom-stat"><div class="cal-bottom-dot" style="background:#dc2626;"></div> Cinéma</div>
-        <div class="cal-bottom-stat"><div class="cal-bottom-dot" style="background:#a855f7;"></div> Numérique</div>
-        <div class="cal-bottom-stat"><div class="cal-bottom-dot" style="background:#22c55e;"></div> Physique</div>
-        <div class="cal-bottom-stat"><div class="cal-bottom-dot" style="background:#38bdf8;"></div> Épisode</div>
-        <div class="cal-bottom-stat" style="opacity:.5;"><div class="cal-bottom-dot" style="background:rgba(255,255,255,.15);"></div> Disponible</div>
-        <div class="cal-toolbar-sep" style="height:1rem;"></div>
-        <span class="text-secondary" style="font-size:.65rem;font-weight:600;">FUTUR :</span>
-        <div class="cal-bottom-stat" style="opacity:.4;"><div class="cal-bottom-dot" style="background:#f472b6;"></div> Personnel</div>
-        <div class="cal-bottom-stat" style="opacity:.4;"><div class="cal-bottom-dot" style="background:#fb923c;"></div> Infra</div>
-        <div class="cal-bottom-stat" style="opacity:.4;"><div class="cal-bottom-dot" style="background:#a78bfa;"></div> Rappels</div>
-    </div>
-
 {# Tooltip hover #}
 <div class="cal-tooltip" id="cal-tooltip"></div>
 {# Popup détail jour #}
@@ -223,7 +336,27 @@ Calendrier
 (function () {
     var allEvents = {{ eventsJson|json_encode|raw }};
     var today = new Date();
-    var curYear = today.getFullYear(), curMonth = today.getMonth();
+    var curYear = today.getFullYear(), curMonth = today.getMonth(), curDay = today.getDate();
+    var currentView = 'month'; // 'month' | 'week' | 'day'
+    try {
+        var storedView = localStorage.getItem('prismarrCalendarView');
+        if (storedView === 'month' || storedView === 'week' || storedView === 'day') currentView = storedView;
+    } catch (e) {}
+
+    // URL params override localStorage — `/calendrier?view=day&date=2026-04-23`
+    // lands straight on the requested day (used by dashboard "+N autres" link).
+    try {
+        var urlParams = new URLSearchParams(window.location.search);
+        var urlView   = urlParams.get('view');
+        var urlDate   = urlParams.get('date');
+        if (urlView === 'month' || urlView === 'week' || urlView === 'day') currentView = urlView;
+        if (urlDate && /^\d{4}-\d{2}-\d{2}$/.test(urlDate)) {
+            var parts = urlDate.split('-');
+            curYear  = parseInt(parts[0], 10);
+            curMonth = parseInt(parts[1], 10) - 1;
+            curDay   = parseInt(parts[2], 10);
+        }
+    } catch (e) {}
     var selDate = null;
     var filterType = 'all', filterStatus = 'all';
 
@@ -295,7 +428,7 @@ Calendrier
         var last = new Date(curYear, curMonth+1, 0);
         var startDow = (first.getDay()+6) % 7;
 
-        var h = '<div class="cal-grid">';
+        var h = '<div class="cal-grid-wrap"><div class="cal-grid">';
         DNfull.forEach(function(d, i) { h += '<div class="cal-grid-dow' + (i>=5?' is-weekend':'') + '">' + d + '</div>'; });
 
         var prev = new Date(curYear, curMonth, 0);
@@ -314,7 +447,7 @@ Calendrier
             var nds = fmt(new Date(curYear, curMonth+1, n));
             h += cell(n, nds, bd, true);
         }
-        h += '</div>';
+        h += '</div></div>';    // close .cal-grid + .cal-grid-wrap
         container.innerHTML = h;
 
         // Clic sur cellule → sélection + popup
@@ -333,9 +466,10 @@ Calendrier
 
     function cell(num, ds, bd, isOther) {
         var isToday = ds === todayStr;
+        var isPast  = ds < todayStr;
         var isSel = ds === selDate;
         var dow = (new Date(ds+'T12:00:00').getDay()+6) % 7;
-        var cls = 'cal-cell' + (isOther?' other-month':'') + (isToday?' is-today':'') + (isSel?' is-selected':'') + (dow>=5?' is-weekend':'');
+        var cls = 'cal-cell' + (isOther?' other-month':'') + (isToday?' is-today':'') + (isPast && !isToday?' is-past':'') + (isSel?' is-selected':'') + (dow>=5?' is-weekend':'');
         var evs = bd[ds] || [];
         var h = '<div class="' + cls + '" data-date="' + ds + '">';
         h += '<div class="cal-cell-num">' + num + '</div>';
@@ -366,12 +500,197 @@ Calendrier
         return h;
     }
 
-    function renderAll() { renderMain(); }
+    // ── Vue Semaine ──
+    // Calcule le lundi de la semaine contenant `date` (ISO week), puis build
+    // une grille 7 colonnes (Lun → Dim) avec les events de chaque jour.
+    function startOfWeek(d) {
+        var day = (d.getDay() + 6) % 7;   // 0 = Lundi
+        var wm = new Date(d);
+        wm.setDate(d.getDate() - day);
+        wm.setHours(0,0,0,0);
+        return wm;
+    }
+
+    function renderWeek() {
+        var container = document.getElementById('main-grid');
+        var cursor = new Date(curYear, curMonth, curDay);
+        var monday = startOfWeek(cursor);
+        var sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+
+        var title;
+        if (monday.getMonth() === sunday.getMonth()) {
+            title = 'Semaine du ' + monday.getDate() + ' au ' + sunday.getDate() + ' ' + MN[sunday.getMonth()] + ' ' + sunday.getFullYear();
+        } else {
+            title = 'Semaine du ' + monday.getDate() + ' ' + MN[monday.getMonth()] + ' au ' + sunday.getDate() + ' ' + MN[sunday.getMonth()] + ' ' + sunday.getFullYear();
+        }
+        document.getElementById('main-title').textContent = title;
+
+        var bd = byDate();
+        var h = '<div class="cal-week-wrap"><div class="cal-week-grid">';
+        for (var i = 0; i < 7; i++) {
+            var day = new Date(monday);
+            day.setDate(monday.getDate() + i);
+            var ds = fmt(day);
+            var isToday = ds === todayStr;
+            var isPast  = ds < todayStr;
+            var cls = 'cal-week-cell' + (isToday?' is-today':'') + (isPast && !isToday?' is-past':'');
+
+            h += '<div class="' + cls + '" data-date="' + ds + '">';
+            h += '<div class="cal-week-head">';
+            h += '<div class="cal-week-dow">' + DNfull[i] + '</div>';
+            h += '<div class="cal-week-dom">' + day.getDate() + '</div>';
+            h += '</div>';
+            h += '<div class="cal-week-events">';
+            var evs = bd[ds] || [];
+            if (!evs.length) {
+                h += '<div class="cal-week-empty">—</div>';
+            } else {
+                evs.forEach(function(ev) {
+                    var blockCls = 'cal-block';
+                    if (ev.type === 'film') {
+                        blockCls += ' cal-block-' + (ev.releaseType || 'unknown');
+                    } else {
+                        var sc = seriesColor(ev.seriesTitle || 'default');
+                        blockCls += sc ? ' ' + sc : ' cal-block-episode';
+                    }
+                    if (ev.hasFile) blockCls += ' is-available';
+                    var evIdx = allEvents.indexOf(ev);
+                    var line2 = '';
+                    if (ev.type === 'film' && ev.releaseType && ev.releaseType !== 'unknown') {
+                        line2 = '<div class="cal-block-line2">' + (releaseLabels[ev.releaseType] || '') + '</div>';
+                    } else if (ev.type === 'episode' && ev.title) {
+                        line2 = '<div class="cal-block-line2">' + ev.title + '</div>';
+                    }
+                    h += '<div class="' + blockCls + '" data-ev-idx="' + evIdx + '">' + evTitle(ev) + line2 + '</div>';
+                });
+            }
+            h += '</div></div>';
+        }
+        h += '</div></div>';    // close .cal-week-grid + .cal-week-wrap
+        container.innerHTML = h;
+    }
+
+    // ── Vue Jour ──
+    function renderDay() {
+        var container = document.getElementById('main-grid');
+        var cursor = new Date(curYear, curMonth, curDay);
+        cursor.setHours(0,0,0,0);
+        var ds = fmt(cursor);
+        var isToday = ds === todayStr;
+        var isPast  = ds < todayStr;
+        var weekday = DNfull[(cursor.getDay()+6) % 7];
+        var dateLabel = weekday + ' ' + cursor.getDate() + ' ' + MN[cursor.getMonth()] + ' ' + cursor.getFullYear();
+        document.getElementById('main-title').textContent = dateLabel;
+
+        var bd = byDate();
+        var evs = bd[ds] || [];
+
+        var h = '<div class="cal-day-wrap' + (isPast?' cal-day-wrap-past':'') + '">';
+        h += '<div class="cal-day-header">';
+        h += '<div class="cal-day-date-big">' + cursor.getDate() + '</div>';
+        h += '<div class="cal-day-date-lbl">' + weekday + '</div>';
+        h += '<div class="cal-day-count">' + (evs.length ? (evs.length + ' événement' + (evs.length > 1 ? 's' : '')) : 'Aucun événement') + (isToday ? ' · Aujourd\'hui' : '') + '</div>';
+        h += '</div>';
+
+        if (!evs.length) {
+            h += '<div class="cal-day-empty">Rien de prévu ce jour.</div>';
+        } else {
+            h += '<div class="cal-day-list">';
+            evs.forEach(function(ev) {
+                var evIdx = allEvents.indexOf(ev);
+                var typeCls = ev.type === 'film'
+                    ? 'cal-day-row-type' + (ev.releaseType === 'cinema' ? '' : '')
+                    : 'cal-day-row-type';
+                var typeBg = '';
+                if (ev.type === 'film') {
+                    var rt = ev.releaseType || 'unknown';
+                    typeBg = rt === 'cinema'   ? 'background:rgba(220,38,38,.2);color:#fecaca;'
+                          : rt === 'digital'   ? 'background:rgba(168,85,247,.2);color:#e9d5ff;'
+                          : rt === 'physical'  ? 'background:rgba(34,197,94,.2);color:#bbf7d0;'
+                                               : 'background:rgba(148,163,184,.2);color:#cbd5e1;';
+                } else {
+                    typeBg = 'background:rgba(14,165,233,.2);color:#bae6fd;';
+                }
+                var typeLbl = ev.type === 'film'
+                    ? (releaseLabels[ev.releaseType] || 'Film')
+                    : 'Série';
+                var poster = ev.poster
+                    ? '<img src="' + ev.poster + '" alt="" class="cal-day-row-poster" loading="lazy">'
+                    : '<div class="cal-day-row-placeholder">' + (ev.type === 'film' ? '🎬' : '📺') + '</div>';
+                var title = evTitle(ev);
+                var sub = '';
+                if (ev.type === 'film') {
+                    sub = (ev.year || '') + (ev.runtime ? ' · ' + ev.runtime + ' min' : '') + (ev.studio ? ' · ' + ev.studio : '');
+                } else {
+                    var sxe = 'S' + String(ev.season).padStart(2,'0') + 'E' + String(ev.episode).padStart(2,'0');
+                    sub = sxe + (ev.title ? ' · ' + ev.title : '') + (ev.network ? ' · ' + ev.network : '');
+                }
+
+                h += '<div class="cal-day-row" data-ev-idx="' + evIdx + '">';
+                h += poster;
+                h += '<div class="cal-day-row-body">';
+                h += '<span class="' + typeCls + '" style="' + typeBg + '">' + typeLbl + '</span>';
+                h += '<div class="cal-day-row-title">' + title + '</div>';
+                h += '<div class="cal-day-row-sub">' + sub + '</div>';
+                h += '</div>';
+                h += '</div>';
+            });
+            h += '</div>';
+        }
+        h += '</div>';
+        container.innerHTML = h;
+    }
+
+    function renderAll() {
+        if (currentView === 'week')      renderWeek();
+        else if (currentView === 'day')  renderDay();
+        else                             renderMain();
+    }
 
     // ── Navigation ──
-    document.getElementById('main-prev').addEventListener('click', function() { curMonth--; if (curMonth<0){curMonth=11;curYear--;} renderAll(); });
-    document.getElementById('main-next').addEventListener('click', function() { curMonth++; if (curMonth>11){curMonth=0;curYear++;} renderAll(); });
-    document.getElementById('main-today').addEventListener('click', function() { curYear=today.getFullYear(); curMonth=today.getMonth(); selDate=todayStr; renderAll(); });
+    // Navigation prev/next — dispatche selon la vue :
+    //   - month : -/+ 1 mois
+    //   - week  : -/+ 7 jours
+    //   - day   : -/+ 1 jour
+    function shiftCursor(delta) {
+        if (currentView === 'month') {
+            curMonth += delta;
+            if (curMonth < 0)   { curMonth = 11; curYear--; }
+            if (curMonth > 11)  { curMonth = 0;  curYear++; }
+        } else {
+            var step = currentView === 'week' ? 7 : 1;
+            var d = new Date(curYear, curMonth, curDay);
+            d.setDate(d.getDate() + delta * step);
+            curYear = d.getFullYear(); curMonth = d.getMonth(); curDay = d.getDate();
+        }
+        renderAll();
+    }
+    document.getElementById('main-prev').addEventListener('click', function() { shiftCursor(-1); });
+    document.getElementById('main-next').addEventListener('click', function() { shiftCursor(1); });
+    document.getElementById('main-today').addEventListener('click', function() {
+        curYear = today.getFullYear(); curMonth = today.getMonth(); curDay = today.getDate();
+        selDate = todayStr;
+        renderAll();
+    });
+
+    // Toggle de vues Mois / Semaine / Jour
+    document.querySelectorAll('.cal-view-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            currentView = btn.dataset.view;
+            try { localStorage.setItem('prismarrCalendarView', currentView); } catch (e) {}
+            document.querySelectorAll('.cal-view-btn').forEach(function(b) {
+                b.classList.toggle('is-active', b === btn);
+                b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+            });
+            renderAll();
+        });
+    });
+    // Sync initial active button with persisted view
+    document.querySelectorAll('.cal-view-btn').forEach(function(b) {
+        b.classList.toggle('is-active', b.dataset.view === currentView);
+        b.setAttribute('aria-selected', b.dataset.view === currentView ? 'true' : 'false');
+    });
 
     // ── Filtres ──
     document.querySelectorAll('.cal-filter-pill[data-filter]').forEach(function(btn) {
@@ -430,7 +749,7 @@ Calendrier
         // Badges statut
         var statusBadge = '';
         if (ev.hasFile) statusBadge = '<span class="cal-tooltip-badge" style="background:#22c55e;color:#fff;">Disponible</span>';
-        else if (ev.monitored) statusBadge = '<span class="cal-tooltip-badge" style="background:#6366f1;color:#fff;">Suivi</span>';
+        else if (ev.monitored) statusBadge = '<span class="cal-tooltip-badge" style="background:var(--tblr-primary);color:#fff;">Suivi</span>';
         else statusBadge = '<span class="cal-tooltip-badge" style="background:#f59e0b;color:#000;">Non suivi</span>';
 
         tooltip.innerHTML = fanartHtml
@@ -471,6 +790,28 @@ Calendrier
     document.addEventListener('mouseout', function(e) {
         var block = e.target.closest('[data-ev-idx]');
         if (block) { clearTimeout(tooltipTimer); hideTooltip(); }
+    });
+
+    // Click sur un event → ouvre la fiche sur Films/Séries via `?open=`
+    // (le poster-card tile reproduit ce contrat ailleurs dans l'app).
+    document.addEventListener('click', function(e) {
+        var block = e.target.closest('[data-ev-idx]');
+        if (!block) return;
+        if (!block.closest('#main-grid')) return;       // ignore tooltips / popup etc.
+        var idx = parseInt(block.dataset.evIdx);
+        if (isNaN(idx) || !allEvents[idx]) return;
+        var ev = allEvents[idx];
+        var target = null;
+        if (ev.type === 'film' && ev.id) {
+            target = '{{ path('app_media_films') }}?open=' + ev.id;
+        } else if (ev.type === 'episode' && ev.seriesId) {
+            target = '{{ path('app_media_series') }}?open=' + ev.seriesId;
+        }
+        if (target) {
+            e.preventDefault();
+            hideTooltip();
+            window.location.href = target;
+        }
     });
 
     // ── Mini calendrier dropdown ──
@@ -560,7 +901,7 @@ Calendrier
 
             var statusBadge = '';
             if (ev.hasFile) statusBadge = '<span class="badge" style="background:#22c55e;font-size:.5rem;">Disponible</span>';
-            else if (ev.monitored) statusBadge = '<span class="badge" style="background:#6366f1;font-size:.5rem;">Suivi</span>';
+            else if (ev.monitored) statusBadge = '<span class="badge" style="background:var(--tblr-primary);font-size:.5rem;">Suivi</span>';
             else statusBadge = '<span class="badge" style="background:#f59e0b;color:#000;font-size:.5rem;">Non suivi</span>';
 
             var relLabel = '<span style="color:' + (relColors[ev.releaseType]||'#6b7280') + ';font-size:.58rem;font-weight:600;">' + (releaseLabels[ev.releaseType]||'') + '</span>';

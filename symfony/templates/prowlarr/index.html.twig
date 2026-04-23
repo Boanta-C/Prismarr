@@ -1,5 +1,5 @@
 {% extends 'base.html.twig' %}
-{% block title %}Prowlarr — IH-ARGOS{% endblock %}
+{% block title %}Prowlarr{% endblock %}
 {% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32zm0 400c-97 0-176-79-176-176S159 80 256 80s176 79 176 176-79 176-176 176z" fill="#E88D1A"/><path d="M256 120c-75 0-136 61-136 136s61 136 136 136 136-61 136-136-61-136-136-136zm0 224c-48.6 0-88-39.4-88-88s39.4-88 88-88 88 39.4 88 88-39.4 88-88 88z" fill="#E88D1A"/><circle cx="256" cy="256" r="48" fill="#E88D1A"/></svg> Prowlarr{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
@@ -16,7 +16,7 @@
 .pw-result-row { font-size:.8rem; }
 .pw-result-row td { padding:.35rem .5rem !important; }
 .pw-toggle-btn { cursor:pointer; padding:2px 6px; border-radius:.25rem; border:1px solid var(--tblr-border-color); background:none; transition:all .15s; font-size:.7rem; }
-.pw-toggle-btn:hover { border-color:#6366f1; }
+.pw-toggle-btn:hover { border-color:var(--tblr-primary); }
 .pw-toggle-btn.is-on { background:rgba(34,197,94,.15); border-color:#22c55e; color:#22c55e; }
 .pw-toggle-btn.is-off { background:rgba(239,68,68,.1); border-color:#ef4444; color:#ef4444; }
 #modal-add-indexer, #modal-edit-indexer, #modal-info-indexer { overscroll-behavior: contain; }
@@ -70,7 +70,7 @@
     </div>
     <div class="col-6 col-lg-2">
         <div class="card card-sm"><div class="card-body text-center">
-            <div class="pw-stat" style="color:#6366f1;">{{ stats.torrent ?? 0 }}</div>
+            <div class="pw-stat" style="color:var(--tblr-primary);">{{ stats.torrent ?? 0 }}</div>
             <div class="text-secondary small">Torrent</div>
         </div></div>
     </div>
@@ -170,7 +170,7 @@
                             </td>
                             <td>
                                 {% if idx.protocol == 'torrent' %}
-                                    <span class="badge" style="background:rgba(99,102,241,.15);color:#818cf8;">Torrent</span>
+                                    <span class="badge" style="background:rgba(var(--tblr-primary-rgb),.15);color:#818cf8;">Torrent</span>
                                 {% elseif idx.protocol == 'usenet' %}
                                     <span class="badge" style="background:rgba(14,165,233,.15);color:#38bdf8;">Usenet</span>
                                 {% else %}
@@ -520,7 +520,7 @@
         (tagsCache || []).forEach(function(t) {
             var active = selectedTags.indexOf(t.id) !== -1;
             h += '<span class="badge ' + (active ? '' : '') + '" style="cursor:pointer;font-size:.7rem;padding:.3em .6em;border-radius:2rem;transition:all .15s;'
-              + (active ? 'background:#6366f1;color:#fff;box-shadow:0 0 6px rgba(99,102,241,.4);' : 'background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);')
+              + (active ? 'background:var(--tblr-primary);color:#fff;box-shadow:0 0 6px rgba(var(--tblr-primary-rgb),.4);' : 'background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1);')
               + '" data-tag-id="' + t.id + '">'
               + (active ? '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right:3px;"><path d="M5 12l5 5l10-10"/></svg>' : '')
               + esc(t.label) + '</span>';
@@ -528,7 +528,7 @@
         // Input créer nouveau
         h += '<div class="d-flex gap-1 align-items-center ms-1" style="border-left:1px solid rgba(255,255,255,.08);padding-left:.5rem;">'
            + '<input type="text" class="form-control form-control-sm" id="pw-tag-new" placeholder="Nouveau…" style="width:90px;font-size:.7rem;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);">'
-           + '<button class="btn btn-sm btn-icon" id="pw-tag-add-btn" style="width:28px;height:28px;background:rgba(99,102,241,.15);color:#818cf8;border:none;border-radius:.3rem;" title="Créer un tag">'
+           + '<button class="btn btn-sm btn-icon" id="pw-tag-add-btn" style="width:28px;height:28px;background:rgba(var(--tblr-primary-rgb),.15);color:#818cf8;border:none;border-radius:.3rem;" title="Créer un tag">'
            + '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button></div>';
         wrap.innerHTML = h;
 
@@ -840,7 +840,7 @@
 
         var h = '';
         filtered.forEach(function (s) {
-            var proto = s.protocol === 'torrent' ? '<span class="badge" style="background:rgba(99,102,241,.15);color:#818cf8;font-size:.6rem;">Torrent</span>' : '<span class="badge" style="background:rgba(14,165,233,.15);color:#38bdf8;font-size:.6rem;">Usenet</span>';
+            var proto = s.protocol === 'torrent' ? '<span class="badge" style="background:rgba(var(--tblr-primary-rgb),.15);color:#818cf8;font-size:.6rem;">Torrent</span>' : '<span class="badge" style="background:rgba(14,165,233,.15);color:#38bdf8;font-size:.6rem;">Usenet</span>';
             var privacy = s.privacy === 'private' ? '<span class="badge bg-danger-lt" style="font-size:.6rem;">Privé</span>' : (s.privacy === 'semiPrivate' ? '<span class="badge bg-warning-lt" style="font-size:.6rem;">Semi</span>' : '<span class="badge bg-green-lt" style="font-size:.6rem;">Public</span>');
             var displayName = esc(s.name || s.definitionName || s.implementationName || '—');
             var lang = s.language ? '<span class="badge bg-secondary-lt" style="font-size:.55rem;">' + esc(s.language) + '</span>' : '';
@@ -1050,7 +1050,7 @@
         var musicParams = cap.musicSearchParams || [];
         var bookParams = cap.bookSearchParams || [];
 
-        var protoBadge = raw.protocol === 'torrent' ? '<span class="badge" style="background:rgba(99,102,241,.15);color:#818cf8;">Torrent</span>' : '<span class="badge" style="background:rgba(14,165,233,.15);color:#38bdf8;">Usenet</span>';
+        var protoBadge = raw.protocol === 'torrent' ? '<span class="badge" style="background:rgba(var(--tblr-primary-rgb),.15);color:#818cf8;">Torrent</span>' : '<span class="badge" style="background:rgba(14,165,233,.15);color:#38bdf8;">Usenet</span>';
         var privBadge = raw.privacy === 'private' ? '<span class="badge bg-danger-lt">Privé</span>' : (raw.privacy === 'semiPrivate' ? '<span class="badge bg-warning-lt">Semi-privé</span>' : '<span class="badge bg-green-lt">Public</span>');
 
         var torznabUrl = '';

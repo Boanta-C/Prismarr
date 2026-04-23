@@ -25,7 +25,6 @@ class DashboardController extends AbstractController
 {
     private const UPCOMING_DAYS       = 7;
     private const MAX_REQUESTS        = 5;
-    private const MAX_UPCOMING        = 8;
     private const MAX_RECOMMENDATIONS = 16;
     private const MAX_RECENT          = 16;
     private const MAX_WATCHLIST       = 16;
@@ -117,19 +116,23 @@ class DashboardController extends AbstractController
      */
     private function upcomingReleases(): array
     {
-        $now      = new \DateTimeImmutable();
+        // Compare by calendar day (midnight) so events earlier today —
+        // a morning episode, a midnight digital release — are still
+        // classified as "today" rather than silently filtered out as past.
+        $today    = new \DateTimeImmutable('today');
         $movies   = $this->safeFetch('upcoming.radarr', fn() => $this->radarr->getCalendar(self::UPCOMING_DAYS, 0)) ?? [];
         $episodes = $this->safeFetch('upcoming.sonarr', fn() => $this->sonarr->getCalendar(self::UPCOMING_DAYS, 0)) ?? [];
 
         $items = [];
         foreach ($movies as $m) {
-            $next = $this->pickNextReleaseDate($m, $now);
+            $next = $this->pickNextReleaseDate($m, $today);
             if ($next === null) {
                 continue;
             }
 
             $items[] = [
                 'type'     => 'movie',
+                'id'       => $m['id'] ?? null,
                 'title'    => $m['title'] ?? '—',
                 'subtitle' => $m['year'] ? ((string) $m['year']) : null,
                 'badge'    => $next['badge'],
@@ -139,13 +142,17 @@ class DashboardController extends AbstractController
         }
         foreach ($episodes as $e) {
             $airDate = $e['airDate'] ?? null;
-            if (!$airDate instanceof \DateTimeImmutable || $airDate < $now) {
+            if (!$airDate instanceof \DateTimeImmutable) {
+                continue;
+            }
+            if ($airDate->setTime(0, 0) < $today) {
                 continue;
             }
 
             $sxe = sprintf('S%02dE%02d', $e['season'] ?? 0, $e['episode'] ?? 0);
             $items[] = [
                 'type'     => 'episode',
+                'id'       => $e['seriesId'] ?? null,
                 'title'    => $e['seriesTitle'] ?? '—',
                 'subtitle' => $sxe . ($e['title'] && $e['title'] !== '—' ? ' — ' . $e['title'] : ''),
                 'badge'    => $e['network'] ?? null,
@@ -156,7 +163,7 @@ class DashboardController extends AbstractController
 
         usort($items, fn($a, $b) => $a['date'] <=> $b['date']);
 
-        return array_slice($items, 0, self::MAX_UPCOMING);
+        return $items;
     }
 
     /**
@@ -204,21 +211,23 @@ class DashboardController extends AbstractController
     }
 
     /**
-     * Return the earliest release date strictly in the future for a Radarr
+     * Return the earliest release date that is today or later for a Radarr
      * movie, together with a human-readable badge identifying which date
-     * it is (digital / cinema / physical). Null if every date is stale or
-     * missing — the movie is then dropped from the upcoming widget.
+     * it is (digital / cinema / physical). The comparison is done at
+     * calendar-day granularity so a digital release set to 02:00 today
+     * still counts as "today" even at 14:00.
+     * Null if every date is strictly in the past or missing.
      *
      * @param array<string, mixed> $movie
      * @return array{at: \DateTimeImmutable, badge: string}|null
      */
-    private function pickNextReleaseDate(array $movie, \DateTimeImmutable $now): ?array
+    private function pickNextReleaseDate(array $movie, \DateTimeImmutable $today): ?array
     {
         $candidates = array_filter([
             ['at' => $movie['digitalAt']   ?? null, 'badge' => 'Numérique'],
             ['at' => $movie['inCinemasAt'] ?? null, 'badge' => 'Cinéma'],
             ['at' => $movie['physicalAt']  ?? null, 'badge' => 'Blu-ray'],
-        ], fn($c) => $c['at'] instanceof \DateTimeImmutable && $c['at'] >= $now);
+        ], fn($c) => $c['at'] instanceof \DateTimeImmutable && $c['at']->setTime(0, 0) >= $today);
 
         if ($candidates === []) {
             return null;

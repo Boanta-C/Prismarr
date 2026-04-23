@@ -3,13 +3,18 @@
 namespace App\Tests\Controller;
 
 use App\Controller\HomeController;
+use App\EventSubscriber\LastVisitedRouteSubscriber;
 use App\Service\ConfigService;
 use App\Service\DisplayPreferencesService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\Route as RouteDefinition;
+use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\RouterInterface;
 
 /**
  * Covers the landing page redirect logic. Since Session 9b the admin can
@@ -57,11 +62,39 @@ class HomeControllerTest extends TestCase
         return $prefs;
     }
 
+    /**
+     * @param list<string> $knownRoutes
+     */
+    private function router(array $knownRoutes = []): RouterInterface
+    {
+        $collection = new RouteCollection();
+        foreach ($knownRoutes as $name) {
+            $collection->add($name, new RouteDefinition('/' . $name));
+        }
+
+        $router = $this->createMock(RouterInterface::class);
+        $router->method('getRouteCollection')->willReturn($collection);
+
+        return $router;
+    }
+
+    private function request(?string $lastRouteCookie = null): Request
+    {
+        $request = Request::create('/');
+        if ($lastRouteCookie !== null) {
+            $request->cookies->set(LastVisitedRouteSubscriber::COOKIE_NAME, $lastRouteCookie);
+        }
+        return $request;
+    }
+
     public function testDashboardIsTheDefaultLanding(): void
     {
-        // Default preference = 'dashboard' → always redirects to dashboard,
-        // regardless of which services are configured.
-        $response = $this->newController()->index($this->config([]), $this->prefs('dashboard'));
+        $response = $this->newController()->index(
+            $this->request(),
+            $this->config([]),
+            $this->prefs('dashboard'),
+            $this->router(),
+        );
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertStringContainsString('app_dashboard', $response->getTargetUrl());
@@ -69,55 +102,109 @@ class HomeControllerTest extends TestCase
 
     public function testDiscoveryPreferenceRedirectsToTmdbWhenConfigured(): void
     {
-        $response = $this->newController()->index($this->config(['tmdb_api_key']), $this->prefs('discovery'));
+        $response = $this->newController()->index(
+            $this->request(),
+            $this->config(['tmdb_api_key']),
+            $this->prefs('discovery'),
+            $this->router(),
+        );
 
         $this->assertStringContainsString('tmdb_index', $response->getTargetUrl());
     }
 
     public function testFilmsPreferenceRedirectsToRadarrWhenConfigured(): void
     {
-        $response = $this->newController()->index($this->config(['radarr_api_key']), $this->prefs('films'));
+        $response = $this->newController()->index(
+            $this->request(),
+            $this->config(['radarr_api_key']),
+            $this->prefs('films'),
+            $this->router(),
+        );
 
         $this->assertStringContainsString('app_media_films', $response->getTargetUrl());
     }
 
     public function testSeriesPreferenceRedirectsToSonarrWhenConfigured(): void
     {
-        $response = $this->newController()->index($this->config(['sonarr_api_key']), $this->prefs('series'));
+        $response = $this->newController()->index(
+            $this->request(),
+            $this->config(['sonarr_api_key']),
+            $this->prefs('series'),
+            $this->router(),
+        );
 
         $this->assertStringContainsString('app_media_series', $response->getTargetUrl());
     }
 
     public function testQbittorrentPreferenceRedirectsWhenConfigured(): void
     {
-        $response = $this->newController()->index($this->config(['qbittorrent_url']), $this->prefs('qbittorrent'));
+        $response = $this->newController()->index(
+            $this->request(),
+            $this->config(['qbittorrent_url']),
+            $this->prefs('qbittorrent'),
+            $this->router(),
+        );
 
         $this->assertStringContainsString('app_qbittorrent_index', $response->getTargetUrl());
     }
 
     public function testFallsBackToChainWhenPreferredTargetIsNotConfigured(): void
     {
-        // User prefers discovery but hasn't configured TMDb → fallback to
-        // the first configured service (Radarr here).
-        $response = $this->newController()->index($this->config(['radarr_api_key']), $this->prefs('discovery'));
+        $response = $this->newController()->index(
+            $this->request(),
+            $this->config(['radarr_api_key']),
+            $this->prefs('discovery'),
+            $this->router(),
+        );
 
         $this->assertStringContainsString('app_media_films', $response->getTargetUrl());
     }
 
-    public function testLastVisitedPreferenceFallsBackToChain(): void
+    public function testLastVisitedPreferenceUsesCookieWhenRouteExists(): void
     {
-        // 'last' is declared in DISPLAY_OPTIONS but not yet implemented —
-        // it must never crash: fall back to whatever is configured.
-        $response = $this->newController()->index($this->config(['tmdb_api_key']), $this->prefs('last'));
+        $response = $this->newController()->index(
+            $this->request('app_qbittorrent_index'),
+            $this->config([]),
+            $this->prefs('last'),
+            $this->router(['app_qbittorrent_index']),
+        );
+
+        $this->assertStringContainsString('app_qbittorrent_index', $response->getTargetUrl());
+    }
+
+    public function testLastVisitedFallsBackWhenCookieRouteNoLongerExists(): void
+    {
+        // Simulates an upgrade that removed/renamed the stored route.
+        $response = $this->newController()->index(
+            $this->request('stale_renamed_route'),
+            $this->config(['tmdb_api_key']),
+            $this->prefs('last'),
+            $this->router([]),
+        );
+
+        $this->assertStringContainsString('tmdb_index', $response->getTargetUrl());
+    }
+
+    public function testLastVisitedFallsBackWhenCookieMissing(): void
+    {
+        $response = $this->newController()->index(
+            $this->request(),
+            $this->config(['tmdb_api_key']),
+            $this->prefs('last'),
+            $this->router(),
+        );
 
         $this->assertStringContainsString('tmdb_index', $response->getTargetUrl());
     }
 
     public function testRendersWelcomeWhenNothingConfiguredAndPreferenceUnreachable(): void
     {
-        // No config + preference that requires config → welcome template.
-        // Covers a fresh install where the wizard hasn't been completed.
-        $response = $this->newController()->index($this->config([]), $this->prefs('discovery'));
+        $response = $this->newController()->index(
+            $this->request(),
+            $this->config([]),
+            $this->prefs('discovery'),
+            $this->router(),
+        );
 
         $this->assertNotInstanceOf(RedirectResponse::class, $response);
         $this->assertInstanceOf(Response::class, $response);

@@ -21,6 +21,11 @@ security:
                 username_parameter: _username
                 password_parameter: _password
                 default_target_path: app_home
+                # Ignore the URL Symfony saved when an expired session hit
+                # an AJAX endpoint (e.g. /api/health/services, /qbittorrent/api/*).
+                # After login we always land on /, which honors the user's
+                # `display_home_page` preference.
+                always_use_default_target_path: true
                 enable_csrf: true
             login_throttling:
                 max_attempts: 5
@@ -34,7 +39,10 @@ security:
                 path: /
 
     access_control:
-        - { path: ^/api/health, roles: PUBLIC_ACCESS }
+        # Exact health endpoint stays public for Docker healthcheck.
+        # The /api/health/services snapshot needs auth (leaks service config).
+        - { path: ^/api/health/services, roles: ROLE_USER }
+        - { path: ^/api/health$, roles: PUBLIC_ACCESS }
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/setup, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }

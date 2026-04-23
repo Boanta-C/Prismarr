@@ -13,6 +13,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class CalendrierController extends AbstractController
 {
+    private const ICAL_DAYS_BEFORE = 30;
+    private const ICAL_DAYS_AHEAD  = 180;
+
+
     public function __construct(
         private readonly RadarrClient $radarr,
         private readonly SonarrClient $sonarr,
@@ -115,5 +119,138 @@ class CalendrierController extends AbstractController
             'totalFilms'     => count($radarrCal),
             'totalEpisodes'  => count($sonarrCal),
         ]);
+    }
+
+    /**
+     * iCalendar export for Apple Calendar / Google Calendar / Thunderbird
+     * subscribers. Drop the URL into your calendar app as a subscribed
+     * feed and Prismarr events stay in sync.
+     *
+     * Each Radarr release (cinema / digital / physical) and Sonarr episode
+     * becomes its own VEVENT with a stable UID so calendar clients update
+     * in place instead of duplicating.
+     */
+    #[Route('/calendrier.ics', name: 'app_calendrier_ical', methods: ['GET'])]
+    public function ical(): Response
+    {
+        $lines = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Prismarr//Calendrier//FR',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'X-WR-CALNAME:Prismarr',
+            'X-WR-TIMEZONE:Europe/Paris',
+        ];
+
+        $now = (new \DateTimeImmutable())->format('Ymd\THis\Z');
+
+        try {
+            foreach ($this->radarr->getCalendar(self::ICAL_DAYS_AHEAD, self::ICAL_DAYS_BEFORE) as $m) {
+                $slots = [
+                    ['at' => $m['inCinemasAt'] ?? null, 'label' => 'Cinéma',    'suffix' => 'cinema'],
+                    ['at' => $m['digitalAt']   ?? null, 'label' => 'Numérique', 'suffix' => 'digital'],
+                    ['at' => $m['physicalAt']  ?? null, 'label' => 'Blu-ray',   'suffix' => 'physical'],
+                ];
+                foreach ($slots as $s) {
+                    if (!$s['at'] instanceof \DateTimeInterface) continue;
+                    $lines = array_merge($lines, $this->movieEventLines($m, $s['at'], $s['label'], $s['suffix'], $now));
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->logger->warning('iCal Radarr export failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
+        }
+
+        try {
+            foreach ($this->sonarr->getCalendar(self::ICAL_DAYS_AHEAD, self::ICAL_DAYS_BEFORE) as $e) {
+                if (!($e['airDate'] ?? null) instanceof \DateTimeInterface) continue;
+                $lines = array_merge($lines, $this->episodeEventLines($e, $now));
+            }
+        } catch (\Throwable $e) {
+            $this->logger->warning('iCal Sonarr export failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
+        }
+
+        $lines[] = 'END:VCALENDAR';
+
+        // CRLF is required per RFC 5545 — plain \n breaks strict parsers.
+        $body = implode("\r\n", $lines) . "\r\n";
+
+        return new Response(
+            $body,
+            Response::HTTP_OK,
+            [
+                'Content-Type'        => 'text/calendar; charset=utf-8',
+                'Content-Disposition' => 'attachment; filename="prismarr.ics"',
+            ],
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $movie
+     * @return list<string>
+     */
+    private function movieEventLines(array $movie, \DateTimeInterface $at, string $label, string $suffix, string $nowUtc): array
+    {
+        $uid      = sprintf('radarr-%d-%s@prismarr.local', $movie['id'] ?? 0, $suffix);
+        $title    = sprintf('🎬 %s — %s', $movie['title'] ?? '—', $label);
+        $desc     = $movie['overview'] ?? '';
+        $allDay   = $at->format('Ymd');
+
+        return [
+            'BEGIN:VEVENT',
+            'UID:' . $uid,
+            'DTSTAMP:' . $nowUtc,
+            'DTSTART;VALUE=DATE:' . $allDay,
+            'DTEND;VALUE=DATE:' . (new \DateTimeImmutable($allDay))->modify('+1 day')->format('Ymd'),
+            'SUMMARY:' . $this->escapeIcal($title),
+            'DESCRIPTION:' . $this->escapeIcal($desc),
+            'CATEGORIES:Prismarr,Film,' . $label,
+            'END:VEVENT',
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $episode
+     * @return list<string>
+     */
+    private function episodeEventLines(array $episode, string $nowUtc): array
+    {
+        /** @var \DateTimeInterface $at */
+        $at       = $episode['airDate'];
+        $runtime  = (int) ($episode['runtime'] ?? 30);
+        $start    = $at instanceof \DateTimeImmutable ? $at : \DateTimeImmutable::createFromInterface($at);
+        $end      = $start->modify("+{$runtime} minutes");
+        $uid      = sprintf(
+            'sonarr-%d-s%02de%02d@prismarr.local',
+            $episode['seriesId'] ?? 0,
+            $episode['season']   ?? 0,
+            $episode['episode']  ?? 0,
+        );
+        $sxe      = sprintf('S%02dE%02d', $episode['season'] ?? 0, $episode['episode'] ?? 0);
+        $title    = sprintf('📺 %s · %s', $episode['seriesTitle'] ?? '—', $sxe);
+        $desc     = trim(($episode['title'] ?? '') . "\n\n" . ($episode['overview'] ?? ''));
+
+        return [
+            'BEGIN:VEVENT',
+            'UID:' . $uid,
+            'DTSTAMP:' . $nowUtc,
+            'DTSTART:' . $start->setTimezone(new \DateTimeZone('UTC'))->format('Ymd\THis\Z'),
+            'DTEND:'   . $end->setTimezone(new \DateTimeZone('UTC'))->format('Ymd\THis\Z'),
+            'SUMMARY:' . $this->escapeIcal($title),
+            'DESCRIPTION:' . $this->escapeIcal($desc),
+            'CATEGORIES:Prismarr,Série,Épisode',
+            'END:VEVENT',
+        ];
+    }
+
+    /**
+     * RFC 5545 §3.3.11 — escape comma, semicolon, backslash, and newlines
+     * inside TEXT values so calendar apps render long summaries/descriptions
+     * correctly.
+     */
+    private function escapeIcal(string $s): string
+    {
+        $s = str_replace(['\\', "\r\n", "\n", "\r", ',', ';'], ['\\\\', '\\n', '\\n', '\\n', '\\,', '\\;'], $s);
+        return $s;
     }
 }

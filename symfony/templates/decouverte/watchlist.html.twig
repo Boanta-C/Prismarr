@@ -61,17 +61,17 @@
   .wl-card .wl-notes-ico {
     position: absolute; top: .35rem; right: 2.2rem;
     width: 24px; height: 24px; border-radius: 50%;
-    background: rgba(99,102,241,.85); color: #fff;
+    background: rgba(var(--tblr-primary-rgb),.85); color: #fff;
     border: none; display: flex; align-items: center; justify-content: center;
     cursor: pointer; opacity: 0; transition: opacity .15s;
     z-index: 5;
   }
   .wl-card:hover .wl-notes-ico { opacity: 1; }
-  .wl-card .wl-notes-ico:hover { background: #6366f1; }
+  .wl-card .wl-notes-ico:hover { background: var(--tblr-primary); }
   .wl-card .wl-notes-preview {
     position: absolute; bottom: 3.8rem; left: .4rem; right: .4rem;
     font-size: .6rem; color: rgba(255,255,255,.9);
-    background: rgba(99,102,241,.8); border-radius: .3rem; padding: .15rem .35rem;
+    background: rgba(var(--tblr-primary-rgb),.8); border-radius: .3rem; padding: .15rem .35rem;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     pointer-events: none; z-index: 3;
   }
@@ -87,7 +87,7 @@
     background: var(--tblr-bg-surface); color: var(--tblr-body-color);
     cursor: pointer; font-size: .8rem; font-weight: 500; transition: all .15s;
   }
-  .wl-filter-btn:hover, .wl-filter-btn.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+  .wl-filter-btn:hover, .wl-filter-btn.active { background: var(--tblr-primary); color: #fff; border-color: var(--tblr-primary); }
   .wl-sort-select {
     padding: .3rem .6rem; border-radius: .4rem; border: 1px solid var(--tblr-border-color);
     background: var(--tblr-bg-surface); color: var(--tblr-body-color);
@@ -98,7 +98,7 @@
     background: var(--tblr-bg-surface); color: var(--tblr-body-color);
     font-size: .8rem; flex: 1; min-width: 120px; max-width: 250px;
   }
-  .wl-search:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,.18); }
+  .wl-search:focus { border-color: var(--tblr-primary); outline: none; box-shadow: 0 0 0 3px rgba(var(--tblr-primary-rgb),.18); }
   .wl-count { font-size: .8rem; color: var(--tblr-muted); }
 </style>
 

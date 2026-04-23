@@ -28,13 +28,30 @@
   <style>
     @import url("https://rsms.me/inter/inter.css");
     :root {
-      --tblr-primary: #6366f1;
-      --tblr-primary-rgb: 99, 102, 241;
       --tblr-font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
+    {# NOTE: `--tblr-primary` is NOT set here because Tabler's own stylesheet
+       (loaded further down) ships with its own `:root { --tblr-primary }`
+       rule and would override us. The user-picked theme color is re-injected
+       in the post-Tabler `<style>` block at the bottom of <head>, where
+       cascade order guarantees it wins. #}
+
+    /* ── Densité UI compacte (opt-in via display_ui_density = 'compact') ── */
+    body.density-compact .page-body { padding-top: .5rem; padding-bottom: .5rem; }
+    body.density-compact .card { margin-bottom: .6rem; }
+    body.density-compact .card-header { padding: .55rem .85rem; }
+    body.density-compact .card-body { padding: .7rem .85rem; }
+    body.density-compact .list-group-item { padding: .45rem .75rem; }
+    body.density-compact .row.g-3 > *, body.density-compact .row.g-2 > * { padding-top: .35rem; padding-bottom: .35rem; }
+    body.density-compact .form-control,
+    body.density-compact .form-select { padding: .35rem .55rem; }
+
+    /* Toasts off (opt-out via display_toasts = '0') — JS also guards, this
+       hides any leftover toast DOM in case JS timing lets one slip. */
+    body.toasts-off #prismarr-toasts { display: none !important; }
 
     /* ── Transitions Turbo ── */
-    .turbo-progress-bar { background:#6366f1; height:2px; }
+    .turbo-progress-bar { background: var(--tblr-primary); height:2px; }
     body { transition: opacity 50ms ease-in-out; }
     body.turbo-loading { opacity: 0; }
 
@@ -53,7 +70,7 @@
     .prismarr-toast-success { background: rgba(34,197,94,.9); color: #fff; }
     .prismarr-toast-warning { background: rgba(245,158,11,.9); color: #000; }
     .prismarr-toast-danger { background: rgba(239,68,68,.9); color: #fff; }
-    .prismarr-toast-info { background: rgba(99,102,241,.9); color: #fff; }
+    .prismarr-toast-info { background: rgba(var(--tblr-primary-rgb),.9); color: #fff; }
     @keyframes toast-in { from { opacity:0; transform:translateX(100px); } to { opacity:1; transform:translateX(0); } }
     .prismarr-toast.toast-out { animation: toast-out .3s ease-in forwards; }
     @keyframes toast-out { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(100px); } }
@@ -174,6 +191,14 @@
 
   {# Override fond bleu Tabler dark + améliorations visuelles #}
   <style>
+    /* User-picked theme color — MUST be set after Tabler's own stylesheet,
+       otherwise its own `:root { --tblr-primary }` rule wins the cascade
+       and every page resets to Tabler's default blue. */
+    :root {
+      --tblr-primary: {{ display_pref('theme_color_hex') }};
+      --tblr-primary-rgb: {{ display_pref('theme_color_rgb') }};
+    }
+
     [data-bs-theme="dark"] {
       --tblr-body-bg:       #111111;
       --tblr-secondary-bg:  #1a1a1a;
@@ -181,6 +206,178 @@
       --tblr-card-bg:       #1c1c1c;
       --tblr-border-color:  rgba(255, 255, 255, 0.08);
     }
+
+    /* ── Topbar layout : title left · big search centered · actions right ── */
+    .prismarr-topbar-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-height: 56px;
+      padding: .35rem 0;
+    }
+    .prismarr-topbar-left {
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+    .prismarr-topbar-left .page-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+    }
+    .prismarr-topbar-center {
+      flex: 1 1 auto;
+      display: flex;
+      justify-content: center;
+      min-width: 0;
+    }
+    .prismarr-topbar-right {
+      flex: 0 1 auto;
+    }
+
+    .prismarr-search-input {
+      width: 100%;
+      height: 42px;
+      padding: 0 2.5rem 0 2.75rem;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px;
+      color: inherit;
+      font-size: .92rem;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    [data-bs-theme="light"] .prismarr-search-input {
+      background: rgba(0,0,0,.03);
+      border-color: rgba(0,0,0,.1);
+    }
+    .prismarr-search-input::placeholder { color: var(--tblr-secondary); opacity: .75; }
+    .prismarr-search-input:focus {
+      outline: 0;
+      border-color: var(--tblr-primary);
+      background: var(--tblr-bg-surface);
+      box-shadow: 0 0 0 3px rgba(var(--tblr-primary-rgb), .18);
+    }
+    #global-search-wrap { width: 100%; max-width: 520px; position: relative; }
+    .prismarr-search-icon {
+      position: absolute; left: .9rem; top: 50%; transform: translateY(-50%);
+      opacity: .55; pointer-events: none;
+    }
+    .prismarr-search-spinner {
+      position: absolute; right: .9rem; top: 50%; transform: translateY(-50%);
+      pointer-events: none;
+    }
+    .prismarr-search-results {
+      position: absolute; right: 0; left: 0; top: calc(100% + 6px);
+      max-height: 480px; overflow-y: auto; display: none;
+      border-radius: 10px; border: 1px solid var(--tblr-border-color);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      padding: .25rem 0;
+    }
+    .prismarr-search-clear {
+      position: absolute; right: .75rem; top: 50%; transform: translateY(-50%);
+      width: 22px; height: 22px;
+      background: rgba(255,255,255,.08);
+      border: 0; border-radius: 50%;
+      color: var(--tblr-secondary);
+      cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background .12s ease, color .12s ease;
+    }
+    .prismarr-search-clear:hover {
+      background: rgba(var(--tblr-primary-rgb), .2);
+      color: var(--tblr-primary);
+    }
+    .prismarr-search-section {
+      font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--tblr-secondary);
+      padding: .6rem .85rem .3rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .prismarr-search-section .count { font-size: .65rem; opacity: .7; font-weight: 500; }
+    .prismarr-search-item {
+      display: flex; align-items: center; gap: .55rem;
+      padding: .4rem .85rem;
+      color: inherit; text-decoration: none;
+      cursor: pointer;
+      transition: background .1s ease;
+    }
+    .prismarr-search-item:hover,
+    .prismarr-search-item.is-active {
+      background: rgba(var(--tblr-primary-rgb), .12);
+      color: inherit;
+    }
+    .prismarr-search-empty {
+      padding: 1.2rem; text-align: center; font-size: .82rem; color: var(--tblr-secondary);
+    }
+    .prismarr-search-recent {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .35rem .85rem;
+      font-size: .85rem; color: var(--tblr-body-color);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .prismarr-search-recent:hover { background: rgba(var(--tblr-primary-rgb), .1); color: inherit; }
+    .prismarr-search-recent svg { opacity: .5; flex-shrink: 0; }
+    .prismarr-search-recent .clear-x {
+      margin-left: auto; opacity: .4; cursor: pointer;
+      width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 4px;
+    }
+    .prismarr-search-recent .clear-x:hover { opacity: .9; background: rgba(255,255,255,.06); }
+
+    /* Filter pills under the search */
+    .prismarr-search-filters {
+      display: flex; gap: .3rem;
+      padding: .55rem .85rem .35rem;
+      border-bottom: 1px solid var(--tblr-border-color);
+    }
+    .prismarr-search-pill {
+      font-size: .7rem; font-weight: 500;
+      padding: .18rem .6rem; border-radius: 999px;
+      background: transparent;
+      border: 1px solid var(--tblr-border-color);
+      color: var(--tblr-body-color);
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .prismarr-search-pill:hover { border-color: var(--tblr-primary); color: var(--tblr-primary); }
+    .prismarr-search-pill.is-active {
+      background: var(--tblr-primary); border-color: var(--tblr-primary); color: #fff;
+    }
+
+    /* Responsive : hide search on narrow screens, keep left/right actions */
+    @media (max-width: 768px) {
+      .prismarr-topbar-center { display: none; }
+    }
+
+    /* Health dot indicator (topbar button) */
+    .prismarr-health-dot {
+      display: inline-block;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--tblr-secondary);
+      transition: background .2s ease, box-shadow .2s ease;
+    }
+    .prismarr-health-dot.is-ok  { background: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,.6); }
+    .prismarr-health-dot.is-warn { background: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,.6); }
+    .prismarr-health-dot.is-ko   { background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,.6); }
+
+    .prismarr-health-menu {
+      min-width: 260px;
+      position: absolute; right: 0; left: auto; top: 100%;
+    }
+    .prismarr-health-row {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .45rem .9rem;
+      font-size: .82rem;
+    }
+    .prismarr-health-row-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .prismarr-health-row-dot.is-ok  { background: #22c55e; }
+    .prismarr-health-row-dot.is-ko  { background: #ef4444; }
+    .prismarr-health-row-dot.is-unk { background: #6b7280; }
+    .prismarr-health-row-name { flex: 1; font-weight: 500; }
+    .prismarr-health-row-state { font-size: .7rem; color: var(--tblr-secondary); }
 
     /* Ciblage direct — évite tout conflit de variable */
     [data-bs-theme="dark"] body          { background-color: #111111 !important; }
@@ -393,7 +590,7 @@
   {% block stylesheets %}{% endblock %}
   {{ importmap('app') }}
 </head>
-<body>
+<body class="density-{{ display_pref('ui_density') }} toasts-{{ display_pref('toasts') ? 'on' : 'off' }}">
 
   {# ── Toasts SSE ── #}
   <div id="prismarr-toasts"></div>
@@ -468,6 +665,22 @@
             </li>
             {% endif %}
 
+            {% if (service_configured('radarr') or service_configured('sonarr')) and feature_visible_in_sidebar('calendar') %}
+            <li class="nav-item">
+              <a class="nav-link {{ app.request.attributes.get('_route') == 'app_calendrier' ? 'active' }}"
+                 href="{{ path('app_calendrier') }}">
+                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </span>
+                <span class="nav-link-title">Calendrier</span>
+              </a>
+            </li>
+            {% endif %}
+
             {% if service_visible_in_sidebar('radarr') %}
             <li class="nav-item">
               <a class="nav-link {{ app.request.attributes.get('_route') starts with 'app_media_films' or app.request.attributes.get('_route') starts with 'radarr_' ? 'active' }}"
@@ -475,7 +688,7 @@
                 <span class="nav-link-icon d-md-none d-lg-inline-block">
                   <svg width="24" height="24" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="icon"><g transform="translate(70 21)"><path d="M105.3 154.9L112.8 869.5C52.7 877 7.5 846.9 7.5 786.8L0 192.6C0 4.5 173-40.6 278.3 34.6L812.3 343C887.5 395.6 902.6 493.4 865 561.1C857.5 508.5 834.9 478.4 789.8 448.3L188 109.8C142.9 79.7 105.3 87.2 105.3 154.9Z" fill="#FFC230"/><path d="M0 376.1C45.1 391.1 90.3 383.6 127.9 361L744.6 0C782.2 52.7 774.7 105.3 729.6 135.4L210.6 436.3C135.4 473.9 37.6 436.3 0 376.1Z" transform="translate(60.2 531)" fill="#FFC230"/><path d="M0 413.7L368.6 203.1L7.5 0L0 413.7Z" transform="translate(240.7 282.8)" fill="#FFC230"/></g></svg>
                 </span>
-                <span class="nav-link-title">Films</span>
+                <span class="nav-link-title">Radarr</span>
               </a>
             </li>
             {% endif %}
@@ -487,7 +700,7 @@
                 <span class="nav-link-icon d-md-none d-lg-inline-block">
                   <svg width="24" height="24" viewBox="0 0 216.7 216.9" xmlns="http://www.w3.org/2000/svg" class="icon"><path d="M194.65 42.5l-22.4 22.4C159.15 78 158 89.4 158 109.5c0 17.93 2.85 34.35 16.2 47.7l19 18.95c-2.5 3.07-5.2 6.07-8.1 9-.7.83-1.48 1.6-2.35 2.3-2.53 2.5-5.17 4.82-7.9 6.95l-17.55-17.55c-15.6-15.6-28-17.1-48.6-17.1-19.77 0-33.22 1.82-47.7 16.3l-18.55 18.6c-3.77-2.87-7.33-6.03-10.7-9.5-2.8-2.8-5.42-5.67-7.85-8.6l19.15-19.2c13.85-13.85 16.1-29.92 16.1-47.85 0-17.5-2.87-33.82-15.6-46.55L22.45 43.85c2.83-3.6 5.92-7.07 9.25-10.4 2.93-2.87 5.93-5.55 9-8.05L61.1 43.85C74.1 56.85 90.77 60.2 108.7 60.2c18.47 0 35.08-3.58 48.6-17.1l19.3-19.25c2.9 2.37 5.73 4.93 8.5 7.7 3.47 3.53 6.65 7.18 9.55 10.95z" fill="#0CF"/><circle cx="108.35" cy="108.45" r="29.5" fill="#0CF" opacity=".8"/></svg>
                 </span>
-                <span class="nav-link-title">Séries</span>
+                <span class="nav-link-title">Sonarr</span>
               </a>
             </li>
             {% endif %}
@@ -535,26 +748,10 @@
             </li>
             {% endif %}
 
-            {% if (service_configured('radarr') or service_configured('sonarr')) and feature_visible_in_sidebar('calendar') %}
-            <li class="nav-item">
-              <a class="nav-link {{ app.request.attributes.get('_route') == 'app_calendrier' ? 'active' }}"
-                 href="{{ path('app_calendrier') }}">
-                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                       fill="none" stroke="currentColor" stroke-width="2"
-                       stroke-linecap="round" stroke-linejoin="round" class="icon">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                  </svg>
-                </span>
-                <span class="nav-link-title">Calendrier</span>
-              </a>
-            </li>
-            {% endif %}
-
           </ul>
 
-          {# ── Pied sidebar : paramètres admin + logout desktop ── #}
-          <div class="mt-auto d-none d-lg-block">
+          {# ── Pied sidebar : paramètres admin + logout (mobile inclus) ── #}
+          <div class="mt-auto">
             <ul class="navbar-nav">
               {% if is_granted('ROLE_ADMIN') %}
               <li class="nav-item">
@@ -587,8 +784,9 @@
               </li>
             </ul>
 
-            {# Toggle replier/déplier la sidebar — persist via localStorage #}
-            <button type="button" class="sidebar-toggle-btn" id="sidebar-toggle-btn"
+            {# Toggle replier/déplier la sidebar — persist via localStorage
+               (inutile sur mobile puisque la sidebar est un overlay plein écran). #}
+            <button type="button" class="sidebar-toggle-btn d-none d-lg-flex" id="sidebar-toggle-btn"
                     aria-label="Replier ou déplier le menu latéral">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                    fill="none" stroke="currentColor" stroke-width="2"
@@ -607,33 +805,60 @@
 
       {# Command Center Argos supprimé pour Prismarr — un command center médias light pourra être ajouté plus tard si besoin #}
 
-      <div class="page-header d-print-none">
+      <div class="page-header d-print-none prismarr-topbar">
         <div class="container-xl">
-          <div class="row g-2 align-items-center">
-            <div class="col">
+          <div class="prismarr-topbar-row">
+            {# Left : page title + breadcrumb #}
+            <div class="prismarr-topbar-left">
               <h2 class="page-title">{% block page_title '' %}</h2>
               {% block breadcrumb %}{% endblock %}
             </div>
-            <div class="col-auto ms-auto d-print-none">
-              {% block page_actions %}{% endblock %}
-            </div>
-            <div class="col-auto d-print-none" id="topbar-actions">
-              <div class="d-flex align-items-center gap-1">
 
-                {# Recherche globale #}
-                <div class="position-relative" id="global-search-wrap" style="width:240px;">
-                  <input type="text" id="global-search-input" class="form-control form-control-sm"
-                         placeholder="Rechercher… (Ctrl+K)" autocomplete="off"
-                         style="padding-left:2rem;padding-right:2rem;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#e2e8f0;">
-                  <svg id="global-search-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                       style="position:absolute;left:.5rem;top:50%;transform:translateY(-50%);opacity:.5;pointer-events:none;">
-                    <circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/>
+            {# Center : big global search #}
+            <div class="prismarr-topbar-center">
+              <div class="position-relative" id="global-search-wrap">
+                <input type="text" id="global-search-input" class="form-control prismarr-search-input"
+                       placeholder="Rechercher un film, une série… (Ctrl+K)" autocomplete="off" role="combobox"
+                       aria-autocomplete="list" aria-controls="global-search-results" aria-expanded="false">
+                <svg id="global-search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     class="prismarr-search-icon">
+                  <circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/>
+                </svg>
+                <div id="global-search-spinner" class="prismarr-search-spinner" style="display:none;">
+                  <div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div>
+                </div>
+                <button type="button" id="global-search-clear" class="prismarr-search-clear" aria-label="Effacer" style="display:none;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                   </svg>
-                  <div id="global-search-spinner" style="display:none;position:absolute;right:.5rem;top:50%;transform:translateY(-50%);pointer-events:none;">
-                    <div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div>
+                </button>
+                <div id="global-search-results" class="dropdown-menu prismarr-search-results" role="listbox"></div>
+              </div>
+            </div>
+
+            {# Right : page actions + health + theme + user #}
+            <div class="prismarr-topbar-right d-print-none" id="topbar-actions">
+              <div class="prismarr-topbar-actions d-flex align-items-center gap-1">
+
+                {% block page_actions %}{% endblock %}
+
+                {# Santé des services — dropdown lazy-loaded au click #}
+                <div class="dropdown" style="position:relative;">
+                  <button type="button" class="btn btn-icon btn-ghost-secondary" id="topbar-health-btn"
+                          data-prismarr-dropdown="health-menu" title="Santé des services" aria-label="Santé des services">
+                    <span class="prismarr-health-dot" id="topbar-health-dot"></span>
+                  </button>
+                  <div class="dropdown-menu prismarr-health-menu" id="health-menu">
+                    <div class="dropdown-header">
+                      <div class="fw-semibold small">Santé des services</div>
+                      <div class="small text-secondary" id="topbar-health-summary">Chargement…</div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div id="topbar-health-list">
+                      <div class="px-3 py-2 small text-secondary">Chargement…</div>
+                    </div>
                   </div>
-                  <div id="global-search-results" class="dropdown-menu" style="width:380px;max-height:440px;overflow-y:auto;position:absolute;right:0;left:auto;top:100%;display:none;"></div>
                 </div>
 
                 {# Thème #}
@@ -652,12 +877,12 @@
                 {# Profil #}
                 <div class="dropdown" style="position:relative;">
                   <button type="button" class="btn btn-icon btn-ghost-secondary" data-prismarr-dropdown="profile-menu">
-                    <span style="display:inline-flex;width:1.375rem;height:1.375rem;border-radius:50%;background-image:url(https://ui-avatars.com/api/?name={{ app.user ? app.user.email|url_encode : 'U' }}&background=6366f1&color=fff&size=64);background-size:cover;background-position:center;flex-shrink:0;"></span>
+                    <span style="display:inline-flex;width:1.375rem;height:1.375rem;border-radius:50%;background-image:url({% if app.user and app.user.avatarPath %}{{ path('app_profile_avatar_serve', {filename: app.user.avatarPath}) }}{% else %}https://ui-avatars.com/api/?name={{ app.user ? app.user.email|url_encode : 'U' }}&background=6366f1&color=fff&size=64{% endif %});background-size:cover;background-position:center;flex-shrink:0;"></span>
                   </button>
                   <div class="dropdown-menu" id="profile-menu" style="min-width:220px;position:absolute;right:0;left:auto;top:100%;">
                     <div class="dropdown-header">
                       <div class="d-flex align-items-center gap-2 mb-1">
-                        <span class="avatar" style="width:2rem;height:2rem;background-image:url(https://ui-avatars.com/api/?name={{ app.user ? app.user.email|url_encode : 'U' }}&background=6366f1&color=fff&size=64);background-size:cover;background-position:center;border-radius:50%;flex-shrink:0;"></span>
+                        <span class="avatar" style="width:2rem;height:2rem;background-image:url({% if app.user and app.user.avatarPath %}{{ path('app_profile_avatar_serve', {filename: app.user.avatarPath}) }}{% else %}https://ui-avatars.com/api/?name={{ app.user ? app.user.email|url_encode : 'U' }}&background=6366f1&color=fff&size=64{% endif %});background-size:cover;background-position:center;border-radius:50%;flex-shrink:0;"></span>
                         <div class="overflow-hidden">
                           <div class="small fw-semibold text-truncate">{{ app.user ? app.user.email : '' }}</div>
                           <div class="small text-secondary">{% if is_granted('ROLE_ADMIN') %}Administrateur{% else %}Utilisateur{% endif %}</div>
@@ -665,7 +890,7 @@
                       </div>
                     </div>
                     <div class="dropdown-divider"></div>
-                    <a href="#" class="dropdown-item">
+                    <a href="{{ path('app_profile') }}" class="dropdown-item">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-secondary">
                         <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
@@ -673,6 +898,16 @@
                       </svg>
                       Mon profil
                     </a>
+                    {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('admin_settings_index') }}" class="dropdown-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-secondary">
+                        <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37c1 .608 2.296.07 2.572-1.065z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                      Paramètres
+                    </a>
+                    {% endif %}
                     <div class="dropdown-divider"></div>
                     <a href="{{ path('app_logout') }}" class="dropdown-item text-danger">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -694,13 +929,13 @@
       <div class="page-body">
         <div class="container-xl">
           {% for message in app.flashes('success') %}
-            <div class="alert alert-success alert-dismissible js-autohide" role="alert">
-              <div class="d-flex"><div>{{ message }}</div></div>
+            <div class="alert alert-success alert-dismissible" role="alert">
+              <div class="d-flex"><div>✓ {{ message }}</div></div>
               <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
             </div>
           {% endfor %}
           {% for message in app.flashes('error') %}
-            <div class="alert alert-danger alert-dismissible js-autohide" role="alert">
+            <div class="alert alert-danger alert-dismissible" role="alert">
               <div class="d-flex"><div>{{ message }}</div></div>
               <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
             </div>
@@ -859,106 +1094,306 @@
 
     /* ── Recherche globale ── */
     function initGlobalSearch() {
-      var input = document.getElementById('global-search-input');
+      var input     = document.getElementById('global-search-input');
       var resultsDiv = document.getElementById('global-search-results');
-      var spinner = document.getElementById('global-search-spinner');
+      var spinner   = document.getElementById('global-search-spinner');
+      var clearBtn  = document.getElementById('global-search-clear');
       if (!input || !resultsDiv) return;
       if (input.dataset.init) return;
       input.dataset.init = '1';
+
+      var RECENT_KEY = 'prismarrSearchRecent';
+      var RECENT_MAX = 5;
       var timer = null;
       var currentReq = null;
+      var onlineReq  = null;
+      var activeFilter = 'all';   // 'all' | 'film' | 'series'
 
       function showSpinner() { if (spinner) spinner.style.display = ''; }
       function hideSpinner() { if (spinner) spinner.style.display = 'none'; }
 
-      function renderItem(item) {
-        var icon = item.type === 'film'
+      function setExpanded(v) { input.setAttribute('aria-expanded', v ? 'true' : 'false'); }
+      function closeResults() {
+        resultsDiv.style.display = 'none';
+        setExpanded(false);
+        selectedIndex = -1;
+      }
+      function openResults() {
+        resultsDiv.style.display = 'block';
+        setExpanded(true);
+      }
+
+      function renderItem(item, i) {
+        var typeIcon = item.type === 'film'
           ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFC230" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>'
           : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0CF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>';
         var badge = item.inLibrary
           ? '<span class="badge bg-green-lt ms-auto flex-shrink-0" style="font-size:.6rem;">En bibliothèque</span>'
           : '<span class="badge bg-secondary-lt ms-auto flex-shrink-0" style="font-size:.6rem;">Non ajouté</span>';
-        var poster = item.poster ? '<img src="' + item.poster + '" style="width:30px;height:45px;object-fit:cover;border-radius:4px;" class="flex-shrink-0" loading="lazy">' : '<div style="width:30px;height:45px;background:rgba(255,255,255,.05);border-radius:4px;display:flex;align-items:center;justify-content:center;" class="flex-shrink-0">' + icon + '</div>';
+        var poster = item.poster
+          ? '<img src="' + item.poster + '" style="width:30px;height:45px;object-fit:cover;border-radius:4px;" class="flex-shrink-0" loading="lazy">'
+          : '<div style="width:30px;height:45px;background:rgba(255,255,255,.05);border-radius:4px;display:flex;align-items:center;justify-content:center;" class="flex-shrink-0">' + typeIcon + '</div>';
         var dataAttr = ' data-quick-add=\'' + JSON.stringify(item).replace(/'/g, '&#39;') + '\'';
-        return '<a href="#" class="dropdown-item py-2 d-flex align-items-center gap-2"' + dataAttr + '>'
+        return '<a href="#" class="prismarr-search-item" role="option" data-item-index="' + i + '"' + dataAttr + '>'
           + poster
           + '<div class="overflow-hidden flex-grow-1">'
-          + '<div class="d-flex align-items-center gap-1">' + icon + ' <span class="small fw-medium text-truncate" style="color:#e2e8f0;">' + item.title + '</span></div>'
+          + '<div class="d-flex align-items-center gap-1">' + typeIcon + ' <span class="small fw-medium text-truncate">' + item.title + '</span></div>'
           + '<div class="text-secondary" style="font-size:.7rem;">' + (item.year || '') + '</div>'
           + '</div>'
           + badge
           + '</a>';
       }
 
-      var onlineReq = null;
+      // ── Recent searches (localStorage) ────────────────────────────
+      function loadRecent() {
+        try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch (e) { return []; }
+      }
+      function saveRecent(q) {
+        if (!q || q.length < 2) return;
+        var ql = q.toLowerCase();
+        // Drop exact dup + every entry that's a prefix of the new query
+        // (live-save during typing: "d", "du", "dun" → only keep "dune").
+        // Also drop entries the new query is a prefix of, so the shortest
+        // meaningful form wins.
+        var recent = loadRecent().filter(function (r) {
+          var rl = r.toLowerCase();
+          return rl !== ql && !ql.startsWith(rl) && !rl.startsWith(ql);
+        });
+        recent.unshift(q);
+        try { localStorage.setItem(RECENT_KEY, JSON.stringify(recent.slice(0, RECENT_MAX))); } catch (e) {}
+      }
+      function removeRecent(q) {
+        var recent = loadRecent().filter(function (r) { return r !== q; });
+        try { localStorage.setItem(RECENT_KEY, JSON.stringify(recent)); } catch (e) {}
+      }
+      function renderRecent() {
+        var recent = loadRecent();
+        if (!recent.length) {
+          resultsDiv.innerHTML = '<div class="prismarr-search-empty">Tapez au moins 2 caractères pour lancer la recherche.</div>';
+          openResults();
+          return;
+        }
+        var html = '<div class="prismarr-search-section">Recherches récentes</div>';
+        recent.forEach(function (q) {
+          html += '<div class="prismarr-search-recent" data-recent-q="' + q.replace(/"/g, '&quot;') + '">'
+                + '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+                + '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>'
+                + '<span class="text-truncate">' + q + '</span>'
+                + '<span class="clear-x" data-remove-q="' + q.replace(/"/g, '&quot;') + '" title="Oublier">'
+                + '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+                + '</span></div>';
+        });
+        resultsDiv.innerHTML = html;
+        openResults();
+      }
 
+      // ── Filter pills + result grouping ────────────────────────────
+      function passesFilter(item) {
+        if (activeFilter === 'all') return true;
+        if (activeFilter === 'film')   return item.type === 'film';
+        if (activeFilter === 'series') return item.type === 'series' || item.type === 'serie';
+        return true;
+      }
+
+      function renderPills() {
+        return '<div class="prismarr-search-filters">'
+          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'all'    ? 'is-active' : '') + '" data-filter="all">Tous</button>'
+          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'film'   ? 'is-active' : '') + '" data-filter="film">Films</button>'
+          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'series' ? 'is-active' : '') + '" data-filter="series">Séries</button>'
+          + '</div>';
+      }
+
+      function renderSection(label, items, startIndex) {
+        var filtered = items.filter(passesFilter);
+        if (!filtered.length) return { html: '', count: 0 };
+        var html = '<div class="prismarr-search-section">' + label + ' <span class="count">' + filtered.length + '</span></div>';
+        html += filtered.map(function (it, i) { return renderItem(it, startIndex + i); }).join('');
+        return { html: html, count: filtered.length };
+      }
+
+      function renderSearchResults(localItems, onlineItems, onlineLoading) {
+        var html = renderPills();
+        var idx = 0;
+
+        // Online (TMDb / TheTVDB) first — découvrir est le use-case primaire.
+        if (onlineLoading) {
+          html += '<div class="prismarr-search-section">Sur TMDb / TheTVDB</div>'
+               + '<div class="py-2 text-center"><div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div><span class="small text-secondary ms-2">Recherche en ligne…</span></div>';
+        } else {
+          var onlineSec = renderSection('Sur TMDb / TheTVDB', onlineItems || [], idx);
+          if (onlineSec.count) { html += onlineSec.html; idx += onlineSec.count; }
+        }
+
+        // Local library below
+        var localSec = renderSection('Dans votre bibliothèque', localItems || [], idx);
+        html += localSec.html; idx += localSec.count;
+
+        // Empty state when nothing on either side (and not still loading)
+        if (!onlineLoading && idx === 0) {
+          html += '<div class="prismarr-search-empty">Aucun résultat.</div>';
+        }
+
+        resultsDiv.innerHTML = html;
+        openResults();
+        selectedIndex = -1;
+      }
+
+      // ── Keyboard navigation ───────────────────────────────────────
+      var selectedIndex = -1;
+      function updateActiveItem() {
+        var items = resultsDiv.querySelectorAll('.prismarr-search-item');
+        items.forEach(function (el, i) {
+          el.classList.toggle('is-active', i === selectedIndex);
+          if (i === selectedIndex) el.scrollIntoView({ block: 'nearest' });
+        });
+      }
+      function activateItemAt(i) {
+        var items = resultsDiv.querySelectorAll('.prismarr-search-item');
+        if (i < 0 || i >= items.length) return;
+        items[i].click();
+      }
+
+      // ── Search execution ──────────────────────────────────────────
+      var lastLocal = [];
+      var lastOnline = [];
+
+      function runSearch(q) {
+        showSpinner();
+        var ctrl = new AbortController();
+        currentReq = ctrl;
+        fetch('/medias/search?q=' + encodeURIComponent(q), { signal: ctrl.signal })
+          .then(function (r) { return r.json(); })
+          .then(function (localItems) {
+            hideSpinner();
+            currentReq = null;
+            lastLocal = localItems || [];
+            renderSearchResults(lastLocal, [], true);
+
+            var ctrl2 = new AbortController();
+            onlineReq = ctrl2;
+            fetch('/medias/search/online?q=' + encodeURIComponent(q), { signal: ctrl2.signal })
+              .then(function (r) { return r.json(); })
+              .then(function (onlineItems) {
+                onlineReq = null;
+                lastOnline = onlineItems || [];
+                renderSearchResults(lastLocal, lastOnline, false);
+                // Une query qui a au moins un hit est worth saving — l'user
+                // a probablement tapé quelque chose de pertinent.
+                if (lastLocal.length || lastOnline.length) saveRecent(q);
+              })
+              .catch(function (err) {
+                if (err.name === 'AbortError') return;
+                lastOnline = [];
+                renderSearchResults(lastLocal, lastOnline, false);
+                if (lastLocal.length) saveRecent(q);
+              });
+          })
+          .catch(function (err) {
+            if (err.name !== 'AbortError') { hideSpinner(); }
+          });
+      }
+
+      // ── Input wiring ──────────────────────────────────────────────
       input.addEventListener('input', function () {
         clearTimeout(timer);
         if (currentReq) { currentReq.abort(); currentReq = null; }
-        if (onlineReq) { onlineReq.abort(); onlineReq = null; }
+        if (onlineReq)  { onlineReq.abort();  onlineReq  = null; }
         var q = input.value.trim();
-        if (q.length < 2) { resultsDiv.style.display = 'none'; hideSpinner(); return; }
-        showSpinner();
-        timer = setTimeout(function () {
-          // 1) Résultats locaux instantanés
-          var ctrl = new AbortController();
-          currentReq = ctrl;
-          fetch('/medias/search?q=' + encodeURIComponent(q), { signal: ctrl.signal })
-            .then(function (r) { return r.json(); })
-            .then(function (localItems) {
-              hideSpinner();
-              currentReq = null;
-              // Stocker les IDs locaux pour marquer "En bibliothèque" dans les résultats en ligne
-              var localIds = {};
-              localItems.forEach(function (item) { localIds[item.type + '_' + (item.title || '')] = true; });
-              window._prismarrLocalIds = localIds;
-
-              resultsDiv.innerHTML = '<div id="search-online-section"><div class="py-2 text-center"><div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div><span class="small text-secondary ms-2">Recherche en ligne…</span></div></div>';
-              resultsDiv.style.display = 'block';
-
-              // 2) Résultats en ligne en parallèle
-              var ctrl2 = new AbortController();
-              onlineReq = ctrl2;
-              fetch('/medias/search/online?q=' + encodeURIComponent(q), { signal: ctrl2.signal })
-                .then(function (r) { return r.json(); })
-                .then(function (onlineItems) {
-                  onlineReq = null;
-                  var section = document.getElementById('search-online-section');
-                  if (!section) return;
-                  if (!onlineItems.length) {
-                    section.innerHTML = '<div class="py-2 text-center text-secondary small">Aucun résultat en ligne</div>';
-                    return;
-                  }
-                  var oHtml = '<div class="dropdown-header py-1"><span class="small" style="color:#6366f1;">Découvrir (TMDb / TheTVDB)</span></div>';
-                  oHtml += onlineItems.map(function (item) { return renderItem(item); }).join('');
-                  section.innerHTML = oHtml;
-                })
-                .catch(function (err) {
-                  if (err.name === 'AbortError') return;
-                  var section = document.getElementById('search-online-section');
-                  if (section) section.innerHTML = '<div class="py-2 text-center text-secondary small">Erreur recherche en ligne</div>';
-                });
-            })
-            .catch(function (err) {
-              if (err.name !== 'AbortError') { hideSpinner(); }
-            });
-        }, 300);
+        clearBtn.style.display = q ? '' : 'none';
+        if (q.length < 2) {
+          hideSpinner();
+          renderRecent();
+          return;
+        }
+        timer = setTimeout(function () { runSearch(q); }, 300);
       });
 
       input.addEventListener('focus', function () {
-        input.style.background = 'rgba(255,255,255,.1)';
-        input.style.borderColor = '#6366f1';
-      });
-      input.addEventListener('blur', function () {
-        input.style.background = 'rgba(255,255,255,.06)';
-        input.style.borderColor = 'rgba(255,255,255,.15)';
+        if (!input.value.trim()) renderRecent();
       });
 
+      // ── Clear button ──────────────────────────────────────────────
+      clearBtn.addEventListener('click', function () {
+        input.value = '';
+        clearBtn.style.display = 'none';
+        lastLocal = []; lastOnline = [];
+        input.focus();
+        renderRecent();
+      });
+
+      // ── Delegated clicks (filter pills, recent, remove-recent) ──
+      // stopPropagation is critical here: the re-render below replaces the
+      // clicked element, and the outside-click handler on `document` would
+      // then fail its `.contains(e.target)` check (the orphan node is no
+      // longer in the DOM) and wrongly close the dropdown.
+      resultsDiv.addEventListener('click', function (e) {
+        var pill = e.target.closest('.prismarr-search-pill');
+        if (pill) {
+          e.stopPropagation();
+          activeFilter = pill.dataset.filter;
+          if (input.value.trim().length >= 2) {
+            renderSearchResults(lastLocal, lastOnline, false);
+          }
+          return;
+        }
+        var removeBtn = e.target.closest('[data-remove-q]');
+        if (removeBtn) {
+          e.preventDefault(); e.stopPropagation();
+          removeRecent(removeBtn.dataset.removeQ);
+          renderRecent();
+          return;
+        }
+        var recent = e.target.closest('.prismarr-search-recent');
+        if (recent) {
+          e.preventDefault(); e.stopPropagation();
+          input.value = recent.dataset.recentQ;
+          clearBtn.style.display = '';
+          runSearch(input.value);
+          return;
+        }
+        var item = e.target.closest('.prismarr-search-item');
+        if (item) {
+          saveRecent(input.value.trim());
+        }
+      });
+
+      // Close on outside click — guard against orphaned targets left behind
+      // by a re-render inside the results panel.
+      document.addEventListener('click', function (e) {
+        if (!document.body.contains(e.target)) return;
+        if (!document.getElementById('global-search-wrap').contains(e.target)) {
+          closeResults();
+        }
+      });
+
+      // ── Keyboard ──────────────────────────────────────────────────
       input.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') { resultsDiv.style.display = 'none'; input.blur(); }
+        var items = resultsDiv.querySelectorAll('.prismarr-search-item');
+        if (e.key === 'Escape') { closeResults(); input.blur(); return; }
+        if (e.key === 'ArrowDown') {
+          if (!items.length) return;
+          e.preventDefault();
+          selectedIndex = (selectedIndex + 1) % items.length;
+          updateActiveItem();
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          if (!items.length) return;
+          e.preventDefault();
+          selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
+          updateActiveItem();
+          return;
+        }
+        if (e.key === 'Enter') {
+          if (selectedIndex >= 0 && items.length) {
+            e.preventDefault();
+            saveRecent(input.value.trim());
+            activateItemAt(selectedIndex);
+          }
+        }
       });
 
-      // Raccourci Ctrl+K / Cmd+K
+      // Ctrl+K / Cmd+K global shortcut
       document.addEventListener('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
           e.preventDefault();
@@ -1284,6 +1719,8 @@
 
     /* ── 2. Toasts SSE ── */
     window._prismarrToast = function (msg, type, duration) {
+      {# User opt-out via display_toasts = '0' → JS no-op, no DOM mutation. #}
+      {% if not display_pref('toasts') %}return;{% endif %}
       var container = document.getElementById('prismarr-toasts');
       if (!container) return;
       var toast = document.createElement('div');
@@ -1325,7 +1762,10 @@
   <script>
   (function () {
     var QBT_POLL_URL = '{{ path('app_qbittorrent_api_poll_summary') }}';
-    var QBT_POLL_INTERVAL = 15000; // 15s : pas besoin de plus, évite la charge NAS
+    {# User preference drives the polling cadence — 0 disables qBit polling entirely. #}
+    var QBT_POLL_INTERVAL_SECONDS = {{ display_pref('qbit_refresh_seconds') }};
+    if (QBT_POLL_INTERVAL_SECONDS <= 0) return;  // poll disabled via /admin/settings
+    var QBT_POLL_INTERVAL = QBT_POLL_INTERVAL_SECONDS * 1000;
     var STATE_KEY = 'prismarr_qbt_last_state';
     var NOTIFIED_KEY = 'prismarr_qbt_notified';  // hashs déjà notifiés (dédup cross-tab)
     var NOTIFIED_TTL = 60 * 60 * 1000; // 1h — au-delà on réautorise la notif (torrent re-DL par ex)
@@ -1469,6 +1909,65 @@
   })();
   </script>
   {% endif %}
+
+  <script>
+    // Topbar health indicator — lazy-loaded state + auto-refresh 60s.
+    (function () {
+      var SERVICE_LABELS = {
+        radarr: 'Radarr', sonarr: 'Sonarr', prowlarr: 'Prowlarr',
+        jellyseerr: 'Jellyseerr', qbittorrent: 'qBittorrent', tmdb: 'TMDb',
+      };
+      var dot   = document.getElementById('topbar-health-dot');
+      var summ  = document.getElementById('topbar-health-summary');
+      var list  = document.getElementById('topbar-health-list');
+      if (!dot || !summ || !list) return;
+
+      function renderHealth(data) {
+        var ok = data.ok || 0;
+        var total = data.total || 0;
+        var services = data.services || {};
+
+        // Overall dot color : all configured up = green, partial = orange,
+        // none configured or all down = red.
+        dot.classList.remove('is-ok', 'is-warn', 'is-ko');
+        if (total === 0)       dot.classList.add('is-ko');
+        else if (ok === total) dot.classList.add('is-ok');
+        else if (ok > 0)       dot.classList.add('is-warn');
+        else                   dot.classList.add('is-ko');
+
+        summ.textContent = total === 0
+          ? 'Aucun service configuré'
+          : ok + ' / ' + total + ' services opérationnels';
+
+        var html = '';
+        Object.keys(SERVICE_LABELS).forEach(function (id) {
+          var state = services[id];
+          var cls   = state === null || state === undefined ? 'is-unk' : (state ? 'is-ok' : 'is-ko');
+          var label = state === null || state === undefined ? 'Non configuré' : (state ? 'Opérationnel' : 'Injoignable');
+          html += '<div class="prismarr-health-row">'
+               +  '<span class="prismarr-health-row-dot ' + cls + '"></span>'
+               +  '<span class="prismarr-health-row-name">' + SERVICE_LABELS[id] + '</span>'
+               +  '<span class="prismarr-health-row-state">' + label + '</span>'
+               +  '</div>';
+        });
+        list.innerHTML = html;
+      }
+
+      function fetchHealth() {
+        fetch('/api/health/services', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) { if (d) renderHealth(d); })
+          .catch(function () {});
+      }
+
+      fetchHealth();
+      // Refresh auto toutes les 60s — HealthService cache déjà 10s serveur-side.
+      if (!window._prismarrHealthTimer) {
+        window._prismarrHealthTimer = setInterval(fetchHealth, 60000);
+      }
+      document.addEventListener('turbo:load', fetchHealth);
+    })();
+  </script>
 
   <script>
     // Sidebar collapsible toggle + tooltip setup (Turbo-safe).

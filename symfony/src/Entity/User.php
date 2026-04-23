@@ -36,6 +36,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $lastLoginAt = null;
 
+    /**
+     * Local filename (inside var/data/avatars/) of the user's uploaded
+     * profile picture, or null if they haven't uploaded one (the UI
+     * falls back to a generated ui-avatars.com initial badge).
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatarPath = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -113,6 +121,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastLoginAt(?\DateTimeImmutable $lastLoginAt): static
     {
         $this->lastLoginAt = $lastLoginAt;
+        return $this;
+    }
+
+    public function getAvatarPath(): ?string { return $this->avatarPath; }
+    public function setAvatarPath(?string $avatarPath): static
+    {
+        $this->avatarPath = $avatarPath;
         return $this;
     }
 }

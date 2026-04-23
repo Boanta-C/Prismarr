@@ -13,7 +13,7 @@
   }
   .explorer-card h6 {
     font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
-    color: #6366f1; margin: 0 0 .5rem; display: flex; align-items: center; gap: .4rem;
+    color: var(--tblr-primary); margin: 0 0 .5rem; display: flex; align-items: center; gap: .4rem;
   }
 
   /* ── Pills/chips ── */
@@ -23,8 +23,8 @@
     border: 1px solid var(--tblr-border-color); background: transparent;
     color: var(--tblr-body-color); cursor: pointer; transition: all .12s;
   }
-  .ex-pill:hover { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,.06); }
-  .ex-pill.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+  .ex-pill:hover { border-color: var(--tblr-primary); color: var(--tblr-primary); background: rgba(var(--tblr-primary-rgb),.06); }
+  .ex-pill.active { background: var(--tblr-primary); color: #fff; border-color: var(--tblr-primary); }
 
   /* ── Type switch ── */
   .ex-type-switch { display: inline-flex; border-radius: .4rem; overflow: hidden; border: 1px solid var(--tblr-border-color); }
@@ -34,8 +34,8 @@
     cursor: pointer; transition: all .12s; line-height: 1.2;
   }
   .ex-type-btn + .ex-type-btn { border-left: 1px solid var(--tblr-border-color); }
-  .ex-type-btn.active { background: #6366f1; color: #fff; }
-  .ex-type-btn:not(.active):hover { background: rgba(99,102,241,.08); }
+  .ex-type-btn.active { background: var(--tblr-primary); color: #fff; }
+  .ex-type-btn:not(.active):hover { background: rgba(var(--tblr-primary-rgb),.08); }
 
   /* ── Collection pills ── */
   .ex-col-pill {
@@ -52,12 +52,12 @@
     border: 1px solid var(--tblr-border-color); background: var(--tblr-bg-surface);
     color: var(--tblr-body-color); transition: border-color .15s;
   }
-  .ex-person-input:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 2px rgba(99,102,241,.15); }
+  .ex-person-input:focus { border-color: var(--tblr-primary); outline: none; box-shadow: 0 0 0 2px rgba(var(--tblr-primary-rgb),.15); }
   .ex-person-suggestion {
     display: flex; align-items: center; gap: .4rem; padding: .3rem .5rem;
     cursor: pointer; border-radius: .3rem; transition: background .1s; font-size: .78rem;
   }
-  .ex-person-suggestion:hover { background: rgba(99,102,241,.08); }
+  .ex-person-suggestion:hover { background: rgba(var(--tblr-primary-rgb),.08); }
   .ex-person-suggestion img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
   .ex-person-header {
     display: flex; align-items: center; gap: .5rem;

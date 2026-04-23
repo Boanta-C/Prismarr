@@ -3,14 +3,19 @@
 namespace App\Controller;
 
 use App\Repository\SettingRepository;
+use App\Repository\UserRepository;
 use App\Service\ConfigService;
 use App\Service\HealthService;
+use App\Service\Media\RadarrClient;
+use App\Service\Media\SonarrClient;
+use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -153,18 +158,6 @@ class AdminSettingsController extends AbstractController
                 'blue'   => '#3b82f6',
             ],
         ],
-        'display_default_view' => [
-            'label'   => 'Vue par défaut (Films / Séries)',
-            'type'    => 'select',
-            'default' => 'poster',
-            'options' => [
-                'poster'  => 'Affiches',
-                'list'    => 'Liste',
-                'grid'    => 'Grille',
-                'compact' => 'Compact',
-                'table'   => 'Tableau',
-            ],
-        ],
         'display_qbit_refresh' => [
             'label'   => 'Rafraîchissement qBittorrent',
             'type'    => 'select',
@@ -196,6 +189,10 @@ class AdminSettingsController extends AbstractController
         private readonly LoggerInterface $logger,
         #[Autowire(service: 'cache.app')]
         private readonly AdapterInterface $appCache,
+        #[Autowire('%kernel.project_dir%')]
+        private readonly string $projectDir = '',
+        #[Autowire('%kernel.environment%')]
+        private readonly string $environment = 'prod',
     ) {}
 
     #[Route('', name: 'index', methods: ['GET', 'POST'])]
@@ -224,7 +221,67 @@ class AdminSettingsController extends AbstractController
             'display_options'    => self::DISPLAY_OPTIONS,
             'display_values'     => $this->loadDisplayValues(),
             'timezones'          => \DateTimeZone::listIdentifiers(),
+            'system_info'        => $this->systemInfo(),
+            'export_counts'      => $this->exportCounts(),
             'errors'             => $errors,
+        ]);
+    }
+
+    /**
+     * Read-only snapshot of the runtime environment for the "À propos"
+     * section. Everything is computed on render — no caching — since the
+     * settings page is visited rarely enough that the cost is negligible.
+     */
+    private function systemInfo(): array
+    {
+        $projectDir = $this->projectDir ?: ($_SERVER['KERNEL_PROJECT_DIR'] ?? '');
+        $dbPath     = $projectDir . '/var/data/prismarr.db';
+
+        // Library counts are best-effort — if Radarr/Sonarr are down we
+        // render "—" instead of crashing the whole page.
+        $films  = null;
+        $series = null;
+        try {
+            /** @var RadarrClient $radarr */
+            $radarr = $this->container->get(RadarrClient::class);
+            $films  = count($radarr->getMovies());
+        } catch (\Throwable) {}
+        try {
+            /** @var SonarrClient $sonarr */
+            $sonarr = $this->container->get(SonarrClient::class);
+            $series = count($sonarr->getSeries());
+        } catch (\Throwable) {}
+
+        /** @var UserRepository $users */
+        $users = $this->container->get(UserRepository::class);
+        $userCount = null;
+        try {
+            $userCount = $users->count([]);
+        } catch (\Throwable) {}
+
+        return [
+            'prismarr_version' => $_ENV['PRISMARR_VERSION'] ?? getenv('PRISMARR_VERSION') ?: '1.0.0-dev',
+            'symfony_version'  => Kernel::VERSION,
+            'php_version'      => PHP_VERSION,
+            'sapi'             => PHP_SAPI,
+            'environment'      => $this->environment,
+            'db_path'          => $dbPath,
+            'db_size'          => is_file($dbPath) ? filesize($dbPath) : 0,
+            'avatars_dir'      => $projectDir . '/var/data/avatars',
+            'user_count'       => $userCount,
+            'film_count'       => $films,
+            'series_count'     => $series,
+            'server_time'      => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+            'timezone'         => date_default_timezone_get(),
+        ];
+    }
+
+    public static function getSubscribedServices(): array
+    {
+        return array_merge(parent::getSubscribedServices(), [
+            RadarrClient::class    => RadarrClient::class,
+            SonarrClient::class    => SonarrClient::class,
+            UserRepository::class  => UserRepository::class,
         ]);
     }
 
@@ -326,6 +383,169 @@ class AdminSettingsController extends AbstractController
         // the previous config doesn't linger up to an hour.
         $this->appCache->clear();
         $this->addFlash('success', 'Configuration enregistrée.');
+    }
+
+    /**
+     * Non-sensitive settings only — keys containing secrets (api_key,
+     * password) are filtered out so the exported JSON is safe to share
+     * or commit to a private dotfiles repo.
+     */
+    private const EXPORT_SENSITIVE_PATTERNS = ['api_key', 'password', 'secret'];
+
+    /**
+     * @return array{safe: int, skipped: int}
+     */
+    private function exportCounts(): array
+    {
+        $safe = 0; $skipped = 0;
+        foreach ($this->settings->findAll() as $s) {
+            if ($this->isSensitiveKey($s->getName())) { $skipped++; } else { $safe++; }
+        }
+        return ['safe' => $safe, 'skipped' => $skipped];
+    }
+
+    #[Route('/reset-display', name: 'reset_display', methods: ['POST'])]
+    public function resetDisplay(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_settings_reset_display', (string) $request->request->get('_csrf_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+            return $this->redirectToRoute('admin_settings_index');
+        }
+
+        // Null value = delete the row, which makes the next read fall back
+        // to the declared default in DISPLAY_OPTIONS.
+        $payload = [];
+        foreach (array_keys(self::DISPLAY_OPTIONS) as $key) {
+            $payload[$key] = null;
+        }
+        $this->settings->setMany($payload);
+        $this->config->invalidate();
+        $this->health->invalidate();
+        $this->appCache->clear();
+
+        $this->addFlash('success', 'Préférences d\'affichage réinitialisées aux valeurs par défaut.');
+        return $this->redirectToRoute('admin_settings_index');
+    }
+
+    #[Route('/export', name: 'export', methods: ['GET'])]
+    public function export(): Response
+    {
+        $all = $this->settings->findAll();
+        $payload = [
+            'prismarr_export_version' => 1,
+            'exported_at'             => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+            'settings'                => [],
+        ];
+
+        foreach ($all as $setting) {
+            $name = $setting->getName();
+            if ($this->isSensitiveKey($name)) {
+                continue;
+            }
+            $payload['settings'][$name] = $setting->getValue();
+        }
+
+        ksort($payload['settings']);
+
+        $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            return new JsonResponse(['error' => 'Encodage impossible.'], 500);
+        }
+
+        return new Response(
+            $json,
+            Response::HTTP_OK,
+            [
+                'Content-Type'        => 'application/json',
+                'Content-Disposition' => 'attachment; filename="prismarr-config-' . date('Y-m-d') . '.json"',
+            ],
+        );
+    }
+
+    #[Route('/import', name: 'import', methods: ['POST'])]
+    public function import(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_settings_import', (string) $request->request->get('_csrf_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+            return $this->redirectToRoute('admin_settings_index');
+        }
+
+        $file = $request->files->get('config');
+        if (!$file || !$file->isValid()) {
+            $this->addFlash('error', 'Aucun fichier reçu.');
+            return $this->redirectToRoute('admin_settings_index');
+        }
+
+        if ($file->getSize() > 64_000) {
+            $this->addFlash('error', 'Fichier trop volumineux (max 64 Ko).');
+            return $this->redirectToRoute('admin_settings_index');
+        }
+
+        $raw = @file_get_contents($file->getPathname());
+        if ($raw === false) {
+            $this->addFlash('error', 'Lecture du fichier impossible.');
+            return $this->redirectToRoute('admin_settings_index');
+        }
+
+        try {
+            $payload = json_decode($raw, true, 8, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            $this->addFlash('error', 'JSON invalide : ' . $e->getMessage());
+            return $this->redirectToRoute('admin_settings_index');
+        }
+
+        if (!is_array($payload) || ($payload['prismarr_export_version'] ?? 0) !== 1 || !is_array($payload['settings'] ?? null)) {
+            $this->addFlash('error', 'Format non reconnu (version export v1 attendue).');
+            return $this->redirectToRoute('admin_settings_index');
+        }
+
+        $applied = 0;
+        $skipped = 0;
+        $toApply = [];
+        foreach ($payload['settings'] as $name => $value) {
+            if (!is_string($name) || $name === '') {
+                $skipped++;
+                continue;
+            }
+            // Never let an import overwrite secrets — even if someone
+            // managed to craft a payload with them, we refuse silently
+            // so a compromised export file can't leak into DB.
+            if ($this->isSensitiveKey($name)) {
+                $skipped++;
+                continue;
+            }
+            if ($value !== null && !is_scalar($value)) {
+                $skipped++;
+                continue;
+            }
+            $toApply[$name] = $value === null ? null : (string) $value;
+            $applied++;
+        }
+
+        if ($applied > 0) {
+            $this->settings->setMany($toApply);
+            $this->config->invalidate();
+            $this->health->invalidate();
+            $this->appCache->clear();
+        }
+
+        $this->addFlash(
+            'success',
+            sprintf('%d réglage%s importé%s, %d ignoré%s.', $applied, $applied > 1 ? 's' : '', $applied > 1 ? 's' : '', $skipped, $skipped > 1 ? 's' : ''),
+        );
+
+        return $this->redirectToRoute('admin_settings_index');
+    }
+
+    private function isSensitiveKey(string $name): bool
+    {
+        $lower = strtolower($name);
+        foreach (self::EXPORT_SENSITIVE_PATTERNS as $p) {
+            if (str_contains($lower, $p)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

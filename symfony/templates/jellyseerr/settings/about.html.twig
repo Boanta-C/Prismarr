@@ -1,5 +1,5 @@
 {% extends 'base.html.twig' %}
-{% block title %}A propos — Jellyseerr — IH-ARGOS{% endblock %}
+{% block title %}A propos — Jellyseerr{% endblock %}
 {% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> A propos{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
@@ -81,7 +81,7 @@
     </div>
     <div class="col-6 col-sm-4 col-lg-2">
         <div class="card js-stat-card">
-            <div class="js-val" style="color:#6366f1;">{{ requestCounts.total ?? 0 }}</div>
+            <div class="js-val" style="color:var(--tblr-primary);">{{ requestCounts.total ?? 0 }}</div>
             <div class="js-lbl">Requetes</div>
         </div>
     </div>

@@ -1,5 +1,5 @@
 {% extends 'base.html.twig' %}
-{% block title %}Téléchargements — IH-ARGOS{% endblock %}
+{% block title %}Téléchargements{% endblock %}
 {% block page_title %}<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f67ba" stroke-width="2"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/></svg> Téléchargements{% endblock %}
 
 {% block stylesheets %}
@@ -99,7 +99,7 @@
 .qbt-tag-radarr:hover { background:rgba(255,194,48,.28); }
 .qbt-tag-sonarr { background:rgba(0,204,255,.15); color:#0094c4; border:1px solid rgba(0,204,255,.25); cursor:pointer; }
 .qbt-tag-sonarr:hover { background:rgba(0,204,255,.28); }
-.qbt-tag-generic { background:rgba(99,102,241,.12); color:#6366f1; }
+.qbt-tag-generic { background:rgba(var(--tblr-primary-rgb),.12); color:var(--tblr-primary); }
 
 /* progress bar visuelle */
 .qbt-bar-wrap { position:relative; height:4px; background:rgba(0,0,0,.06); border-radius:3px; overflow:hidden; }

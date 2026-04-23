@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Films — IH-ARGOS{% endblock %}
-{% block page_title %}<svg width="24" height="24" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><g transform="translate(70 21)"><path d="M105.3 154.9L112.8 869.5C52.7 877 7.5 846.9 7.5 786.8L0 192.6C0 4.5 173-40.6 278.3 34.6L812.3 343C887.5 395.6 902.6 493.4 865 561.1C857.5 508.5 834.9 478.4 789.8 448.3L188 109.8C142.9 79.7 105.3 87.2 105.3 154.9Z" fill="#FFC230"/><path d="M0 376.1C45.1 391.1 90.3 383.6 127.9 361L744.6 0C782.2 52.7 774.7 105.3 729.6 135.4L210.6 436.3C135.4 473.9 37.6 436.3 0 376.1Z" transform="translate(60.2 531)" fill="#FFC230"/><path d="M0 413.7L368.6 203.1L7.5 0L0 413.7Z" transform="translate(240.7 282.8)" fill="#FFC230"/></g></svg> Films{% endblock %}
+{% block title %}Radarr{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><g transform="translate(70 21)"><path d="M105.3 154.9L112.8 869.5C52.7 877 7.5 846.9 7.5 786.8L0 192.6C0 4.5 173-40.6 278.3 34.6L812.3 343C887.5 395.6 902.6 493.4 865 561.1C857.5 508.5 834.9 478.4 789.8 448.3L188 109.8C142.9 79.7 105.3 87.2 105.3 154.9Z" fill="#FFC230"/><path d="M0 376.1C45.1 391.1 90.3 383.6 127.9 361L744.6 0C782.2 52.7 774.7 105.3 729.6 135.4L210.6 436.3C135.4 473.9 37.6 436.3 0 376.1Z" transform="translate(60.2 531)" fill="#FFC230"/><path d="M0 413.7L368.6 203.1L7.5 0L0 413.7Z" transform="translate(240.7 282.8)" fill="#FFC230"/></g></svg> Radarr{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
 {% block stylesheets %}
@@ -112,9 +112,9 @@
     transition: all .15s;
 }
 .media-card .select-cb.checked {
-    background: #6366f1; border-color: #6366f1;
+    background: var(--tblr-primary); border-color: var(--tblr-primary);
 }
-.media-card.selected { outline: 2px solid #6366f1; outline-offset: -2px; }
+.media-card.selected { outline: 2px solid var(--tblr-primary); outline-offset: -2px; }
 /* Vue mur */
 .media-grid.view-wall { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 2px; }
 .media-grid.view-wall .media-card { border-radius: 0; border: none; }
@@ -3522,7 +3522,7 @@
       r.style.background = '';
     });
     item.style.borderColor = 'var(--tblr-primary)';
-    item.style.background = 'rgba(99, 102, 241, 0.1)';
+    item.style.background = 'rgba(var(--tblr-primary-rgb), 0.1)';
 
     selectedMovie = { tmdbId: item.dataset.tmdb, title: item.dataset.title, year: item.dataset.year };
     document.getElementById('add-film-form-title').textContent = selectedMovie.title + (selectedMovie.year ? ' (' + selectedMovie.year + ')' : '');
@@ -3799,7 +3799,7 @@
         var card = grid.querySelector('.media-card[data-id="' + id + '"]');
         if (card) toggleSelect(card);
         // Highlight shelf card
-        sc.style.outline = selectedIds.has(id) ? '2px solid #6366f1' : 'none';
+        sc.style.outline = selectedIds.has(id) ? '2px solid var(--tblr-primary)' : 'none';
         return;
       }
       var card = grid.querySelector('.media-card[data-id="' + id + '"]');
@@ -3853,7 +3853,7 @@
       var isSelected = selectedIds.has(id);
       cb.style.background = isSelected ? '#6366f1' : 'rgba(0,0,0,.3)';
       cb.style.borderColor = isSelected ? '#6366f1' : 'rgba(255,255,255,.4)';
-      cb.closest('tr').style.background = isSelected ? 'rgba(99,102,241,.1)' : '';
+      cb.closest('tr').style.background = isSelected ? 'rgba(var(--tblr-primary-rgb),.1)' : '';
       return;
     }
     var row = e.target.closest('.films-table-row');
@@ -3874,7 +3874,7 @@
       var isSelected = selectedIds.has(id);
       cb.style.background = isSelected ? '#6366f1' : 'rgba(0,0,0,.3)';
       cb.style.borderColor = isSelected ? '#6366f1' : 'rgba(255,255,255,.4)';
-      cb.closest('tr').style.background = isSelected ? 'rgba(99,102,241,.1)' : '';
+      cb.closest('tr').style.background = isSelected ? 'rgba(var(--tblr-primary-rgb),.1)' : '';
     });
   }
 

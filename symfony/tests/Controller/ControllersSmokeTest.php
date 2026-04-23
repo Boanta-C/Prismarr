@@ -30,6 +30,9 @@ class ControllersSmokeTest extends AbstractWebTestCase
             'media series'        => ['/medias/series', 'MediaController::series'],
             'tmdb discovery'      => ['/decouverte', 'TmdbController::index'],
             'calendrier'          => ['/calendrier', 'CalendrierController::index'],
+            'calendrier ical'     => ['/calendrier.ics', 'CalendrierController::ical'],
+            'profile'             => ['/profil', 'ProfileController::index'],
+            'settings export'     => ['/admin/settings/export', 'AdminSettingsController::export'],
 
             // Arrs system pages (not service-data-heavy, still need to render)
             'radarr updates'      => ['/radarr/mises-a-jour', 'RadarrController::updates'],

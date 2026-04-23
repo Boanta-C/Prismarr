@@ -94,7 +94,7 @@
 
       <div class="d-flex flex-wrap gap-2 mb-2">
         {% if serie.status == 'continuing' %}
-          <span class="badge" style="background:rgba(99,102,241,.2);color:#818cf8;">En cours</span>
+          <span class="badge" style="background:rgba(var(--tblr-primary-rgb),.2);color:#818cf8;">En cours</span>
         {% elseif serie.status == 'ended' %}
           <span class="badge bg-secondary-lt">Terminée</span>
         {% else %}

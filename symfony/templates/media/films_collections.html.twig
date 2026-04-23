@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Collections — IH-ARGOS{% endblock %}
+{% block title %}Collections{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -135,7 +135,7 @@
       </div>
       {# Barre de progression #}
       <div style="height:3px;background:rgba(255,255,255,.2);border-radius:2px;margin-top:.3rem;overflow:hidden">
-        <div style="height:100%;width:{{ pct }}%;background:{% if pct == 100 %}#22c55e{% else %}#6366f1{% endif %};border-radius:2px"></div>
+        <div style="height:100%;width:{{ pct }}%;background:{% if pct == 100 %}#22c55e{% else %}var(--tblr-primary){% endif %};border-radius:2px"></div>
       </div>
       {# Toggle monitored #}
       <div class="mt-2">

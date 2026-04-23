@@ -26,6 +26,8 @@ class AdminSettingsControllerTest extends TestCase
             $health,
             $this->createMock(LoggerInterface::class),
             $this->createMock(\Symfony\Component\Cache\Adapter\AdapterInterface::class),
+            projectDir: sys_get_temp_dir(),
+            environment: 'test',
         );
 
         $container = $this->createMock(ContainerInterface::class);
