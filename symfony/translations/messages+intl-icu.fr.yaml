@@ -855,6 +855,81 @@ decouverte:
       unmonitored: Non suivi
     page: 'Page {current} / {total}'
 
+media:
+  api:
+    tag_still_used: 'Ce tag est encore utilisé. Retirez-le de tous les films avant de le supprimer.'
+    delete_error: 'Erreur lors de la suppression.'
+    label_required: Label requis
+    config_not_found: Config introuvable
+    command_name_required: Nom de commande requis
+    no_indexer: 'Aucun indexeur actif — les recherches ne fonctionneront pas.'
+    radarr_unreachable: Impossible de contacter Radarr.
+    sonarr_unreachable: Impossible de contacter Sonarr.
+    file_not_found: Fichier introuvable
+    movie_not_found: Film introuvable
+    series_not_found: Série introuvable
+    series_data_missing: Données série introuvables
+    no_movies_selected: Aucun film sélectionné
+    no_movie: Aucun film
+    no_series: Aucune série
+    queue_item_not_found: Item non trouvé dans la queue
+    raw_movie_failed: Impossible de récupérer le film brut
+    tmdb_id_missing: ID TMDb manquant
+    tmdb_person_schema_missing: Schema TMDbPerson non trouvé
+    no_file: Aucun fichier
+    no_missing_episodes: Aucun épisode manquant surveillé.
+    warning_format: '{source} : {message}'
+  label:
+    season_prefix: 'Saison {number}'
+
+  nav:
+    films: Films
+    series: Séries
+    library_films: Bibliothèque Films
+    library_series: Bibliothèque Séries
+  group:
+    activity: Activité
+    wanted: Recherché
+    discovery: Découverte
+    settings: Paramètres
+    profiles: Profils
+    integrations: Intégrations
+    general: Général
+    system: Système
+  item:
+    history: Historique
+    blocklist: Blocklist
+    commands: Commandes
+    missing: Manquants
+    cutoff: Cutoff qualité
+    library_import: Import bibliothèque
+    collections: Collections
+    suggestions: Suggestions
+    exclusions: Exclusions
+    quality: Qualité
+    delay_profiles: Profils délai
+    custom_formats: Formats custom
+    custom_filters: Filtres personnalisés
+    indexers: Indexeurs
+    download_clients: Clients téléch.
+    import_lists: Listes import
+    notifications: Notifications
+    auto_tags: Auto-tags
+    tags: Tags
+    media_management: Gestion des médias
+    ui: Interface (UI)
+    root_folders: Dossiers racine
+    remote_paths: Chemins distants
+    metadata: Metadata
+    status: Statut
+    general: Général
+    tasks: Tâches
+    logs: Logs
+    stats: Stats
+    parse: Parser titre
+    backups: Sauvegardes
+    updates: Mises à jour
+
 watchlist_page:
   back_to_discover: Découverte
   count_titles: '{count, plural, one {# titre} other {# titres}}'

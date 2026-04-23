@@ -856,6 +856,81 @@ decouverte:
       unmonitored: Unmonitored
     page: 'Page {current} / {total}'
 
+media:
+  api:
+    tag_still_used: 'This tag is still in use. Remove it from all movies before deleting it.'
+    delete_error: 'Error while deleting.'
+    label_required: Label required
+    config_not_found: Config not found
+    command_name_required: Command name required
+    no_indexer: 'No active indexer — searches will not work.'
+    radarr_unreachable: Cannot reach Radarr.
+    sonarr_unreachable: Cannot reach Sonarr.
+    file_not_found: File not found
+    movie_not_found: Movie not found
+    series_not_found: TV show not found
+    series_data_missing: TV show data missing
+    no_movies_selected: No movie selected
+    no_movie: No movie
+    no_series: No TV show
+    queue_item_not_found: Item not found in the queue
+    raw_movie_failed: Cannot fetch raw movie
+    tmdb_id_missing: Missing TMDb ID
+    tmdb_person_schema_missing: TMDbPerson schema not found
+    no_file: No file
+    no_missing_episodes: No missing monitored episode.
+    warning_format: '{source}: {message}'
+  label:
+    season_prefix: 'Season {number}'
+
+  nav:
+    films: Movies
+    series: TV Shows
+    library_films: Movie library
+    library_series: TV show library
+  group:
+    activity: Activity
+    wanted: Wanted
+    discovery: Discover
+    settings: Settings
+    profiles: Profiles
+    integrations: Integrations
+    general: General
+    system: System
+  item:
+    history: History
+    blocklist: Blocklist
+    commands: Commands
+    missing: Missing
+    cutoff: Quality cutoff
+    library_import: Library import
+    collections: Collections
+    suggestions: Suggestions
+    exclusions: Exclusions
+    quality: Quality
+    delay_profiles: Delay profiles
+    custom_formats: Custom formats
+    custom_filters: Custom filters
+    indexers: Indexers
+    download_clients: Download clients
+    import_lists: Import lists
+    notifications: Notifications
+    auto_tags: Auto tags
+    tags: Tags
+    media_management: Media management
+    ui: UI
+    root_folders: Root folders
+    remote_paths: Remote path mappings
+    metadata: Metadata
+    status: Status
+    general: General
+    tasks: Tasks
+    logs: Logs
+    stats: Stats
+    parse: Title parser
+    backups: Backups
+    updates: Updates
+
 watchlist_page:
   back_to_discover: Discover
   count_titles: '{count, plural, one {# title} other {# titles}}'

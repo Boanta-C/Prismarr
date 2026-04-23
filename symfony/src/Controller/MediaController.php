@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[IsGranted('ROLE_ADMIN')]
 #[Route('/medias', name: 'app_media_')]
@@ -29,6 +30,7 @@ class MediaController extends AbstractController
         private readonly CacheInterface    $cache,
         private readonly ConfigService     $config,
         private readonly LoggerInterface $logger,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     #[Route('/films', name: 'films')]
@@ -56,14 +58,14 @@ class MediaController extends AbstractController
 
             // Check indexer status
             if ($indexerCount === 0) {
-                $warnings[] = 'Aucun indexeur actif — les recherches ne fonctionneront pas.';
+                $warnings[] = $this->translator->trans('media.api.no_indexer');
             }
 
             // Check Radarr health
             try {
                 $health = $this->radarr->getSystemHealth();
                 foreach ($health as $h) {
-                    $warnings[] = ($h['source'] ?? 'Radarr') . ' : ' . ($h['message'] ?? '?');
+                    $warnings[] = $this->translator->trans('media.api.warning_format', ['source' => $h['source'] ?? 'Radarr', 'message' => $h['message'] ?? '?']);
                 }
             } catch (\Throwable $e) {
                 $this->logger->warning('Media films failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
@@ -146,7 +148,7 @@ class MediaController extends AbstractController
             $indexers = $this->radarr->getRadarrIndexers();
             $active = count(array_filter($indexers, fn($i) => ($i['enableAutomaticSearch'] ?? false) || ($i['enableInteractiveSearch'] ?? false)));
             if ($active === 0) {
-                $warnings[] = 'Aucun indexeur actif — les recherches ne fonctionneront pas.';
+                $warnings[] = $this->translator->trans('media.api.no_indexer');
             }
 
             $health = $this->radarr->getSystemHealth();
@@ -161,7 +163,7 @@ class MediaController extends AbstractController
             }
         } catch (\Throwable $e) {
             $this->logger->warning('Media filmWarnings failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            $warnings[] = 'Impossible de contacter Radarr.';
+            $warnings[] = $this->translator->trans('media.api.radarr_unreachable');
         }
         return $this->json($warnings);
     }
@@ -456,7 +458,7 @@ class MediaController extends AbstractController
         $current = $this->radarr->getMovieFile($fileId);
 
         if ($current === null) {
-            return $this->json(['ok' => false, 'error' => 'Fichier introuvable'], 404);
+            return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.file_not_found')], 404);
         }
 
         // 2. Merge in the modified fields
@@ -494,7 +496,7 @@ class MediaController extends AbstractController
     {
         try {
             $ids = $request->toArray()['movieIds'] ?? [];
-            if (!$ids) return $this->json(['ok' => false, 'error' => 'Aucun film sélectionné']);
+            if (!$ids) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.no_movies_selected')]);
             $result = $this->radarr->sendCommand('RefreshMovie', ['movieIds' => $ids]);
             return $this->json(['ok' => $result !== null, 'cmdId' => $result['id'] ?? null]);
         } catch (\Throwable $e) {
@@ -508,7 +510,7 @@ class MediaController extends AbstractController
     {
         try {
             $ids = $request->toArray()['movieIds'] ?? [];
-            if (!$ids) return $this->json(['ok' => false, 'error' => 'Aucun film sélectionné']);
+            if (!$ids) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.no_movies_selected')]);
             $result = $this->radarr->sendCommand('MoviesSearch', ['movieIds' => $ids]);
             return $this->json(['ok' => $result !== null, 'cmdId' => $result['id'] ?? null]);
         } catch (\Throwable $e) {
@@ -522,7 +524,7 @@ class MediaController extends AbstractController
     {
         $data = $request->toArray();
         $ids = $data['movieIds'] ?? [];
-        if (!$ids) return $this->json(['ok' => false, 'error' => 'Aucun film']);
+        if (!$ids) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.no_movie')]);
         $changes = [];
         if (isset($data['monitored'])) $changes['monitored'] = (bool) $data['monitored'];
         if (isset($data['qualityProfileId'])) $changes['qualityProfileId'] = (int) $data['qualityProfileId'];
@@ -660,7 +662,7 @@ class MediaController extends AbstractController
         try {
             $health = $this->sonarr->getHealth();
             foreach ($health as $h) {
-                $warnings[] = ($h['source'] ?? 'Sonarr') . ' : ' . ($h['message'] ?? '?');
+                $warnings[] = $this->translator->trans('media.api.warning_format', ['source' => $h['source'] ?? 'Sonarr', 'message' => $h['message'] ?? '?']);
             }
             $queue = $this->sonarr->getQueue();
             $blocked = count(array_filter($queue, fn($q) => ($q['trackedState'] ?? '') === 'importBlocked'));
@@ -690,10 +692,10 @@ class MediaController extends AbstractController
 
         // Lookup to retrieve full data
         $lookup = $this->sonarr->lookupSeries('tvdb:' . $tvdbId);
-        if (empty($lookup)) return $this->json(['ok' => false, 'error' => 'Série introuvable']);
+        if (empty($lookup)) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.series_not_found')]);
 
         $lookupRaw = $this->sonarr->lookupSeriesRaw('tvdb:' . $tvdbId);
-        if (empty($lookupRaw)) return $this->json(['ok' => false, 'error' => 'Données série introuvables']);
+        if (empty($lookupRaw)) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.series_data_missing')]);
         $raw = $lookupRaw[0];
 
         // Apply options
@@ -750,7 +752,7 @@ class MediaController extends AbstractController
     public function seriesImportBatch(Request $request): JsonResponse
     {
         $series = $request->toArray();
-        if (empty($series)) return $this->json(['ok' => false, 'error' => 'Aucune série']);
+        if (empty($series)) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.no_series')]);
         return $this->json($this->sonarr->importSeries($series));
     }
 
@@ -799,7 +801,7 @@ class MediaController extends AbstractController
                 if (($q['id'] ?? null) == $queueId) { $item = $q; break; }
             }
             if (!$item || !$item['outputPath']) {
-                return $this->json(['ok' => false, 'error' => 'Item non trouvé dans la queue']);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.queue_item_not_found')]);
             }
 
             // Fetch the raw queue data to get quality/languages in Radarr format
@@ -969,7 +971,7 @@ class MediaController extends AbstractController
         $data  = $request->toArray();
         $movie = $this->radarr->getMovie($id);
         if ($movie === null) {
-            return $this->json(['ok' => false, 'error' => 'Film introuvable'], 404);
+            return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.movie_not_found')], 404);
         }
 
         // Reload raw data for the PUT (normalizeMovie returns a normalized array, not raw)
@@ -985,7 +987,7 @@ class MediaController extends AbstractController
         // Merge into the raw movie (reload required for the PUT)
         $fullMovie = $this->radarr->getRawMovie($id);
         if ($fullMovie === null) {
-            return $this->json(['ok' => false, 'error' => 'Impossible de récupérer le film brut'], 500);
+            return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.raw_movie_failed')], 500);
         }
         $merged = array_merge($fullMovie, $raw);
         $updated = $this->radarr->updateMovie($id, $merged);
@@ -1032,7 +1034,7 @@ class MediaController extends AbstractController
         $type = $data['type'] ?? 'cast'; // cast or crew
         $job = $data['job'] ?? '';
 
-        if (!$tmdbId) return $this->json(['ok' => false, 'error' => 'ID TMDb manquant']);
+        if (!$tmdbId) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.tmdb_id_missing')]);
 
         // Check if already followed
         $existing = $this->radarr->getImportLists();
@@ -1051,7 +1053,7 @@ class MediaController extends AbstractController
         foreach ($schemas as $s) {
             if (($s['implementation'] ?? '') === 'TMDbPersonImport') { $template = $s; break; }
         }
-        if (!$template) return $this->json(['ok' => false, 'error' => 'Schema TMDbPerson non trouvé']);
+        if (!$template) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.tmdb_person_schema_missing')]);
 
         // Get default quality profile and root folder
         $profiles = $this->radarr->getQualityProfiles();
@@ -1220,7 +1222,7 @@ class MediaController extends AbstractController
     {
         $files = $request->toArray()['files'] ?? [];
         if (empty($files)) {
-            return $this->json(['ok' => false, 'error' => 'Aucun fichier']);
+            return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.no_file')]);
         }
         return $this->json($this->sonarr->manualImport($files));
     }
@@ -1317,7 +1319,7 @@ class MediaController extends AbstractController
 
             $versionLabel = '';
             if ($fullSeason) {
-                $versionLabel = 'Saison ' . ($r['seasonNumber'] ?? '?');
+                $versionLabel = $this->translator->trans('media.label.season_prefix', ['number' => $r['seasonNumber'] ?? '?']);
             } elseif (!empty($r['episodeNumbers'])) {
                 $versionLabel = implode(', ', array_map(fn($n) => $r['seasonNumber'] . 'x' . $n, $r['episodeNumbers']));
             }
@@ -1403,7 +1405,7 @@ class MediaController extends AbstractController
 
         // GET full file, apply changes, PUT via /bulk
         $file = $this->sonarr->getEpisodeFile($fileId);
-        if (!$file) return $this->json(['ok' => false, 'error' => 'Fichier introuvable']);
+        if (!$file) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.file_not_found')]);
 
         if (isset($data['quality'])) $file['quality'] = $data['quality'];
         if (isset($data['languages'])) $file['languages'] = $data['languages'];
@@ -1430,7 +1432,7 @@ class MediaController extends AbstractController
             return $this->json(['ok' => false, 'error' => 'episodeIds et seriesId requis']);
         }
         $file = $this->sonarr->getEpisodeFile($id);
-        if (!$file) return $this->json(['ok' => false, 'error' => 'Fichier introuvable']);
+        if (!$file) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.file_not_found')]);
         $cmdId = $this->sonarr->reassignEpisodeFile($file, $seriesId, $episodeIds);
         return $this->json(['ok' => $cmdId !== null, 'cmdId' => $cmdId]);
     }
@@ -1468,7 +1470,7 @@ class MediaController extends AbstractController
             $fullSeason = (bool) ($r['fullSeason'] ?? false);
             $versionLabel = '';
             if ($fullSeason) {
-                $versionLabel = 'Saison ' . ($r['seasonNumber'] ?? '?');
+                $versionLabel = $this->translator->trans('media.label.season_prefix', ['number' => $r['seasonNumber'] ?? '?']);
             } elseif (!empty($r['episodeNumbers'])) {
                 $versionLabel = implode(', ', array_map(fn($n) => ($r['seasonNumber'] ?? '?') . 'x' . $n, $r['episodeNumbers']));
             }
@@ -1509,7 +1511,7 @@ class MediaController extends AbstractController
         $data = $request->toArray();
         $series = $this->sonarr->getRawSeries($id);
         if (!$series) {
-            return $this->json(['ok' => false, 'error' => 'Série introuvable']);
+            return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.series_not_found')]);
         }
 
         if (isset($data['seriesType'])) $series['seriesType'] = $data['seriesType'];
@@ -1583,7 +1585,7 @@ class MediaController extends AbstractController
         }
 
         if (empty($missingSeason)) {
-            return $this->json(['ok' => true, 'cmdId' => null, 'message' => 'Aucun épisode manquant surveillé.']);
+            return $this->json(['ok' => true, 'cmdId' => null, 'message' => $this->translator->trans('media.api.no_missing_episodes')]);
         }
 
         $cmdIds = [];

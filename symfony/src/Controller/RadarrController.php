@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[IsGranted('ROLE_ADMIN')]
 #[Route('/radarr', name: 'radarr_')]
@@ -18,6 +19,7 @@ class RadarrController extends AbstractController
     public function __construct(
         private readonly RadarrClient $radarr,
         private readonly LoggerInterface $logger,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     // ── Updates ───────────────────────────────────────────────────────────────
@@ -656,16 +658,16 @@ class RadarrController extends AbstractController
         try {
             $ok = $this->radarr->deleteTag($id);
             if (!$ok) {
-                return $this->json(['ok' => false, 'error' => 'Ce tag est encore utilisé. Retirez-le de tous les films avant de le supprimer.']);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.tag_still_used')]);
             }
             return $this->json(['ok' => true]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr tagDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
             $msg = $e->getMessage();
             if (str_contains($msg, 'still in use') || str_contains($msg, 'cannot be deleted')) {
-                return $this->json(['ok' => false, 'error' => 'Ce tag est encore utilisé. Retirez-le de tous les films avant de le supprimer.']);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.tag_still_used')]);
             }
-            return $this->json(['ok' => false, 'error' => 'Erreur lors de la suppression.']);
+            return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.delete_error')]);
         }
     }
 
@@ -675,7 +677,7 @@ class RadarrController extends AbstractController
         try {
             $label = $request->toArray()['label'] ?? '';
             if ($label === '') {
-                return $this->json(['ok' => false, 'error' => 'Label requis'], 400);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.label_required')], 400);
             }
             $tag = $this->radarr->updateTag($id, $label);
             return $this->json(['ok' => $tag !== null, 'tag' => $tag]);
@@ -719,7 +721,7 @@ class RadarrController extends AbstractController
         try {
             $current = $this->radarr->getHostConfig();
             if ($current === null) {
-                return $this->json(['ok' => false, 'error' => 'Config introuvable'], 404);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.config_not_found')], 404);
             }
             $merged = array_merge($current, $request->toArray());
             $config = $this->radarr->updateHostConfig($merged);
@@ -757,7 +759,7 @@ class RadarrController extends AbstractController
         try {
             $current = $this->radarr->getUiConfig();
             if ($current === null) {
-                return $this->json(['ok' => false, 'error' => 'Config introuvable'], 404);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.config_not_found')], 404);
             }
             $merged = array_merge($current, $request->toArray());
             $result = $this->radarr->updateUiConfig($merged);
@@ -1038,7 +1040,7 @@ class RadarrController extends AbstractController
         try {
             $commandName = $request->toArray()['commandName'] ?? '';
             if ($commandName === '') {
-                return $this->json(['ok' => false, 'error' => 'Nom de commande requis'], 400);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.command_name_required')], 400);
             }
             $result = $this->radarr->sendCommand($commandName);
             return $this->json(['ok' => $result !== null, 'command' => $result]);
@@ -1234,7 +1236,7 @@ class RadarrController extends AbstractController
         try {
             $current = $this->radarr->getNamingConfig();
             if ($current === null) {
-                return $this->json(['ok' => false, 'error' => 'Config introuvable'], 404);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.config_not_found')], 404);
             }
             $merged = array_merge($current, $request->toArray());
             $result = $this->radarr->updateNamingConfig($merged);
@@ -1251,7 +1253,7 @@ class RadarrController extends AbstractController
         try {
             $current = $this->radarr->getMediaManagementConfig();
             if ($current === null) {
-                return $this->json(['ok' => false, 'error' => 'Config introuvable'], 404);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.config_not_found')], 404);
             }
             $merged = array_merge($current, $request->toArray());
             $result = $this->radarr->updateMediaManagementConfig($merged);
@@ -1393,7 +1395,7 @@ class RadarrController extends AbstractController
     {
         try {
             $current = $this->radarr->getMetadataConfig();
-            if ($current === null) return $this->json(['ok' => false, 'error' => 'Config introuvable'], 404);
+            if ($current === null) return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.config_not_found')], 404);
             $merged = array_merge($current, $request->toArray());
             return $this->json($this->radarr->updateMetadataConfig($merged));
         } catch (\Throwable $e) {

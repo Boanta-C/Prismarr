@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[IsGranted('ROLE_ADMIN')]
 #[Route('/sonarr', name: 'sonarr_')]
@@ -18,6 +19,7 @@ class SonarrController extends AbstractController
     public function __construct(
         private readonly SonarrClient $sonarr,
         private readonly LoggerInterface $logger,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     // ── Updates ───────────────────────────────────────────────────────────────
@@ -592,7 +594,7 @@ class SonarrController extends AbstractController
         try {
             $label = $request->toArray()['label'] ?? '';
             if ($label === '') {
-                return $this->json(['ok' => false, 'error' => 'Label requis'], 400);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.label_required')], 400);
             }
             $tag = $this->sonarr->updateTag($id, ['id' => $id, 'label' => $label]);
             return $this->json($tag);
@@ -636,7 +638,7 @@ class SonarrController extends AbstractController
         try {
             $current = $this->sonarr->getHostConfig();
             if ($current === null) {
-                return $this->json(['ok' => false, 'error' => 'Config introuvable'], 404);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.config_not_found')], 404);
             }
             $merged = array_merge($current, $request->toArray());
             $config = $this->sonarr->updateHostConfig($merged);
@@ -675,7 +677,7 @@ class SonarrController extends AbstractController
         try {
             $current = $this->sonarr->getUiConfig();
             if ($current === null) {
-                return $this->json(['ok' => false, 'error' => 'Config introuvable'], 404);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.config_not_found')], 404);
             }
             $merged = array_merge($current, $request->toArray());
             $result = $this->sonarr->updateUiConfig($merged);
@@ -956,7 +958,7 @@ class SonarrController extends AbstractController
         try {
             $commandName = $request->toArray()['commandName'] ?? '';
             if ($commandName === '') {
-                return $this->json(['ok' => false, 'error' => 'Nom de commande requis'], 400);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.command_name_required')], 400);
             }
             $result = $this->sonarr->sendCommand($commandName);
             return $this->json(['ok' => $result !== null, 'command' => $result]);
@@ -1134,7 +1136,7 @@ class SonarrController extends AbstractController
         try {
             $current = $this->sonarr->getNamingConfig();
             if ($current === null) {
-                return $this->json(['ok' => false, 'error' => 'Config introuvable'], 404);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.config_not_found')], 404);
             }
             $merged = array_merge($current, $request->toArray());
             $result = $this->sonarr->updateNamingConfig($merged);
@@ -1158,7 +1160,7 @@ class SonarrController extends AbstractController
         try {
             $current = $this->sonarr->getMediaManagementConfig();
             if ($current === null) {
-                return $this->json(['ok' => false, 'error' => 'Config introuvable'], 404);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('media.api.config_not_found')], 404);
             }
             $merged = array_merge($current, $request->toArray());
             $result = $this->sonarr->updateMediaManagementConfig($merged);
