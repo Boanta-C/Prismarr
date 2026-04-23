@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[IsGranted('ROLE_USER')]
 class CalendrierController extends AbstractController
@@ -21,6 +22,7 @@ class CalendrierController extends AbstractController
         private readonly RadarrClient $radarr,
         private readonly SonarrClient $sonarr,
         private readonly LoggerInterface $logger,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     #[Route('/calendrier', name: 'app_calendrier')]
@@ -148,9 +150,9 @@ class CalendrierController extends AbstractController
         try {
             foreach ($this->radarr->getCalendar(self::ICAL_DAYS_AHEAD, self::ICAL_DAYS_BEFORE) as $m) {
                 $slots = [
-                    ['at' => $m['inCinemasAt'] ?? null, 'label' => 'Cinéma',    'suffix' => 'cinema'],
-                    ['at' => $m['digitalAt']   ?? null, 'label' => 'Numérique', 'suffix' => 'digital'],
-                    ['at' => $m['physicalAt']  ?? null, 'label' => 'Blu-ray',   'suffix' => 'physical'],
+                    ['at' => $m['inCinemasAt'] ?? null, 'label' => $this->translator->trans('calendar.event.type_cinema'),   'suffix' => 'cinema'],
+                    ['at' => $m['digitalAt']   ?? null, 'label' => $this->translator->trans('calendar.event.type_digital'),  'suffix' => 'digital'],
+                    ['at' => $m['physicalAt']  ?? null, 'label' => $this->translator->trans('dashboard.release_badge.bluray'), 'suffix' => 'physical'],
                 ];
                 foreach ($slots as $s) {
                     if (!$s['at'] instanceof \DateTimeInterface) continue;
@@ -204,7 +206,7 @@ class CalendrierController extends AbstractController
             'DTEND;VALUE=DATE:' . (new \DateTimeImmutable($allDay))->modify('+1 day')->format('Ymd'),
             'SUMMARY:' . $this->escapeIcal($title),
             'DESCRIPTION:' . $this->escapeIcal($desc),
-            'CATEGORIES:Prismarr,Film,' . $label,
+            'CATEGORIES:Prismarr,' . $this->translator->trans('dashboard.type.film') . ',' . $label,
             'END:VEVENT',
         ];
     }
@@ -238,7 +240,7 @@ class CalendrierController extends AbstractController
             'DTEND:'   . $end->setTimezone(new \DateTimeZone('UTC'))->format('Ymd\THis\Z'),
             'SUMMARY:' . $this->escapeIcal($title),
             'DESCRIPTION:' . $this->escapeIcal($desc),
-            'CATEGORIES:Prismarr,Série,Épisode',
+            'CATEGORIES:Prismarr,' . $this->translator->trans('dashboard.type.series') . ',' . $this->translator->trans('calendar.event.type_episode'),
             'END:VEVENT',
         ];
     }

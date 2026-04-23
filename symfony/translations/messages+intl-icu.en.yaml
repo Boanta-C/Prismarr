@@ -192,6 +192,13 @@ login:
 setup:
   layout:
     title: Setup
+  error:
+    csrf: Invalid CSRF token, please retry.
+    email_invalid: Invalid email.
+    password_too_short: Password must be at least 8 characters.
+    password_mismatch: The two passwords do not match.
+  flash:
+    welcome: 'Prismarr is ready. Welcome!'
   nav:
     step: 'Step {current}/{total}'
   stepper:
@@ -309,6 +316,13 @@ dashboard:
     morning: Good morning
     afternoon: Good afternoon
     evening: Good evening
+  relative:
+    today: Today
+    yesterday: Yesterday
+    days_ago: '{count, plural, one {# day ago} other {# days ago}}'
+    weeks_ago: '{count, plural, one {# week ago} other {# weeks ago}}'
+    months_ago: '{count, plural, one {# month ago} other {# months ago}}'
+    years_ago: '{count, plural, one {# year ago} other {# years ago}}'
   hero:
     stats:
       films: Movies
@@ -424,6 +438,14 @@ error:
   action:
     home: Back to home
     retry: Retry
+  service_not_configured:
+    title: Service not configured
+    heading: 'Service "{service}" not configured'
+    description: "Prismarr can't reach this service because its connection settings haven't been filled in yet."
+    missing_key: 'Missing parameter:'
+    configure_cta: 'Configure {service}'
+    service_unavailable_flash: 'Configure {service} to access this section.'
+    service_unavailable_warn: 'The "{service}" service is not configured yet.'
 
 admin:
   page:
@@ -789,6 +811,10 @@ decouverte:
     notes_cancel: Cancel
     notes_save: Save
     notes_saved_toast: Note saved
+  error:
+    not_found: Not found
+    not_found_tmdb: Not found on TMDb
+    not_found_thetvdb: 'TV show not found on TheTVDB (Sonarr requires a tvdbId).'
   explorer:
     title: Explorer
     subtitle: 'Filter TMDb by genre, year, rating, language, popularity.'

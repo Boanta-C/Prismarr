@@ -187,7 +187,7 @@ class DashboardController extends AbstractController
             $iso  = $date->format('Y-m-d');
             $days[$iso] = [
                 'date'    => $date,
-                'dow'     => mb_strtoupper(mb_substr($this->frenchDayName($date), 0, 3)),
+                'dow'     => mb_strtoupper(mb_substr($this->localizedDayName($date), 0, 3)),
                 'dom'     => (int) $date->format('j'),
                 'isToday' => $d === 0,
                 'items'   => [],
@@ -207,9 +207,15 @@ class DashboardController extends AbstractController
         return $days;
     }
 
-    private function frenchDayName(\DateTimeImmutable $d): string
+    private function localizedDayName(\DateTimeImmutable $d): string
     {
-        return ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'][(int) $d->format('N') - 1];
+        $keys = [
+            'dashboard.weekdays.mon', 'dashboard.weekdays.tue', 'dashboard.weekdays.wed',
+            'dashboard.weekdays.thu', 'dashboard.weekdays.fri', 'dashboard.weekdays.sat',
+            'dashboard.weekdays.sun',
+        ];
+
+        return $this->translator->trans($keys[(int) $d->format('N') - 1]);
     }
 
     /**
@@ -459,12 +465,12 @@ class DashboardController extends AbstractController
         }
 
         $days = (int) $now->diff($at)->days;
-        if ($days === 0)     return "Aujourd'hui";
-        if ($days === 1)     return 'Hier';
-        if ($days < 7)       return "il y a {$days} j";
-        if ($days < 30)      return 'il y a ' . (int) round($days / 7) . ' sem.';
-        if ($days < 365)     return 'il y a ' . (int) round($days / 30) . ' mois';
-        return 'il y a ' . (int) round($days / 365) . ' an' . ($days >= 730 ? 's' : '');
+        if ($days === 0) return $this->translator->trans('dashboard.relative.today');
+        if ($days === 1) return $this->translator->trans('dashboard.relative.yesterday');
+        if ($days < 7)   return $this->translator->trans('dashboard.relative.days_ago',   ['count' => $days]);
+        if ($days < 30)  return $this->translator->trans('dashboard.relative.weeks_ago',  ['count' => (int) round($days / 7)]);
+        if ($days < 365) return $this->translator->trans('dashboard.relative.months_ago', ['count' => (int) round($days / 30)]);
+        return $this->translator->trans('dashboard.relative.years_ago', ['count' => (int) round($days / 365)]);
     }
 
     private function truncate(?string $s, int $max): ?string

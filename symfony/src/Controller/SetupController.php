@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/setup')]
 class SetupController extends AbstractController
@@ -25,6 +26,7 @@ class SetupController extends AbstractController
         private readonly SettingRepository $settings,
         private readonly ConfigService $config,
         private readonly EntityManagerInterface $em,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     #[Route('', name: 'app_setup_root')]
@@ -70,16 +72,16 @@ class SetupController extends AbstractController
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('setup_admin', (string) $request->request->get('_csrf_token'))) {
-                $errors[] = 'Jeton CSRF invalide, réessayez.';
+                $errors[] = $this->translator->trans('setup.error.csrf');
             }
             if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $errors[] = 'Email invalide.';
+                $errors[] = $this->translator->trans('setup.error.email_invalid');
             }
             if (strlen($password) < 8) {
-                $errors[] = 'Le mot de passe doit faire au moins 8 caractères.';
+                $errors[] = $this->translator->trans('setup.error.password_too_short');
             }
             if ($password !== $passwordConfirm) {
-                $errors[] = 'Les deux mots de passe ne correspondent pas.';
+                $errors[] = $this->translator->trans('setup.error.password_mismatch');
             }
 
             if ($errors === []) {
@@ -277,7 +279,7 @@ class SetupController extends AbstractController
             }
             $this->settings->set(self::SETUP_DONE_KEY, '1');
             $this->config->invalidate();
-            $this->addFlash('success', 'Prismarr est prêt. Bienvenue !');
+            $this->addFlash('success', $this->translator->trans('setup.flash.welcome'));
             return $this->redirectToRoute('app_home');
         }
 

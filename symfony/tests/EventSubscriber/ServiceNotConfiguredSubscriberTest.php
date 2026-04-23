@@ -41,7 +41,20 @@ class ServiceNotConfiguredSubscriberTest extends TestCase
             $request->setSession(new Session(new MockArraySessionStorage()));
             $stack->push($request);
         }
-        return new ServiceNotConfiguredSubscriber($twig, $stack);
+        // Translator mock that returns a predictable FR-ish message with the
+        // {service} placeholder expanded, so existing assertions still work.
+        $translator = $this->createMock(\Symfony\Contracts\Translation\TranslatorInterface::class);
+        $translator->method('trans')->willReturnCallback(
+            function (string $id, array $params = []) {
+                $svc = $params['service'] ?? '';
+
+                return $id === 'error.service_not_configured.service_unavailable_warn'
+                    ? sprintf('Le service « %s » n\'est pas encore configuré.', $svc)
+                    : $id;
+            }
+        );
+
+        return new ServiceNotConfiguredSubscriber($twig, $stack, $translator);
     }
 
     public function testLetsThroughUnrelatedException(): void

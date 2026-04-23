@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Two guard levels for service sections:
@@ -43,6 +44,7 @@ class ServiceRouteGuardSubscriber implements EventSubscriberInterface
         private readonly ConfigService $config,
         private readonly HealthService $health,
         private readonly UrlGeneratorInterface $urls,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     public static function getSubscribedEvents(): array
@@ -72,7 +74,7 @@ class ServiceRouteGuardSubscriber implements EventSubscriberInterface
         // 1. Service not configured → wizard
         foreach ($rule['keys'] as $key) {
             if (!$this->config->has($key)) {
-                $this->flash($event, sprintf('Configurez %s pour accéder à cette section.', $rule['service']));
+                $this->flash($event, $this->translator->trans('error.service_not_configured.service_unavailable_flash', ['service' => $rule['service']]));
                 $event->setResponse(new RedirectResponse($this->urls->generate($rule['wizard'])));
                 return;
             }

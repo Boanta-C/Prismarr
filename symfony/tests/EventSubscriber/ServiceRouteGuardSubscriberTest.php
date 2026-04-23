@@ -38,7 +38,12 @@ class ServiceRouteGuardSubscriberTest extends TestCase
         $urls = $this->createMock(UrlGeneratorInterface::class);
         $urls->method('generate')->willReturnCallback(fn(string $name) => '/_route/' . $name);
 
-        return new ServiceRouteGuardSubscriber($config, $health, $urls);
+        return new ServiceRouteGuardSubscriber(
+            $config,
+            $health,
+            $urls,
+            $this->createMock(\Symfony\Contracts\Translation\TranslatorInterface::class),
+        );
     }
 
     public function testUnmatchedRouteIsLetThrough(): void

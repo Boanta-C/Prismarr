@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[IsGranted('ROLE_USER')]
 class TmdbController extends AbstractController
@@ -28,6 +29,7 @@ class TmdbController extends AbstractController
         private readonly EntityManagerInterface     $em,
         private readonly ConfigService             $config,
         private readonly LoggerInterface $logger,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     #[Route('/decouverte', name: 'tmdb_index')]
@@ -277,7 +279,7 @@ class TmdbController extends AbstractController
     {
         $detail = $type === 'movie' ? $this->tmdb->getMovie($id) : $this->tmdb->getTv($id);
         if (!$detail || empty($detail['id'])) {
-            return $this->json(['error' => 'Introuvable sur TMDb'], 404);
+            return $this->json(['error' => $this->translator->trans('decouverte.error.not_found_tmdb')], 404);
         }
 
         $library = $this->buildLibraryIndex();
@@ -304,7 +306,7 @@ class TmdbController extends AbstractController
 
         if (!$tvdbId) {
             return $this->json([
-                'error' => 'Série introuvable sur TheTVDB (Sonarr exige un tvdbId).',
+                'error' => $this->translator->trans('decouverte.error.not_found_thetvdb'),
             ], 422);
         }
 
@@ -331,7 +333,7 @@ class TmdbController extends AbstractController
     {
         $d = $type === 'movie' ? $this->tmdb->getMovie($id) : $this->tmdb->getTv($id);
         if (!$d || empty($d['id'])) {
-            return $this->json(['error' => 'Introuvable'], 404);
+            return $this->json(['error' => $this->translator->trans('decouverte.error.not_found')], 404);
         }
 
         $library  = $this->buildLibraryIndex();
@@ -843,7 +845,7 @@ class TmdbController extends AbstractController
     {
         $item = $this->watchlistRepo->find($id);
         if (!$item) {
-            return $this->json(['error' => 'Introuvable'], 404);
+            return $this->json(['error' => $this->translator->trans('decouverte.error.not_found')], 404);
         }
 
         $data = json_decode($request->getContent(), true) ?? [];
@@ -859,7 +861,7 @@ class TmdbController extends AbstractController
     {
         $item = $this->watchlistRepo->find($id);
         if (!$item) {
-            return $this->json(['error' => 'Introuvable'], 404);
+            return $this->json(['error' => $this->translator->trans('decouverte.error.not_found')], 404);
         }
 
         $this->em->remove($item);

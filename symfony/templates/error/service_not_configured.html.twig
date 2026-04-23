@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Service non configuré{% endblock %}
+{% block title %}{{ 'error.service_not_configured.title'|trans }}{% endblock %}
 
 {% block content %}
   <div class="page-body">
@@ -14,18 +14,18 @@
             <path d="M9 12l2 2l4 -4"/>
           </svg>
         </div>
-        <h2 class="empty-title">Service « {{ service }} » non configuré</h2>
+        <h2 class="empty-title">{{ 'error.service_not_configured.heading'|trans({service: service}) }}</h2>
         <p class="empty-subtitle text-muted">
-          Prismarr ne peut pas contacter ce service car ses paramètres de connexion n'ont pas encore été renseignés.
+          {{ 'error.service_not_configured.description'|trans }}
           <br>
-          Paramètre manquant : <code>{{ key }}</code>
+          {{ 'error.service_not_configured.missing_key'|trans }} <code>{{ key }}</code>
         </p>
         <div class="empty-action">
           <a href="{{ path('app_setup_api_keys') }}" class="btn btn-primary">
-            Configurer {{ service }}
+            {{ 'error.service_not_configured.configure_cta'|trans({service: service}) }}
           </a>
           <a href="{{ path('app_home') }}" class="btn btn-link">
-            Retour à l'accueil
+            {{ 'error.action.home'|trans }}
           </a>
         </div>
       </div>

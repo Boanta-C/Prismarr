@@ -7,6 +7,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
 /**
@@ -18,6 +19,7 @@ class ServiceNotConfiguredSubscriber implements EventSubscriberInterface
     public function __construct(
         private readonly Environment $twig,
         private readonly RequestStack $requestStack,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     public static function getSubscribedEvents(): array
@@ -41,7 +43,7 @@ class ServiceNotConfiguredSubscriber implements EventSubscriberInterface
         if (method_exists($session, 'getFlashBag')) {
             $session->getFlashBag()->add(
                 'warning',
-                sprintf('Le service « %s » n\'est pas encore configuré.', $throwable->service),
+                $this->translator->trans('error.service_not_configured.service_unavailable_warn', ['service' => $throwable->service]),
             );
         }
 

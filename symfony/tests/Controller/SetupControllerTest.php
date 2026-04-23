@@ -38,6 +38,7 @@ class SetupControllerTest extends TestCase
             $this->createMock(SettingRepository::class),
             $this->createMock(ConfigService::class),
             $em,
+            $this->createMock(\Symfony\Contracts\Translation\TranslatorInterface::class),
         );
 
         // AbstractController needs a container to resolve helpers used in admin()
