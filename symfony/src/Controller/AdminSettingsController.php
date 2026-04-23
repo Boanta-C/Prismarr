@@ -236,7 +236,6 @@ class AdminSettingsController extends AbstractController
 
             if ($errors === []) {
                 $this->saveSubmitted($request);
-                $this->addFlash('success', $this->translator?->trans('admin.flash.saved') ?? 'Modifications enregistrées.');
                 // POST/Redirect/GET so the flash shows and refreshes work cleanly.
                 return $this->redirectToRoute('admin_settings_index');
             }
@@ -412,7 +411,7 @@ class AdminSettingsController extends AbstractController
         // Purge TMDb/Radarr/Sonarr response cache so data fetched with
         // the previous config doesn't linger up to an hour.
         $this->appCache->clear();
-        $this->addFlash('success', 'Configuration enregistrée.');
+        $this->addFlash('success', $this->translator?->trans('admin.flash.saved') ?? 'Configuration enregistrée.');
     }
 
     /**
