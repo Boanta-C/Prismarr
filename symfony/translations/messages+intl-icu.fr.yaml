@@ -526,6 +526,11 @@ admin:
       bug: 'Signaler un bug ↗'
       docs: 'Documentation ↗'
   save: Enregistrer les modifications
+  flash:
+    saved: Modifications enregistrées.
+    imported: Configuration importée.
+    import_failed: Import échoué.
+    display_reset: Préférences d'affichage réinitialisées.
   coming:
     v1_1: v1.1
 
@@ -587,6 +592,99 @@ decouverte:
     close: Fermer
   card:
     rating: 'Note {value}/10'
+    status_short:
+      downloaded: Dispo
+      missing: Manquant
+      announced: Annoncé
+      inCinemas: En salles
+      partial: Partiel
+      unmonitored: Non suivi
+      default: Dispo
+    in_library_short: En bibli.
+  modal:
+    quick_info: Infos rapides
+    part_of: Fait partie de
+    next_episode: Prochain épisode
+    last_episode: Dernier épisode
+    available_on: Disponible sur
+    synopsis: Synopsis
+    trailer: Bande-annonce
+    trailer_youtube_link: Ouvrir sur YouTube
+    cast: Casting principal
+    info: Informations
+    seasons: Saisons
+    alt_titles: Titres alternatifs
+    reviews: Avis
+    gallery: Galerie
+    similar: Similaires
+    add_to: 'Ajouter à {service}'
+    view_in: 'Voir dans {section}'
+    view_movies: Films
+    view_series: Séries
+    network_error: Erreur réseau
+    impossible: 'Impossible : {reason}'
+    generic_error: erreur
+    type_film: Film
+    type_series: Série
+    watchlist: Watchlist
+    in_watchlist: Dans la watchlist
+    in_library: En bibliothèque
+    not_monitored: Non suivi
+    coming_soon: À venir
+    in_production: En production
+    ended_series: Terminée
+    canceled_series: Annulée
+    status:
+      downloaded: Téléchargé
+      missing: Manquant
+      announced: Annoncé
+      inCinemas: En salles
+      partial: Partiel
+      unmonitored: Non surveillé
+    tmdb_status:
+      released: Sorti
+      post_production: Post-prod
+      in_production: En production
+      planned: Prévu
+      rumored: Rumeur
+      canceled: Annulé
+      ended: Terminée
+      returning_series: En cours
+      pilot: Pilote
+    qi:
+      release: Sortie
+      runtime: Durée
+      episode_runtime: Durée ép.
+      status: Statut
+      certification: Classif.
+      orig_language: Langue V.O.
+      country: Pays
+      budget: Budget
+      box_office: Box office
+      votes: Votes TMDb
+      popularity: Popularité
+    provider:
+      flatrate: Abonnement
+      rent: Location
+      buy: Achat
+    info_row:
+      director: Réalisateur
+      writers: Scénaristes
+      composers: Musique
+      cinematography: Photographie
+      creators: Créateur
+      production: Production
+      network: Diffuseur
+      country: Pays
+      orig_language: Langue originale
+      languages: Langues
+      classification: Classification
+      budget: Budget
+      revenue: Recettes
+      episode_runtime: Durée épisode
+      tags: Tags
+      popularity_tmdb: Popularité TMDb
+    seasons_episodes: '{seasons, plural, one {# saison} other {# saisons}} · {episodes, plural, one {# épisode} other {# épisodes}}'
   watchlist:
     title: Watchlist
     filter_all: Tout

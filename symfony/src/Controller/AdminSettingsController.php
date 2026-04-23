@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -220,6 +221,7 @@ class AdminSettingsController extends AbstractController
         private readonly string $projectDir = '',
         #[Autowire('%kernel.environment%')]
         private readonly string $environment = 'prod',
+        private readonly ?TranslatorInterface $translator = null,
     ) {}
 
     #[Route('', name: 'index', methods: ['GET', 'POST'])]
@@ -229,11 +231,12 @@ class AdminSettingsController extends AbstractController
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_settings', (string) $request->request->get('_csrf_token'))) {
-                $errors[] = 'Jeton CSRF invalide, réessayez.';
+                $errors[] = $this->translator?->trans('flash.csrf.invalid') ?? 'Jeton CSRF invalide, réessayez.';
             }
 
             if ($errors === []) {
                 $this->saveSubmitted($request);
+                $this->addFlash('success', $this->translator?->trans('admin.flash.saved') ?? 'Modifications enregistrées.');
                 // POST/Redirect/GET so the flash shows and refreshes work cleanly.
                 return $this->redirectToRoute('admin_settings_index');
             }

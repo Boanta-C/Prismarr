@@ -527,6 +527,11 @@ admin:
       bug: 'Report a bug ↗'
       docs: 'Documentation ↗'
   save: Save changes
+  flash:
+    saved: Changes saved.
+    imported: Configuration imported.
+    import_failed: Import failed.
+    display_reset: Display preferences reset.
   coming:
     v1_1: v1.1
 
@@ -588,6 +593,99 @@ decouverte:
     close: Close
   card:
     rating: 'Rating {value}/10'
+    status_short:
+      downloaded: Available
+      missing: Missing
+      announced: Announced
+      inCinemas: Theatres
+      partial: Partial
+      unmonitored: Unmonitored
+      default: Available
+    in_library_short: In library
+  modal:
+    quick_info: Quick facts
+    part_of: Part of
+    next_episode: Next episode
+    last_episode: Last episode
+    available_on: Available on
+    synopsis: Overview
+    trailer: Trailer
+    trailer_youtube_link: Open on YouTube
+    cast: Main cast
+    info: Details
+    seasons: Seasons
+    alt_titles: Alternative titles
+    reviews: Reviews
+    gallery: Gallery
+    similar: Similar
+    add_to: 'Add to {service}'
+    view_in: 'View in {section}'
+    view_movies: Movies
+    view_series: TV shows
+    network_error: Network error
+    impossible: 'Cannot do it: {reason}'
+    generic_error: error
+    type_film: Movie
+    type_series: TV Show
+    watchlist: Watchlist
+    in_watchlist: In watchlist
+    in_library: In library
+    not_monitored: Not monitored
+    coming_soon: Upcoming
+    in_production: In production
+    ended_series: Ended
+    canceled_series: Canceled
+    status:
+      downloaded: Downloaded
+      missing: Missing
+      announced: Announced
+      inCinemas: In theatres
+      partial: Partial
+      unmonitored: Unmonitored
+    tmdb_status:
+      released: Released
+      post_production: Post-production
+      in_production: In production
+      planned: Planned
+      rumored: Rumored
+      canceled: Canceled
+      ended: Ended
+      returning_series: Returning
+      pilot: Pilot
+    qi:
+      release: Release
+      runtime: Runtime
+      episode_runtime: Ep. runtime
+      status: Status
+      certification: Rating
+      orig_language: Original language
+      country: Country
+      budget: Budget
+      box_office: Box office
+      votes: TMDb votes
+      popularity: Popularity
+    provider:
+      flatrate: Subscription
+      rent: Rent
+      buy: Buy
+    info_row:
+      director: Directed by
+      writers: Written by
+      composers: Music
+      cinematography: Cinematography
+      creators: Creator
+      production: Production
+      network: Network
+      country: Country
+      orig_language: Original language
+      languages: Languages
+      classification: Rating
+      budget: Budget
+      revenue: Revenue
+      episode_runtime: Episode runtime
+      tags: Tags
+      popularity_tmdb: TMDb popularity
+    seasons_episodes: '{seasons, plural, one {# season} other {# seasons}} · {episodes, plural, one {# episode} other {# episodes}}'
   watchlist:
     title: Watchlist
     filter_all: All
