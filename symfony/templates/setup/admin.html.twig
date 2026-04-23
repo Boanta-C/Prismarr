@@ -1,20 +1,17 @@
 {% extends 'setup/_layout.html.twig' %}
 
-{% block title %}Compte admin — Prismarr{% endblock %}
+{% block title %}{{ 'setup.stepper.admin'|trans }} — Prismarr{% endblock %}
 
 {% block wizard_body %}
-  <div class="wizard-eyebrow">Étape 2 sur 7</div>
-  <h2 class="wizard-title">Créez votre compte administrateur</h2>
-  <p class="wizard-subtitle">
-    Ce compte aura accès à toute la configuration de Prismarr. Vous pourrez créer
-    d'autres utilisateurs plus tard depuis l'administration.
-  </p>
+  <div class="wizard-eyebrow">{{ 'setup.step.admin.eyebrow'|trans }}</div>
+  <h2 class="wizard-title">{{ 'setup.step.admin.title'|trans }}</h2>
+  <p class="wizard-subtitle">{{ 'setup.step.admin.subtitle'|trans }}</p>
 
   <form action="{{ path('app_setup_admin') }}" method="post" autocomplete="off" novalidate>
     <input type="hidden" name="_csrf_token" value="{{ csrf_token('setup_admin') }}"/>
 
     <div class="mb-3">
-      <label class="form-label" for="email">Adresse email</label>
+      <label class="form-label" for="email">{{ 'setup.step.admin.email'|trans }}</label>
       <input type="email" id="email" name="email" class="form-control"
              placeholder="admin@exemple.com"
              value="{{ email }}"
@@ -22,7 +19,7 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label" for="display_name">Nom d'affichage <span class="text-muted">(optionnel)</span></label>
+      <label class="form-label" for="display_name">{{ 'setup.step.admin.display_name'|trans }} <span class="text-muted">{{ 'setup.step.admin.display_name_optional'|trans }}</span></label>
       <input type="text" id="display_name" name="display_name" class="form-control"
              placeholder="Admin"
              value="{{ display_name }}"
@@ -31,11 +28,11 @@
 
     <div class="row g-3">
       <div class="col-md-6">
-        <label class="form-label" for="password">Mot de passe <span class="text-muted">(8 min.)</span></label>
+        <label class="form-label" for="password">{{ 'setup.step.admin.password'|trans }} <span class="text-muted">{{ 'setup.step.admin.password_hint'|trans }}</span></label>
         <div class="secret-wrapper">
           <input type="password" id="password" name="password" class="form-control"
                  placeholder="••••••••" autocomplete="new-password" required minlength="8"/>
-          <button type="button" class="secret-toggle" aria-label="Afficher/masquer" data-toggle-for="password">
+          <button type="button" class="secret-toggle" aria-label="{{ 'setup.step.admin.toggle_visibility'|trans }}" data-toggle-for="password">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
               <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/>
@@ -44,11 +41,11 @@
         </div>
       </div>
       <div class="col-md-6">
-        <label class="form-label" for="password_confirm">Confirmation</label>
+        <label class="form-label" for="password_confirm">{{ 'setup.step.admin.password_confirm'|trans }}</label>
         <div class="secret-wrapper">
           <input type="password" id="password_confirm" name="password_confirm" class="form-control"
                  placeholder="••••••••" autocomplete="new-password" required minlength="8"/>
-          <button type="button" class="secret-toggle" aria-label="Afficher/masquer" data-toggle-for="password_confirm">
+          <button type="button" class="secret-toggle" aria-label="{{ 'setup.step.admin.toggle_visibility'|trans }}" data-toggle-for="password_confirm">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
               <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/>
@@ -59,9 +56,9 @@
     </div>
 
     <div class="wizard-actions">
-      <a href="{{ path('app_setup_welcome') }}" class="btn-wizard-back">← Précédent</a>
+      <a href="{{ path('app_setup_welcome') }}" class="btn-wizard-back">{{ 'setup.step.admin.back'|trans }}</a>
       <button type="submit" class="btn-wizard-next">
-        Créer le compte →
+        {{ 'setup.step.admin.cta'|trans }}
       </button>
     </div>
   </form>

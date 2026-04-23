@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="fr">
+<html lang="{{ app.request.locale|default('fr') }}">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>{% block title %}Configuration — Prismarr{% endblock %}</title>
+  <title>{% block title %}{{ 'setup.layout.title'|trans }} — Prismarr{% endblock %}</title>
 
   <link rel="icon" type="image/x-icon" href="{{ asset('img/prismarr/favicon.ico') }}"/>
   <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/prismarr/favicon-192.png') }}"/>
@@ -395,7 +395,7 @@
       <div class="wizard-logo">
         <img src="{{ asset('img/prismarr/prismarr-logo-horizontal.png') }}" alt="Prismarr"/>
       </div>
-      <button type="button" class="theme-toggle" id="theme-toggle" title="Changer de thème">
+      <button type="button" class="theme-toggle" id="theme-toggle" title="{{ 'topbar.theme.toggle'|trans }}">
         <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
         </svg>
@@ -409,13 +409,13 @@
     <div class="wizard-container">
 
       {% set steps = [
-        { key: 'welcome',   label: 'Accueil',        route: 'app_setup_welcome' },
-        { key: 'admin',     label: 'Compte',         route: 'app_setup_admin' },
-        { key: 'tmdb',      label: 'TMDb',           route: 'app_setup_tmdb' },
-        { key: 'managers',  label: 'Gestion médias', route: 'app_setup_managers' },
-        { key: 'indexers',  label: 'Indexeurs',      route: 'app_setup_indexers' },
-        { key: 'downloads', label: 'Téléchargement', route: 'app_setup_downloads' },
-        { key: 'finish',    label: 'Finalisation',   route: 'app_setup_finish' },
+        { key: 'welcome',   label: 'setup.stepper.welcome'|trans,   route: 'app_setup_welcome' },
+        { key: 'admin',     label: 'setup.stepper.admin'|trans,     route: 'app_setup_admin' },
+        { key: 'tmdb',      label: 'setup.stepper.tmdb'|trans,      route: 'app_setup_tmdb' },
+        { key: 'managers',  label: 'setup.stepper.managers'|trans,  route: 'app_setup_managers' },
+        { key: 'indexers',  label: 'setup.stepper.indexers'|trans,  route: 'app_setup_indexers' },
+        { key: 'downloads', label: 'setup.stepper.downloads'|trans, route: 'app_setup_downloads' },
+        { key: 'finish',    label: 'setup.stepper.finish'|trans,    route: 'app_setup_finish' },
       ] %}
 
       <div class="wizard-steps">

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Bienvenue{% endblock %}
+{% block title %}{{ 'common.labels.welcome'|trans }}{% endblock %}
 
 {% block body %}
   <div class="container-xl py-5">
@@ -8,8 +8,8 @@
       <img src="{{ asset('img/prismarr/prismarr-logo-horizontal.png') }}"
            alt="Prismarr"
            style="height: 64px; margin-bottom: 1rem;"/>
-      <h1 class="h2 mb-2">Bienvenue dans Prismarr</h1>
-      <p class="text-secondary">Aucun service n'est encore configuré. Choisissez une section pour commencer.</p>
+      <h1 class="h2 mb-2">{{ 'home.welcome.title'|trans }}</h1>
+      <p class="text-secondary">{{ 'home.welcome.subtitle'|trans }}</p>
     </div>
 
     <div class="row row-cards row-deck">
@@ -17,8 +17,8 @@
         <a href="{{ path('app_setup_tmdb') }}" class="card card-link">
           <div class="card-body text-center">
             <div class="mb-2" style="font-size: 2rem;">🎬</div>
-            <h3 class="card-title">Découverte (TMDb)</h3>
-            <p class="text-secondary small mb-0">Films & séries tendance, watchlist.</p>
+            <h3 class="card-title">{{ 'home.welcome.cards.discovery.title'|trans }}</h3>
+            <p class="text-secondary small mb-0">{{ 'home.welcome.cards.discovery.subtitle'|trans }}</p>
           </div>
         </a>
       </div>
@@ -26,8 +26,8 @@
         <a href="{{ path('app_setup_managers') }}" class="card card-link">
           <div class="card-body text-center">
             <div class="mb-2" style="font-size: 2rem;">📽️</div>
-            <h3 class="card-title">Radarr & Sonarr</h3>
-            <p class="text-secondary small mb-0">Gestion films & séries.</p>
+            <h3 class="card-title">{{ 'home.welcome.cards.managers.title'|trans }}</h3>
+            <p class="text-secondary small mb-0">{{ 'home.welcome.cards.managers.subtitle'|trans }}</p>
           </div>
         </a>
       </div>
@@ -35,8 +35,8 @@
         <a href="{{ path('app_setup_indexers') }}" class="card card-link">
           <div class="card-body text-center">
             <div class="mb-2" style="font-size: 2rem;">🔍</div>
-            <h3 class="card-title">Prowlarr & Jellyseerr</h3>
-            <p class="text-secondary small mb-0">Indexeurs & requêtes.</p>
+            <h3 class="card-title">{{ 'home.welcome.cards.indexers.title'|trans }}</h3>
+            <p class="text-secondary small mb-0">{{ 'home.welcome.cards.indexers.subtitle'|trans }}</p>
           </div>
         </a>
       </div>
@@ -44,8 +44,8 @@
         <a href="{{ path('app_setup_downloads') }}" class="card card-link">
           <div class="card-body text-center">
             <div class="mb-2" style="font-size: 2rem;">⬇️</div>
-            <h3 class="card-title">qBittorrent</h3>
-            <p class="text-secondary small mb-0">Client de téléchargement.</p>
+            <h3 class="card-title">{{ 'home.welcome.cards.downloads.title'|trans }}</h3>
+            <p class="text-secondary small mb-0">{{ 'home.welcome.cards.downloads.subtitle'|trans }}</p>
           </div>
         </a>
       </div>

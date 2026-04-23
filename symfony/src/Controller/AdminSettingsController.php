@@ -180,6 +180,16 @@ class AdminSettingsController extends AbstractController
                 'compact'     => 'Compacte',
             ],
         ],
+        'display_language' => [
+            'label'   => 'Langue de l\'interface',
+            'type'    => 'select',
+            'default' => 'fr',
+            'options' => [
+                'fr' => 'Français',
+                'en' => 'English',
+            ],
+            'help' => 'Langue par défaut de l\'interface. Chaque utilisateur peut surcharger via le sélecteur de la barre du haut.',
+        ],
     ];
 
     public function __construct(

@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mon profil{% endblock %}
-{% block page_title %}<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--tblr-primary);"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg> Mon profil{% endblock %}
+{% block title %}{{ 'profile.title'|trans }}{% endblock %}
+{% block page_title %}<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--tblr-primary);"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg> {{ 'profile.title'|trans }}{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -139,7 +139,7 @@
           <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile_avatar') }}">
           <label class="avatar-upload-btn">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M12 17v-6"/><path d="M9.5 13.5l2.5 -2.5l2.5 2.5"/></svg>
-            Choisir une image
+            {{ 'profile.avatar.upload_button'|trans }}
             <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" onchange="this.form.submit()">
           </label>
         </form>
@@ -147,33 +147,33 @@
         {% if user.avatarPath %}
           <form action="{{ path('app_profile_avatar_delete') }}" method="post" style="margin-top: .5rem;">
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile_avatar') }}">
-            <button type="submit" class="avatar-delete-btn" onclick="return confirm('Supprimer la photo de profil ?')">Supprimer la photo</button>
+            <button type="submit" class="avatar-delete-btn" onclick="return confirm('{{ 'profile.avatar.delete_confirm'|trans|e('js') }}')">{{ 'profile.avatar.delete'|trans }}</button>
           </form>
         {% endif %}
 
         <p class="small text-secondary mt-3 mb-0" style="font-size: .72rem;">
-          JPG, PNG, WebP, GIF · 2 Mo max
+          {{ 'profile.avatar.hint'|trans }}
         </p>
 
         <hr style="margin: 1.25rem 0; opacity: .4;">
 
         <div class="profile-info-row">
-          <span class="label">Email</span>
+          <span class="label">{{ 'profile.identity.email'|trans }}</span>
           <span class="value text-truncate ms-2" title="{{ user.email }}">{{ user.email }}</span>
         </div>
         <div class="profile-info-row">
-          <span class="label">Rôle</span>
-          <span class="value badge-role">{% if is_granted('ROLE_ADMIN') %}Administrateur{% else %}Utilisateur{% endif %}</span>
+          <span class="label">{{ 'profile.identity.role'|trans }}</span>
+          <span class="value badge-role">{% if is_granted('ROLE_ADMIN') %}{{ 'profile.stats.role_admin'|trans }}{% else %}{{ 'profile.stats.role_user'|trans }}{% endif %}</span>
         </div>
         {% if user.createdAt %}
         <div class="profile-info-row">
-          <span class="label">Inscrit le</span>
+          <span class="label">{{ 'profile.identity.registered_on'|trans }}</span>
           <span class="value">{{ user.createdAt|prismarr_date }}</span>
         </div>
         {% endif %}
         {% if user.lastLoginAt %}
         <div class="profile-info-row">
-          <span class="label">Dernière connexion</span>
+          <span class="label">{{ 'profile.identity.last_login'|trans }}</span>
           <span class="value">{{ user.lastLoginAt|prismarr_date }}</span>
         </div>
         {% endif %}
@@ -185,37 +185,37 @@
           <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile') }}">
 
           <div class="profile-form-section">
-            <h3>Informations</h3>
+            <h3>{{ 'profile.identity.section'|trans }}</h3>
             <div class="mb-3">
-              <label class="form-label small" for="display_name">Nom d'affichage</label>
+              <label class="form-label small" for="display_name">{{ 'profile.identity.display_name'|trans }}</label>
               <input type="text" id="display_name" name="display_name" class="form-control"
                      value="{{ user.displayName ?? '' }}" placeholder="{{ user.email|split('@')|first }}">
-              <div class="form-text small">Affiché dans le dashboard et la sidebar. Vide = email utilisé.</div>
+              <div class="form-text small">{{ 'profile.identity.display_name_help'|trans }}</div>
             </div>
           </div>
 
           <div class="profile-form-section">
-            <h3>Changer le mot de passe</h3>
-            <p class="small text-secondary mb-3">Laissez vide pour ne pas modifier. 8 caractères minimum.</p>
+            <h3>{{ 'profile.password.section'|trans }}</h3>
+            <p class="small text-secondary mb-3">{{ 'profile.password.hint'|trans }}</p>
 
             <div class="mb-3">
-              <label class="form-label small" for="current_password">Mot de passe actuel</label>
+              <label class="form-label small" for="current_password">{{ 'profile.password.current'|trans }}</label>
               <input type="password" id="current_password" name="current_password" class="form-control" autocomplete="current-password">
             </div>
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label small" for="new_password">Nouveau mot de passe</label>
+                <label class="form-label small" for="new_password">{{ 'profile.password.new'|trans }}</label>
                 <input type="password" id="new_password" name="new_password" class="form-control" autocomplete="new-password" minlength="8">
               </div>
               <div class="col-md-6">
-                <label class="form-label small" for="confirm_password">Confirmation</label>
+                <label class="form-label small" for="confirm_password">{{ 'profile.password.confirm'|trans }}</label>
                 <input type="password" id="confirm_password" name="confirm_password" class="form-control" autocomplete="new-password" minlength="8">
               </div>
             </div>
           </div>
 
           <div class="text-end">
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <button type="submit" class="btn btn-primary">{{ 'profile.identity.save'|trans }}</button>
           </div>
         </form>
       </div>
@@ -225,34 +225,34 @@
     {# ── Statistiques perso ─────────────────────────────────────── #}
     <div class="profile-card" style="margin-top: 1.25rem;">
       <h3 style="font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tblr-secondary); margin-bottom: 1rem;">
-        Statistiques personnelles
+        {{ 'profile.stats.section'|trans }}
       </h3>
       <div class="row g-3 text-center">
         <div class="col-sm-4">
           <div class="profile-stat">
             <div class="profile-stat-value" style="color: #f59e0b;">{{ watchlist_count }}</div>
-            <div class="profile-stat-label">Film{{ watchlist_count > 1 ? 's' }} / série{{ watchlist_count > 1 ? 's' }} dans ma liste</div>
+            <div class="profile-stat-label">{{ 'profile.stats.watchlist_label'|trans({count: watchlist_count}) }}</div>
           </div>
         </div>
         <div class="col-sm-4">
           <div class="profile-stat">
             <div class="profile-stat-value" style="color: var(--tblr-primary);">
               {%- if days_since is null -%}—
-              {%- elseif days_since < 1 -%}Aujourd'hui
-              {%- elseif days_since < 30 -%}{{ days_since }} j
-              {%- elseif days_since < 365 -%}{{ (days_since / 30)|round }} mois
-              {%- else -%}{{ (days_since / 365)|round(1) }} an{{ days_since >= 730 ? 's' }}
+              {%- elseif days_since < 1 -%}{{ 'profile.stats.today'|trans }}
+              {%- elseif days_since < 30 -%}{{ 'profile.stats.days_short'|trans({count: days_since}) }}
+              {%- elseif days_since < 365 -%}{{ 'profile.stats.months_short'|trans({count: (days_since / 30)|round}) }}
+              {%- else -%}{{ 'profile.stats.years_short'|trans({count: (days_since / 365)|round}) }}
               {%- endif -%}
             </div>
-            <div class="profile-stat-label">Membre depuis</div>
+            <div class="profile-stat-label">{{ 'profile.stats.member_since'|trans }}</div>
           </div>
         </div>
         <div class="col-sm-4">
           <div class="profile-stat">
             <div class="profile-stat-value" style="color: {{ is_granted('ROLE_ADMIN') ? '#8b5cf6' : '#22c55e' }};">
-              {{ is_granted('ROLE_ADMIN') ? 'Admin' : 'Utilisateur' }}
+              {{ is_granted('ROLE_ADMIN') ? 'profile.stats.role_admin_short'|trans : 'profile.stats.role_user_short'|trans }}
             </div>
-            <div class="profile-stat-label">Rôle actuel</div>
+            <div class="profile-stat-label">{{ 'profile.stats.role'|trans }}</div>
           </div>
         </div>
       </div>
@@ -263,9 +263,9 @@
     <div class="profile-card" style="margin-top: 1.25rem;">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h3 style="font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tblr-secondary); margin: 0;">
-          Derniers ajouts à ma watchlist
+          {{ 'profile.watchlist_preview.title'|trans }}
         </h3>
-        <a href="{{ path('tmdb_watchlist') }}" class="small text-primary text-decoration-none">Tout voir →</a>
+        <a href="{{ path('tmdb_watchlist') }}" class="small text-primary text-decoration-none">{{ 'profile.watchlist_preview.view_all'|trans }}</a>
       </div>
       <div class="row g-3">
         {% for w in recent_watchlist %}
@@ -277,7 +277,7 @@
                 <div class="placeholder">{{ w.mediaType == 'tv' ? '📺' : '🎬' }}</div>
               {% endif %}
               <div class="title text-truncate">{{ w.title }}</div>
-              <div class="sub">{{ w.mediaType == 'tv' ? 'Série' : 'Film' }}{% if w.year %} · {{ w.year }}{% endif %}</div>
+              <div class="sub">{{ w.mediaType == 'tv' ? 'profile.watchlist_preview.type_tv'|trans : 'profile.watchlist_preview.type_film'|trans }}{% if w.year %} · {{ w.year }}{% endif %}</div>
             </a>
           </div>
         {% endfor %}

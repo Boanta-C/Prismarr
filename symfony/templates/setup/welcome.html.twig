@@ -1,32 +1,29 @@
 {% extends 'setup/_layout.html.twig' %}
 
-{% block title %}Bienvenue — Prismarr{% endblock %}
+{% block title %}{{ 'setup.step.welcome.title'|trans }} — Prismarr{% endblock %}
 
 {% block wizard_body %}
   <div class="welcome-hero">
     <img src="{{ asset('img/prismarr/prismarr-icon-512.png') }}" alt=""/>
-    <h1 class="welcome-title">Bienvenue sur Prismarr</h1>
-    <p class="welcome-subtitle">
-      Un dashboard unifié pour votre stack médias self-hosted.
-      Quelques minutes suffisent pour tout configurer.
-    </p>
+    <h1 class="welcome-title">{{ 'setup.step.welcome.title'|trans }}</h1>
+    <p class="welcome-subtitle">{{ 'setup.step.welcome.subtitle'|trans }}</p>
 
     <div class="welcome-features">
       <div class="welcome-feature">
         <div class="welcome-feature-icon">🎬</div>
-        <div>Films & Séries</div>
+        <div>{{ 'setup.step.welcome.features.media'|trans }}</div>
       </div>
       <div class="welcome-feature">
         <div class="welcome-feature-icon">🔎</div>
-        <div>Indexeurs</div>
+        <div>{{ 'setup.step.welcome.features.indexers'|trans }}</div>
       </div>
       <div class="welcome-feature">
         <div class="welcome-feature-icon">⬇️</div>
-        <div>Téléchargements</div>
+        <div>{{ 'setup.step.welcome.features.downloads'|trans }}</div>
       </div>
       <div class="welcome-feature">
         <div class="welcome-feature-icon">✨</div>
-        <div>Découverte TMDb</div>
+        <div>{{ 'setup.step.welcome.features.discovery'|trans }}</div>
       </div>
     </div>
   </div>
@@ -34,7 +31,7 @@
   <div class="wizard-actions">
     <span></span>
     <a href="{{ path('app_setup_admin') }}" class="btn-wizard-next">
-      Commencer la configuration →
+      {{ 'setup.step.welcome.cta'|trans }}
     </a>
   </div>
 {% endblock %}

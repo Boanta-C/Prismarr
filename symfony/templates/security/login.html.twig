@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="fr">
+<html lang="{{ app.request.locale|default('fr') }}">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>Connexion — Prismarr</title>
+  <title>{{ 'login.title'|trans }} — Prismarr</title>
 
   <link rel="icon" type="image/x-icon" href="{{ asset('img/prismarr/favicon.ico') }}"/>
   <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/prismarr/favicon-192.png') }}"/>
@@ -211,7 +211,7 @@
 </head>
 <body>
 
-  <button type="button" class="theme-toggle" id="theme-toggle" title="Changer de thème">
+  <button type="button" class="theme-toggle" id="theme-toggle" title="{{ 'topbar.theme.toggle'|trans }}">
     <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
     </svg>
@@ -235,13 +235,13 @@
       {% endif %}
 
       <div class="login-card">
-        <div class="login-title">Connexion</div>
+        <div class="login-title">{{ 'login.title'|trans }}</div>
 
         <form action="{{ path('app_login') }}" method="post" autocomplete="off" novalidate>
           <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}"/>
 
           <div class="mb-3">
-            <label class="form-label" for="email">Adresse email</label>
+            <label class="form-label" for="email">{{ 'login.email'|trans }}</label>
             <input type="email" id="email" name="_username" class="form-control"
                    placeholder="votre@email.com"
                    value="{{ last_username }}"
@@ -249,12 +249,12 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label" for="password">Mot de passe</label>
+            <label class="form-label" for="password">{{ 'login.password'|trans }}</label>
             <div class="input-group input-group-flat">
               <input type="password" id="password" name="_password" class="form-control"
                      placeholder="••••••••" autocomplete="current-password" required/>
               <span class="input-group-text">
-                <a href="#" class="password-toggle" id="toggle-password" title="Afficher le mot de passe">
+                <a href="#" class="password-toggle" id="toggle-password" title="{{ 'login.password'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
@@ -268,11 +268,11 @@
           <div class="mb-4">
             <label class="form-check">
               <input type="checkbox" name="_remember_me" class="form-check-input" checked/>
-              <span class="form-check-label">Se souvenir de moi (7 jours)</span>
+              <span class="form-check-label">{{ 'login.remember'|trans }}</span>
             </label>
           </div>
 
-          <button type="submit" class="btn btn-login w-100">Se connecter</button>
+          <button type="submit" class="btn btn-login w-100">{{ 'login.submit'|trans }}</button>
         </form>
       </div>
 

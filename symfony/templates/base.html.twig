@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="{{ app.request.locale|default('fr') }}">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
@@ -211,6 +211,7 @@
     .prismarr-topbar-row {
       display: flex;
       align-items: center;
+      justify-content: space-between;   /* push actions to the right on mobile once center is hidden */
       gap: 1rem;
       min-height: 56px;
       padding: .35rem 0;
@@ -365,7 +366,23 @@
 
     .prismarr-health-menu {
       min-width: 260px;
+      max-width: calc(100vw - 1rem);
       position: absolute; right: 0; left: auto; top: 100%;
+    }
+    /* On narrow viewports switch to `position: fixed` anchored on the
+       viewport right edge (not the button) so dropdowns stop sliding off
+       screen. The top offset clears the topbar (~56px min-height + padding). */
+    @media (max-width: 576px) {
+      .prismarr-health-menu,
+      #profile-menu {
+        position: fixed !important;
+        top: 62px !important;
+        right: .5rem !important;
+        left: auto !important;
+        width: 280px !important;
+        min-width: 0 !important;
+        max-width: calc(100vw - 1rem) !important;   /* safety net viewports < 300px */
+      }
     }
     .prismarr-health-row {
       display: flex; align-items: center; gap: .6rem;
@@ -646,7 +663,7 @@
                     <rect x="14" y="14" width="6" height="6" rx="1"/>
                   </svg>
                 </span>
-                <span class="nav-link-title">Tableau de bord</span>
+                <span class="nav-link-title">{{ 'sidebar.nav.dashboard'|trans }}</span>
               </a>
             </li>
 
@@ -660,7 +677,7 @@
                     <path d="M12 2l2.4 7.4h7.6l-6.2 4.5l2.4 7.4l-6.2 -4.6l-6.2 4.6l2.4 -7.4l-6.2 -4.5h7.6z"/>
                   </svg>
                 </span>
-                <span class="nav-link-title">Découverte</span>
+                <span class="nav-link-title">{{ 'sidebar.nav.discovery'|trans }}</span>
               </a>
             </li>
             {% endif %}
@@ -676,7 +693,7 @@
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                   </svg>
                 </span>
-                <span class="nav-link-title">Calendrier</span>
+                <span class="nav-link-title">{{ 'sidebar.nav.calendar'|trans }}</span>
               </a>
             </li>
             {% endif %}
@@ -741,7 +758,7 @@
                     <path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/>
                   </svg>
                 </span>
-                <span class="nav-link-title d-flex align-items-center">Téléchargements
+                <span class="nav-link-title d-flex align-items-center">{{ 'sidebar.nav.qbittorrent'|trans }}
                   <span id="sidebar-qbt-badge" class="sidebar-dl-badge" style="display:none;">0</span>
                 </span>
               </a>
@@ -765,7 +782,7 @@
                       <circle cx="12" cy="12" r="3"/>
                     </svg>
                   </span>
-                  <span class="nav-link-title">Paramètres</span>
+                  <span class="nav-link-title">{{ 'sidebar.footer.settings'|trans }}</span>
                 </a>
               </li>
               {% endif %}
@@ -779,7 +796,7 @@
                       <path d="M9 12h12l-3 -3m0 6l3 -3"/>
                     </svg>
                   </span>
-                  <span class="nav-link-title">Déconnexion</span>
+                  <span class="nav-link-title">{{ 'sidebar.footer.logout'|trans }}</span>
                 </a>
               </li>
             </ul>
@@ -787,7 +804,7 @@
             {# Toggle replier/déplier la sidebar — persist via localStorage
                (inutile sur mobile puisque la sidebar est un overlay plein écran). #}
             <button type="button" class="sidebar-toggle-btn d-none d-lg-flex" id="sidebar-toggle-btn"
-                    aria-label="Replier ou déplier le menu latéral">
+                    aria-label="{{ 'sidebar.footer.collapse'|trans }}">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                    fill="none" stroke="currentColor" stroke-width="2"
                    stroke-linecap="round" stroke-linejoin="round">
@@ -818,7 +835,9 @@
             <div class="prismarr-topbar-center">
               <div class="position-relative" id="global-search-wrap">
                 <input type="text" id="global-search-input" class="form-control prismarr-search-input"
-                       placeholder="Rechercher un film, une série… (Ctrl+K)" autocomplete="off" role="combobox"
+                       placeholder="{{ 'topbar.search.placeholder'|trans }} ({{ 'topbar.search.shortcut_hint'|trans }})"
+                       aria-label="{{ 'topbar.search.label'|trans }}"
+                       autocomplete="off" role="combobox"
                        aria-autocomplete="list" aria-controls="global-search-results" aria-expanded="false">
                 <svg id="global-search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -828,7 +847,7 @@
                 <div id="global-search-spinner" class="prismarr-search-spinner" style="display:none;">
                   <div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div>
                 </div>
-                <button type="button" id="global-search-clear" class="prismarr-search-clear" aria-label="Effacer" style="display:none;">
+                <button type="button" id="global-search-clear" class="prismarr-search-clear" aria-label="{{ 'topbar.search.clear'|trans }}" style="display:none;">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                   </svg>
@@ -846,23 +865,57 @@
                 {# Santé des services — dropdown lazy-loaded au click #}
                 <div class="dropdown" style="position:relative;">
                   <button type="button" class="btn btn-icon btn-ghost-secondary" id="topbar-health-btn"
-                          data-prismarr-dropdown="health-menu" title="Santé des services" aria-label="Santé des services">
+                          data-prismarr-dropdown="health-menu" title="{{ 'topbar.health.title'|trans }}" aria-label="{{ 'topbar.health.title'|trans }}">
                     <span class="prismarr-health-dot" id="topbar-health-dot"></span>
                   </button>
                   <div class="dropdown-menu prismarr-health-menu" id="health-menu">
                     <div class="dropdown-header">
-                      <div class="fw-semibold small">Santé des services</div>
-                      <div class="small text-secondary" id="topbar-health-summary">Chargement…</div>
+                      <div class="fw-semibold small">{{ 'topbar.health.title'|trans }}</div>
+                      <div class="small text-secondary" id="topbar-health-summary">{{ 'topbar.health.loading'|trans }}</div>
                     </div>
                     <div class="dropdown-divider"></div>
                     <div id="topbar-health-list">
-                      <div class="px-3 py-2 small text-secondary">Chargement…</div>
+                      <div class="px-3 py-2 small text-secondary">{{ 'common.status.loading'|trans }}</div>
                     </div>
                   </div>
                 </div>
 
+                {# Langue — switcher FR/EN (dropdown icon globe) #}
+                {% set current_locale = app.request.locale|default('fr') %}
+                <div class="dropdown" style="position:relative;">
+                  <button type="button" class="btn btn-icon btn-ghost-secondary" id="topbar-locale-btn"
+                          data-prismarr-dropdown="locale-menu" title="{{ 'topbar.locale.toggle'|trans }}" aria-label="{{ 'topbar.locale.toggle'|trans }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="9"/>
+                      <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                      <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                    </svg>
+                  </button>
+                  <div class="dropdown-menu" id="locale-menu" style="min-width:180px;position:absolute;right:0;left:auto;top:100%;">
+                    <div class="dropdown-header">
+                      <div class="fw-semibold small">{{ 'topbar.locale.label'|trans }}</div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    {% for code, label in {'fr': 'topbar.locale.options.fr'|trans, 'en': 'topbar.locale.options.en'|trans} %}
+                    <form method="post" action="{{ path('app_locale_switch', {code: code}) }}" class="m-0">
+                      <input type="hidden" name="_csrf_token" value="{{ csrf_token('locale_switch') }}">
+                      <button type="submit" class="dropdown-item d-flex align-items-center justify-content-between{% if current_locale == code %} fw-semibold{% endif %}">
+                        <span>{{ label }}</span>
+                        {% if current_locale == code %}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-success">
+                          <path d="M5 12l5 5L20 7"/>
+                        </svg>
+                        {% endif %}
+                      </button>
+                    </form>
+                    {% endfor %}
+                  </div>
+                </div>
+
                 {# Thème #}
-                <a href="#" id="theme-toggle-top" class="btn btn-icon btn-ghost-secondary" title="Changer le thème">
+                <a href="#" id="theme-toggle-top" class="btn btn-icon btn-ghost-secondary" title="{{ 'topbar.theme.toggle'|trans }}">
                   <svg id="icon-moon-top" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
@@ -885,7 +938,7 @@
                         <span class="avatar" style="width:2rem;height:2rem;background-image:url({% if app.user and app.user.avatarPath %}{{ path('app_profile_avatar_serve', {filename: app.user.avatarPath}) }}{% else %}https://ui-avatars.com/api/?name={{ app.user ? app.user.email|url_encode : 'U' }}&background=6366f1&color=fff&size=64{% endif %});background-size:cover;background-position:center;border-radius:50%;flex-shrink:0;"></span>
                         <div class="overflow-hidden">
                           <div class="small fw-semibold text-truncate">{{ app.user ? app.user.email : '' }}</div>
-                          <div class="small text-secondary">{% if is_granted('ROLE_ADMIN') %}Administrateur{% else %}Utilisateur{% endif %}</div>
+                          <div class="small text-secondary">{% if is_granted('ROLE_ADMIN') %}{{ 'profile.stats.role_admin'|trans }}{% else %}{{ 'profile.stats.role_user'|trans }}{% endif %}</div>
                         </div>
                       </div>
                     </div>
@@ -896,7 +949,7 @@
                         <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/>
                         <path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"/>
                       </svg>
-                      Mon profil
+                      {{ 'topbar.profile.profile'|trans }}
                     </a>
                     {% if is_granted('ROLE_ADMIN') %}
                     <a href="{{ path('admin_settings_index') }}" class="dropdown-item">
@@ -905,7 +958,7 @@
                         <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37c1 .608 2.296.07 2.572-1.065z"/>
                         <circle cx="12" cy="12" r="3"/>
                       </svg>
-                      Paramètres
+                      {{ 'topbar.profile.settings'|trans }}
                     </a>
                     {% endif %}
                     <div class="dropdown-divider"></div>
@@ -915,7 +968,7 @@
                         <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/>
                         <path d="M9 12h12l-3 -3m0 6l3 -3"/>
                       </svg>
-                      Déconnexion
+                      {{ 'topbar.profile.logout'|trans }}
                     </a>
                   </div>
                 </div>
@@ -1074,6 +1127,33 @@
 
   <script src="{{ asset('static/tabler/js/tabler.min.js') }}"></script>
 
+  {# Strings translated server-side and exposed to inline JS. Keep this block
+     small — only the strings JS actually renders dynamically (the rest lives
+     in the Twig markup directly). #}
+  <script>
+    window._i18n = {{ {
+      'search.recent':         'topbar.search.recent'|trans,
+      'search.empty':          'topbar.search.empty'|trans,
+      'search.empty_hint':     'topbar.search.placeholder'|trans,
+      'search.filter_all':     'topbar.search.filter.all'|trans,
+      'search.filter_films':   'topbar.search.filter.films'|trans,
+      'search.filter_series':  'topbar.search.filter.series'|trans,
+      'search.group_online':   'topbar.search.more_online'|trans,
+      'search.group_local':    'topbar.search.more_local'|trans,
+      'search.online_loading': 'common.status.loading'|trans,
+      'search.forget':         'common.action.delete'|trans,
+      'health.all_ok':         'topbar.health.summary_ok'|trans,
+      'health.loading':        'topbar.health.loading'|trans,
+      'health.unknown':        'topbar.health.summary_unknown'|trans,
+      'health.no_service':     'topbar.health.summary_no_service'|trans,
+      'health.summary_tpl':    'topbar.health.summary_running'|trans({'{ok}': '__OK__', '{total}': '__TOTAL__'}),
+      'health.status_ok':      'topbar.health.status.ok'|trans,
+      'health.status_down':    'topbar.health.status.down'|trans,
+      'health.status_unk':     'topbar.health.status.not_configured'|trans,
+      'common.loading':        'common.status.loading'|trans,
+    }|json_encode|raw }};
+  </script>
+
   {% block javascripts %}{% endblock %}
   <script>
   (function () {
@@ -1169,17 +1249,17 @@
       function renderRecent() {
         var recent = loadRecent();
         if (!recent.length) {
-          resultsDiv.innerHTML = '<div class="prismarr-search-empty">Tapez au moins 2 caractères pour lancer la recherche.</div>';
+          resultsDiv.innerHTML = '<div class="prismarr-search-empty">' + (window._i18n && window._i18n['search.empty_hint'] || 'Tapez au moins 2 caractères pour lancer la recherche.') + '</div>';
           openResults();
           return;
         }
-        var html = '<div class="prismarr-search-section">Recherches récentes</div>';
+        var html = '<div class="prismarr-search-section">' + (window._i18n && window._i18n['search.recent'] || 'Recherches récentes') + '</div>';
         recent.forEach(function (q) {
           html += '<div class="prismarr-search-recent" data-recent-q="' + q.replace(/"/g, '&quot;') + '">'
                 + '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
                 + '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>'
                 + '<span class="text-truncate">' + q + '</span>'
-                + '<span class="clear-x" data-remove-q="' + q.replace(/"/g, '&quot;') + '" title="Oublier">'
+                + '<span class="clear-x" data-remove-q="' + q.replace(/"/g, '&quot;') + '" title="' + (window._i18n && window._i18n['search.forget'] || 'Oublier') + '">'
                 + '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
                 + '</span></div>';
         });
@@ -1196,10 +1276,11 @@
       }
 
       function renderPills() {
+        var i18n = window._i18n || {};
         return '<div class="prismarr-search-filters">'
-          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'all'    ? 'is-active' : '') + '" data-filter="all">Tous</button>'
-          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'film'   ? 'is-active' : '') + '" data-filter="film">Films</button>'
-          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'series' ? 'is-active' : '') + '" data-filter="series">Séries</button>'
+          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'all'    ? 'is-active' : '') + '" data-filter="all">' + (i18n['search.filter_all'] || 'Tous') + '</button>'
+          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'film'   ? 'is-active' : '') + '" data-filter="film">' + (i18n['search.filter_films'] || 'Films') + '</button>'
+          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'series' ? 'is-active' : '') + '" data-filter="series">' + (i18n['search.filter_series'] || 'Séries') + '</button>'
           + '</div>';
       }
 
@@ -1212,25 +1293,28 @@
       }
 
       function renderSearchResults(localItems, onlineItems, onlineLoading) {
+        var i18n = window._i18n || {};
+        var onlineLabel = i18n['search.group_online'] || 'Sur TMDb / TheTVDB';
+        var localLabel  = i18n['search.group_local']  || 'Dans votre bibliothèque';
         var html = renderPills();
         var idx = 0;
 
         // Online (TMDb / TheTVDB) first — découvrir est le use-case primaire.
         if (onlineLoading) {
-          html += '<div class="prismarr-search-section">Sur TMDb / TheTVDB</div>'
-               + '<div class="py-2 text-center"><div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div><span class="small text-secondary ms-2">Recherche en ligne…</span></div>';
+          html += '<div class="prismarr-search-section">' + onlineLabel + '</div>'
+               + '<div class="py-2 text-center"><div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div><span class="small text-secondary ms-2">' + (i18n['search.online_loading'] || 'Chargement…') + '</span></div>';
         } else {
-          var onlineSec = renderSection('Sur TMDb / TheTVDB', onlineItems || [], idx);
+          var onlineSec = renderSection(onlineLabel, onlineItems || [], idx);
           if (onlineSec.count) { html += onlineSec.html; idx += onlineSec.count; }
         }
 
         // Local library below
-        var localSec = renderSection('Dans votre bibliothèque', localItems || [], idx);
+        var localSec = renderSection(localLabel, localItems || [], idx);
         html += localSec.html; idx += localSec.count;
 
         // Empty state when nothing on either side (and not still loading)
         if (!onlineLoading && idx === 0) {
-          html += '<div class="prismarr-search-empty">Aucun résultat.</div>';
+          html += '<div class="prismarr-search-empty">' + (i18n['search.empty'] || 'Aucun résultat.') + '</div>';
         }
 
         resultsDiv.innerHTML = html;
@@ -1935,15 +2019,21 @@
         else if (ok > 0)       dot.classList.add('is-warn');
         else                   dot.classList.add('is-ko');
 
+        var i18n = window._i18n || {};
         summ.textContent = total === 0
-          ? 'Aucun service configuré'
-          : ok + ' / ' + total + ' services opérationnels';
+          ? (i18n['health.no_service'] || 'Aucun service configuré')
+          : (i18n['health.summary_tpl'] || '__OK__ / __TOTAL__ services opérationnels')
+              .replace('__OK__', ok).replace('__TOTAL__', total);
 
         var html = '';
         Object.keys(SERVICE_LABELS).forEach(function (id) {
           var state = services[id];
           var cls   = state === null || state === undefined ? 'is-unk' : (state ? 'is-ok' : 'is-ko');
-          var label = state === null || state === undefined ? 'Non configuré' : (state ? 'Opérationnel' : 'Injoignable');
+          var label = state === null || state === undefined
+            ? (i18n['health.status_unk']  || 'Non configuré')
+            : (state
+                ? (i18n['health.status_ok']   || 'Opérationnel')
+                : (i18n['health.status_down'] || 'Injoignable'));
           html += '<div class="prismarr-health-row">'
                +  '<span class="prismarr-health-row-dot ' + cls + '"></span>'
                +  '<span class="prismarr-health-row-name">' + SERVICE_LABELS[id] + '</span>'

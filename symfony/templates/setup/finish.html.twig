@@ -1,14 +1,11 @@
 {% extends 'setup/_layout.html.twig' %}
 
-{% block title %}Finalisation — Prismarr{% endblock %}
+{% block title %}{{ 'setup.stepper.finish'|trans }} — Prismarr{% endblock %}
 
 {% block wizard_body %}
-  <div class="wizard-eyebrow">Étape 7 sur 7</div>
-  <h2 class="wizard-title">Tout est prêt !</h2>
-  <p class="wizard-subtitle">
-    Voici un récapitulatif de la configuration. Vous pourrez modifier ou ajouter
-    des services à tout moment depuis l'administration.
-  </p>
+  <div class="wizard-eyebrow">{{ 'setup.step.finish.eyebrow'|trans }}</div>
+  <h2 class="wizard-title">{{ 'setup.step.finish.title'|trans }}</h2>
+  <p class="wizard-subtitle">{{ 'setup.step.finish.subtitle'|trans }}</p>
 
   <div class="wizard-section">
     {% for service in services %}
@@ -20,9 +17,9 @@
           {% endif %}
         </div>
         {% if service.configured %}
-          <span class="service-badge ok">Configuré</span>
+          <span class="service-badge ok">{{ 'setup.step.finish.badge_configured'|trans }}</span>
         {% else %}
-          <span class="service-badge skipped">Ignoré</span>
+          <span class="service-badge skipped">{{ 'setup.step.finish.badge_skipped'|trans }}</span>
         {% endif %}
       </div>
     {% endfor %}
@@ -32,9 +29,9 @@
     <input type="hidden" name="_csrf_token" value="{{ csrf_token('setup_finish') }}"/>
 
     <div class="wizard-actions">
-      <a href="{{ path('app_setup_downloads') }}" class="btn-wizard-back">← Précédent</a>
+      <a href="{{ path('app_setup_downloads') }}" class="btn-wizard-back">{{ 'setup.step.common.back'|trans }}</a>
       <button type="submit" class="btn-wizard-next">
-        Lancer Prismarr →
+        {{ 'setup.step.finish.cta'|trans }}
       </button>
     </div>
   </form>

@@ -1,0 +1,383 @@
+# Prismarr — English translations. Parallel structure to messages.fr.yaml.
+# When adding a new key: ALWAYS update both files so the fallback chain stays
+# clean (missing key → fallback to fr → visible French leak in the EN UI).
+
+common:
+  action:
+    save: Save
+    cancel: Cancel
+    close: Close
+    back: Back
+    next: Next
+    previous: Previous
+    search: Search
+    confirm: Confirm
+    delete: Delete
+    edit: Edit
+    add: Add
+    apply: Apply
+    reset: Reset
+    download: Download
+    upload: Upload
+    submit: Submit
+    retry: Retry
+    continue: Continue
+    finish: Finish
+    refresh: Refresh
+    view_all: View all
+    view_more: View more
+  status:
+    loading: Loading…
+    saving: Saving…
+    done: Done
+    error: Error
+    success: Success
+    yes: Yes
+    no: No
+    optional: optional
+    required: required
+    coming_soon: Coming soon
+  labels:
+    email: Email
+    username: Username
+    password: Password
+    language: Language
+    welcome: Welcome
+    today: Today
+    tomorrow: Tomorrow
+    yesterday: Yesterday
+    unknown: Unknown
+  empty:
+    default: Nothing to show yet.
+
+app:
+  name: Prismarr
+  tagline: Self-hosted media stack
+
+sidebar:
+  section:
+    overview: Overview
+    media: Media
+    discovery: Discover
+    tools: Tools
+  nav:
+    dashboard: Dashboard
+    qbittorrent: Downloads
+    discovery: Discover
+    calendar: Calendar
+    radarr: Radarr
+    sonarr: Sonarr
+    prowlarr: Prowlarr
+    jellyseerr: Jellyseerr
+    films: Movies
+    series: TV Shows
+  footer:
+    collapse: Collapse sidebar
+    expand: Expand sidebar
+    settings: Settings
+    logout: Sign out
+
+topbar:
+  brand:
+    home: Back to home
+  search:
+    placeholder: Search a movie, a TV show, a torrent…
+    label: Global search
+    shortcut_hint: Ctrl+K
+    filter:
+      all: All
+      films: Movies
+      series: TV Shows
+      torrents: Downloads
+    recent: Recent searches
+    empty: No results
+    clear: Clear
+    more_local: See more in your library
+    more_online: See more on TMDb
+  theme:
+    toggle: Toggle light/dark theme
+    light: Light
+    dark: Dark
+  locale:
+    toggle: Change language
+    label: Language
+    options:
+      fr: Français
+      en: English
+    use_default: Use instance default language
+  health:
+    title: Services health
+    summary_ok: All services OK
+    summary_partial: '{count, plural, one {# service down} other {# services down}}'
+    summary_unknown: Checking status…
+    summary_no_service: No service configured
+    summary_running: '{ok} / {total} services up'
+    loading: Checking…
+    status:
+      not_configured: Not configured
+      ok: Up
+      down: Unreachable
+  profile:
+    menu: User menu
+    greeting: 'Hi {name}'
+    profile: My profile
+    settings: Settings
+    admin: Administration
+    logout: Sign out
+
+footer:
+  made_with: Powered by Prismarr
+  version: 'Version {version}'
+
+login:
+  title: Sign in
+  subtitle: Access your Prismarr instance
+  email: Email
+  password: Password
+  remember: Remember me
+  submit: Sign in
+  forgot_hint: Forgot your password? Please contact your instance administrator.
+  error:
+    invalid: Invalid credentials.
+    throttled: Too many attempts, please try again in a few minutes.
+    generic: We couldn't sign you in right now.
+
+setup:
+  layout:
+    title: Setup
+  nav:
+    step: 'Step {current}/{total}'
+  stepper:
+    welcome: Welcome
+    admin: Account
+    tmdb: TMDb
+    managers: Media
+    indexers: Indexers
+    downloads: Downloads
+    finish: Finish
+  step:
+    welcome:
+      title: Welcome to Prismarr
+      subtitle: 'A unified dashboard for your self-hosted media stack. A few minutes are enough to configure everything.'
+      features:
+        media: Movies & TV shows
+        indexers: Indexers
+        downloads: Downloads
+        discovery: TMDb discovery
+      cta: 'Start the setup →'
+    admin:
+      eyebrow: 'Step 2 of 7'
+      title: Create your admin account
+      subtitle: 'This account will have access to every Prismarr configuration option. You can create more users later from the admin area.'
+      email: Email
+      display_name: Display name
+      display_name_optional: (optional)
+      password: Password
+      password_hint: (8 min.)
+      password_confirm: Confirm
+      toggle_visibility: Show/hide
+      back: '← Back'
+      cta: 'Create account →'
+    tmdb:
+      eyebrow: 'Step 3 of 7 · Optional'
+      title: The Movie Database (TMDb)
+      subtitle: 'Required for the <strong>Discover</strong> page (trending movies & TV shows, recommendations, watchlist). Create a free key on <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">themoviedb.org</a>. If you skip this step, Discover will be disabled.'
+      api_key: API v3 key
+      api_key_hint: 'v3 only — v4 (Bearer token) is not supported yet.'
+    managers:
+      eyebrow: 'Step 4 of 7 · Optional'
+      title: Media managers
+      subtitle: 'Radarr manages your movie library, Sonarr manages TV shows. You can configure both, only one, or skip this step.'
+      radarr:
+        section: '🎬 Radarr — Movies'
+        subtitle: Automated movie management service.
+      sonarr:
+        section: '📺 Sonarr — TV Shows'
+        subtitle: Automated TV show management service.
+      fields:
+        url: URL
+        api_key: API key
+    indexers:
+      eyebrow: 'Step 5 of 7 · Optional'
+      title: Indexers & requests
+      subtitle: 'Prowlarr centralises your tracker indexers. Jellyseerr lets users request movies and TV shows, which are then sent to Radarr/Sonarr.'
+      prowlarr:
+        section: '🔎 Prowlarr — Indexers'
+        subtitle: Indexer aggregator compatible with Radarr/Sonarr.
+      jellyseerr:
+        section: '🙋 Jellyseerr — User requests'
+        subtitle: Request interface for end users.
+    downloads:
+      eyebrow: 'Step 6 of 7 · Optional'
+      title: Download client
+      subtitle: 'qBittorrent is your BitTorrent client. Gluetun is an optional VPN router that sits in front of qBittorrent to mask your IP.'
+      qbittorrent:
+        section: '⬇️ qBittorrent'
+        subtitle: Authentication through the qBittorrent Web UI.
+        user: Username
+        password: Password
+      gluetun:
+        section: 'Gluetun'
+        section_suffix: 'VPN — optional'
+        subtitle: 'Leave blank if qBittorrent does not route through a VPN.'
+        url: URL (Control Server)
+        protocol: Protocol
+        protocol_auto: Auto
+        api_key: API key
+        api_key_optional: (optional)
+        api_key_placeholder: 'Bearer token if the Control Server is protected'
+    finish:
+      eyebrow: 'Step 7 of 7'
+      title: "You're all set!"
+      subtitle: "Here is a summary of your configuration. You can edit or add services at any time from the admin area."
+      badge_configured: Configured
+      badge_skipped: Skipped
+      cta: 'Launch Prismarr →'
+    common:
+      back: '← Back'
+      skip: Skip this step
+      save_next: 'Save and continue →'
+
+home:
+  welcome:
+    title: Welcome to Prismarr
+    subtitle: No service is configured yet. Pick a section to get started.
+    cards:
+      discovery:
+        title: Discover (TMDb)
+        subtitle: Trending movies & TV shows, watchlist.
+      managers:
+        title: Radarr & Sonarr
+        subtitle: Movie & TV management.
+      indexers:
+        title: Prowlarr & Jellyseerr
+        subtitle: Indexers & requests.
+      downloads:
+        title: qBittorrent
+        subtitle: Download client.
+
+dashboard:
+  title: Dashboard
+  greeting:
+    morning: Good morning
+    afternoon: Good afternoon
+    evening: Good evening
+  hero:
+    stats:
+      films: Movies
+      series: TV Shows
+      upcoming_7d: Next 7d
+  weekdays:
+    mon: Monday
+    tue: Tuesday
+    wed: Wednesday
+    thu: Thursday
+    fri: Friday
+    sat: Saturday
+    sun: Sunday
+  upcoming:
+    title: 'Upcoming releases · 7 days'
+    empty: No releases planned this week.
+    more: '{count, plural, one {+ # more} other {+ # more}}'
+    calendar_cta: 'Calendar →'
+  requests:
+    title: Pending requests
+    empty: No pending requests.
+    manage_cta: 'Manage →'
+    by: by
+    status_pending: Pending
+  health:
+    title: Services health
+    settings_cta: 'Settings →'
+    status_ok: Up
+    status_ko: Unreachable
+    status_unk: Not configured
+  watchlist:
+    title: My watchlist
+    view_all: 'View all →'
+  trending:
+    title: Trending this week
+    discover_cta: 'Discover →'
+  recent:
+    title: Recently added to your library
+  type:
+    film: Movie
+    series: TV Show
+
+profile:
+  title: My profile
+  identity:
+    section: Info
+    display_name: Display name
+    display_name_help: 'Shown in the dashboard and sidebar. Leave empty to use your email.'
+    email: Email
+    role: Role
+    registered_on: Member since
+    last_login: Last sign-in
+    save: Save
+  password:
+    section: Change password
+    hint: 'Leave empty to keep the current one. 8 characters minimum.'
+    current: Current password
+    new: New password
+    confirm: Confirm
+    save: Update password
+  avatar:
+    upload_button: Choose an image
+    delete: Remove picture
+    delete_confirm: Remove profile picture?
+    hint: 'JPG, PNG, WebP, GIF · 2 MB max'
+  stats:
+    section: Personal stats
+    watchlist_label: '{count, plural, =0 {No movie/show in my list} one {# movie/show in my list} other {# movies/shows in my list}}'
+    member_since: Member since
+    role: Current role
+    role_admin: Administrator
+    role_user: User
+    role_admin_short: Admin
+    role_user_short: User
+    today: Today
+    days_short: '{count} d'
+    months_short: '{count} mo'
+    years_short: '{count, plural, one {# yr} other {# yrs}}'
+  watchlist_preview:
+    title: Latest additions to my watchlist
+    view_all: 'View all →'
+    type_film: Movie
+    type_tv: TV Show
+
+error:
+  403:
+    title: Access denied
+    message: You don't have the required permissions to access this page.
+  404:
+    title: Page not found
+    message: The page you requested doesn't exist or has been moved.
+  500:
+    title: Server error
+    message: Something unexpected happened. Please retry in a moment.
+  503:
+    title: Service unavailable
+    message: Prismarr isn't reachable right now.
+  generic:
+    title: Oops
+    message: Something went wrong.
+  action:
+    home: Back to home
+    retry: Retry
+
+flash:
+  profile:
+    updated: Profile updated.
+    avatar_updated: Profile picture updated.
+    avatar_deleted: Profile picture removed.
+    avatar_invalid_mime: Unsupported format (JPG, PNG, WebP or GIF only).
+    avatar_too_big: The image exceeds 2 MB.
+    avatar_upload_failed: The image could not be saved.
+    avatar_no_file: No file received or upload invalid.
+  password:
+    current_wrong: Current password is incorrect.
+    too_short: The new password must be at least 8 characters long.
+    mismatch: The two new passwords don't match.
+  csrf:
+    invalid: Invalid CSRF token.

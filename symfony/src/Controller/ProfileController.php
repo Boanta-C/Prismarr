@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Manages the current user's profile: display name, password change, and
@@ -37,6 +38,7 @@ class ProfileController extends AbstractController
         private readonly UserPasswordHasherInterface $hasher,
         private readonly LoggerInterface $logger,
         private readonly WatchlistItemRepository $watchlistRepo,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     #[Route('/profil', name: 'app_profile', methods: ['GET', 'POST'])]
@@ -48,7 +50,7 @@ class ProfileController extends AbstractController
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('profile', (string) $request->request->get('_csrf_token'))) {
-                $errors[] = 'Jeton CSRF invalide.';
+                $errors[] = $this->translator->trans('flash.csrf.invalid');
             }
 
             if ($errors === []) {
@@ -61,11 +63,11 @@ class ProfileController extends AbstractController
 
                 if ($newPw !== '' || $confirmPw !== '' || $currentPw !== '') {
                     if ($currentPw === '' || !$this->hasher->isPasswordValid($user, $currentPw)) {
-                        $errors[] = 'Mot de passe actuel incorrect.';
+                        $errors[] = $this->translator->trans('flash.password.current_wrong');
                     } elseif (strlen($newPw) < 8) {
-                        $errors[] = 'Le nouveau mot de passe doit faire au moins 8 caractères.';
+                        $errors[] = $this->translator->trans('flash.password.too_short');
                     } elseif ($newPw !== $confirmPw) {
-                        $errors[] = 'Les deux nouveaux mots de passe ne correspondent pas.';
+                        $errors[] = $this->translator->trans('flash.password.mismatch');
                     } else {
                         $user->setPassword($this->hasher->hashPassword($user, $newPw));
                     }
@@ -73,7 +75,7 @@ class ProfileController extends AbstractController
 
                 if ($errors === []) {
                     $this->em->flush();
-                    $this->addFlash('success', 'Profil mis à jour.');
+                    $this->addFlash('success', $this->translator->trans('flash.profile.updated'));
                     return $this->redirectToRoute('app_profile');
                 }
             }
@@ -108,24 +110,24 @@ class ProfileController extends AbstractController
     public function uploadAvatar(Request $request): Response
     {
         if (!$this->isCsrfTokenValid('profile_avatar', (string) $request->request->get('_csrf_token'))) {
-            $this->addFlash('error', 'Jeton CSRF invalide.');
+            $this->addFlash('error', $this->translator->trans('flash.csrf.invalid'));
             return $this->redirectToRoute('app_profile');
         }
 
         $file = $request->files->get('avatar');
         if (!$file || !$file->isValid()) {
-            $this->addFlash('error', 'Aucun fichier reçu ou upload invalide.');
+            $this->addFlash('error', $this->translator->trans('flash.profile.avatar_no_file'));
             return $this->redirectToRoute('app_profile');
         }
 
         if ($file->getSize() > self::AVATAR_MAX_BYTES) {
-            $this->addFlash('error', 'L\'image dépasse 2 Mo.');
+            $this->addFlash('error', $this->translator->trans('flash.profile.avatar_too_big'));
             return $this->redirectToRoute('app_profile');
         }
 
         $mime = $file->getMimeType();
         if (!in_array($mime, self::AVATAR_ALLOWED_MIME, true)) {
-            $this->addFlash('error', 'Format non supporté (JPG, PNG, WebP, GIF uniquement).');
+            $this->addFlash('error', $this->translator->trans('flash.profile.avatar_invalid_mime'));
             return $this->redirectToRoute('app_profile');
         }
 
@@ -151,14 +153,14 @@ class ProfileController extends AbstractController
             $file->move($dir, $filename);
         } catch (\Throwable $e) {
             $this->logger->warning('Avatar upload failed: {msg}', ['msg' => $e->getMessage()]);
-            $this->addFlash('error', 'L\'image n\'a pas pu être enregistrée.');
+            $this->addFlash('error', $this->translator->trans('flash.profile.avatar_upload_failed'));
             return $this->redirectToRoute('app_profile');
         }
 
         $user->setAvatarPath($filename);
         $this->em->flush();
 
-        $this->addFlash('success', 'Photo de profil mise à jour.');
+        $this->addFlash('success', $this->translator->trans('flash.profile.avatar_updated'));
         return $this->redirectToRoute('app_profile');
     }
 
@@ -166,7 +168,7 @@ class ProfileController extends AbstractController
     public function deleteAvatar(Request $request): Response
     {
         if (!$this->isCsrfTokenValid('profile_avatar', (string) $request->request->get('_csrf_token'))) {
-            $this->addFlash('error', 'Jeton CSRF invalide.');
+            $this->addFlash('error', $this->translator->trans('flash.csrf.invalid'));
             return $this->redirectToRoute('app_profile');
         }
 
@@ -179,7 +181,7 @@ class ProfileController extends AbstractController
             }
             $user->setAvatarPath(null);
             $this->em->flush();
-            $this->addFlash('success', 'Photo de profil supprimée.');
+            $this->addFlash('success', $this->translator->trans('flash.profile.avatar_deleted'));
         }
 
         return $this->redirectToRoute('app_profile');

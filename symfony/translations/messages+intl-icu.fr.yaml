@@ -1,0 +1,382 @@
+# Prismarr — traductions FR (source de vérité, ne pas supprimer une clé sans la retirer aussi de messages.en.yaml).
+# Convention : clés hiérarchiques sous la forme `section.sous_section.element`.
+
+common:
+  action:
+    save: Enregistrer
+    cancel: Annuler
+    close: Fermer
+    back: Retour
+    next: Suivant
+    previous: Précédent
+    search: Rechercher
+    confirm: Confirmer
+    delete: Supprimer
+    edit: Modifier
+    add: Ajouter
+    apply: Appliquer
+    reset: Réinitialiser
+    download: Télécharger
+    upload: Téléverser
+    submit: Envoyer
+    retry: Réessayer
+    continue: Continuer
+    finish: Terminer
+    refresh: Actualiser
+    view_all: Tout voir
+    view_more: Voir plus
+  status:
+    loading: Chargement…
+    saving: Enregistrement…
+    done: Terminé
+    error: Erreur
+    success: Succès
+    yes: Oui
+    no: Non
+    optional: optionnel
+    required: requis
+    coming_soon: Bientôt
+  labels:
+    email: Adresse email
+    username: Nom d'utilisateur
+    password: Mot de passe
+    language: Langue
+    welcome: Bienvenue
+    today: Aujourd'hui
+    tomorrow: Demain
+    yesterday: Hier
+    unknown: Inconnu
+  empty:
+    default: Rien à afficher pour le moment.
+
+app:
+  name: Prismarr
+  tagline: Stack médias self-hosted
+
+sidebar:
+  section:
+    overview: Vue d'ensemble
+    media: Médias
+    discovery: Explorer
+    tools: Outils
+  nav:
+    dashboard: Tableau de bord
+    qbittorrent: Téléchargements
+    discovery: Découverte
+    calendar: Calendrier
+    radarr: Radarr
+    sonarr: Sonarr
+    prowlarr: Prowlarr
+    jellyseerr: Jellyseerr
+    films: Films
+    series: Séries
+  footer:
+    collapse: Réduire la barre latérale
+    expand: Développer la barre latérale
+    settings: Paramètres
+    logout: Se déconnecter
+
+topbar:
+  brand:
+    home: Retour à l'accueil
+  search:
+    placeholder: Rechercher un film, une série, un torrent…
+    label: Recherche globale
+    shortcut_hint: Ctrl+K
+    filter:
+      all: Tout
+      films: Films
+      series: Séries
+      torrents: Téléchargements
+    recent: Recherches récentes
+    empty: Aucun résultat
+    clear: Effacer
+    more_local: Voir plus dans votre bibliothèque
+    more_online: Voir plus sur TMDb
+  theme:
+    toggle: Basculer thème clair/sombre
+    light: Clair
+    dark: Sombre
+  locale:
+    toggle: Changer de langue
+    label: Langue
+    options:
+      fr: Français
+      en: English
+    use_default: Utiliser la langue de l'instance
+  health:
+    title: Santé des services
+    summary_ok: Tous les services OK
+    summary_partial: '{count, plural, one {# service indisponible} other {# services indisponibles}}'
+    summary_unknown: Statut en cours de vérification
+    summary_no_service: Aucun service configuré
+    summary_running: '{ok} / {total} services opérationnels'
+    loading: Vérification en cours…
+    status:
+      not_configured: Non configuré
+      ok: Opérationnel
+      down: Injoignable
+  profile:
+    menu: Menu utilisateur
+    greeting: 'Bonjour, {name}'
+    profile: Mon profil
+    settings: Paramètres
+    admin: Administration
+    logout: Se déconnecter
+
+footer:
+  made_with: Propulsé par Prismarr
+  version: 'Version {version}'
+
+login:
+  title: Connexion
+  subtitle: Accédez à votre instance Prismarr
+  email: Adresse email
+  password: Mot de passe
+  remember: Se souvenir de moi
+  submit: Se connecter
+  forgot_hint: Mot de passe oublié ? Contactez l'administrateur de votre instance.
+  error:
+    invalid: Identifiants invalides.
+    throttled: Trop de tentatives, réessayez dans quelques minutes.
+    generic: Impossible de vous connecter pour le moment.
+
+setup:
+  layout:
+    title: Configuration
+  nav:
+    step: 'Étape {current}/{total}'
+  stepper:
+    welcome: Accueil
+    admin: Compte
+    tmdb: TMDb
+    managers: Gestion médias
+    indexers: Indexeurs
+    downloads: Téléchargement
+    finish: Finalisation
+  step:
+    welcome:
+      title: Bienvenue sur Prismarr
+      subtitle: 'Un dashboard unifié pour votre stack médias self-hosted. Quelques minutes suffisent pour tout configurer.'
+      features:
+        media: Films & Séries
+        indexers: Indexeurs
+        downloads: Téléchargements
+        discovery: Découverte TMDb
+      cta: 'Commencer la configuration →'
+    admin:
+      eyebrow: 'Étape 2 sur 7'
+      title: Créez votre compte administrateur
+      subtitle: 'Ce compte aura accès à toute la configuration de Prismarr. Vous pourrez créer d''autres utilisateurs plus tard depuis l''administration.'
+      email: Adresse email
+      display_name: Nom d'affichage
+      display_name_optional: (optionnel)
+      password: Mot de passe
+      password_hint: (8 min.)
+      password_confirm: Confirmation
+      toggle_visibility: Afficher/masquer
+      back: '← Précédent'
+      cta: 'Créer le compte →'
+    tmdb:
+      eyebrow: 'Étape 3 sur 7 · Optionnel'
+      title: The Movie Database (TMDb)
+      subtitle: 'Nécessaire pour la page <strong>Découverte</strong> (films & séries tendance, recommandations, watchlist). Créez une clé gratuite sur <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">themoviedb.org</a>. Si vous passez cette étape, la Découverte sera désactivée.'
+      api_key: Clé API v3
+      api_key_hint: 'Version v3 uniquement — la v4 (token Bearer) n''est pas encore supportée.'
+    managers:
+      eyebrow: 'Étape 4 sur 7 · Optionnel'
+      title: Gestionnaires médias
+      subtitle: 'Radarr gère votre bibliothèque de films, Sonarr gère les séries. Vous pouvez configurer les deux, un seul, ou passer cette étape.'
+      radarr:
+        section: '🎬 Radarr — Films'
+        subtitle: Service de gestion automatisée des films.
+      sonarr:
+        section: '📺 Sonarr — Séries'
+        subtitle: Service de gestion automatisée des séries TV.
+      fields:
+        url: URL
+        api_key: Clé API
+    indexers:
+      eyebrow: 'Étape 5 sur 7 · Optionnel'
+      title: Indexeurs & requêtes
+      subtitle: 'Prowlarr centralise vos indexeurs trackers. Jellyseerr permet aux utilisateurs de faire des demandes de films et séries qui sont ensuite envoyées à Radarr/Sonarr.'
+      prowlarr:
+        section: '🔎 Prowlarr — Indexeurs'
+        subtitle: Agrégateur d'indexeurs compatible Radarr/Sonarr.
+      jellyseerr:
+        section: '🙋 Jellyseerr — Requêtes utilisateurs'
+        subtitle: Interface de requêtes pour les utilisateurs finaux.
+    downloads:
+      eyebrow: 'Étape 6 sur 7 · Optionnel'
+      title: Client de téléchargement
+      subtitle: 'qBittorrent est votre client BitTorrent. Gluetun est un routeur VPN optionnel qui tourne devant qBittorrent pour masquer votre IP.'
+      qbittorrent:
+        section: '⬇️ qBittorrent'
+        subtitle: Authentification via l'interface Web UI de qBittorrent.
+        user: Utilisateur
+        password: Mot de passe
+      gluetun:
+        section: 'Gluetun'
+        section_suffix: 'VPN — optionnel'
+        subtitle: 'Laissez vide si qBittorrent ne passe pas par un VPN.'
+        url: URL (Control Server)
+        protocol: Protocole
+        protocol_auto: Auto
+        api_key: Clé API
+        api_key_optional: (optionnel)
+        api_key_placeholder: 'Bearer token si le Control Server est protégé'
+    finish:
+      eyebrow: 'Étape 7 sur 7'
+      title: 'Tout est prêt !'
+      subtitle: 'Voici un récapitulatif de la configuration. Vous pourrez modifier ou ajouter des services à tout moment depuis l''administration.'
+      badge_configured: Configuré
+      badge_skipped: Ignoré
+      cta: 'Lancer Prismarr →'
+    common:
+      back: '← Précédent'
+      skip: Passer cette étape
+      save_next: 'Enregistrer et continuer →'
+
+home:
+  welcome:
+    title: Bienvenue dans Prismarr
+    subtitle: Aucun service n'est encore configuré. Choisissez une section pour commencer.
+    cards:
+      discovery:
+        title: Découverte (TMDb)
+        subtitle: Films & séries tendance, watchlist.
+      managers:
+        title: Radarr & Sonarr
+        subtitle: Gestion films & séries.
+      indexers:
+        title: Prowlarr & Jellyseerr
+        subtitle: Indexeurs & requêtes.
+      downloads:
+        title: qBittorrent
+        subtitle: Client de téléchargement.
+
+dashboard:
+  title: Tableau de bord
+  greeting:
+    morning: Bonjour
+    afternoon: Bon après-midi
+    evening: Bonsoir
+  hero:
+    stats:
+      films: Films
+      series: Séries
+      upcoming_7d: À venir 7j
+  weekdays:
+    mon: Lundi
+    tue: Mardi
+    wed: Mercredi
+    thu: Jeudi
+    fri: Vendredi
+    sat: Samedi
+    sun: Dimanche
+  upcoming:
+    title: 'Prochaines sorties · 7 jours'
+    empty: Aucune sortie prévue cette semaine.
+    more: '{count, plural, one {+ # autre} other {+ # autres}}'
+    calendar_cta: 'Calendrier →'
+  requests:
+    title: Requêtes en attente
+    empty: Aucune requête en attente.
+    manage_cta: 'Gérer →'
+    by: par
+    status_pending: En attente
+  health:
+    title: Santé des services
+    settings_cta: 'Paramètres →'
+    status_ok: Opérationnel
+    status_ko: Injoignable
+    status_unk: Non configuré
+  watchlist:
+    title: Ma liste à voir
+    view_all: 'Tout voir →'
+  trending:
+    title: Tendances de la semaine
+    discover_cta: 'Découverte →'
+  recent:
+    title: Ajouts récents à votre bibliothèque
+  type:
+    film: Film
+    series: Série
+
+profile:
+  title: Mon profil
+  identity:
+    section: Informations
+    display_name: Nom d'affichage
+    display_name_help: 'Affiché dans le dashboard et la sidebar. Vide : email utilisé.'
+    email: Email
+    role: Rôle
+    registered_on: Inscrit le
+    last_login: Dernière connexion
+    save: Enregistrer
+  password:
+    section: Changer le mot de passe
+    hint: 'Laissez vide pour ne pas modifier. 8 caractères minimum.'
+    current: Mot de passe actuel
+    new: Nouveau mot de passe
+    confirm: Confirmation
+    save: Mettre à jour le mot de passe
+  avatar:
+    upload_button: Choisir une image
+    delete: Supprimer la photo
+    delete_confirm: Supprimer la photo de profil ?
+    hint: 'JPG, PNG, WebP, GIF · 2 Mo max'
+  stats:
+    section: Statistiques personnelles
+    watchlist_label: '{count, plural, =0 {Aucun film/série dans ma liste} one {# film/série dans ma liste} other {# films/séries dans ma liste}}'
+    member_since: Membre depuis
+    role: Rôle actuel
+    role_admin: Administrateur
+    role_user: Utilisateur
+    role_admin_short: Admin
+    role_user_short: Utilisateur
+    today: Aujourd'hui
+    days_short: '{count} j'
+    months_short: '{count} mois'
+    years_short: '{count, plural, one {# an} other {# ans}}'
+  watchlist_preview:
+    title: Derniers ajouts à ma watchlist
+    view_all: 'Tout voir →'
+    type_film: Film
+    type_tv: Série
+
+error:
+  403:
+    title: Accès refusé
+    message: Vous n'avez pas les droits nécessaires pour accéder à cette page.
+  404:
+    title: Page introuvable
+    message: La page demandée n'existe pas ou a été déplacée.
+  500:
+    title: Erreur serveur
+    message: Une erreur inattendue s'est produite. Réessayez dans quelques instants.
+  503:
+    title: Service indisponible
+    message: Prismarr n'est pas accessible pour le moment.
+  generic:
+    title: Oups
+    message: Quelque chose s'est mal passé.
+  action:
+    home: Retour à l'accueil
+    retry: Réessayer
+
+flash:
+  profile:
+    updated: Profil mis à jour.
+    avatar_updated: Photo de profil mise à jour.
+    avatar_deleted: Photo de profil supprimée.
+    avatar_invalid_mime: Format non supporté (JPG, PNG, WebP ou GIF uniquement).
+    avatar_too_big: L'image dépasse 2 Mo.
+    avatar_upload_failed: L'image n'a pas pu être enregistrée.
+    avatar_no_file: Aucun fichier reçu ou upload invalide.
+  password:
+    current_wrong: Mot de passe actuel incorrect.
+    too_short: Le nouveau mot de passe doit faire au moins 8 caractères.
+    mismatch: Les deux nouveaux mots de passe ne correspondent pas.
+  csrf:
+    invalid: Jeton CSRF invalide.

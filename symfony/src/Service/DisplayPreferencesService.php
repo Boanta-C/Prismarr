@@ -51,6 +51,7 @@ class DisplayPreferencesService implements ResetInterface
     public function getThemeColor(): string        { return $this->get('display_theme_color'); }
     public function getQbitRefreshSeconds(): int   { return (int) $this->get('display_qbit_refresh'); }
     public function getUiDensity(): string         { return $this->get('display_ui_density'); }
+    public function getLanguage(): string          { return $this->get('display_language'); }
 
     /**
      * Resolves the chosen theme color name (e.g. "indigo") to its hex code
@@ -145,6 +146,7 @@ class DisplayPreferencesService implements ResetInterface
      *   theme_color_rgb: string,
      *   qbit_refresh_seconds: int,
      *   ui_density: string,
+     *   language: string,
      * }
      */
     public function all(): array
@@ -160,6 +162,7 @@ class DisplayPreferencesService implements ResetInterface
             'theme_color_rgb'      => $this->getThemeColorRgb(),
             'qbit_refresh_seconds' => $this->getQbitRefreshSeconds(),
             'ui_density'           => $this->getUiDensity(),
+            'language'             => $this->getLanguage(),
         ];
     }
 
