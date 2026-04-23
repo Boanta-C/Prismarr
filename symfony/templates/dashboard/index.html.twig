@@ -177,14 +177,23 @@
   .hero-stat-label { font-size: .72rem; opacity: .65; margin-top: .15rem; text-transform: uppercase; letter-spacing: .04em; }
 
   /* ── Mini-calendar (7 days, one column per day) ───────────────── */
+  /* The parent `.card` stays at col-12 width. We want each day column
+     to shrink gracefully instead of forcing a min-width that overflows
+     the card (that produced a scrollbar on tablet/desktop at common
+     widths). `min-width: 0` on the grid items + `min-width: 0` already
+     set on `.mini-cal-item-body` lets flex children truncate cleanly. */
   .mini-cal {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 8px;
     padding: 1rem;
   }
-  @media (max-width: 992px) { .mini-cal { grid-template-columns: repeat(7, minmax(140px, 1fr)); overflow-x: auto; } }
-  @media (max-width: 576px) { .mini-cal { grid-template-columns: repeat(1, 1fr); overflow-x: visible; } }
+  .mini-cal-day { min-width: 0; }
+  @media (max-width: 576px) {
+    /* Stack vertically on phones — 7 skinny columns become unreadable
+       below ~400px. */
+    .mini-cal { grid-template-columns: 1fr; }
+  }
 
   .mini-cal-day {
     display: flex; flex-direction: column;
