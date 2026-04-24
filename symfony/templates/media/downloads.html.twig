@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
-{% block title %}Téléchargements{% endblock %}
-{% block page_title %}<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12"/></svg> Téléchargements{% endblock %}
+{% block title %}{{ 'media.downloads.page_title'|trans }}{% endblock %}
+{% block page_title %}<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12"/></svg> {{ 'media.downloads.page_title'|trans }}{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -21,7 +21,7 @@
 {% block body %}
 
 {% if error %}
-  <div class="alert alert-warning">Impossible de contacter qBittorrent.</div>
+  <div class="alert alert-warning">{{ 'media.downloads.error_unreachable'|trans }}</div>
 {% endif %}
 
 {# ── Stats ── #}
@@ -31,9 +31,9 @@
       <div class="card-body">
         <div class="d-flex align-items-center gap-2">
           <span class="text-primary fs-2 fw-bold">{{ stats.downloading ?? 0 }}</span>
-          <div class="text-muted small">En cours</div>
+          <div class="text-muted small">{{ 'media.downloads.stats.downloading'|trans }}</div>
         </div>
-        <div class="text-muted small mt-1">↓ {{ ((stats.dl_speed ?? 0) / 1024 / 1024)|number_format(1) }} Mo/s</div>
+        <div class="text-muted small mt-1">↓ {{ ((stats.dl_speed ?? 0) / 1024 / 1024)|number_format(1) }} {{ 'media.downloads.stats.speed_mb'|trans }}</div>
       </div>
     </div>
   </div>
@@ -42,9 +42,9 @@
       <div class="card-body">
         <div class="d-flex align-items-center gap-2">
           <span class="text-success fs-2 fw-bold">{{ stats.seeding ?? 0 }}</span>
-          <div class="text-muted small">Partage</div>
+          <div class="text-muted small">{{ 'media.downloads.stats.seeding'|trans }}</div>
         </div>
-        <div class="text-muted small mt-1">↑ {{ ((stats.up_speed ?? 0) / 1024 / 1024)|number_format(1) }} Mo/s</div>
+        <div class="text-muted small mt-1">↑ {{ ((stats.up_speed ?? 0) / 1024 / 1024)|number_format(1) }} {{ 'media.downloads.stats.speed_mb'|trans }}</div>
       </div>
     </div>
   </div>
@@ -53,7 +53,7 @@
       <div class="card-body">
         <div class="d-flex align-items-center gap-2">
           <span class="text-warning fs-2 fw-bold">{{ stats.paused ?? 0 }}</span>
-          <div class="text-muted small">En pause</div>
+          <div class="text-muted small">{{ 'media.downloads.stats.paused'|trans }}</div>
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@
       <div class="card-body">
         <div class="d-flex align-items-center gap-2">
           <span class="text-teal fs-2 fw-bold">{{ stats.completed ?? 0 }}</span>
-          <div class="text-muted small">Terminés</div>
+          <div class="text-muted small">{{ 'media.downloads.stats.completed'|trans }}</div>
         </div>
       </div>
     </div>
@@ -74,22 +74,22 @@
 <div class="card mb-3">
   <div class="card-body py-2">
     <div class="d-flex align-items-center gap-3 flex-wrap">
-      <input type="text" id="search-input" class="form-control form-control-sm" placeholder="Rechercher…" style="max-width:220px" autocomplete="off">
+      <input type="text" id="search-input" class="form-control form-control-sm" placeholder="{{ 'media.downloads.filters.search_placeholder'|trans }}" style="max-width:220px" autocomplete="off">
       <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-ghost-secondary filter-btn active" data-filter="all">Tous</button>
-        <button class="btn btn-sm btn-ghost-primary filter-btn" data-filter="downloading">En cours</button>
-        <button class="btn btn-sm btn-ghost-success filter-btn" data-filter="seeding">Partage</button>
-        <button class="btn btn-sm btn-ghost-warning filter-btn" data-filter="paused">Pause</button>
-        <button class="btn btn-sm btn-ghost-secondary filter-btn" data-filter="completed">Terminés</button>
+        <button class="btn btn-sm btn-ghost-secondary filter-btn active" data-filter="all">{{ 'media.downloads.filters.all'|trans }}</button>
+        <button class="btn btn-sm btn-ghost-primary filter-btn" data-filter="downloading">{{ 'media.downloads.filters.downloading'|trans }}</button>
+        <button class="btn btn-sm btn-ghost-success filter-btn" data-filter="seeding">{{ 'media.downloads.filters.seeding'|trans }}</button>
+        <button class="btn btn-sm btn-ghost-warning filter-btn" data-filter="paused">{{ 'media.downloads.filters.paused'|trans }}</button>
+        <button class="btn btn-sm btn-ghost-secondary filter-btn" data-filter="completed">{{ 'media.downloads.filters.completed'|trans }}</button>
       </div>
-      <span class="text-muted small ms-auto" id="count-label">{{ torrents|length }} torrents</span>
+      <span class="text-muted small ms-auto" id="count-label">{{ 'media.downloads.count_tpl'|trans({count: torrents|length}) }}</span>
     </div>
   </div>
 </div>
 
 {# ── Grille ── #}
 {% if torrents is empty and not error %}
-  <div class="card"><div class="card-body text-center text-muted py-4">Aucun torrent actif.</div></div>
+  <div class="card"><div class="card-body text-center text-muted py-4">{{ 'media.downloads.empty'|trans }}</div></div>
 {% else %}
   <div class="torrent-grid" id="torrent-grid">
     {% for t in torrents %}
@@ -103,13 +103,13 @@
         'completed':   'teal',
       }[t.state] ?? 'secondary' %}
       {% set state_label = {
-        'downloading': 'Téléchargement',
-        'seeding':     'Partage',
-        'paused':      'Pause',
-        'queued':      'File',
-        'checking':    'Vérification',
-        'error':       'Erreur',
-        'completed':   'Terminé',
+        'downloading': 'media.downloads.state.downloading'|trans,
+        'seeding':     'media.downloads.state.seeding'|trans,
+        'paused':      'media.downloads.state.paused'|trans,
+        'queued':      'media.downloads.state.queued'|trans,
+        'checking':    'media.downloads.state.checking'|trans,
+        'error':       'media.downloads.state.error'|trans,
+        'completed':   'media.downloads.state.completed'|trans,
       }[t.state] ?? t.state %}
 
       <div class="torrent-card"
@@ -131,22 +131,22 @@
         <div class="d-flex justify-content-between align-items-center" style="font-size:.72rem;">
           <span class="text-muted">
             {{ (t.downloaded / 1024 / 1024 / 1024)|number_format(2) }} /
-            {{ (t.size / 1024 / 1024 / 1024)|number_format(2) }} Go
+            {{ (t.size / 1024 / 1024 / 1024)|number_format(2) }} {{ 'media.downloads.gb_suffix'|trans }}
           </span>
           <span class="fw-semibold">{{ t.progress }}%</span>
         </div>
 
         {% if t.state == 'downloading' %}
           <div class="d-flex justify-content-between mt-1" style="font-size:.7rem; color: var(--tblr-muted);">
-            <span>↓ {{ (t.dlspeed / 1024 / 1024)|number_format(1) }} Mo/s</span>
+            <span>↓ {{ (t.dlspeed / 1024 / 1024)|number_format(1) }} {{ 'media.downloads.stats.speed_mb'|trans }}</span>
             {% if t.eta < 8640000 %}
-              <span>ETA {{ (t.eta / 3600)|round(0, 'floor') }}h{{ ((t.eta % 3600) / 60)|round }}</span>
+              <span>{{ 'media.downloads.eta_tpl'|trans({h: (t.eta / 3600)|round(0, 'floor'), m: ((t.eta % 3600) / 60)|round}) }}</span>
             {% endif %}
           </div>
         {% elseif t.state == 'seeding' %}
           <div class="d-flex justify-content-between mt-1" style="font-size:.7rem; color: var(--tblr-muted);">
-            <span>↑ {{ (t.upspeed / 1024 / 1024)|number_format(1) }} Mo/s</span>
-            <span>Ratio {{ t.ratio }}</span>
+            <span>↑ {{ (t.upspeed / 1024 / 1024)|number_format(1) }} {{ 'media.downloads.stats.speed_mb'|trans }}</span>
+            <span>{{ 'media.downloads.ratio'|trans }} {{ t.ratio }}</span>
           </div>
         {% endif %}
       </div>
@@ -164,6 +164,13 @@
   var searchInput = document.getElementById('search-input');
   var countLabel  = document.getElementById('count-label');
   var currentFilter = 'all';
+  var COUNT_ONE = {{ 'media.downloads.count_tpl'|trans({count: 1})|json_encode|raw }};
+  var COUNT_MANY_TPL = {{ 'media.downloads.count_tpl'|trans({count: 42})|json_encode|raw }};
+
+  function formatCount(n) {
+    if (n === 1) return COUNT_ONE;
+    return COUNT_MANY_TPL.replace('42', n);
+  }
 
   function applyFilters() {
     var q = (searchInput ? searchInput.value.toLowerCase() : '');
@@ -175,7 +182,7 @@
       c.style.display = visible ? '' : 'none';
       if (visible) shown++;
     });
-    if (countLabel) countLabel.textContent = shown + ' torrent' + (shown > 1 ? 's' : '');
+    if (countLabel) countLabel.textContent = formatCount(shown);
   }
 
   filterBtns.forEach(function (btn) {

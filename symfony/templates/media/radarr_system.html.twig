@@ -1,13 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Système Radarr{% endblock %}
+{% block title %}{{ 'media.arr_system.title_radarr'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
       <div class="col">
-        <h2 class="page-title">Système Radarr</h2>
+        <h2 class="page-title">{{ 'media.arr_system.title_radarr'|trans }}</h2>
       </div>
       <div class="col-auto ms-auto">
         {% include 'media/_radarr_nav.html.twig' %}
@@ -27,56 +27,56 @@
     <div class="card-header">
       <h3 class="card-title">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-        Statut système
+        {{ 'media.arr_system.section.status'|trans }}
       </h3>
     </div>
     <div class="card-body">
       {% if status %}
         <dl class="row g-1">
-          <dt class="col-5 text-muted small">Version</dt>
+          <dt class="col-5 text-muted small">{{ 'media.arr_system.status.version'|trans }}</dt>
           <dd class="col-7 small fw-medium mb-0">{{ status.version ?? '—' }}</dd>
 
-          <dt class="col-5 text-muted small">OS</dt>
+          <dt class="col-5 text-muted small">{{ 'media.arr_system.status.os'|trans }}</dt>
           <dd class="col-7 small mb-0">{{ status.osName ?? '—' }} {{ status.osVersion ?? '' }}</dd>
 
-          <dt class="col-5 text-muted small">.NET</dt>
+          <dt class="col-5 text-muted small">{{ 'media.arr_system.status.net'|trans }}</dt>
           <dd class="col-7 small mb-0">{{ status.runtimeVersion ?? '—' }}</dd>
 
-          <dt class="col-5 text-muted small">Base de données</dt>
+          <dt class="col-5 text-muted small">{{ 'media.arr_system.status.db'|trans }}</dt>
           <dd class="col-7 small mb-0">{{ status.databaseVersion ?? '—' }}</dd>
 
           {% if status.startTime is defined %}
-          <dt class="col-5 text-muted small">Démarré le</dt>
+          <dt class="col-5 text-muted small">{{ 'media.arr_system.status.started'|trans }}</dt>
           <dd class="col-7 small mb-0">{{ status.startTime|date('d/m/Y H:i') }}</dd>
           {% endif %}
 
-          <dt class="col-5 text-muted small">URL de base</dt>
+          <dt class="col-5 text-muted small">{{ 'media.arr_system.status.url_base'|trans }}</dt>
           <dd class="col-7 small mb-0">{{ status.urlBase ?? '/' }}</dd>
 
           {% if status.isDocker is defined %}
-          <dt class="col-5 text-muted small">Docker</dt>
+          <dt class="col-5 text-muted small">{{ 'media.arr_system.status.docker'|trans }}</dt>
           <dd class="col-7 small mb-0">
             {% if status.isDocker %}
-              <span class="badge bg-blue-lt">Oui</span>
+              <span class="badge bg-blue-lt">{{ 'media.arr_system.status.yes'|trans }}</span>
             {% else %}
-              <span class="badge bg-secondary-lt">Non</span>
+              <span class="badge bg-secondary-lt">{{ 'media.arr_system.status.no'|trans }}</span>
             {% endif %}
           </dd>
           {% endif %}
 
           {% if status.updateAvailable is defined %}
-          <dt class="col-5 text-muted small">Mise à jour</dt>
+          <dt class="col-5 text-muted small">{{ 'media.arr_system.status.update'|trans }}</dt>
           <dd class="col-7 small mb-0">
             {% if status.updateAvailable %}
-              <span class="badge bg-warning-lt text-warning">Disponible</span>
+              <span class="badge bg-warning-lt text-warning">{{ 'media.arr_system.status.update_available'|trans }}</span>
             {% else %}
-              <span class="badge bg-success-lt">À jour</span>
+              <span class="badge bg-success-lt">{{ 'media.arr_system.status.up_to_date'|trans }}</span>
             {% endif %}
           </dd>
           {% endif %}
         </dl>
       {% else %}
-        <div class="text-muted small">Statut indisponible</div>
+        <div class="text-muted small">{{ 'media.arr_system.status.unavailable'|trans }}</div>
       {% endif %}
     </div>
   </div>
@@ -88,11 +88,11 @@
     <div class="card-header">
       <h3 class="card-title">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        Santé
+        {{ 'media.arr_system.section.health'|trans }}
         {% if health|length > 0 %}
-          <span class="badge bg-warning-lt text-warning ms-1">{{ health|length }} alerte(s)</span>
+          <span class="badge bg-warning-lt text-warning ms-1">{{ 'media.arr_system.health.alerts_tpl'|trans({count: health|length}) }}</span>
         {% else %}
-          <span class="badge bg-success-lt ms-1">OK</span>
+          <span class="badge bg-success-lt ms-1">{{ 'media.arr_system.health.ok'|trans }}</span>
         {% endif %}
       </h3>
     </div>
@@ -100,18 +100,18 @@
       {% if health is empty %}
         <div class="text-success small d-flex align-items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          Aucun problème détecté
+          {{ 'media.arr_system.health.empty'|trans }}
         </div>
       {% else %}
         <ul class="list-unstyled mb-0">
         {% for item in health %}
           <li class="d-flex gap-2 mb-2 pb-2 border-bottom border-1" style="border-color:var(--tblr-border-color)!important">
             {% if item.type == 'error' %}
-              <span class="badge bg-danger-lt flex-shrink-0">Erreur</span>
+              <span class="badge bg-danger-lt flex-shrink-0">{{ 'media.arr_system.health.error'|trans }}</span>
             {% elseif item.type == 'warning' %}
-              <span class="badge bg-warning-lt flex-shrink-0">Avert.</span>
+              <span class="badge bg-warning-lt flex-shrink-0">{{ 'media.arr_system.health.warning'|trans }}</span>
             {% else %}
-              <span class="badge bg-blue-lt flex-shrink-0">Info</span>
+              <span class="badge bg-blue-lt flex-shrink-0">{{ 'media.arr_system.health.info'|trans }}</span>
             {% endif %}
             <span class="small">{{ item.message ?? item.source ?? '—' }}</span>
           </li>
@@ -128,12 +128,12 @@
     <div class="card-header">
       <h3 class="card-title">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        Espace disque
+        {{ 'media.arr_system.section.disk'|trans }}
       </h3>
     </div>
     <div class="card-body">
       {% if diskSpace is empty %}
-        <div class="text-muted small">Aucune information disponible</div>
+        <div class="text-muted small">{{ 'media.arr_system.disk.empty'|trans }}</div>
       {% else %}
         {% for disk in diskSpace %}
           {% set usedBytes = disk.totalSpace - disk.freeSpace %}
@@ -143,14 +143,14 @@
           <div class="mb-3">
             <div class="d-flex justify-content-between mb-1">
               <span class="small fw-medium">{{ disk.path ?? disk.label ?? '/' }}</span>
-              <span class="small text-muted">{{ freeGb }} Go libres / {{ totalGb }} Go total</span>
+              <span class="small text-muted">{{ 'media.arr_system.disk.free_total_tpl'|trans({free: freeGb, total: totalGb}) }}</span>
             </div>
             <div class="progress progress-sm">
               <div class="progress-bar {% if pct > 90 %}bg-danger{% elseif pct > 75 %}bg-warning{% else %}bg-primary{% endif %}"
                    style="width:{{ pct }}%" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100">
               </div>
             </div>
-            <div class="text-muted" style="font-size:.7rem;margin-top:.2rem">{{ pct }}% utilisé</div>
+            <div class="text-muted" style="font-size:.7rem;margin-top:.2rem">{{ 'media.arr_system.disk.used_pct_tpl'|trans({pct: pct}) }}</div>
           </div>
         {% endfor %}
       {% endif %}
@@ -164,16 +164,16 @@
     <div class="card-header">
       <h3 class="card-title">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Clients de téléchargement
+        {{ 'media.arr_system.section.download_clients'|trans }}
       </h3>
     </div>
     <div class="table-responsive">
       <table class="table table-vcenter table-sm card-table mb-0">
         <thead>
           <tr>
-            <th>Nom</th>
-            <th>Type</th>
-            <th>Activé</th>
+            <th>{{ 'media.arr_system.download_clients.name'|trans }}</th>
+            <th>{{ 'media.arr_system.download_clients.type'|trans }}</th>
+            <th>{{ 'media.arr_system.download_clients.enabled'|trans }}</th>
           </tr>
         </thead>
         <tbody>
@@ -183,14 +183,14 @@
             <td class="text-muted small">{{ client.implementation ?? client.type ?? '—' }}</td>
             <td>
               {% if client.enable ?? false %}
-                <span class="badge bg-success-lt">Oui</span>
+                <span class="badge bg-success-lt">{{ 'media.arr_system.status.yes'|trans }}</span>
               {% else %}
-                <span class="badge bg-secondary-lt">Non</span>
+                <span class="badge bg-secondary-lt">{{ 'media.arr_system.status.no'|trans }}</span>
               {% endif %}
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="3" class="text-center text-muted py-3">Aucun client configuré</td></tr>
+          <tr><td colspan="3" class="text-center text-muted py-3">{{ 'media.arr_system.download_clients.empty'|trans }}</td></tr>
         {% endfor %}
         </tbody>
       </table>
@@ -204,17 +204,17 @@
     <div class="card-header">
       <h3 class="card-title">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        Indexeurs
+        {{ 'media.arr_system.section.indexers'|trans }}
       </h3>
     </div>
     <div class="table-responsive">
       <table class="table table-vcenter table-sm card-table mb-0">
         <thead>
           <tr>
-            <th>Nom</th>
-            <th>Activé</th>
-            <th>RSS</th>
-            <th>Recherche</th>
+            <th>{{ 'media.arr_system.indexers.name'|trans }}</th>
+            <th>{{ 'media.arr_system.indexers.enabled'|trans }}</th>
+            <th>{{ 'media.arr_system.indexers.rss'|trans }}</th>
+            <th>{{ 'media.arr_system.indexers.search'|trans }}</th>
           </tr>
         </thead>
         <tbody>
@@ -223,9 +223,9 @@
             <td class="fw-medium">{{ idx.name ?? '—' }}</td>
             <td>
               {% if idx.enable ?? idx.enableRss ?? false %}
-                <span class="badge bg-success-lt">Oui</span>
+                <span class="badge bg-success-lt">{{ 'media.arr_system.status.yes'|trans }}</span>
               {% else %}
-                <span class="badge bg-secondary-lt">Non</span>
+                <span class="badge bg-secondary-lt">{{ 'media.arr_system.status.no'|trans }}</span>
               {% endif %}
             </td>
             <td>
@@ -244,7 +244,7 @@
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="4" class="text-center text-muted py-3">Aucun indexeur configuré</td></tr>
+          <tr><td colspan="4" class="text-center text-muted py-3">{{ 'media.arr_system.indexers.empty'|trans }}</td></tr>
         {% endfor %}
         </tbody>
       </table>
@@ -258,16 +258,16 @@
     <div class="card-header">
       <h3 class="card-title">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Logs récents
+        {{ 'media.arr_system.section.logs'|trans }}
       </h3>
     </div>
     <div class="table-responsive">
       <table class="table table-vcenter table-sm card-table mb-0">
         <thead>
           <tr>
-            <th style="width:140px">Date</th>
-            <th style="width:90px">Niveau</th>
-            <th>Message</th>
+            <th style="width:140px">{{ 'media.arr_system.logs.date'|trans }}</th>
+            <th style="width:90px">{{ 'media.arr_system.logs.level'|trans }}</th>
+            <th>{{ 'media.arr_system.logs.message'|trans }}</th>
           </tr>
         </thead>
         <tbody>
@@ -285,7 +285,7 @@
               {% elseif lvl == 'debug' %}
                 <span class="badge bg-secondary-lt">debug</span>
               {% else %}
-                <span class="badge bg-blue-lt">{{ lvl ?: 'info' }}</span>
+                <span class="badge bg-blue-lt">{{ lvl ?: ('media.arr_system.logs.level_info'|trans) }}</span>
               {% endif %}
             </td>
             <td class="small" style="word-break:break-all">
@@ -296,7 +296,7 @@
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="3" class="text-center text-muted py-3">Aucun log disponible</td></tr>
+          <tr><td colspan="3" class="text-center text-muted py-3">{{ 'media.arr_system.logs.empty'|trans }}</td></tr>
         {% endfor %}
         </tbody>
       </table>

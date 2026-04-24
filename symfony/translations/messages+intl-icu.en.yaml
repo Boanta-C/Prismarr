@@ -1887,6 +1887,122 @@ media:
     next: "Next →"
     pagination_summary_tpl: "Page {page} / {total}"
 
+  downloads:
+    page_title: Downloads
+    error_unreachable: Unable to reach qBittorrent.
+    stats:
+      downloading: Downloading
+      seeding: Seeding
+      paused: Paused
+      completed: Completed
+      speed_mb: "MB/s"
+    filters:
+      search_placeholder: "Search…"
+      all: All
+      downloading: Downloading
+      seeding: Seeding
+      paused: Paused
+      completed: Completed
+    state:
+      downloading: Downloading
+      seeding: Seeding
+      paused: Paused
+      queued: Queued
+      checking: Checking
+      error: Error
+      completed: Completed
+    count_tpl: "{count, plural, one {# torrent} other {# torrents}}"
+    empty: No active torrent.
+    gb_suffix: GB
+    eta_tpl: "ETA {h}h{m}"
+    ratio: Ratio
+
+  indexeurs:
+    page_title: Indexers
+    error_unreachable: Unable to reach Prowlarr.
+    stats:
+      total: Total
+      enabled: Enabled
+      torrent: Torrent
+      usenet: Usenet
+    configured: Configured indexers
+    empty: No indexer configured.
+    table:
+      name: Name
+      type: Type
+      priority: Priority
+      status: Status
+      health: Health
+    badge:
+      torrent: Torrent
+      usenet: Usenet
+      enabled: Enabled
+      disabled: Disabled
+    health:
+      error: Error detected
+      ok: OK
+    searches:
+      title: Recent searches
+      date: Date
+      indexer: Indexer
+      query: Query
+      result: Result
+      results_tpl: "{count, plural, one {# result} other {# results}}"
+      failed: Failed
+
+  arr_system:
+    title_radarr: Radarr system
+    title_sonarr: Sonarr system
+    section:
+      status: System status
+      health: Health
+      disk: Disk space
+      download_clients: Download clients
+      indexers: Indexers
+      logs: Recent logs
+    status:
+      version: Version
+      os: OS
+      net: .NET
+      db: Database
+      started: Started on
+      url_base: Base URL
+      docker: Docker
+      update: Update
+      yes: Yes
+      no: No
+      update_available: Available
+      up_to_date: Up to date
+      unavailable: Status unavailable
+    health:
+      alerts_tpl: "{count, plural, one {# alert} other {# alerts}}"
+      ok: OK
+      empty: No issues detected
+      error: Error
+      warning: Warn.
+      info: Info
+    disk:
+      empty: No information available
+      free_total_tpl: "{free} GB free / {total} GB total"
+      used_pct_tpl: "{pct}% used"
+    download_clients:
+      name: Name
+      type: Type
+      enabled: Enabled
+      empty: No client configured
+    indexers:
+      name: Name
+      enabled: Enabled
+      rss: RSS
+      search: Search
+      empty: No indexer configured
+    logs:
+      date: Date
+      level: Level
+      message: Message
+      empty: No log available
+      level_info: info
+
 watchlist_page:
   back_to_discover: Discover
   count_titles: '{count, plural, one {# title} other {# titles}}'

@@ -1886,6 +1886,122 @@ media:
     next: "Suivant →"
     pagination_summary_tpl: "Page {page} / {total}"
 
+  downloads:
+    page_title: Téléchargements
+    error_unreachable: Impossible de contacter qBittorrent.
+    stats:
+      downloading: En cours
+      seeding: Partage
+      paused: En pause
+      completed: Terminés
+      speed_mb: "Mo/s"
+    filters:
+      search_placeholder: "Rechercher…"
+      all: Tous
+      downloading: En cours
+      seeding: Partage
+      paused: Pause
+      completed: Terminés
+    state:
+      downloading: Téléchargement
+      seeding: Partage
+      paused: Pause
+      queued: File
+      checking: Vérification
+      error: Erreur
+      completed: Terminé
+    count_tpl: "{count, plural, one {# torrent} other {# torrents}}"
+    empty: Aucun torrent actif.
+    gb_suffix: Go
+    eta_tpl: "ETA {h}h{m}"
+    ratio: Ratio
+
+  indexeurs:
+    page_title: Indexeurs
+    error_unreachable: Impossible de contacter Prowlarr.
+    stats:
+      total: Total
+      enabled: Actifs
+      torrent: Torrent
+      usenet: Usenet
+    configured: Indexeurs configurés
+    empty: Aucun indexeur configuré.
+    table:
+      name: Nom
+      type: Type
+      priority: Priorité
+      status: Statut
+      health: Santé
+    badge:
+      torrent: Torrent
+      usenet: Usenet
+      enabled: Actif
+      disabled: Désactivé
+    health:
+      error: Erreur détectée
+      ok: OK
+    searches:
+      title: Recherches récentes
+      date: Date
+      indexer: Indexeur
+      query: Requête
+      result: Résultat
+      results_tpl: "{count, plural, one {# résultat} other {# résultats}}"
+      failed: Échec
+
+  arr_system:
+    title_radarr: Système Radarr
+    title_sonarr: Système Sonarr
+    section:
+      status: Statut système
+      health: Santé
+      disk: Espace disque
+      download_clients: Clients de téléchargement
+      indexers: Indexeurs
+      logs: Logs récents
+    status:
+      version: Version
+      os: OS
+      net: .NET
+      db: Base de données
+      started: Démarré le
+      url_base: URL de base
+      docker: Docker
+      update: Mise à jour
+      yes: Oui
+      no: Non
+      update_available: Disponible
+      up_to_date: À jour
+      unavailable: Statut indisponible
+    health:
+      alerts_tpl: "{count, plural, one {# alerte} other {# alertes}}"
+      ok: OK
+      empty: Aucun problème détecté
+      error: Erreur
+      warning: Avert.
+      info: Info
+    disk:
+      empty: Aucune information disponible
+      free_total_tpl: "{free} Go libres / {total} Go total"
+      used_pct_tpl: "{pct}% utilisé"
+    download_clients:
+      name: Nom
+      type: Type
+      enabled: Activé
+      empty: Aucun client configuré
+    indexers:
+      name: Nom
+      enabled: Activé
+      rss: RSS
+      search: Recherche
+      empty: Aucun indexeur configuré
+    logs:
+      date: Date
+      level: Niveau
+      message: Message
+      empty: Aucun log disponible
+      level_info: info
+
 watchlist_page:
   back_to_discover: Découverte
   count_titles: '{count, plural, one {# titre} other {# titres}}'

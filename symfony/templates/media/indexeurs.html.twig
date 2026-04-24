@@ -1,17 +1,17 @@
 {% extends 'base.html.twig' %}
-{% block title %}Indexeurs{% endblock %}
+{% block title %}{{ 'media.indexeurs.page_title'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header mb-3">
   <div class="row align-items-center">
     <div class="col">
-      <h2 class="page-title">Indexeurs <span class="badge bg-secondary ms-1">{{ stats.total ?? 0 }}</span></h2>
+      <h2 class="page-title">{{ 'media.indexeurs.page_title'|trans }} <span class="badge bg-secondary ms-1">{{ stats.total ?? 0 }}</span></h2>
     </div>
   </div>
 </div>
 
 {% if error %}
-  <div class="alert alert-warning">Impossible de contacter Prowlarr.</div>
+  <div class="alert alert-warning">{{ 'media.indexeurs.error_unreachable'|trans }}</div>
 {% endif %}
 
 {# ── Stats ── #}
@@ -21,7 +21,7 @@
       <div class="card-body">
         <div class="d-flex align-items-center gap-2">
           <span class="text-body fs-2 fw-bold">{{ stats.total ?? 0 }}</span>
-          <div class="text-muted small">Total</div>
+          <div class="text-muted small">{{ 'media.indexeurs.stats.total'|trans }}</div>
         </div>
       </div>
     </div>
@@ -31,7 +31,7 @@
       <div class="card-body">
         <div class="d-flex align-items-center gap-2">
           <span class="text-success fs-2 fw-bold">{{ stats.enabled ?? 0 }}</span>
-          <div class="text-muted small">Actifs</div>
+          <div class="text-muted small">{{ 'media.indexeurs.stats.enabled'|trans }}</div>
         </div>
       </div>
     </div>
@@ -41,7 +41,7 @@
       <div class="card-body">
         <div class="d-flex align-items-center gap-2">
           <span class="text-primary fs-2 fw-bold">{{ stats.torrent ?? 0 }}</span>
-          <div class="text-muted small">Torrent</div>
+          <div class="text-muted small">{{ 'media.indexeurs.stats.torrent'|trans }}</div>
         </div>
       </div>
     </div>
@@ -51,7 +51,7 @@
       <div class="card-body">
         <div class="d-flex align-items-center gap-2">
           <span class="text-info fs-2 fw-bold">{{ stats.usenet ?? 0 }}</span>
-          <div class="text-muted small">Usenet</div>
+          <div class="text-muted small">{{ 'media.indexeurs.stats.usenet'|trans }}</div>
         </div>
       </div>
     </div>
@@ -61,22 +61,22 @@
 {# ── Liste des indexeurs ── #}
 <div class="card mb-3">
   <div class="card-header">
-    <h3 class="card-title">Indexeurs configurés</h3>
+    <h3 class="card-title">{{ 'media.indexeurs.configured'|trans }}</h3>
   </div>
   <div class="table-responsive">
     <table class="table table-vcenter card-table table-hover">
       <thead>
         <tr>
-          <th>Nom</th>
-          <th>Type</th>
-          <th>Priorité</th>
-          <th>Statut</th>
-          <th>Santé</th>
+          <th>{{ 'media.indexeurs.table.name'|trans }}</th>
+          <th>{{ 'media.indexeurs.table.type'|trans }}</th>
+          <th>{{ 'media.indexeurs.table.priority'|trans }}</th>
+          <th>{{ 'media.indexeurs.table.status'|trans }}</th>
+          <th>{{ 'media.indexeurs.table.health'|trans }}</th>
         </tr>
       </thead>
       <tbody>
         {% if indexers is empty %}
-          <tr><td colspan="5" class="text-center text-muted py-3">Aucun indexeur configuré.</td></tr>
+          <tr><td colspan="5" class="text-center text-muted py-3">{{ 'media.indexeurs.empty'|trans }}</td></tr>
         {% else %}
           {% for idx in indexers %}
             {% set hasError = status[idx.id] is defined %}
@@ -84,9 +84,9 @@
               <td class="fw-medium">{{ idx.name }}</td>
               <td>
                 {% if idx.type == 'torrent' %}
-                  <span class="badge bg-primary-lt">Torrent</span>
+                  <span class="badge bg-primary-lt">{{ 'media.indexeurs.badge.torrent'|trans }}</span>
                 {% elseif idx.type == 'usenet' %}
-                  <span class="badge bg-info-lt">Usenet</span>
+                  <span class="badge bg-info-lt">{{ 'media.indexeurs.badge.usenet'|trans }}</span>
                 {% else %}
                   <span class="badge bg-secondary-lt">{{ idx.type }}</span>
                 {% endif %}
@@ -94,9 +94,9 @@
               <td class="text-muted">{{ idx.priority }}</td>
               <td>
                 {% if idx.enabled %}
-                  <span class="badge bg-success-lt">Actif</span>
+                  <span class="badge bg-success-lt">{{ 'media.indexeurs.badge.enabled'|trans }}</span>
                 {% else %}
-                  <span class="badge bg-secondary-lt">Désactivé</span>
+                  <span class="badge bg-secondary-lt">{{ 'media.indexeurs.badge.disabled'|trans }}</span>
                 {% endif %}
               </td>
               <td>
@@ -104,11 +104,11 @@
                   <span class="text-muted small">—</span>
                 {% elseif hasError %}
                   <span class="text-danger small d-flex align-items-center gap-1">
-                    <span class="status-dot bg-danger"></span> Erreur détectée
+                    <span class="status-dot bg-danger"></span> {{ 'media.indexeurs.health.error'|trans }}
                   </span>
                 {% else %}
                   <span class="text-success small d-flex align-items-center gap-1">
-                    <span class="status-dot status-dot-animated bg-success"></span> OK
+                    <span class="status-dot status-dot-animated bg-success"></span> {{ 'media.indexeurs.health.ok'|trans }}
                   </span>
                 {% endif %}
               </td>
@@ -124,16 +124,16 @@
 {% if searches is not empty %}
 <div class="card">
   <div class="card-header">
-    <h3 class="card-title">Recherches récentes</h3>
+    <h3 class="card-title">{{ 'media.indexeurs.searches.title'|trans }}</h3>
   </div>
   <div class="table-responsive">
     <table class="table table-vcenter card-table">
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Indexeur</th>
-          <th>Requête</th>
-          <th>Résultat</th>
+          <th>{{ 'media.indexeurs.searches.date'|trans }}</th>
+          <th>{{ 'media.indexeurs.searches.indexer'|trans }}</th>
+          <th>{{ 'media.indexeurs.searches.query'|trans }}</th>
+          <th>{{ 'media.indexeurs.searches.result'|trans }}</th>
         </tr>
       </thead>
       <tbody>
@@ -146,9 +146,9 @@
             <td class="small text-truncate" style="max-width:300px;" title="{{ s.query }}">{{ s.query }}</td>
             <td>
               {% if s.successful %}
-                <span class="badge bg-success-lt">{{ s.grabCount }} résultat{{ s.grabCount > 1 ? 's' }}</span>
+                <span class="badge bg-success-lt">{{ 'media.indexeurs.searches.results_tpl'|trans({count: s.grabCount}) }}</span>
               {% else %}
-                <span class="badge bg-danger-lt">Échec</span>
+                <span class="badge bg-danger-lt">{{ 'media.indexeurs.searches.failed'|trans }}</span>
               {% endif %}
             </td>
           </tr>
