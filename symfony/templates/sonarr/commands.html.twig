@@ -1,13 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Commandes — Sonarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.commands.title_sonarr'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
       <div class="col">
-        <h2 class="page-title">Commandes</h2>
+        <h2 class="page-title">{{ 'media.arr_admin.commands.page_title'|trans }}</h2>
       </div>
       <div class="col-auto ms-auto">
         {% include 'media/_sonarr_nav.html.twig' %}
@@ -20,17 +20,17 @@
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+<div class="alert alert-danger">{{ 'media.arr_admin.commands.error_unreachable_sonarr'|trans }}</div>
 {% endif %}
 
 <div id="cmd-feedback" class="alert d-none mb-3"></div>
 
 <div class="card">
   <div class="card-header">
-    <h3 class="card-title">Commandes récentes</h3>
+    <h3 class="card-title">{{ 'media.arr_admin.commands.card_title'|trans }}</h3>
     <div class="card-options">
       <span class="badge bg-secondary-lt" id="cmd-count">{{ commands|length }}</span>
-      <span class="text-muted small ms-2">Rafraîchi toutes les 5s</span>
+      <span class="text-muted small ms-2">{{ 'media.arr_admin.commands.refresh_hint'|trans }}</span>
     </div>
   </div>
   <div class="card-body p-0">
@@ -38,19 +38,19 @@
       <table class="table table-vcenter mb-0" id="commands-table">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Commande</th>
-            <th>Statut</th>
-            <th>Démarré</th>
-            <th>Terminé</th>
-            <th>Durée</th>
-            <th>Message</th>
+            <th>{{ 'media.arr_admin.commands.col_id'|trans }}</th>
+            <th>{{ 'media.arr_admin.commands.col_command'|trans }}</th>
+            <th>{{ 'media.arr_admin.commands.col_status'|trans }}</th>
+            <th>{{ 'media.arr_admin.commands.col_started'|trans }}</th>
+            <th>{{ 'media.arr_admin.commands.col_ended'|trans }}</th>
+            <th>{{ 'media.arr_admin.commands.col_duration'|trans }}</th>
+            <th>{{ 'media.arr_admin.commands.col_message'|trans }}</th>
             <th class="w-1"></th>
           </tr>
         </thead>
         <tbody id="commands-tbody">
           {% if commands is empty %}
-          <tr><td colspan="8" class="text-center text-muted py-4">Aucune commande récente.</td></tr>
+          <tr><td colspan="8" class="text-center text-muted py-4">{{ 'media.arr_admin.commands.empty'|trans }}</td></tr>
           {% else %}
           {% for cmd in commands %}
           <tr>
@@ -59,13 +59,13 @@
             <td>
               {% set status = cmd.status ?? 'unknown' %}
               {% if status == 'queued' %}
-                <span class="badge bg-secondary-lt">En attente</span>
+                <span class="badge bg-secondary-lt">{{ 'media.arr_admin.commands.status_queued'|trans }}</span>
               {% elseif status == 'started' %}
-                <span class="badge bg-primary-lt text-primary">En cours</span>
+                <span class="badge bg-primary-lt text-primary">{{ 'media.arr_admin.commands.status_started'|trans }}</span>
               {% elseif status == 'completed' %}
-                <span class="badge bg-success-lt text-success">Terminé</span>
+                <span class="badge bg-success-lt text-success">{{ 'media.arr_admin.commands.status_completed'|trans }}</span>
               {% elseif status == 'failed' %}
-                <span class="badge bg-danger-lt text-danger">Echoué</span>
+                <span class="badge bg-danger-lt text-danger">{{ 'media.arr_admin.commands.status_failed'|trans }}</span>
               {% else %}
                 <span class="badge bg-secondary-lt">{{ status }}</span>
               {% endif %}
@@ -91,7 +91,7 @@
               {% if status in ['queued', 'started'] %}
               <button class="btn btn-ghost-danger btn-icon btn-sm btn-cmd-cancel"
                       data-id="{{ cmd.id }}"
-                      title="Annuler">
+                      title="{{ 'media.arr_admin.commands.cancel_title'|trans }}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12m0 -12l12 12"/></svg>
               </button>
               {% endif %}
@@ -112,6 +112,12 @@
 {% block javascripts %}
 <script>
 (function(){
+var I18N = {
+  confirmCancelTpl: {{ 'media.arr_admin.commands.confirm_cancel_tpl'|trans({id: '__ID__'})|json_encode|raw }},
+  cancelledTpl: {{ 'media.arr_admin.commands.cancelled_tpl'|trans({id: '__ID__'})|json_encode|raw }},
+  errorCancel: {{ 'media.arr_admin.commands.error_cancel'|trans|json_encode|raw }},
+  errorNetwork: {{ 'media.arr_admin.commands.error_network'|trans|json_encode|raw }}
+};
 var feedback = document.getElementById('cmd-feedback');
 function showFeedback(msg, type) {
   feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
@@ -124,7 +130,7 @@ function bindCancelButtons() {
   document.querySelectorAll('.btn-cmd-cancel').forEach(function(btn) {
     btn.onclick = function() {
       var cmdId = btn.dataset.id;
-      if (!confirm('Annuler la commande #' + cmdId + ' ?')) return;
+      if (!confirm(I18N.confirmCancelTpl.replace('__ID__', cmdId))) return;
       btn.disabled = true;
       fetch('/sonarr/command/' + cmdId + '/annuler', {
         method: 'POST',
@@ -132,14 +138,14 @@ function bindCancelButtons() {
         body: '{}'
       }).then(function(r){ return r.json(); }).then(function(data){
         if (data.ok) {
-          showFeedback('Commande #' + cmdId + ' annulée.');
+          showFeedback(I18N.cancelledTpl.replace('__ID__', cmdId));
           setTimeout(function(){ location.reload(); }, 800);
         } else {
-          showFeedback('Erreur lors de l\'annulation.', 'danger');
+          showFeedback(I18N.errorCancel, 'danger');
           btn.disabled = false;
         }
       }).catch(function(){
-        showFeedback('Erreur réseau.', 'danger');
+        showFeedback(I18N.errorNetwork, 'danger');
         btn.disabled = false;
       });
     };

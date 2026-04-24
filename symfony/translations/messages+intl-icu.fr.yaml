@@ -2370,6 +2370,392 @@ media:
       error_network: Erreur réseau.
       error_delete: Erreur lors de la suppression.
       confirm_delete_tpl: "Supprimer la notification \"{name}\" ?"
+    settings:
+      title_radarr: Général — Radarr
+      title_sonarr: Général — Sonarr
+      page_title: Général
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      save: Enregistrer
+      saved: Configuration sauvegardée.
+      error_save: Erreur lors de la sauvegarde.
+      error_network: Erreur réseau.
+      empty_config: Configuration indisponible.
+      host:
+        title: Hôte
+        bind_address: Adresse de liaison
+        bind_address_hint: Adresse IP valide, localhost ou * pour toutes les interfaces
+        port: Numéro de port
+        ssl_port: Port SSL
+        url_base: Base URL
+        url_base_placeholder_radarr: /radarr
+        url_base_placeholder_sonarr: /sonarr
+        url_base_hint: Redémarrage nécessaire pour prendre effet
+        instance_name: Nom de l'instance
+        application_url: URL de l'application
+        ssl: SSL
+        launch_browser: Ouvrir au démarrage
+      security:
+        title: Sécurité
+        authentication: Authentification
+        auth_none: Aucune
+        auth_basic: Basic (popup navigateur)
+        auth_forms: Formulaire (page de connexion)
+        auth_external: Externe
+        auth_required: Auth. requise
+        required_enabled: Activée
+        required_disabled_local: Désactivée pour adresses locales
+        username: Nom d'utilisateur
+        password: Mot de passe
+        password_placeholder: Laisser vide pour conserver
+        password_confirm: Confirmation
+        password_confirm_placeholder: Confirmer
+        api_key: Clé API
+        api_copy_title: Copier
+        api_regen_title: Régénérer
+        api_regen_confirm: Régénérer la clé API ? Toutes les applications utilisant l'ancienne clé devront être mises à jour.
+        api_regen_done: Nouvelle clé générée. Enregistrez pour appliquer.
+        certificate_validation: Validation certificat
+        cert_enabled: Activée
+        cert_disabled_local: Désactivée pour local
+        cert_disabled: Désactivée
+      proxy:
+        title: Proxy
+        use_proxy: Utiliser le proxy
+        type: Type
+        host: Hôte
+        port: Port
+        username: Utilisateur
+        password: Mot de passe
+        bypass_for: Ignorer pour
+        bypass_placeholder: Domaines séparés par virgules
+        bypass_local: Ignorer pour local
+      logging:
+        title: Logging
+        level: Niveau de log
+        level_info: Info
+        level_debug: Debug
+        level_trace: Trace
+        size_limit: Taille max (Mo)
+      analytics:
+        title: Analytics
+        anonymous_data: Données anonymes
+        hint_radarr: Aide les développeurs à améliorer Radarr
+        hint_sonarr: Aide les développeurs à améliorer Sonarr
+      updates:
+        title: Mises à jour
+        branch: Branche
+        mechanism_label: "Mécanisme : "
+        auto_update: Auto-update
+      backups:
+        title: Sauvegardes
+        folder: Dossier
+        interval_days: Intervalle (j)
+        retention_days: Rétention (j)
+      indexer_config:
+        title: Configuration Indexeurs
+        minimum_age: Âge minimum (min)
+        retention: Rétention (jours)
+        rss_sync: Sync RSS (min)
+        prefer_flags: Préférer flags indexeur
+        availability_delay: Délai disponibilité
+      download_client_config:
+        title: Configuration Client DL
+        working_folders: Dossiers de travail
+        completed_handling: Import terminé
+        auto_redownload: Re-DL auto échecs
+      import_list_config:
+        title: Configuration Listes Import
+        sync_level: Niveau sync
+        min_refresh: Intervalle min refresh
+      yes: Oui
+      no: Non
+    ui:
+      title_radarr: Interface — Radarr
+      title_sonarr: Interface — Sonarr
+      page_title: Interface (UI)
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      empty_config: Configuration UI indisponible.
+      save: Enregistrer
+      saved: Configuration UI sauvegardée.
+      error_save: Erreur lors de la sauvegarde.
+      error_network: Erreur réseau.
+      dates:
+        title: Dates & Heures
+        first_day: Premier jour
+        sunday: Dimanche
+        monday: Lundi
+        calendar_header: En-tête calendrier
+        short_date: Date courte
+        long_date: Date longue
+        time: Heure
+        time_12h: 12h (4:00pm)
+        time_24h: 24h (16:00)
+        relative: Dates relatives
+        relative_hint: Afficher « il y a 2 jours » au lieu de la date exacte
+      style:
+        title: Style
+        theme: Thème
+        theme_auto: Auto
+        theme_light: Clair
+        theme_dark: Sombre
+        color_impaired: Mode daltonien
+        color_impaired_hint: Couleurs adaptées pour les personnes daltoniennes
+        runtime_format: Durée film
+        runtime_hours_minutes: Heures & Minutes (1h 37m)
+        runtime_minutes: Minutes (97 min)
+      language:
+        title: Langue
+        ui_language: Langue interface
+        ui_language_hint_radarr: Langue de l'interface Radarr
+        ui_language_hint_sonarr: Langue de l'interface Sonarr
+        info_language_radarr: Langue infos film
+        info_language_sonarr: Langue infos série
+        info_language_hint_radarr: Langue utilisée pour les titres et synopsis des films
+        info_language_hint_sonarr: Langue utilisée pour les titres et synopsis des séries
+    media_management:
+      title_radarr: Gestion des médias — Radarr
+      title_sonarr: Gestion des médias — Sonarr
+      page_title: Gestion des médias
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      saved: Configuration sauvegardée avec succès.
+      saving: Sauvegarde...
+      save: Sauvegarder
+      error_prefix: "Erreur : "
+      error_unknown: Erreur inconnue
+      error_network: Erreur réseau.
+      naming_saved: Nommage sauvegardé.
+      mm_saved: Gestion sauvegardée.
+      naming:
+        title_radarr: Nommage des fichiers
+        title_sonarr: Format de nommage
+        rename_movies: Renommer les films
+        rename_episodes: Renommer les épisodes
+        replace_illegal: Remplacer les caractères illégaux
+        colon_replacement: Format remplacement deux-points
+        colon_smart: Smart
+        colon_dash: Dash
+        colon_space_dash: Space Dash
+        colon_space_dash_space: Space Dash Space
+        movie_format: Format fichier film
+        movie_folder_format: Format dossier film
+        standard_episode_format: Format épisode standard
+        daily_episode_format: Format épisode quotidien
+        anime_episode_format: Format épisode anime
+        series_folder_format: Format dossier série
+        season_folder_format: Format dossier saison
+        multi_episode_style: Style multi-épisodes
+        multi_extend: Extend
+        multi_duplicate: Duplicate
+        multi_repeat: Repeat
+        multi_scene: Scene
+        multi_range: Range
+        multi_prefixed_range: Prefixed Range
+        tokens_summary: Tokens disponibles
+        save: Sauvegarder
+        save_naming_sonarr: Sauvegarder le nommage
+        preview: Prévisualiser
+        loading: Chargement...
+        preview_movie: Fichier film
+        preview_movie_folder: Dossier film
+        preview_single_episode: Épisode standard
+        preview_daily_episode: Épisode quotidien
+        preview_anime_episode: Épisode anime
+        preview_multi_episode: Multi-épisodes
+        preview_series_folder: Dossier série
+        preview_season_folder: Dossier saison
+        preview_empty: Aucun exemple disponible
+      mm:
+        title: Gestion des médias
+        save_radarr: Sauvegarder
+        save_sonarr: Sauvegarder la gestion
+        auto_unmonitor_movies: Auto-unmonitor films téléchargés
+        auto_unmonitor_episodes: Auto-unmonitor épisodes téléchargés
+        create_empty_folders: Créer des dossiers vides
+        create_empty_series_folders: Créer dossiers séries vides
+        delete_empty_folders: Supprimer les dossiers vides
+        delete_empty_folders_short: Supprimer dossiers vides
+        auto_rename_folders: Renommer les dossiers auto
+        copy_hardlinks: Copie par hardlinks
+        import_extra_files: Importer les fichiers extra
+        enable_mediainfo: Activer MediaInfo
+        set_permissions: Définir les permissions (Linux)
+        recycle_bin_path: Chemin corbeille
+        recycle_bin: Corbeille
+        recycle_bin_placeholder: Chemin corbeille (vide = désactivé)
+        recycle_bin_cleanup: Nettoyage corbeille (jours)
+        recycle_bin_duration: Durée corbeille (jours)
+        min_free_space: Espace libre minimum (Mo)
+        extra_extensions: Extensions fichiers extra
+        chmod_folder: chmod Dossier
+        chown_group: chown Groupe
+        propers_repacks: Propers & Repacks
+        prefer_upgrade: Préférer et upgrader
+        do_not_upgrade: Ne pas upgrader
+        do_not_prefer: Ne pas préférer
+        file_date: Date du fichier
+        file_date_none: Aucune
+        file_date_cinemas: Sortie cinéma
+        file_date_release: Date de sortie
+        rescan_after_refresh: Rescan après refresh
+        rescan_always: Toujours
+        rescan_after_manual: Après refresh manuel
+        rescan_never: Jamais
+    root_folders:
+      title_radarr: Dossiers racine — Radarr
+      title_sonarr: Dossiers racine — Sonarr
+      page_title: Dossiers racine
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      add: Ajouter
+      card_title: Dossiers configurés
+      empty: Aucun dossier racine configuré.
+      col_path: Chemin
+      col_free: Espace libre
+      col_total: Espace total
+      col_movies: Films
+      col_actions: Actions
+      delete: Supprimer
+      modal_title: Ajouter un dossier racine
+      path_label: Chemin
+      path_placeholder: /data/films
+      path_hint_radarr: Chemin absolu accessible par Radarr.
+      path_hint_sonarr: Chemin absolu accessible par Sonarr.
+      cancel: Annuler
+      add_btn: Ajouter
+      error_path_required: Le chemin est obligatoire.
+      error_add_radarr: "Erreur — vérifiez que le chemin existe et est accessible par Radarr."
+      error_add_sonarr: "Erreur — vérifiez que le chemin existe et est accessible par Sonarr."
+      error_delete: Erreur lors de la suppression.
+      confirm_delete_tpl: "Supprimer le dossier \"{path}\" ?\n⚠️ Les films qu'il contient ne seront pas supprimés."
+    backups:
+      title_radarr: Sauvegardes Radarr
+      title_sonarr: Sauvegardes Sonarr
+      page_title: Sauvegardes
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      create: Créer une sauvegarde
+      card_title: Sauvegardes disponibles
+      count_tpl: "{count} sauvegarde(s)"
+      empty: Aucune sauvegarde disponible.
+      col_name: Nom
+      col_type: Type
+      col_size: Taille
+      col_date: Date
+      col_actions: Actions
+      type_scheduled: Planifiée
+      type_manual: Manuelle
+      restore: Restaurer
+      delete: Supprimer
+      modal_title: Confirmer la restauration
+      modal_question_prefix: "Restaurer "
+      modal_question_suffix: " ?"
+      restart_warning_radarr: Radarr va redémarrer après la restauration.
+      restart_warning_sonarr: Sonarr va redémarrer après la restauration.
+      cancel: Annuler
+      backup_in_progress: Sauvegarde en cours...
+      backup_starting: Lancement de la sauvegarde...
+      backup_status_tpl: "Sauvegarde : {status}"
+      backup_done: Sauvegarde créée ! Rechargement...
+      backup_failed: Echec de la sauvegarde.
+      backup_error: Erreur.
+      restore_in_progress: Restauration en cours...
+      restore_started_radarr: Restauration lancée. Radarr va redémarrer.
+      restore_started_sonarr: Restauration lancée. Sonarr va redémarrer.
+      restore_error: Erreur lors de la restauration.
+      confirm_delete: Supprimer cette sauvegarde ?
+      error_delete: Erreur lors de la suppression.
+      error_network: Erreur réseau.
+    updates:
+      title_radarr: Mises à jour — Radarr
+      title_sonarr: Mises à jour — Sonarr
+      page_title: Mises à jour
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      docker_warning_radarr: Radarr tourne en conteneur Docker. Pour mettre à jour, mettez à jour l'image Docker.
+      docker_warning_sonarr: Sonarr tourne en conteneur Docker. Pour mettre à jour, mettez à jour l'image Docker.
+      installed_version: Version installée
+      update_available: Mise à jour disponible
+      up_to_date: A jour
+      history_title: Historique des versions
+      empty_radarr: Radarr est à jour.
+      empty_sonarr: Sonarr est à jour.
+      col_version: Version
+      col_date: Date
+      col_branch: Branche
+      col_status: Statut
+      latest: Dernière
+      installed: Installée
+      available: Disponible
+      old: Ancienne
+      install: Installer
+      via_docker: Via Docker
+      changes_new: Nouveautés
+      changes_fixed: Corrections
+    tasks:
+      title_radarr: Tâches système — Radarr
+      title_sonarr: Tâches système — Sonarr
+      page_title: Tâches système
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      card_title: Tâches planifiées
+      empty: Aucune tâche.
+      col_name: Nom
+      col_interval: Intervalle
+      col_last: Dernière exécution
+      col_next: Prochaine exécution
+      run_title: Exécuter
+      launched_tpl: "Tâche \"{name}\" lancée."
+      error_run: Erreur lors du lancement.
+      error_network: Erreur réseau.
+    commands:
+      title_radarr: Commandes — Radarr
+      title_sonarr: Commandes — Sonarr
+      page_title: Commandes
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      card_title: Commandes récentes
+      refresh_hint: Rafraîchi toutes les 5s
+      empty: Aucune commande récente.
+      col_id: "#"
+      col_command: Commande
+      col_status: Statut
+      col_started: Démarré
+      col_ended: Terminé
+      col_duration: Durée
+      col_message: Message
+      status_queued: En attente
+      status_started: En cours
+      status_completed: Terminé
+      status_failed: Echoué
+      cancel_title: Annuler
+      confirm_cancel_tpl: "Annuler la commande #{id} ?"
+      cancelled_tpl: "Commande #{id} annulée."
+      error_cancel: Erreur lors de l'annulation.
+      error_network: Erreur réseau.
+    logs:
+      title_radarr: Logs — Radarr
+      title_sonarr: Logs — Sonarr
+      page_title: Logs
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      files_title: Fichiers de logs
+      recent_title: Logs récents
+      search_placeholder: Rechercher...
+      level_all: Tous
+      level_info: Info
+      level_debug: Debug
+      level_warn: Warn
+      level_error: Error
+      empty: Aucun log.
+      col_date: Date
+      col_level: Niveau
+      col_message: Message
+      col_logger: Logger
+      page_prev: Prec.
+      page_next: Suiv.
 
 watchlist_page:
   back_to_discover: Découverte

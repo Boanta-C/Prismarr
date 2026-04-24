@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Général — Sonarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.settings.title_sonarr'|trans }}{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -31,7 +31,7 @@
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
-      <div class="col"><h2 class="page-title">Général</h2></div>
+      <div class="col"><h2 class="page-title">{{ 'media.arr_admin.settings.page_title'|trans }}</h2></div>
       <div class="col-auto ms-auto d-flex gap-2 align-items-center">
         {% include 'media/_sonarr_nav.html.twig' %}
       </div>
@@ -43,14 +43,14 @@
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+<div class="alert alert-danger">{{ 'media.arr_admin.settings.error_unreachable_sonarr'|trans }}</div>
 {% endif %}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div id="settings-feedback" class="alert d-none mb-0 flex-fill me-3"></div>
   <button type="submit" form="form-host" class="btn btn-primary btn-sm flex-shrink-0">
     <span class="spinner-border spinner-border-sm d-none me-1" id="host-spinner"></span>
-    Enregistrer
+    {{ 'media.arr_admin.settings.save'|trans }}
   </button>
 </div>
 
@@ -59,48 +59,48 @@
 
 {# ── Hôte ──────────────────────────────────────────────────────────── #}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Hôte</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.host.title'|trans }}</h3></div>
   <div class="card-body py-2">
     <div class="setting-row">
-      <div class="setting-label">Adresse de liaison</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.host.bind_address'|trans }}</div>
       <div class="setting-field">
         <input type="text" name="bindAddress" class="form-control form-control-sm" value="{{ hostConfig.bindAddress ?? '*' }}" style="max-width:200px;">
-        <div class="setting-hint">Adresse IP valide, localhost ou * pour toutes les interfaces</div>
+        <div class="setting-hint">{{ 'media.arr_admin.settings.host.bind_address_hint'|trans }}</div>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Numéro de port</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.host.port'|trans }}</div>
       <div class="setting-field">
         <input type="number" name="port" class="form-control form-control-sm" value="{{ hostConfig.port ?? 8989 }}" style="max-width:120px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Port SSL</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.host.ssl_port'|trans }}</div>
       <div class="setting-field">
         <input type="number" name="sslPort" class="form-control form-control-sm" value="{{ hostConfig.sslPort ?? 9898 }}" style="max-width:120px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Base URL</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.host.url_base'|trans }}</div>
       <div class="setting-field">
-        <input type="text" name="urlBase" class="form-control form-control-sm" value="{{ hostConfig.urlBase ?? '' }}" placeholder="/sonarr" style="max-width:250px;">
-        <div class="setting-hint">Redémarrage nécessaire pour prendre effet</div>
+        <input type="text" name="urlBase" class="form-control form-control-sm" value="{{ hostConfig.urlBase ?? '' }}" placeholder="{{ 'media.arr_admin.settings.host.url_base_placeholder_sonarr'|trans }}" style="max-width:250px;">
+        <div class="setting-hint">{{ 'media.arr_admin.settings.host.url_base_hint'|trans }}</div>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Nom de l'instance</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.host.instance_name'|trans }}</div>
       <div class="setting-field">
         <input type="text" name="instanceName" class="form-control form-control-sm" value="{{ hostConfig.instanceName ?? 'Sonarr' }}" style="max-width:250px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">URL de l'application</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.host.application_url'|trans }}</div>
       <div class="setting-field">
         <input type="text" name="applicationUrl" class="form-control form-control-sm" value="{{ hostConfig.applicationUrl ?? '' }}" placeholder="http://sonarr.example.com" style="max-width:350px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">SSL</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.host.ssl'|trans }}</div>
       <div class="setting-field">
         <label class="form-check form-switch mb-0">
           <input class="form-check-input" type="checkbox" name="enableSsl" {{ (hostConfig.enableSsl ?? false) ? 'checked' }}>
@@ -108,7 +108,7 @@
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Ouvrir au démarrage</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.host.launch_browser'|trans }}</div>
       <div class="setting-field">
         <label class="form-check form-switch mb-0">
           <input class="form-check-input" type="checkbox" name="launchBrowser" {{ (hostConfig.launchBrowser ?? true) ? 'checked' }}>
@@ -120,67 +120,67 @@
 
 {# ── Sécurité ──────────────────────────────────────────────────────── #}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Sécurité</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.security.title'|trans }}</h3></div>
   <div class="card-body py-2">
     <div class="setting-row">
-      <div class="setting-label">Authentification</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.security.authentication'|trans }}</div>
       <div class="setting-field">
         <select name="authenticationMethod" class="form-select form-select-sm" style="max-width:300px;">
-          <option value="none" {{ (hostConfig.authenticationMethod ?? '') == 'none' ? 'selected' }}>Aucune</option>
-          <option value="basic" {{ (hostConfig.authenticationMethod ?? '') == 'basic' ? 'selected' }}>Basic (popup navigateur)</option>
-          <option value="forms" {{ (hostConfig.authenticationMethod ?? '') == 'forms' ? 'selected' }}>Formulaire (page de connexion)</option>
-          <option value="external" {{ (hostConfig.authenticationMethod ?? '') == 'external' ? 'selected' }}>Externe</option>
+          <option value="none" {{ (hostConfig.authenticationMethod ?? '') == 'none' ? 'selected' }}>{{ 'media.arr_admin.settings.security.auth_none'|trans }}</option>
+          <option value="basic" {{ (hostConfig.authenticationMethod ?? '') == 'basic' ? 'selected' }}>{{ 'media.arr_admin.settings.security.auth_basic'|trans }}</option>
+          <option value="forms" {{ (hostConfig.authenticationMethod ?? '') == 'forms' ? 'selected' }}>{{ 'media.arr_admin.settings.security.auth_forms'|trans }}</option>
+          <option value="external" {{ (hostConfig.authenticationMethod ?? '') == 'external' ? 'selected' }}>{{ 'media.arr_admin.settings.security.auth_external'|trans }}</option>
         </select>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Auth. requise</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.security.auth_required'|trans }}</div>
       <div class="setting-field">
         <select name="authenticationRequired" class="form-select form-select-sm" style="max-width:300px;">
-          <option value="enabled" {{ (hostConfig.authenticationRequired ?? '') == 'enabled' ? 'selected' }}>Activée</option>
-          <option value="disabledForLocalAddresses" {{ (hostConfig.authenticationRequired ?? '') == 'disabledForLocalAddresses' ? 'selected' }}>Désactivée pour adresses locales</option>
+          <option value="enabled" {{ (hostConfig.authenticationRequired ?? '') == 'enabled' ? 'selected' }}>{{ 'media.arr_admin.settings.security.required_enabled'|trans }}</option>
+          <option value="disabledForLocalAddresses" {{ (hostConfig.authenticationRequired ?? '') == 'disabledForLocalAddresses' ? 'selected' }}>{{ 'media.arr_admin.settings.security.required_disabled_local'|trans }}</option>
         </select>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Nom d'utilisateur</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.security.username'|trans }}</div>
       <div class="setting-field">
         <input type="text" name="username" class="form-control form-control-sm" value="{{ hostConfig.username ?? '' }}" autocomplete="off" style="max-width:250px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Mot de passe</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.security.password'|trans }}</div>
       <div class="setting-field">
-        <input type="password" name="password" class="form-control form-control-sm" value="" placeholder="Laisser vide pour conserver" autocomplete="new-password" style="max-width:250px;">
+        <input type="password" name="password" class="form-control form-control-sm" value="" placeholder="{{ 'media.arr_admin.settings.security.password_placeholder'|trans }}" autocomplete="new-password" style="max-width:250px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Confirmation</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.security.password_confirm'|trans }}</div>
       <div class="setting-field">
-        <input type="password" name="passwordConfirmation" class="form-control form-control-sm" value="" placeholder="Confirmer" autocomplete="new-password" style="max-width:250px;">
+        <input type="password" name="passwordConfirmation" class="form-control form-control-sm" value="" placeholder="{{ 'media.arr_admin.settings.security.password_confirm_placeholder'|trans }}" autocomplete="new-password" style="max-width:250px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Clé API</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.security.api_key'|trans }}</div>
       <div class="setting-field">
         <div class="input-group" style="max-width:480px;">
           <input type="text" class="form-control form-control-sm font-monospace" name="apiKey" value="{{ hostConfig.apiKey ?? '' }}" readonly id="api-key-field">
-          <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-copy-api" title="Copier" onclick="event.preventDefault();">
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-copy-api" title="{{ 'media.arr_admin.settings.security.api_copy_title'|trans }}" onclick="event.preventDefault();">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
           </button>
-          <button type="button" class="btn btn-outline-danger btn-sm" id="btn-regen-api" title="Régénérer" onclick="event.preventDefault();">
+          <button type="button" class="btn btn-outline-danger btn-sm" id="btn-regen-api" title="{{ 'media.arr_admin.settings.security.api_regen_title'|trans }}" onclick="event.preventDefault();">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
           </button>
         </div>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Validation certificat</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.security.certificate_validation'|trans }}</div>
       <div class="setting-field">
         <select name="certificateValidation" class="form-select form-select-sm" style="max-width:300px;">
-          <option value="enabled" {{ (hostConfig.certificateValidation ?? '') == 'enabled' ? 'selected' }}>Activée</option>
-          <option value="disabledForLocalAddresses" {{ (hostConfig.certificateValidation ?? '') == 'disabledForLocalAddresses' ? 'selected' }}>Désactivée pour local</option>
-          <option value="disabled" {{ (hostConfig.certificateValidation ?? '') == 'disabled' ? 'selected' }}>Désactivée</option>
+          <option value="enabled" {{ (hostConfig.certificateValidation ?? '') == 'enabled' ? 'selected' }}>{{ 'media.arr_admin.settings.security.cert_enabled'|trans }}</option>
+          <option value="disabledForLocalAddresses" {{ (hostConfig.certificateValidation ?? '') == 'disabledForLocalAddresses' ? 'selected' }}>{{ 'media.arr_admin.settings.security.cert_disabled_local'|trans }}</option>
+          <option value="disabled" {{ (hostConfig.certificateValidation ?? '') == 'disabled' ? 'selected' }}>{{ 'media.arr_admin.settings.security.cert_disabled'|trans }}</option>
         </select>
       </div>
     </div>
@@ -189,10 +189,10 @@
 
 {# ── Proxy ─────────────────────────────────────────────────────────── #}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Proxy</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.proxy.title'|trans }}</h3></div>
   <div class="card-body py-2">
     <div class="setting-row">
-      <div class="setting-label">Utiliser le proxy</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.proxy.use_proxy'|trans }}</div>
       <div class="setting-field">
         <label class="form-check form-switch mb-0">
           <input class="form-check-input" type="checkbox" name="proxyEnabled" {{ (hostConfig.proxyEnabled ?? false) ? 'checked' }}>
@@ -200,7 +200,7 @@
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Type</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.proxy.type'|trans }}</div>
       <div class="setting-field">
         <select name="proxyType" class="form-select form-select-sm" style="max-width:180px;">
           <option value="http" {{ (hostConfig.proxyType ?? '') == 'http' ? 'selected' }}>HTTP(S)</option>
@@ -210,37 +210,37 @@
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Hôte</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.proxy.host'|trans }}</div>
       <div class="setting-field">
         <input type="text" name="proxyHostname" class="form-control form-control-sm" value="{{ hostConfig.proxyHostname ?? '' }}" style="max-width:250px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Port</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.proxy.port'|trans }}</div>
       <div class="setting-field">
         <input type="number" name="proxyPort" class="form-control form-control-sm" value="{{ hostConfig.proxyPort ?? 8080 }}" style="max-width:120px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Utilisateur</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.proxy.username'|trans }}</div>
       <div class="setting-field">
         <input type="text" name="proxyUsername" class="form-control form-control-sm" value="{{ hostConfig.proxyUsername ?? '' }}" style="max-width:250px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Mot de passe</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.proxy.password'|trans }}</div>
       <div class="setting-field">
         <input type="password" name="proxyPassword" class="form-control form-control-sm" value="{{ hostConfig.proxyPassword ?? '' }}" style="max-width:250px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Ignorer pour</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.proxy.bypass_for'|trans }}</div>
       <div class="setting-field">
-        <input type="text" name="proxyBypassFilter" class="form-control form-control-sm" value="{{ hostConfig.proxyBypassFilter ?? '' }}" placeholder="Domaines séparés par virgules" style="max-width:350px;">
+        <input type="text" name="proxyBypassFilter" class="form-control form-control-sm" value="{{ hostConfig.proxyBypassFilter ?? '' }}" placeholder="{{ 'media.arr_admin.settings.proxy.bypass_placeholder'|trans }}" style="max-width:350px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Ignorer pour local</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.proxy.bypass_local'|trans }}</div>
       <div class="setting-field">
         <label class="form-check form-switch mb-0">
           <input class="form-check-input" type="checkbox" name="proxyBypassLocalAddresses" {{ (hostConfig.proxyBypassLocalAddresses ?? true) ? 'checked' }}>
@@ -252,20 +252,20 @@
 
 {# ── Logging ───────────────────────────────────────────────────────── #}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Logging</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.logging.title'|trans }}</h3></div>
   <div class="card-body py-2">
     <div class="setting-row">
-      <div class="setting-label">Niveau de log</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.logging.level'|trans }}</div>
       <div class="setting-field">
         <select name="logLevel" class="form-select form-select-sm" style="max-width:180px;">
-          <option value="info" {{ (hostConfig.logLevel ?? '') == 'info' ? 'selected' }}>Info</option>
-          <option value="debug" {{ (hostConfig.logLevel ?? '') == 'debug' ? 'selected' }}>Debug</option>
-          <option value="trace" {{ (hostConfig.logLevel ?? '') == 'trace' ? 'selected' }}>Trace</option>
+          <option value="info" {{ (hostConfig.logLevel ?? '') == 'info' ? 'selected' }}>{{ 'media.arr_admin.settings.logging.level_info'|trans }}</option>
+          <option value="debug" {{ (hostConfig.logLevel ?? '') == 'debug' ? 'selected' }}>{{ 'media.arr_admin.settings.logging.level_debug'|trans }}</option>
+          <option value="trace" {{ (hostConfig.logLevel ?? '') == 'trace' ? 'selected' }}>{{ 'media.arr_admin.settings.logging.level_trace'|trans }}</option>
         </select>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Taille max (Mo)</div>
+      <div class="setting-label">{{ 'media.arr_admin.settings.logging.size_limit'|trans }}</div>
       <div class="setting-field">
         <input type="number" name="logSizeLimit" class="form-control form-control-sm" value="{{ hostConfig.logSizeLimit ?? 1 }}" style="max-width:120px;">
       </div>
@@ -277,49 +277,49 @@
 <div class="row g-3 mb-3">
   <div class="col-12 col-lg-4">
     <div class="card h-100">
-      <div class="card-header"><h3 class="card-title">Analytics</h3></div>
+      <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.analytics.title'|trans }}</h3></div>
       <div class="card-body">
         <label class="form-check form-switch">
           <input class="form-check-input" type="checkbox" name="analyticsEnabled" {{ (hostConfig.analyticsEnabled ?? false) ? 'checked' }}>
-          <span class="form-check-label">Données anonymes</span>
+          <span class="form-check-label">{{ 'media.arr_admin.settings.analytics.anonymous_data'|trans }}</span>
         </label>
-        <div class="setting-hint">Aide les développeurs à améliorer Sonarr</div>
+        <div class="setting-hint">{{ 'media.arr_admin.settings.analytics.hint_sonarr'|trans }}</div>
       </div>
     </div>
   </div>
   <div class="col-12 col-lg-4">
     <div class="card h-100">
-      <div class="card-header"><h3 class="card-title">Mises à jour</h3></div>
+      <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.updates.title'|trans }}</h3></div>
       <div class="card-body">
         <div class="mb-2">
-          <label class="form-label small mb-1">Branche</label>
+          <label class="form-label small mb-1">{{ 'media.arr_admin.settings.updates.branch'|trans }}</label>
           <input type="text" name="branch" class="form-control form-control-sm" value="{{ hostConfig.branch ?? 'master' }}">
         </div>
         <div class="mb-2">
-          <span class="small text-muted">Mécanisme : <strong>{{ hostConfig.updateMechanism ?? 'docker' }}</strong></span>
+          <span class="small text-muted">{{ 'media.arr_admin.settings.updates.mechanism_label'|trans }}<strong>{{ hostConfig.updateMechanism ?? 'docker' }}</strong></span>
         </div>
         <label class="form-check form-switch">
           <input class="form-check-input" type="checkbox" name="updateAutomatically" {{ (hostConfig.updateAutomatically ?? false) ? 'checked' }}>
-          <span class="form-check-label">Auto-update</span>
+          <span class="form-check-label">{{ 'media.arr_admin.settings.updates.auto_update'|trans }}</span>
         </label>
       </div>
     </div>
   </div>
   <div class="col-12 col-lg-4">
     <div class="card h-100">
-      <div class="card-header"><h3 class="card-title">Sauvegardes</h3></div>
+      <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.backups.title'|trans }}</h3></div>
       <div class="card-body">
         <div class="mb-2">
-          <label class="form-label small mb-1">Dossier</label>
+          <label class="form-label small mb-1">{{ 'media.arr_admin.settings.backups.folder'|trans }}</label>
           <input type="text" name="backupFolder" class="form-control form-control-sm" value="{{ hostConfig.backupFolder ?? 'Backups' }}">
         </div>
         <div class="row g-2">
           <div class="col-6">
-            <label class="form-label small mb-1">Intervalle (j)</label>
+            <label class="form-label small mb-1">{{ 'media.arr_admin.settings.backups.interval_days'|trans }}</label>
             <input type="number" name="backupInterval" class="form-control form-control-sm" value="{{ hostConfig.backupInterval ?? 7 }}">
           </div>
           <div class="col-6">
-            <label class="form-label small mb-1">Rétention (j)</label>
+            <label class="form-label small mb-1">{{ 'media.arr_admin.settings.backups.retention_days'|trans }}</label>
             <input type="number" name="backupRetention" class="form-control form-control-sm" value="{{ hostConfig.backupRetention ?? 28 }}">
           </div>
         </div>
@@ -335,18 +335,18 @@
   {% if indexerConfig %}
   <div class="col-12 col-lg-4">
     <div class="card h-100">
-      <div class="card-header"><h3 class="card-title">Configuration Indexeurs</h3></div>
+      <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.indexer_config.title'|trans }}</h3></div>
       <div class="card-body">
         <dl class="row mb-0">
-          <dt class="col-7 text-muted small">Âge minimum (min)</dt>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.indexer_config.minimum_age'|trans }}</dt>
           <dd class="col-5">{{ indexerConfig.minimumAge ?? '—' }}</dd>
-          <dt class="col-7 text-muted small">Rétention (jours)</dt>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.indexer_config.retention'|trans }}</dt>
           <dd class="col-5">{{ indexerConfig.retention ?? '—' }}</dd>
-          <dt class="col-7 text-muted small">Sync RSS (min)</dt>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.indexer_config.rss_sync'|trans }}</dt>
           <dd class="col-5">{{ indexerConfig.rssSyncInterval ?? '—' }}</dd>
-          <dt class="col-7 text-muted small">Préférer flags indexeur</dt>
-          <dd class="col-5">{{ indexerConfig.preferIndexerFlags is defined and indexerConfig.preferIndexerFlags ? 'Oui' : 'Non' }}</dd>
-          <dt class="col-7 text-muted small">Délai disponibilité</dt>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.indexer_config.prefer_flags'|trans }}</dt>
+          <dd class="col-5">{{ indexerConfig.preferIndexerFlags is defined and indexerConfig.preferIndexerFlags ? ('media.arr_admin.settings.yes'|trans) : ('media.arr_admin.settings.no'|trans) }}</dd>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.indexer_config.availability_delay'|trans }}</dt>
           <dd class="col-5">{{ indexerConfig.availabilityDelay ?? '—' }}</dd>
         </dl>
       </div>
@@ -357,15 +357,15 @@
   {% if downloadClientConfig %}
   <div class="col-12 col-lg-4">
     <div class="card h-100">
-      <div class="card-header"><h3 class="card-title">Configuration Client DL</h3></div>
+      <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.download_client_config.title'|trans }}</h3></div>
       <div class="card-body">
         <dl class="row mb-0">
-          <dt class="col-7 text-muted small">Dossiers de travail</dt>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.download_client_config.working_folders'|trans }}</dt>
           <dd class="col-5">{{ downloadClientConfig.downloadClientWorkingFolders ?? '—' }}</dd>
-          <dt class="col-7 text-muted small">Import terminé</dt>
-          <dd class="col-5">{{ downloadClientConfig.enableCompletedDownloadHandling is defined and downloadClientConfig.enableCompletedDownloadHandling ? 'Oui' : 'Non' }}</dd>
-          <dt class="col-7 text-muted small">Re-DL auto échecs</dt>
-          <dd class="col-5">{{ downloadClientConfig.autoRedownloadFailed is defined and downloadClientConfig.autoRedownloadFailed ? 'Oui' : 'Non' }}</dd>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.download_client_config.completed_handling'|trans }}</dt>
+          <dd class="col-5">{{ downloadClientConfig.enableCompletedDownloadHandling is defined and downloadClientConfig.enableCompletedDownloadHandling ? ('media.arr_admin.settings.yes'|trans) : ('media.arr_admin.settings.no'|trans) }}</dd>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.download_client_config.auto_redownload'|trans }}</dt>
+          <dd class="col-5">{{ downloadClientConfig.autoRedownloadFailed is defined and downloadClientConfig.autoRedownloadFailed ? ('media.arr_admin.settings.yes'|trans) : ('media.arr_admin.settings.no'|trans) }}</dd>
         </dl>
       </div>
     </div>
@@ -375,12 +375,12 @@
   {% if importListConfig %}
   <div class="col-12 col-lg-4">
     <div class="card h-100">
-      <div class="card-header"><h3 class="card-title">Configuration Listes Import</h3></div>
+      <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.settings.import_list_config.title'|trans }}</h3></div>
       <div class="card-body">
         <dl class="row mb-0">
-          <dt class="col-7 text-muted small">Niveau sync</dt>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.import_list_config.sync_level'|trans }}</dt>
           <dd class="col-5">{{ importListConfig.listSyncLevel ?? '—' }}</dd>
-          <dt class="col-7 text-muted small">Intervalle min refresh</dt>
+          <dt class="col-7 text-muted small">{{ 'media.arr_admin.settings.import_list_config.min_refresh'|trans }}</dt>
           <dd class="col-5">{{ importListConfig.importListSyncInterval is defined ? importListConfig.importListSyncInterval ~ ' min' : (importListConfig.importListMinRefreshInterval is defined ? importListConfig.importListMinRefreshInterval ~ ' min' : '—') }}</dd>
         </dl>
       </div>
@@ -390,7 +390,7 @@
 </div>
 
 {% else %}
-<div class="alert alert-info">Configuration indisponible.</div>
+<div class="alert alert-info">{{ 'media.arr_admin.settings.empty_config'|trans }}</div>
 {% endif %}
 
 </div>
@@ -400,6 +400,13 @@
 {% block javascripts %}
 <script>
 (function(){
+var I18N = {
+  saved: {{ 'media.arr_admin.settings.saved'|trans|json_encode|raw }},
+  errorSave: {{ 'media.arr_admin.settings.error_save'|trans|json_encode|raw }},
+  errorNetwork: {{ 'media.arr_admin.settings.error_network'|trans|json_encode|raw }},
+  apiRegenConfirm: {{ 'media.arr_admin.settings.security.api_regen_confirm'|trans|json_encode|raw }},
+  apiRegenDone: {{ 'media.arr_admin.settings.security.api_regen_done'|trans|json_encode|raw }}
+};
 var feedback = document.getElementById('settings-feedback');
 function showFeedback(msg, type) {
   feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
@@ -434,12 +441,12 @@ if (copyBtn) {
 var regenBtn = document.getElementById('btn-regen-api');
 if (regenBtn) {
   regenBtn.addEventListener('click', function() {
-    if (!confirm('Régénérer la clé API ? Toutes les applications utilisant l\'ancienne clé devront être mises à jour.')) return;
+    if (!confirm(I18N.apiRegenConfirm)) return;
     var chars = 'abcdef0123456789';
     var key = '';
     for (var i = 0; i < 32; i++) key += chars[Math.floor(Math.random() * chars.length)];
     document.getElementById('api-key-field').value = key;
-    showFeedback('Nouvelle clé générée. Enregistrez pour appliquer.', 'warning');
+    showFeedback(I18N.apiRegenDone, 'warning');
   });
 }
 
@@ -471,12 +478,12 @@ if (formHost) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
       spinner.classList.add('d-none');
-      if (data.ok) showFeedback('Configuration sauvegardée.');
-      else showFeedback(data.error || 'Erreur lors de la sauvegarde.', 'danger');
+      if (data.ok) showFeedback(I18N.saved);
+      else showFeedback(data.error || I18N.errorSave, 'danger');
     })
     .catch(function() {
       spinner.classList.add('d-none');
-      showFeedback('Erreur réseau.', 'danger');
+      showFeedback(I18N.errorNetwork, 'danger');
     });
   });
 }

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Interface — Sonarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.ui.title_sonarr'|trans }}{% endblock %}
 
 {% block stylesheets %}
 <style>
@@ -31,7 +31,7 @@
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
-      <div class="col"><h2 class="page-title">Interface (UI)</h2></div>
+      <div class="col"><h2 class="page-title">{{ 'media.arr_admin.ui.page_title'|trans }}</h2></div>
       <div class="col-auto ms-auto d-flex gap-2 align-items-center">
         {% include 'media/_sonarr_nav.html.twig' %}
       </div>
@@ -43,14 +43,14 @@
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+<div class="alert alert-danger">{{ 'media.arr_admin.ui.error_unreachable_sonarr'|trans }}</div>
 {% endif %}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div id="ui-feedback" class="alert d-none mb-0 flex-fill me-3"></div>
   <button type="submit" form="form-ui" class="btn btn-primary btn-sm flex-shrink-0">
     <span class="spinner-border spinner-border-sm d-none me-1" id="ui-spinner"></span>
-    Enregistrer
+    {{ 'media.arr_admin.ui.save'|trans }}
   </button>
 </div>
 
@@ -59,25 +59,25 @@
 
 {# ── Dates & Heures ────────────────────────────────────────────────── #}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Dates & Heures</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.ui.dates.title'|trans }}</h3></div>
   <div class="card-body py-2">
     <div class="setting-row">
-      <div class="setting-label">Premier jour</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.dates.first_day'|trans }}</div>
       <div class="setting-field">
         <select name="firstDayOfWeek" class="form-select form-select-sm" style="max-width:200px;">
-          <option value="0" {{ (uiConfig.firstDayOfWeek ?? 0) == 0 ? 'selected' }}>Dimanche</option>
-          <option value="1" {{ (uiConfig.firstDayOfWeek ?? 0) == 1 ? 'selected' }}>Lundi</option>
+          <option value="0" {{ (uiConfig.firstDayOfWeek ?? 0) == 0 ? 'selected' }}>{{ 'media.arr_admin.ui.dates.sunday'|trans }}</option>
+          <option value="1" {{ (uiConfig.firstDayOfWeek ?? 0) == 1 ? 'selected' }}>{{ 'media.arr_admin.ui.dates.monday'|trans }}</option>
         </select>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">En-tête calendrier</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.dates.calendar_header'|trans }}</div>
       <div class="setting-field">
         <input type="text" name="calendarWeekColumnHeader" class="form-control form-control-sm" value="{{ uiConfig.calendarWeekColumnHeader ?? 'ddd M/D' }}" style="max-width:200px;">
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Date courte</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.dates.short_date'|trans }}</div>
       <div class="setting-field">
         <select name="shortDateFormat" class="form-select form-select-sm" style="max-width:250px;">
           {% for fmt in ['MMM D YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'DD MMM YYYY'] %}
@@ -87,7 +87,7 @@
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Date longue</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.dates.long_date'|trans }}</div>
       <div class="setting-field">
         <select name="longDateFormat" class="form-select form-select-sm" style="max-width:300px;">
           {% for fmt in ['dddd, MMMM D YYYY', 'dddd D MMMM YYYY', 'D MMMM YYYY'] %}
@@ -97,21 +97,21 @@
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Heure</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.dates.time'|trans }}</div>
       <div class="setting-field">
         <select name="timeFormat" class="form-select form-select-sm" style="max-width:200px;">
-          <option value="h(:mm)a" {{ (uiConfig.timeFormat ?? '') == 'h(:mm)a' ? 'selected' }}>12h (4:00pm)</option>
-          <option value="HH:mm" {{ (uiConfig.timeFormat ?? '') == 'HH:mm' ? 'selected' }}>24h (16:00)</option>
+          <option value="h(:mm)a" {{ (uiConfig.timeFormat ?? '') == 'h(:mm)a' ? 'selected' }}>{{ 'media.arr_admin.ui.dates.time_12h'|trans }}</option>
+          <option value="HH:mm" {{ (uiConfig.timeFormat ?? '') == 'HH:mm' ? 'selected' }}>{{ 'media.arr_admin.ui.dates.time_24h'|trans }}</option>
         </select>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Dates relatives</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.dates.relative'|trans }}</div>
       <div class="setting-field">
         <label class="form-check form-switch mb-0">
           <input class="form-check-input" type="checkbox" name="showRelativeDates" {{ (uiConfig.showRelativeDates ?? true) ? 'checked' }}>
         </label>
-        <div class="setting-hint">Afficher « il y a 2 jours » au lieu de la date exacte</div>
+        <div class="setting-hint">{{ 'media.arr_admin.ui.dates.relative_hint'|trans }}</div>
       </div>
     </div>
   </div>
@@ -119,33 +119,33 @@
 
 {# ── Style ─────────────────────────────────────────────────────────── #}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Style</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.ui.style.title'|trans }}</h3></div>
   <div class="card-body py-2">
     <div class="setting-row">
-      <div class="setting-label">Thème</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.style.theme'|trans }}</div>
       <div class="setting-field">
         <select name="theme" class="form-select form-select-sm" style="max-width:200px;">
-          <option value="auto" {{ (uiConfig.theme ?? 'auto') == 'auto' ? 'selected' }}>Auto</option>
-          <option value="light" {{ (uiConfig.theme ?? '') == 'light' ? 'selected' }}>Clair</option>
-          <option value="dark" {{ (uiConfig.theme ?? '') == 'dark' ? 'selected' }}>Sombre</option>
+          <option value="auto" {{ (uiConfig.theme ?? 'auto') == 'auto' ? 'selected' }}>{{ 'media.arr_admin.ui.style.theme_auto'|trans }}</option>
+          <option value="light" {{ (uiConfig.theme ?? '') == 'light' ? 'selected' }}>{{ 'media.arr_admin.ui.style.theme_light'|trans }}</option>
+          <option value="dark" {{ (uiConfig.theme ?? '') == 'dark' ? 'selected' }}>{{ 'media.arr_admin.ui.style.theme_dark'|trans }}</option>
         </select>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Mode daltonien</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.style.color_impaired'|trans }}</div>
       <div class="setting-field">
         <label class="form-check form-switch mb-0">
           <input class="form-check-input" type="checkbox" name="enableColorImpairedMode" {{ (uiConfig.enableColorImpairedMode ?? false) ? 'checked' }}>
         </label>
-        <div class="setting-hint">Couleurs adaptées pour les personnes daltoniennes</div>
+        <div class="setting-hint">{{ 'media.arr_admin.ui.style.color_impaired_hint'|trans }}</div>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Durée film</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.style.runtime_format'|trans }}</div>
       <div class="setting-field">
         <select name="movieRuntimeFormat" class="form-select form-select-sm" style="max-width:200px;">
-          <option value="hoursMinutes" {{ (uiConfig.movieRuntimeFormat ?? '') == 'hoursMinutes' ? 'selected' }}>Heures & Minutes (1h 37m)</option>
-          <option value="minutes" {{ (uiConfig.movieRuntimeFormat ?? '') == 'minutes' ? 'selected' }}>Minutes (97 min)</option>
+          <option value="hoursMinutes" {{ (uiConfig.movieRuntimeFormat ?? '') == 'hoursMinutes' ? 'selected' }}>{{ 'media.arr_admin.ui.style.runtime_hours_minutes'|trans }}</option>
+          <option value="minutes" {{ (uiConfig.movieRuntimeFormat ?? '') == 'minutes' ? 'selected' }}>{{ 'media.arr_admin.ui.style.runtime_minutes'|trans }}</option>
         </select>
       </div>
     </div>
@@ -154,10 +154,10 @@
 
 {# ── Langue ────────────────────────────────────────────────────────── #}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Langue</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.ui.language.title'|trans }}</h3></div>
   <div class="card-body py-2">
     <div class="setting-row">
-      <div class="setting-label">Langue interface</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.language.ui_language'|trans }}</div>
       <div class="setting-field">
         <select name="uiLanguage" class="form-select form-select-sm" style="max-width:250px;">
           {% for lang in languages %}
@@ -166,11 +166,11 @@
             {% endif %}
           {% endfor %}
         </select>
-        <div class="setting-hint">Langue de l'interface Sonarr</div>
+        <div class="setting-hint">{{ 'media.arr_admin.ui.language.ui_language_hint_sonarr'|trans }}</div>
       </div>
     </div>
     <div class="setting-row">
-      <div class="setting-label">Langue infos film</div>
+      <div class="setting-label">{{ 'media.arr_admin.ui.language.info_language_sonarr'|trans }}</div>
       <div class="setting-field">
         <select name="movieInfoLanguage" class="form-select form-select-sm" style="max-width:250px;">
           {% for lang in languages %}
@@ -179,7 +179,7 @@
             {% endif %}
           {% endfor %}
         </select>
-        <div class="setting-hint">Langue utilisée pour les titres et synopsis des films</div>
+        <div class="setting-hint">{{ 'media.arr_admin.ui.language.info_language_hint_sonarr'|trans }}</div>
       </div>
     </div>
   </div>
@@ -187,7 +187,7 @@
 
 </form>
 {% else %}
-<div class="alert alert-info">Configuration UI indisponible.</div>
+<div class="alert alert-info">{{ 'media.arr_admin.ui.empty_config'|trans }}</div>
 {% endif %}
 
 </div>
@@ -197,6 +197,11 @@
 {% block javascripts %}
 <script>
 (function(){
+var I18N = {
+  saved: {{ 'media.arr_admin.ui.saved'|trans|json_encode|raw }},
+  errorSave: {{ 'media.arr_admin.ui.error_save'|trans|json_encode|raw }},
+  errorNetwork: {{ 'media.arr_admin.ui.error_network'|trans|json_encode|raw }}
+};
 var feedback = document.getElementById('ui-feedback');
 function showFeedback(msg, type) {
   feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
@@ -230,12 +235,12 @@ if (form) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
       spinner.classList.add('d-none');
-      if (data.ok !== false && !data.error) showFeedback('Configuration UI sauvegardée.');
-      else showFeedback(data.error || 'Erreur lors de la sauvegarde.', 'danger');
+      if (data.ok !== false && !data.error) showFeedback(I18N.saved);
+      else showFeedback(data.error || I18N.errorSave, 'danger');
     })
     .catch(function() {
       spinner.classList.add('d-none');
-      showFeedback('Erreur réseau.', 'danger');
+      showFeedback(I18N.errorNetwork, 'danger');
     });
   });
 }

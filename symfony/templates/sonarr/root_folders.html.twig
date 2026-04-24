@@ -1,14 +1,14 @@
 {% extends 'base.html.twig' %}
-{% block title %}Dossiers racine — Sonarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.root_folders.title_sonarr'|trans }}{% endblock %}
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
-      <div class="col"><h2 class="page-title">Dossiers racine</h2></div>
+      <div class="col"><h2 class="page-title">{{ 'media.arr_admin.root_folders.page_title'|trans }}</h2></div>
       <div class="col-auto ms-auto d-flex gap-2 align-items-center">
         <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-rf">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
-          Ajouter
+          {{ 'media.arr_admin.root_folders.add'|trans }}
         </button>
         {% include 'media/_sonarr_nav.html.twig' %}
       </div>
@@ -16,18 +16,18 @@
   </div>
 </div>
 <div class="page-body"><div class="container-xl">
-{% if error %}<div class="alert alert-danger">Impossible de joindre Sonarr.</div>{% endif %}
+{% if error %}<div class="alert alert-danger">{{ 'media.arr_admin.root_folders.error_unreachable_sonarr'|trans }}</div>{% endif %}
 <div id="rf-feedback" class="alert d-none mb-3"></div>
 
 <div class="card">
-  <div class="card-header"><h3 class="card-title">Dossiers configurés</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ folders|length }}</span></div></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.root_folders.card_title'|trans }}</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ folders|length }}</span></div></div>
   <div class="card-body p-0">
     {% if folders is empty %}
-      <div class="text-muted text-center py-5">Aucun dossier racine configuré.</div>
+      <div class="text-muted text-center py-5">{{ 'media.arr_admin.root_folders.empty'|trans }}</div>
     {% else %}
       <div class="table-responsive">
         <table class="table table-vcenter mb-0">
-          <thead><tr><th>Chemin</th><th>Espace libre</th><th>Espace total</th><th>Films</th><th class="text-end">Actions</th></tr></thead>
+          <thead><tr><th>{{ 'media.arr_admin.root_folders.col_path'|trans }}</th><th>{{ 'media.arr_admin.root_folders.col_free'|trans }}</th><th>{{ 'media.arr_admin.root_folders.col_total'|trans }}</th><th>{{ 'media.arr_admin.root_folders.col_movies'|trans }}</th><th class="text-end">{{ 'media.arr_admin.root_folders.col_actions'|trans }}</th></tr></thead>
           <tbody>
             {% for folder in folders %}
             <tr>
@@ -36,7 +36,7 @@
               <td class="text-muted">{{ folder.totalSpace is defined ? (folder.totalSpace / 1073741824)|round(1) ~ ' Go' : '—' }}</td>
               <td class="text-muted">{{ folder.unmappedFolders is defined ? folder.unmappedFolders|length : '—' }}</td>
               <td class="text-end">
-                <button class="btn btn-ghost-danger btn-sm btn-rf-delete" data-id="{{ folder.id }}" data-path="{{ folder.path ?? '' }}">Supprimer</button>
+                <button class="btn btn-ghost-danger btn-sm btn-rf-delete" data-id="{{ folder.id }}" data-path="{{ folder.path ?? '' }}">{{ 'media.arr_admin.root_folders.delete'|trans }}</button>
               </td>
             </tr>
             {% endfor %}
@@ -53,20 +53,20 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Ajouter un dossier racine</h5>
+        <h5 class="modal-title">{{ 'media.arr_admin.root_folders.modal_title'|trans }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label fw-medium">Chemin <span class="text-danger">*</span></label>
-          <input type="text" id="rf-path" class="form-control font-monospace" placeholder="/data/films">
-          <small class="text-muted">Chemin absolu accessible par Sonarr.</small>
+          <label class="form-label fw-medium">{{ 'media.arr_admin.root_folders.path_label'|trans }} <span class="text-danger">*</span></label>
+          <input type="text" id="rf-path" class="form-control font-monospace" placeholder="{{ 'media.arr_admin.root_folders.path_placeholder'|trans }}">
+          <small class="text-muted">{{ 'media.arr_admin.root_folders.path_hint_sonarr'|trans }}</small>
         </div>
         <div id="rf-modal-feedback" class="alert d-none mt-3"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-        <button type="button" class="btn btn-success" id="btn-rf-save">Ajouter</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'media.arr_admin.root_folders.cancel'|trans }}</button>
+        <button type="button" class="btn btn-success" id="btn-rf-save">{{ 'media.arr_admin.root_folders.add_btn'|trans }}</button>
       </div>
     </div>
   </div>
@@ -76,6 +76,12 @@
 {% block javascripts %}
 <script>
 (function(){
+const I18N = {
+  errorPathRequired: {{ 'media.arr_admin.root_folders.error_path_required'|trans|json_encode|raw }},
+  errorAdd: {{ 'media.arr_admin.root_folders.error_add_sonarr'|trans|json_encode|raw }},
+  errorDelete: {{ 'media.arr_admin.root_folders.error_delete'|trans|json_encode|raw }},
+  confirmDeleteTpl: {{ 'media.arr_admin.root_folders.confirm_delete_tpl'|trans({'{path}': '__PATH__'})|json_encode|raw }}
+};
 const feedback = document.getElementById('rf-feedback');
 function showFeedback(msg, type = 'success') {
   feedback.className = `alert alert-${type} mb-3`;
@@ -87,7 +93,7 @@ function showFeedback(msg, type = 'success') {
 document.getElementById('btn-rf-save')?.addEventListener('click', async () => {
   const path = document.getElementById('rf-path').value.trim();
   const mfb  = document.getElementById('rf-modal-feedback');
-  if (!path) { mfb.className = 'alert alert-warning mt-3'; mfb.textContent = 'Le chemin est obligatoire.'; mfb.classList.remove('d-none'); return; }
+  if (!path) { mfb.className = 'alert alert-warning mt-3'; mfb.textContent = I18N.errorPathRequired; mfb.classList.remove('d-none'); return; }
   const r = await fetch('{{ path('sonarr_root_folder_add') }}', {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
@@ -95,18 +101,19 @@ document.getElementById('btn-rf-save')?.addEventListener('click', async () => {
   });
   const data = await r.json();
   if (data.ok) { location.reload(); return; }
-  else { mfb.className = 'alert alert-danger mt-3'; mfb.textContent = data.error || 'Erreur — vérifiez que le chemin existe et est accessible par Sonarr.'; mfb.classList.remove('d-none'); }
+  else { mfb.className = 'alert alert-danger mt-3'; mfb.textContent = data.error || I18N.errorAdd; mfb.classList.remove('d-none'); }
 });
 
 document.querySelectorAll('.btn-rf-delete').forEach(btn => {
   btn.addEventListener('click', async () => {
-    if (!confirm(`Supprimer le dossier "${btn.dataset.path}" ?\n⚠️ Les films qu'il contient ne seront pas supprimés.`)) return;
+    const msg = I18N.confirmDeleteTpl.replace('__PATH__', btn.dataset.path);
+    if (!confirm(msg)) return;
     const r = await fetch(`/sonarr/dossiers-racine/${btn.dataset.id}/supprimer`, {
       method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, body: '{}',
     });
     const data = await r.json();
     if (data.ok) location.reload();
-    else showFeedback('Erreur lors de la suppression.', 'danger');
+    else showFeedback(I18N.errorDelete, 'danger');
   });
 });
 })();

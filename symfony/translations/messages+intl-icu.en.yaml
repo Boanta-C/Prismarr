@@ -2371,6 +2371,392 @@ media:
       error_network: Network error.
       error_delete: Error while deleting.
       confirm_delete_tpl: 'Delete notification "{name}"?'
+    settings:
+      title_radarr: General — Radarr
+      title_sonarr: General — Sonarr
+      page_title: General
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      save: Save
+      saved: Configuration saved.
+      error_save: Error while saving.
+      error_network: Network error.
+      empty_config: Configuration unavailable.
+      host:
+        title: Host
+        bind_address: Bind address
+        bind_address_hint: Valid IP address, localhost or * for all interfaces
+        port: Port number
+        ssl_port: SSL port
+        url_base: Base URL
+        url_base_placeholder_radarr: /radarr
+        url_base_placeholder_sonarr: /sonarr
+        url_base_hint: Restart required to take effect
+        instance_name: Instance name
+        application_url: Application URL
+        ssl: SSL
+        launch_browser: Open browser on start
+      security:
+        title: Security
+        authentication: Authentication
+        auth_none: None
+        auth_basic: Basic (browser popup)
+        auth_forms: Forms (login page)
+        auth_external: External
+        auth_required: Auth required
+        required_enabled: Enabled
+        required_disabled_local: Disabled for local addresses
+        username: Username
+        password: Password
+        password_placeholder: Leave blank to keep current
+        password_confirm: Confirmation
+        password_confirm_placeholder: Confirm
+        api_key: API Key
+        api_copy_title: Copy
+        api_regen_title: Regenerate
+        api_regen_confirm: Regenerate the API key? All applications using the old key will need to be updated.
+        api_regen_done: New key generated. Save to apply.
+        certificate_validation: Certificate validation
+        cert_enabled: Enabled
+        cert_disabled_local: Disabled for local
+        cert_disabled: Disabled
+      proxy:
+        title: Proxy
+        use_proxy: Use proxy
+        type: Type
+        host: Host
+        port: Port
+        username: Username
+        password: Password
+        bypass_for: Bypass for
+        bypass_placeholder: Comma-separated domains
+        bypass_local: Bypass for local
+      logging:
+        title: Logging
+        level: Log level
+        level_info: Info
+        level_debug: Debug
+        level_trace: Trace
+        size_limit: Max size (MB)
+      analytics:
+        title: Analytics
+        anonymous_data: Anonymous data
+        hint_radarr: Helps developers improve Radarr
+        hint_sonarr: Helps developers improve Sonarr
+      updates:
+        title: Updates
+        branch: Branch
+        mechanism_label: 'Mechanism: '
+        auto_update: Auto-update
+      backups:
+        title: Backups
+        folder: Folder
+        interval_days: Interval (d)
+        retention_days: Retention (d)
+      indexer_config:
+        title: Indexer Configuration
+        minimum_age: Minimum age (min)
+        retention: Retention (days)
+        rss_sync: RSS sync (min)
+        prefer_flags: Prefer indexer flags
+        availability_delay: Availability delay
+      download_client_config:
+        title: Download Client Configuration
+        working_folders: Working folders
+        completed_handling: Completed handling
+        auto_redownload: Auto re-download failed
+      import_list_config:
+        title: Import Lists Configuration
+        sync_level: Sync level
+        min_refresh: Min refresh interval
+      yes: Yes
+      no: No
+    ui:
+      title_radarr: Interface — Radarr
+      title_sonarr: Interface — Sonarr
+      page_title: Interface (UI)
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      empty_config: UI configuration unavailable.
+      save: Save
+      saved: UI configuration saved.
+      error_save: Error while saving.
+      error_network: Network error.
+      dates:
+        title: Dates & Times
+        first_day: First day of week
+        sunday: Sunday
+        monday: Monday
+        calendar_header: Calendar header
+        short_date: Short date
+        long_date: Long date
+        time: Time
+        time_12h: 12h (4:00pm)
+        time_24h: 24h (16:00)
+        relative: Relative dates
+        relative_hint: Show "2 days ago" instead of the exact date
+      style:
+        title: Style
+        theme: Theme
+        theme_auto: Auto
+        theme_light: Light
+        theme_dark: Dark
+        color_impaired: Color-impaired mode
+        color_impaired_hint: Colors adapted for colorblind users
+        runtime_format: Movie runtime
+        runtime_hours_minutes: Hours & Minutes (1h 37m)
+        runtime_minutes: Minutes (97 min)
+      language:
+        title: Language
+        ui_language: UI language
+        ui_language_hint_radarr: Radarr interface language
+        ui_language_hint_sonarr: Sonarr interface language
+        info_language_radarr: Movie info language
+        info_language_sonarr: Series info language
+        info_language_hint_radarr: Language used for movie titles and synopses
+        info_language_hint_sonarr: Language used for series titles and synopses
+    media_management:
+      title_radarr: Media Management — Radarr
+      title_sonarr: Media Management — Sonarr
+      page_title: Media Management
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      saved: Configuration saved successfully.
+      saving: Saving...
+      save: Save
+      error_prefix: 'Error: '
+      error_unknown: Unknown error
+      error_network: Network error.
+      naming_saved: Naming saved.
+      mm_saved: Management saved.
+      naming:
+        title_radarr: File naming
+        title_sonarr: Naming format
+        rename_movies: Rename movies
+        rename_episodes: Rename episodes
+        replace_illegal: Replace illegal characters
+        colon_replacement: Colon replacement format
+        colon_smart: Smart
+        colon_dash: Dash
+        colon_space_dash: Space Dash
+        colon_space_dash_space: Space Dash Space
+        movie_format: Movie file format
+        movie_folder_format: Movie folder format
+        standard_episode_format: Standard episode format
+        daily_episode_format: Daily episode format
+        anime_episode_format: Anime episode format
+        series_folder_format: Series folder format
+        season_folder_format: Season folder format
+        multi_episode_style: Multi-episode style
+        multi_extend: Extend
+        multi_duplicate: Duplicate
+        multi_repeat: Repeat
+        multi_scene: Scene
+        multi_range: Range
+        multi_prefixed_range: Prefixed Range
+        tokens_summary: Available tokens
+        save: Save
+        save_naming_sonarr: Save naming
+        preview: Preview
+        loading: Loading...
+        preview_movie: Movie file
+        preview_movie_folder: Movie folder
+        preview_single_episode: Standard episode
+        preview_daily_episode: Daily episode
+        preview_anime_episode: Anime episode
+        preview_multi_episode: Multi-episodes
+        preview_series_folder: Series folder
+        preview_season_folder: Season folder
+        preview_empty: No example available
+      mm:
+        title: Media management
+        save_radarr: Save
+        save_sonarr: Save management
+        auto_unmonitor_movies: Auto-unmonitor downloaded movies
+        auto_unmonitor_episodes: Auto-unmonitor downloaded episodes
+        create_empty_folders: Create empty folders
+        create_empty_series_folders: Create empty series folders
+        delete_empty_folders: Delete empty folders
+        delete_empty_folders_short: Delete empty folders
+        auto_rename_folders: Auto-rename folders
+        copy_hardlinks: Copy using hardlinks
+        import_extra_files: Import extra files
+        enable_mediainfo: Enable MediaInfo
+        set_permissions: Set permissions (Linux)
+        recycle_bin_path: Recycle bin path
+        recycle_bin: Recycle bin
+        recycle_bin_placeholder: Recycle bin path (empty = disabled)
+        recycle_bin_cleanup: Recycle bin cleanup (days)
+        recycle_bin_duration: Recycle bin duration (days)
+        min_free_space: Minimum free space (MB)
+        extra_extensions: Extra file extensions
+        chmod_folder: chmod Folder
+        chown_group: chown Group
+        propers_repacks: Propers & Repacks
+        prefer_upgrade: Prefer and upgrade
+        do_not_upgrade: Do not upgrade
+        do_not_prefer: Do not prefer
+        file_date: File date
+        file_date_none: None
+        file_date_cinemas: Theatrical release
+        file_date_release: Release date
+        rescan_after_refresh: Rescan after refresh
+        rescan_always: Always
+        rescan_after_manual: After manual refresh
+        rescan_never: Never
+    root_folders:
+      title_radarr: Root Folders — Radarr
+      title_sonarr: Root Folders — Sonarr
+      page_title: Root Folders
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      add: Add
+      card_title: Configured folders
+      empty: No root folder configured.
+      col_path: Path
+      col_free: Free space
+      col_total: Total space
+      col_movies: Movies
+      col_actions: Actions
+      delete: Delete
+      modal_title: Add a root folder
+      path_label: Path
+      path_placeholder: /data/movies
+      path_hint_radarr: Absolute path accessible by Radarr.
+      path_hint_sonarr: Absolute path accessible by Sonarr.
+      cancel: Cancel
+      add_btn: Add
+      error_path_required: Path is required.
+      error_add_radarr: 'Error — check that the path exists and is accessible by Radarr.'
+      error_add_sonarr: 'Error — check that the path exists and is accessible by Sonarr.'
+      error_delete: Error while deleting.
+      confirm_delete_tpl: "Delete folder \"{path}\"?\n⚠️ The movies it contains will not be deleted."
+    backups:
+      title_radarr: Radarr Backups
+      title_sonarr: Sonarr Backups
+      page_title: Backups
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      create: Create a backup
+      card_title: Available backups
+      count_tpl: '{count} backup(s)'
+      empty: No backup available.
+      col_name: Name
+      col_type: Type
+      col_size: Size
+      col_date: Date
+      col_actions: Actions
+      type_scheduled: Scheduled
+      type_manual: Manual
+      restore: Restore
+      delete: Delete
+      modal_title: Confirm restoration
+      modal_question_prefix: 'Restore '
+      modal_question_suffix: '?'
+      restart_warning_radarr: Radarr will restart after the restoration.
+      restart_warning_sonarr: Sonarr will restart after the restoration.
+      cancel: Cancel
+      backup_in_progress: Backup in progress...
+      backup_starting: Starting backup...
+      backup_status_tpl: 'Backup: {status}'
+      backup_done: Backup created! Reloading...
+      backup_failed: Backup failed.
+      backup_error: Error.
+      restore_in_progress: Restoration in progress...
+      restore_started_radarr: Restoration started. Radarr will restart.
+      restore_started_sonarr: Restoration started. Sonarr will restart.
+      restore_error: Error during restoration.
+      confirm_delete: Delete this backup?
+      error_delete: Error while deleting.
+      error_network: Network error.
+    updates:
+      title_radarr: Updates — Radarr
+      title_sonarr: Updates — Sonarr
+      page_title: Updates
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      docker_warning_radarr: Radarr runs in a Docker container. To update, update the Docker image.
+      docker_warning_sonarr: Sonarr runs in a Docker container. To update, update the Docker image.
+      installed_version: Installed version
+      update_available: Update available
+      up_to_date: Up to date
+      history_title: Version history
+      empty_radarr: Radarr is up to date.
+      empty_sonarr: Sonarr is up to date.
+      col_version: Version
+      col_date: Date
+      col_branch: Branch
+      col_status: Status
+      latest: Latest
+      installed: Installed
+      available: Available
+      old: Old
+      install: Install
+      via_docker: Via Docker
+      changes_new: What's new
+      changes_fixed: Fixes
+    tasks:
+      title_radarr: System Tasks — Radarr
+      title_sonarr: System Tasks — Sonarr
+      page_title: System tasks
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      card_title: Scheduled tasks
+      empty: No task.
+      col_name: Name
+      col_interval: Interval
+      col_last: Last execution
+      col_next: Next execution
+      run_title: Run
+      launched_tpl: 'Task "{name}" launched.'
+      error_run: Error while launching.
+      error_network: Network error.
+    commands:
+      title_radarr: Commands — Radarr
+      title_sonarr: Commands — Sonarr
+      page_title: Commands
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      card_title: Recent commands
+      refresh_hint: Refreshed every 5s
+      empty: No recent command.
+      col_id: '#'
+      col_command: Command
+      col_status: Status
+      col_started: Started
+      col_ended: Ended
+      col_duration: Duration
+      col_message: Message
+      status_queued: Queued
+      status_started: Running
+      status_completed: Completed
+      status_failed: Failed
+      cancel_title: Cancel
+      confirm_cancel_tpl: 'Cancel command #{id}?'
+      cancelled_tpl: 'Command #{id} cancelled.'
+      error_cancel: Error while cancelling.
+      error_network: Network error.
+    logs:
+      title_radarr: Logs — Radarr
+      title_sonarr: Logs — Sonarr
+      page_title: Logs
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      files_title: Log files
+      recent_title: Recent logs
+      search_placeholder: Search...
+      level_all: All
+      level_info: Info
+      level_debug: Debug
+      level_warn: Warn
+      level_error: Error
+      empty: No log.
+      col_date: Date
+      col_level: Level
+      col_message: Message
+      col_logger: Logger
+      page_prev: Prev.
+      page_next: Next
 
 watchlist_page:
   back_to_discover: Discover

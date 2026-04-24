@@ -1,20 +1,20 @@
 {% extends 'base.html.twig' %}
-{% block title %}Logs — Sonarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.logs.title_sonarr'|trans }}{% endblock %}
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
-      <div class="col"><h2 class="page-title">Logs</h2></div>
+      <div class="col"><h2 class="page-title">{{ 'media.arr_admin.logs.page_title'|trans }}</h2></div>
       <div class="col-auto ms-auto">{% include 'media/_sonarr_nav.html.twig' %}</div>
     </div>
   </div>
 </div>
 <div class="page-body"><div class="container-xl">
-{% if error %}<div class="alert alert-danger">Impossible de joindre Sonarr.</div>{% endif %}
+{% if error %}<div class="alert alert-danger">{{ 'media.arr_admin.logs.error_unreachable_sonarr'|trans }}</div>{% endif %}
 
 {% if files is not empty %}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Fichiers de logs</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.logs.files_title'|trans }}</h3></div>
   <div class="card-body py-2">
     <div class="d-flex flex-wrap gap-2">
       {% for file in files %}
@@ -27,26 +27,26 @@
 
 <div class="card">
   <div class="card-header">
-    <h3 class="card-title">Logs récents</h3>
+    <h3 class="card-title">{{ 'media.arr_admin.logs.recent_title'|trans }}</h3>
     <div class="card-options d-flex gap-2 align-items-center">
-      <input type="text" id="log-search" class="form-control form-control-sm" placeholder="Rechercher..." style="width:200px">
+      <input type="text" id="log-search" class="form-control form-control-sm" placeholder="{{ 'media.arr_admin.logs.search_placeholder'|trans }}" style="width:200px">
       <select id="log-level-filter" class="form-select form-select-sm" style="width:120px">
-        <option value="">Tous</option>
-        <option value="info">Info</option>
-        <option value="debug">Debug</option>
-        <option value="warn">Warn</option>
-        <option value="error">Error</option>
+        <option value="">{{ 'media.arr_admin.logs.level_all'|trans }}</option>
+        <option value="info">{{ 'media.arr_admin.logs.level_info'|trans }}</option>
+        <option value="debug">{{ 'media.arr_admin.logs.level_debug'|trans }}</option>
+        <option value="warn">{{ 'media.arr_admin.logs.level_warn'|trans }}</option>
+        <option value="error">{{ 'media.arr_admin.logs.level_error'|trans }}</option>
       </select>
       <span class="badge bg-secondary-lt" id="log-count">{{ logs|length }}</span>
     </div>
   </div>
   <div class="card-body p-0">
     {% if logs is empty %}
-      <div class="text-muted text-center py-5">Aucun log.</div>
+      <div class="text-muted text-center py-5">{{ 'media.arr_admin.logs.empty'|trans }}</div>
     {% else %}
       <div class="table-responsive">
         <table class="table table-vcenter table-sm mb-0">
-          <thead><tr><th style="width:140px">Date</th><th style="width:80px">Niveau</th><th>Message</th><th>Logger</th></tr></thead>
+          <thead><tr><th style="width:140px">{{ 'media.arr_admin.logs.col_date'|trans }}</th><th style="width:80px">{{ 'media.arr_admin.logs.col_level'|trans }}</th><th>{{ 'media.arr_admin.logs.col_message'|trans }}</th><th>{{ 'media.arr_admin.logs.col_logger'|trans }}</th></tr></thead>
           <tbody id="log-tbody">
             {% for log in logs %}
             {% set lvl = log.level|default('info')|lower %}
@@ -79,7 +79,7 @@
 <nav class="mt-3">
   <ul class="pagination justify-content-center">
     <li class="page-item {{ page <= 1 ? 'disabled' }}">
-      <a class="page-link" href="{{ path('sonarr_logs', {page: page - 1}) }}">Prec.</a>
+      <a class="page-link" href="{{ path('sonarr_logs', {page: page - 1}) }}">{{ 'media.arr_admin.logs.page_prev'|trans }}</a>
     </li>
     {% for p in 1..totalPages %}
       {% if p >= page - 3 and p <= page + 3 %}
@@ -89,7 +89,7 @@
       {% endif %}
     {% endfor %}
     <li class="page-item {{ page >= totalPages ? 'disabled' }}">
-      <a class="page-link" href="{{ path('sonarr_logs', {page: page + 1}) }}">Suiv.</a>
+      <a class="page-link" href="{{ path('sonarr_logs', {page: page + 1}) }}">{{ 'media.arr_admin.logs.page_next'|trans }}</a>
     </li>
   </ul>
 </nav>

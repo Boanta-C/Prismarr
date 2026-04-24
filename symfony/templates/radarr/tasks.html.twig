@@ -1,26 +1,26 @@
 {% extends 'base.html.twig' %}
-{% block title %}Tâches système — Radarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.tasks.title_radarr'|trans }}{% endblock %}
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
-      <div class="col"><h2 class="page-title">Tâches système</h2></div>
+      <div class="col"><h2 class="page-title">{{ 'media.arr_admin.tasks.page_title'|trans }}</h2></div>
       <div class="col-auto ms-auto">{% include 'media/_radarr_nav.html.twig' %}</div>
     </div>
   </div>
 </div>
 <div class="page-body"><div class="container-xl">
-{% if error %}<div class="alert alert-danger">Impossible de joindre Radarr.</div>{% endif %}
+{% if error %}<div class="alert alert-danger">{{ 'media.arr_admin.tasks.error_unreachable_radarr'|trans }}</div>{% endif %}
 <div id="tasks-feedback" class="alert d-none mb-3"></div>
 <div class="card">
-  <div class="card-header"><h3 class="card-title">Tâches planifiées</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ tasks|length }}</span></div></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.tasks.card_title'|trans }}</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ tasks|length }}</span></div></div>
   <div class="card-body p-0">
     {% if tasks is empty %}
-      <div class="text-muted text-center py-5">Aucune tâche.</div>
+      <div class="text-muted text-center py-5">{{ 'media.arr_admin.tasks.empty'|trans }}</div>
     {% else %}
       <div class="table-responsive">
         <table class="table table-vcenter mb-0">
-          <thead><tr><th>Nom</th><th>Intervalle</th><th>Dernière exécution</th><th>Prochaine exécution</th><th class="w-1"></th></tr></thead>
+          <thead><tr><th>{{ 'media.arr_admin.tasks.col_name'|trans }}</th><th>{{ 'media.arr_admin.tasks.col_interval'|trans }}</th><th>{{ 'media.arr_admin.tasks.col_last'|trans }}</th><th>{{ 'media.arr_admin.tasks.col_next'|trans }}</th><th class="w-1"></th></tr></thead>
           <tbody>
             {% for task in tasks %}
             <tr>
@@ -31,7 +31,7 @@
               <td>
                 <button class="btn btn-ghost-primary btn-icon btn-sm btn-task-run"
                         data-command="{{ task.taskName ?? task.name ?? '' }}"
-                        title="Exécuter">
+                        title="{{ 'media.arr_admin.tasks.run_title'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 </button>
               </td>
@@ -49,6 +49,11 @@
 {% block javascripts %}
 <script>
 (function(){
+var I18N = {
+  launchedTpl: {{ 'media.arr_admin.tasks.launched_tpl'|trans({name: '__NAME__'})|json_encode|raw }},
+  errorRun: {{ 'media.arr_admin.tasks.error_run'|trans|json_encode|raw }},
+  errorNetwork: {{ 'media.arr_admin.tasks.error_network'|trans|json_encode|raw }}
+};
 var feedback = document.getElementById('tasks-feedback');
 function showFeedback(msg, type) {
   feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
@@ -75,16 +80,16 @@ document.querySelectorAll('.btn-task-run').forEach(function(btn) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data.ok) {
-        showFeedback('Tâche "' + commandName + '" lancée.');
+        showFeedback(I18N.launchedTpl.replace('__NAME__', commandName));
         setTimeout(function() { location.reload(); }, 1500);
       } else {
-        showFeedback('Erreur lors du lancement.', 'danger');
+        showFeedback(I18N.errorRun, 'danger');
         btn.disabled = false;
         btn.innerHTML = SVG_PLAY;
       }
     })
     .catch(function() {
-      showFeedback('Erreur réseau.', 'danger');
+      showFeedback(I18N.errorNetwork, 'danger');
       btn.disabled = false;
       btn.innerHTML = SVG_PLAY;
     });

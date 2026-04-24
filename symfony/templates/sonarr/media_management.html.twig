@@ -1,12 +1,12 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Gestion des médias — Sonarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.media_management.title_sonarr'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
-      <div class="col"><h2 class="page-title">Gestion des médias</h2></div>
+      <div class="col"><h2 class="page-title">{{ 'media.arr_admin.media_management.page_title'|trans }}</h2></div>
       <div class="col-auto ms-auto">{% include 'media/_sonarr_nav.html.twig' %}</div>
     </div>
   </div>
@@ -16,7 +16,7 @@
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+<div class="alert alert-danger">{{ 'media.arr_admin.media_management.error_unreachable_sonarr'|trans }}</div>
 {% endif %}
 
 <div id="mm-feedback" class="alert d-none mb-3"></div>
@@ -24,51 +24,51 @@
 {# ── Nommage ── #}
 {% if namingConfig %}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Format de nommage</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.media_management.naming.title_sonarr'|trans }}</h3></div>
   <div class="card-body">
     <form id="naming-form">
       <div class="mb-3">
         <div class="form-check form-switch mb-3">
           <input class="form-check-input" type="checkbox" name="renameEpisodes" id="renameEpisodes" {{ namingConfig.renameEpisodes ?? false ? 'checked' }}>
-          <label class="form-check-label" for="renameEpisodes">Renommer les épisodes</label>
+          <label class="form-check-label" for="renameEpisodes">{{ 'media.arr_admin.media_management.naming.rename_episodes'|trans }}</label>
         </div>
       </div>
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Format épisode standard</label>
+          <label class="form-label">{{ 'media.arr_admin.media_management.naming.standard_episode_format'|trans }}</label>
           <input type="text" name="standardEpisodeFormat" class="form-control form-control-sm" value="{{ namingConfig.standardEpisodeFormat ?? '' }}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Format épisode quotidien</label>
+          <label class="form-label">{{ 'media.arr_admin.media_management.naming.daily_episode_format'|trans }}</label>
           <input type="text" name="dailyEpisodeFormat" class="form-control form-control-sm" value="{{ namingConfig.dailyEpisodeFormat ?? '' }}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Format épisode anime</label>
+          <label class="form-label">{{ 'media.arr_admin.media_management.naming.anime_episode_format'|trans }}</label>
           <input type="text" name="animeEpisodeFormat" class="form-control form-control-sm" value="{{ namingConfig.animeEpisodeFormat ?? '' }}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Format dossier série</label>
+          <label class="form-label">{{ 'media.arr_admin.media_management.naming.series_folder_format'|trans }}</label>
           <input type="text" name="seriesFolderFormat" class="form-control form-control-sm" value="{{ namingConfig.seriesFolderFormat ?? '' }}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Format dossier saison</label>
+          <label class="form-label">{{ 'media.arr_admin.media_management.naming.season_folder_format'|trans }}</label>
           <input type="text" name="seasonFolderFormat" class="form-control form-control-sm" value="{{ namingConfig.seasonFolderFormat ?? '' }}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Style multi-épisodes</label>
+          <label class="form-label">{{ 'media.arr_admin.media_management.naming.multi_episode_style'|trans }}</label>
           <select name="multiEpisodeStyle" class="form-select form-select-sm">
-            <option value="0" {{ (namingConfig.multiEpisodeStyle ?? 0) == 0 ? 'selected' }}>Extend</option>
-            <option value="1" {{ (namingConfig.multiEpisodeStyle ?? 0) == 1 ? 'selected' }}>Duplicate</option>
-            <option value="2" {{ (namingConfig.multiEpisodeStyle ?? 0) == 2 ? 'selected' }}>Repeat</option>
-            <option value="3" {{ (namingConfig.multiEpisodeStyle ?? 0) == 3 ? 'selected' }}>Scene</option>
-            <option value="4" {{ (namingConfig.multiEpisodeStyle ?? 0) == 4 ? 'selected' }}>Range</option>
-            <option value="5" {{ (namingConfig.multiEpisodeStyle ?? 0) == 5 ? 'selected' }}>Prefixed Range</option>
+            <option value="0" {{ (namingConfig.multiEpisodeStyle ?? 0) == 0 ? 'selected' }}>{{ 'media.arr_admin.media_management.naming.multi_extend'|trans }}</option>
+            <option value="1" {{ (namingConfig.multiEpisodeStyle ?? 0) == 1 ? 'selected' }}>{{ 'media.arr_admin.media_management.naming.multi_duplicate'|trans }}</option>
+            <option value="2" {{ (namingConfig.multiEpisodeStyle ?? 0) == 2 ? 'selected' }}>{{ 'media.arr_admin.media_management.naming.multi_repeat'|trans }}</option>
+            <option value="3" {{ (namingConfig.multiEpisodeStyle ?? 0) == 3 ? 'selected' }}>{{ 'media.arr_admin.media_management.naming.multi_scene'|trans }}</option>
+            <option value="4" {{ (namingConfig.multiEpisodeStyle ?? 0) == 4 ? 'selected' }}>{{ 'media.arr_admin.media_management.naming.multi_range'|trans }}</option>
+            <option value="5" {{ (namingConfig.multiEpisodeStyle ?? 0) == 5 ? 'selected' }}>{{ 'media.arr_admin.media_management.naming.multi_prefixed_range'|trans }}</option>
           </select>
         </div>
       </div>
       <div class="d-flex gap-2 mt-3">
-        <button type="submit" class="btn btn-primary btn-sm">Sauvegarder le nommage</button>
-        <button type="button" id="btn-naming-preview" class="btn btn-outline-secondary btn-sm">Prévisualiser</button>
+        <button type="submit" class="btn btn-primary btn-sm">{{ 'media.arr_admin.media_management.naming.save_naming_sonarr'|trans }}</button>
+        <button type="button" id="btn-naming-preview" class="btn btn-outline-secondary btn-sm">{{ 'media.arr_admin.media_management.naming.preview'|trans }}</button>
       </div>
     </form>
     <div id="naming-preview" class="mt-3" style="display:none;">
@@ -85,46 +85,46 @@
 {# ── Gestion des médias ── #}
 {% if mmConfig %}
 <div class="card mb-3">
-  <div class="card-header"><h3 class="card-title">Gestion des médias</h3></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.media_management.mm.title'|trans }}</h3></div>
   <div class="card-body">
     <form id="mm-form">
       <div class="row g-3">
         <div class="col-md-6">
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" name="autoUnmonitorPreviouslyDownloadedEpisodes" id="autoUnmonitor" {{ mmConfig.autoUnmonitorPreviouslyDownloadedEpisodes ?? false ? 'checked' }}>
-            <label class="form-check-label" for="autoUnmonitor">Auto-unmonitor épisodes téléchargés</label>
+            <label class="form-check-label" for="autoUnmonitor">{{ 'media.arr_admin.media_management.mm.auto_unmonitor_episodes'|trans }}</label>
           </div>
         </div>
         <div class="col-md-6">
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" name="createEmptySeriesFolders" id="createEmptyFolders" {{ mmConfig.createEmptySeriesFolders ?? false ? 'checked' }}>
-            <label class="form-check-label" for="createEmptyFolders">Créer dossiers séries vides</label>
+            <label class="form-check-label" for="createEmptyFolders">{{ 'media.arr_admin.media_management.mm.create_empty_series_folders'|trans }}</label>
           </div>
         </div>
         <div class="col-md-6">
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" name="deleteEmptyFolders" id="deleteEmptyFolders" {{ mmConfig.deleteEmptyFolders ?? false ? 'checked' }}>
-            <label class="form-check-label" for="deleteEmptyFolders">Supprimer dossiers vides</label>
+            <label class="form-check-label" for="deleteEmptyFolders">{{ 'media.arr_admin.media_management.mm.delete_empty_folders_short'|trans }}</label>
           </div>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Corbeille</label>
-          <input type="text" name="recycleBin" class="form-control form-control-sm" value="{{ mmConfig.recycleBin ?? '' }}" placeholder="Chemin corbeille (vide = désactivé)">
+          <label class="form-label">{{ 'media.arr_admin.media_management.mm.recycle_bin'|trans }}</label>
+          <input type="text" name="recycleBin" class="form-control form-control-sm" value="{{ mmConfig.recycleBin ?? '' }}" placeholder="{{ 'media.arr_admin.media_management.mm.recycle_bin_placeholder'|trans }}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Durée corbeille (jours)</label>
+          <label class="form-label">{{ 'media.arr_admin.media_management.mm.recycle_bin_duration'|trans }}</label>
           <input type="number" name="recycleBinCleanupDays" class="form-control form-control-sm" value="{{ mmConfig.recycleBinCleanupDays ?? 7 }}">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Propers & Repacks</label>
+          <label class="form-label">{{ 'media.arr_admin.media_management.mm.propers_repacks'|trans }}</label>
           <select name="downloadPropersAndRepacks" class="form-select form-select-sm">
-            <option value="preferAndUpgrade" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'preferAndUpgrade' ? 'selected' }}>Préférer et upgrader</option>
-            <option value="doNotUpgrade" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'doNotUpgrade' ? 'selected' }}>Ne pas upgrader</option>
-            <option value="doNotPrefer" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'doNotPrefer' ? 'selected' }}>Ne pas préférer</option>
+            <option value="preferAndUpgrade" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'preferAndUpgrade' ? 'selected' }}>{{ 'media.arr_admin.media_management.mm.prefer_upgrade'|trans }}</option>
+            <option value="doNotUpgrade" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'doNotUpgrade' ? 'selected' }}>{{ 'media.arr_admin.media_management.mm.do_not_upgrade'|trans }}</option>
+            <option value="doNotPrefer" {{ (mmConfig.downloadPropersAndRepacks ?? '') == 'doNotPrefer' ? 'selected' }}>{{ 'media.arr_admin.media_management.mm.do_not_prefer'|trans }}</option>
           </select>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary btn-sm mt-3">Sauvegarder la gestion</button>
+      <button type="submit" class="btn btn-primary btn-sm mt-3">{{ 'media.arr_admin.media_management.mm.save_sonarr'|trans }}</button>
     </form>
   </div>
 </div>
@@ -137,6 +137,20 @@
 {% block javascripts %}
 <script>
 (function() {
+  var I18N = {
+    namingSaved: {{ 'media.arr_admin.media_management.naming_saved'|trans|json_encode|raw }},
+    mmSaved: {{ 'media.arr_admin.media_management.mm_saved'|trans|json_encode|raw }},
+    errorPrefix: {{ 'media.arr_admin.media_management.error_prefix'|trans|json_encode|raw }},
+    preview: {{ 'media.arr_admin.media_management.naming.preview'|trans|json_encode|raw }},
+    loading: {{ 'media.arr_admin.media_management.naming.loading'|trans|json_encode|raw }},
+    previewSingle: {{ 'media.arr_admin.media_management.naming.preview_single_episode'|trans|json_encode|raw }},
+    previewDaily: {{ 'media.arr_admin.media_management.naming.preview_daily_episode'|trans|json_encode|raw }},
+    previewAnime: {{ 'media.arr_admin.media_management.naming.preview_anime_episode'|trans|json_encode|raw }},
+    previewMulti: {{ 'media.arr_admin.media_management.naming.preview_multi_episode'|trans|json_encode|raw }},
+    previewSeries: {{ 'media.arr_admin.media_management.naming.preview_series_folder'|trans|json_encode|raw }},
+    previewSeason: {{ 'media.arr_admin.media_management.naming.preview_season_folder'|trans|json_encode|raw }},
+    previewEmpty: {{ 'media.arr_admin.media_management.naming.preview_empty'|trans|json_encode|raw }}
+  };
   function showFeedback(msg, type) {
     var el = document.getElementById('mm-feedback');
     el.className = 'alert alert-' + type + ' mb-3';
@@ -155,39 +169,39 @@
       method: 'POST', headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
       body: JSON.stringify(data)
     }).then(function(r) { return r.json(); }).then(function(d) {
-      showFeedback(d.ok ? 'Nommage sauvegardé.' : 'Erreur : ' + (d.error || '?'), d.ok ? 'success' : 'danger');
+      showFeedback(d.ok ? I18N.namingSaved : (I18N.errorPrefix + (d.error || '?')), d.ok ? 'success' : 'danger');
     });
   });
 
   document.getElementById('btn-naming-preview').addEventListener('click', function() {
     var btn = this;
     btn.disabled = true;
-    btn.textContent = 'Chargement...';
+    btn.textContent = I18N.loading;
     fetch('/sonarr/gestion-medias/naming/examples', {
       headers: {'X-Requested-With':'XMLHttpRequest'}
     }).then(function(r) { return r.json(); }).then(function(data) {
       btn.disabled = false;
-      btn.textContent = 'Prévisualiser';
+      btn.textContent = I18N.preview;
       var tbody = document.getElementById('naming-preview-tbody');
       var rows = '';
       var labels = {
-        singleEpisodeExample: 'Épisode standard',
-        dailyEpisodeExample: 'Épisode quotidien',
-        animeEpisodeExample: 'Épisode anime',
-        multiEpisodeExample: 'Multi-épisodes',
-        seriesFolderExample: 'Dossier série',
-        seasonFolderExample: 'Dossier saison'
+        singleEpisodeExample: I18N.previewSingle,
+        dailyEpisodeExample: I18N.previewDaily,
+        animeEpisodeExample: I18N.previewAnime,
+        multiEpisodeExample: I18N.previewMulti,
+        seriesFolderExample: I18N.previewSeries,
+        seasonFolderExample: I18N.previewSeason
       };
       for (var key in labels) {
         if (data[key]) {
           rows += '<tr><td class="text-muted" style="width:160px">' + labels[key] + '</td><td class="font-monospace">' + data[key] + '</td></tr>';
         }
       }
-      tbody.innerHTML = rows || '<tr><td class="text-muted">Aucun exemple disponible</td></tr>';
+      tbody.innerHTML = rows || '<tr><td class="text-muted">' + I18N.previewEmpty + '</td></tr>';
       document.getElementById('naming-preview').style.display = '';
     }).catch(function() {
       btn.disabled = false;
-      btn.textContent = 'Prévisualiser';
+      btn.textContent = I18N.preview;
     });
   });
 
@@ -203,7 +217,7 @@
       method: 'POST', headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
       body: JSON.stringify(data)
     }).then(function(r) { return r.json(); }).then(function(d) {
-      showFeedback(d.ok ? 'Gestion sauvegardée.' : 'Erreur : ' + (d.error || '?'), d.ok ? 'success' : 'danger');
+      showFeedback(d.ok ? I18N.mmSaved : (I18N.errorPrefix + (d.error || '?')), d.ok ? 'success' : 'danger');
     });
   });
 })();
