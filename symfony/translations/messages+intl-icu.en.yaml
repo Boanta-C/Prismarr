@@ -1415,6 +1415,478 @@ media:
     confirm_unmonitor: "Unmonitor this movie?"
     network_error: "Network error."
 
+  series:
+    stats:
+      total: Total
+      continuing: Continuing
+      ended: Ended
+      total_size: Total size
+      gb_suffix: GB
+      mo_suffix: MB
+    queue:
+      title: Downloads
+      col_series_episode: Series / Episode
+      col_quality: Quality
+      col_progress: Progress
+      col_status: Status
+      status_import: Import
+      confirm_delete: "Remove from queue?"
+      force_download: Force download
+      delete_from_queue: Remove from queue
+      warning_already_imported: "{count, plural, one {# already imported} other {# already imported}} (can be cleaned)"
+      warning_imports_pending: "{count, plural, one {# import pending} other {# imports pending}}"
+      clean_duplicates: "Clean {count} duplicate(s)"
+      import_files: "Import {count} file(s)"
+      confirm_clean: "Remove {count} already-imported item(s) from the queue?"
+      cleaning: "Cleaning..."
+      importing: "Importing..."
+      error: Error
+    calendar:
+      title: Upcoming episodes
+      col_series: Series
+      col_episode: Episode
+      col_air: Airing
+      col_status: Status
+      available: Available
+      missing: Missing
+      upcoming: Upcoming
+    filters:
+      search_placeholder: "Search…"
+      status:
+        all: All
+        continuing: Continuing
+        ended: Ended
+        anime: Anime
+        unmonitored: Unmonitored
+        missing: Missing
+      genre: Genre
+      network: Network
+      sort:
+        title_asc: Title A→Z
+        title_desc: Title Z→A
+        year_desc: 'Year ↓'
+        year_asc: 'Year ↑'
+        size_desc: 'Size ↓'
+        percent_desc: 'Progress ↓'
+        percent_asc: 'Progress ↑'
+    view:
+      grid: Grid
+      wall: Poster wall
+      extended: Extended
+      table: Table
+      shelf: Shelves
+    actions:
+      refresh_filtered: Refresh filtered
+      refresh_filtered_title: Refresh filtered series
+      search_filtered: Search filtered
+      search_filtered_title: Search missing episodes for filtered series
+      refresh_all_title: Refresh and scan all
+      rss_sync: RSS sync
+      select_mode: Selection mode
+      add: Add
+    status:
+      continuing: Continuing
+      ended: Ended
+      upcoming: Upcoming
+      followed: Monitored
+      unfollowed: Unmonitored
+      anime: Anime
+      anime_emoji: "🌸 Anime"
+      series_ended: Series ended
+      not_monitored: Unmonitored
+      up_to_date_tpl: 'Up to date — {files}/{total} (continuing)'
+      complete_tpl: 'Complete — {files}/{total}'
+      missing_tpl: '{count, plural, one {Missing # episode} other {Missing # episodes}}'
+      missing_detail_tpl: '{count, plural, one {Missing # episode} other {Missing # episodes}} — {files}/{total}'
+      up_to_date_detail_tpl: 'Up to date — {files}/{total} episodes (continuing)'
+      complete_detail_tpl: 'Complete — {files}/{total} episodes'
+      upcoming_tpl: 'Upcoming series — {total} episodes announced'
+      episodes_suffix: "episodes"
+      season_tpl: '{count, plural, one {# season} other {# seasons}}'
+    table:
+      title: Title
+      col_s: 'S.'
+      network: Network
+      progress: Progress
+      episodes: Episodes
+      size: Size
+      status: Status
+    bulk:
+      edit: Edit
+      rename: Rename files
+      tags: Set tags
+      delete: Delete
+      select_all: Select all
+      clear: Clear
+      selected_count: 'selected'
+      edit_title: Edit selected series
+      edit_monitored: Monitored
+      edit_quality: Quality profile
+      edit_type: Series type
+      edit_root: Root folder
+      edit_season_folder: Season folder
+      edit_keep: '— Keep current —'
+      edit_follow: Monitor
+      edit_unfollow: Unmonitor
+      type_standard: Standard
+      type_daily: Daily
+      type_anime: Anime
+      yes: 'Yes'
+      no: 'No'
+      save: Save
+      cancel: Cancel
+      tags_title: Tags
+      tags_label: Tags
+      tags_action: Action
+      tags_add: Add
+      tags_remove: Remove
+      tags_replace: Replace
+      apply: Apply
+      delete_title: Delete selected series
+      delete_warning: 'Are you sure you want to delete <strong id="bulk-s-delete-count">0</strong> series?'
+      delete_files: Delete files on disk
+      delete_exclude: Add to import exclusion list
+      delete_confirm: Delete
+      rename_title: Organize selected series
+      rename_loading: Loading previews...
+      rename_go: Organize
+      selected_info_tpl: '{count} series selected'
+      already_correct_tpl: '✅ {count} series already correctly named.'
+      organise_files_tpl: 'Organize {count} file(s)'
+      all_correct: Already correct
+    modal:
+      add_title: Add a series
+      search_placeholder: "Search a series…"
+      add_button: Add
+      adding: "Adding..."
+      quality_profile: Quality profile
+      root_folder: Root folder
+      series_type: Series type
+      type_standard: Standard
+      type_daily: Daily
+      type_anime: Anime
+      type_anime_absolute: Anime / Absolute
+      monitor: Monitor
+      monitor_all: All episodes
+      monitor_future: Future only
+      monitor_missing: Missing
+      monitor_first_season: First season
+      monitor_last_season: Last season
+      monitor_none: None
+      season_folders: Season folders
+      search_missing: Search for missing
+      tags_label: 'Tags:'
+      searching: "Searching..."
+      no_results: No results.
+      already_added: Already added
+      added_success: "✅ Series added successfully!"
+      add_error_tpl: "❌ Error: {error}"
+      network_error: "❌ Network error."
+      error_unknown: unknown
+    detail:
+      monitor: Monitor
+      unmonitor: Unmonitor
+      refresh_scan: "Refresh & scan"
+      refresh_in_progress: "Refreshing..."
+      search_monitored: Search monitored
+      search_in_progress: "Searching..."
+      rename_files: Rename files
+      manage_files: Manage files
+      loading: "Loading..."
+      loading_files: "Loading files..."
+      loading_episodes: "Loading episodes..."
+      history: History
+      modify: Edit
+      delete_series: Delete series
+      synopsis: Overview
+      no_synopsis: No overview available.
+      seasons: Seasons
+      season_tpl: 'Season {n}'
+      season_specials: Specials
+      season_prefix: Season
+      no_episodes: No episode.
+      no_history: No history.
+      releases_available: Available releases
+      releases_season_tpl: 'Releases — Season {n}'
+      releases_episode_tpl: 'Releases — {label}'
+      close: Close
+      interrogating_indexers: "Querying indexers (30-60s)..."
+      interrogating_indexers_season_tpl: "Querying indexers for season {n} (30-60s)..."
+      no_release_found: No release found.
+      loading_error_indexers: "Error (timeout or indexers unavailable)."
+      loading_error_full: "Error while loading (timeout or indexers unavailable)."
+      releases_found_tpl: "{count, plural, one {# release found} other {# releases found}}."
+      releases_found_season_tpl: "{count, plural, one {# release found} other {# releases found}} for season {n}."
+      col_release: Release
+      col_indexer: Indexer
+      col_quality: Quality
+      col_score: Score
+      col_formats: Formats
+      col_size: Size
+      col_seeds: Seeds
+      col_langs: Langs
+      col_age: Age
+      col_episode: Episode
+      col_action: Action
+      col_source: Source
+      col_date: Date
+      age_suffix: 'd'
+      usenet: usenet
+      version_prefix: 'Version: '
+      tvdb_prefix: 'TheTVDB: '
+      group_prefix: 'Group: '
+      full_season_pack: Full season pack
+      episode_not_requested: "The mapped episode was not requested in this search"
+      no_custom_format: "No custom format"
+      download_started: "Download started."
+      grab_error_tpl: "Error: {error}"
+      search_still_in_progress: "⏳ Search in progress — please wait (45s max)..."
+      no_history_for_season_tpl: 'No history for season {n}.'
+      history_loading_error: "Error loading history."
+      network_error: "Network error."
+      error: Error.
+      unknown_error: unknown error
+      error_tpl: 'Error: {error}'
+      filemanager_title: Manage files
+      filemanager_season_title_tpl: 'Manage files — Season {n}'
+      rename_title_tpl: 'Rename — Season {n} ({count} file(s))'
+      rename_file_count_tpl: '{count, plural, one {Rename # file} other {Rename # files}}'
+      rename_files_already_correct_tpl: 'All files from season {n} are already correctly named.'
+      all_files_correct: "All files are already correctly named."
+      col_current_name: Current name
+      col_new_name: New name
+      rename_selection: Rename selection
+      files_selected_tpl: '{count} file(s) selected'
+      no_file_selected: "No file selected."
+      rename_error: "Error while renaming."
+      rename_failed: "Rename failed."
+      renamed: "✅ Renamed"
+      rename_done_tpl: '{count} file(s) renamed.'
+      rename_in_progress: "Renaming..."
+      confirm_delete_file: "Delete this file from disk?\n\nThis action is irreversible."
+      file_deleted: File deleted.
+      file_delete_error: "Error while deleting."
+      no_files_for_series: "No file for this series."
+      no_files_for_season: "No file for this season."
+      load_files_error: "Error loading files."
+      load_error: "Error loading."
+      load_error_short: "Error while loading."
+      load_proposals_error: "Error loading proposals."
+      edit_series_tpl: 'Edit — {title}'
+      edit_monitored_label: Monitored
+      edit_monitored_help: Download monitored episodes of this series
+      edit_monitor_new_seasons: Monitor new seasons
+      edit_monitor_new_all: All seasons
+      edit_monitor_new_none: None
+      edit_monitor_new_only: New seasons only
+      edit_monitor_new_help: Which new seasons should be monitored automatically
+      edit_use_season_folder: Use season folder
+      edit_use_season_folder_help: Sort episodes into season folders
+      edit_quality_profile: Quality profile
+      edit_series_type: Series type
+      edit_series_type_help: The series type is used for renaming, parsing and searching
+      edit_path: Path
+      edit_path_browse: File browser
+      edit_path_update: Update series path
+      edit_empty_folder: Empty folder
+      edit_browse_loading: "Loading..."
+      edit_tags: Tags
+      edit_tag_placeholder: "New tag..."
+      edit_delete: Delete
+      edit_cancel: Cancel
+      edit_save: Save
+      confirm_move_tpl: "Move the series to:\n{path}\n\nContinue?"
+      path_updated: Path updated.
+      confirm_delete_series_tpl: "Delete «{title}»?"
+      confirm_delete_series_default: "this series"
+      confirm_delete_files: "Also delete files on disk?"
+      series_updated: "Series updated successfully."
+      save_error_tpl: 'Error: {error}'
+      search_episode: Episode search
+      search_season_tpl: 'Season search {n}'
+      search_series: Series search
+      search_missing_short: Missing search
+      search_cmd_episode: Episode search
+      search_cmd_season: Season search
+      search_cmd_rename: Rename
+      search_in_progress_generic_tpl: "Searching... ({seconds}s)"
+      episode_info_path: 'Quality: '
+      episode_info_video: 'Video: '
+      episode_info_resolution: 'Resolution: '
+      episode_info_audio: 'Audio: '
+      episode_info_tracks: 'Tracks: '
+      episode_info_subs: 'Subtitles: '
+      episode_info_size: 'Size: '
+      episode_info_group: 'Group: '
+      episode_info_none: No info
+      episode_info_none_media: No media info
+      episode_info_fps: 'FPS: '
+      episode_info_tracks_audio: 'Audio tracks: '
+      episode_info_runtime: 'Runtime: '
+      episode_info_scan: 'Scan: '
+      search_bookmark: Search
+      interactive_search: Interactive search
+      season_interactive_search: Season interactive search
+      search_season_title: Search the season
+      delete_file: Delete file
+    filemanager:
+      col_path: Path
+      col_season: Season
+      col_episode: Episode
+      col_quality: Quality
+      col_languages: Languages
+      col_group: Group
+      col_version: Version
+      col_flags: Flags
+      col_size: Size
+      selected_count_tpl: '{count, plural, one {# selected} other {# selected}}'
+      bulk_modify: "Edit..."
+      bulk_season: Season
+      bulk_episode: Episode
+      bulk_quality: Quality
+      bulk_language: Language
+      bulk_group: Release group
+      bulk_release_type: Release type
+      bulk_indexer_flags: Indexer flags
+      bulk_choose: "Choose..."
+      bulk_pick_eps: "Pick episodes..."
+      bulk_apply: Apply
+      bulk_no_episode: "No episode"
+      bulk_group_placeholder: "Group name"
+      bulk_group_ok: OK
+      save_all: Save
+      saving: "Saving..."
+      season_option_special: "Specials"
+      no_ep_for_file_tpl: 'Select an episode for: {name}...'
+      save_success_tpl: '{count, plural, one {# file saved} other {# files saved}}.'
+      save_partial_tpl: '{ok} saved, {errors} error(s).'
+      save_network_error: "Network error while saving."
+      save_bulk_too_many_tpl: "Too many episodes picked ({picked}) for {selected} selected file(s)."
+      save_bulk_none_selected: "No file selected."
+      release_type_single: Single episode
+      release_type_multi: Multi-episode
+      release_type_pack: Season pack
+      indexer_flag_none: None
+      back: Back
+      close: Close
+    warnings:
+      refresh_tpl: '{count, plural, one {✅ Refresh started for # series} other {✅ Refresh started for # series}}'
+      refreshing_tpl: 'Refreshing {count} series...'
+      no_monitored_filtered: '⚠️ No monitored series in the filtered selection.'
+      confirm_search_filtered_tpl: "Search for missing episodes of {count} filtered series?"
+      searching_tpl: '🔍 Searching {count} series...'
+      search_launched_tpl: '✅ Search started for {count} series.'
+      delete_ok_tpl: '{count, plural, one {# series deleted} other {# series deleted}}.'
+      modified_ok_tpl: '✅ {count} series updated.'
+      tags_ok_tpl: '✅ Tags updated for {count} series.'
+      rename_ok_tpl: '✅ Rename started for {count} series.'
+      bulk_error: '❌ Error.'
+      error_tpl: 'Error: {error}'
+      generic_error: '❌ Error.'
+      refresh_label: "Library refresh"
+      rss_label: "RSS sync"
+      open_series_title: "Open series"
+      cmd_in_progress_tpl: "🔍 {label} — in progress..."
+      cmd_dl_ok_tpl: "✅ {label} — {count} download(s) started. Check the queue."
+      cmd_nothing_tpl: "⚠️ {label} — done, no result found."
+      cmd_failed_tpl: "❌ {label} — failed: {error}"
+      cmd_elapsed_tpl: "🔍 {label} — {msg}"
+      cmd_done_tpl: "✅ {label} — complete."
+
+  series_detail:
+    header:
+      status_continuing: Continuing
+      status_ended: Ended
+      monitored: Monitored
+      unmonitored: Unmonitored
+      anime: Anime
+      size_gb_tpl: '{size} GB'
+      rating_tpl: '★ {rating}'
+      runtime_tpl: '{min} min'
+      search_series: Search the series
+      monitor: Monitor
+      unmonitor: Unmonitor
+      server_error: Cannot reach Sonarr.
+    season:
+      label_tpl: 'Season {n}'
+      specials: Specials
+      episode_count_tpl: '{files}/{total} episodes'
+      search_season: Search the season
+    episode:
+      status_downloaded: Downloaded
+      status_missing: Missing
+      status_unmonitored: Unmonitored
+      search_episode: Search this episode
+    feedback:
+      search_launched: Search started for the whole series.
+      search_season_launched_tpl: 'Season {n} search started.'
+      error: Error.
+
+  series_blocklist:
+    title: Blocklist
+    bulk_delete: Delete selection
+    bulk_delete_tpl: "Delete {count} item(s)"
+    col_series: Series
+    col_source: Source
+    col_quality: Quality
+    col_date: Date
+    empty: Blocklist is empty.
+    delete: Delete
+    prev: "← Previous"
+    next: "Next →"
+    pagination_summary_tpl: "Page {page} / {total}"
+    confirm_delete: "Remove from the blocklist?"
+    confirm_bulk_delete_tpl: "Remove {count} item(s) from the blocklist?"
+
+  series_cutoff:
+    title: Cutoff unmet
+    col_series: Series
+    col_episode: Episode
+    col_title: Title
+    col_current_quality: Current quality
+    col_air_date: Air date
+    empty: All episodes meet the cutoff.
+    prev: "← Previous"
+    next: "Next →"
+    pagination_summary_tpl: "Page {page} / {total}"
+
+  series_history:
+    title: Series history
+    col_series: Series
+    col_episode: Episode
+    col_action: Action
+    col_source: Source
+    col_quality: Quality
+    col_date: Date
+    empty: No history.
+    prev: "← Previous"
+    next: "Next →"
+    pagination_summary_tpl: "Page {page} / {total}"
+    event_grabbed: Grabbed
+    event_imported: Imported
+    event_deleted: Deleted
+    event_renamed: Renamed
+    event_failed: Failed
+    event_folder_imported: 'Imported (folder)'
+
+  series_missing:
+    title: Missing episodes
+    col_series: Series
+    col_episode: Episode
+    col_title: Episode title
+    col_air_date: Air date
+    col_actions: Actions
+    empty: No missing episode.
+    search_title: Search
+    search_all: Search all missing
+    searching_all: "Searching..."
+    searching_label: "Searching for all missing episodes..."
+    search_launched: "✅ Search started."
+    error: "❌ Error."
+    prev: "← Previous"
+    next: "Next →"
+    pagination_summary_tpl: "Page {page} / {total}"
+
 watchlist_page:
   back_to_discover: Discover
   count_titles: '{count, plural, one {# title} other {# titles}}'

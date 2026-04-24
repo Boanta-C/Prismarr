@@ -75,7 +75,7 @@
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+<div class="alert alert-danger">{{ 'media.series_detail.header.server_error'|trans }}</div>
 {% endif %}
 
 <div id="serie-feedback" class="alert d-none mb-3"></div>
@@ -94,21 +94,21 @@
 
       <div class="d-flex flex-wrap gap-2 mb-2">
         {% if serie.status == 'continuing' %}
-          <span class="badge" style="background:rgba(var(--tblr-primary-rgb),.2);color:#818cf8;">En cours</span>
+          <span class="badge" style="background:rgba(var(--tblr-primary-rgb),.2);color:#818cf8;">{{ 'media.series_detail.header.status_continuing'|trans }}</span>
         {% elseif serie.status == 'ended' %}
-          <span class="badge bg-secondary-lt">Terminée</span>
+          <span class="badge bg-secondary-lt">{{ 'media.series_detail.header.status_ended'|trans }}</span>
         {% else %}
           <span class="badge bg-warning-lt">{{ serie.status }}</span>
         {% endif %}
 
         {% if serie.monitored %}
-          <span class="badge bg-primary-lt">Suivi</span>
+          <span class="badge bg-primary-lt">{{ 'media.series_detail.header.monitored'|trans }}</span>
         {% else %}
-          <span class="badge bg-secondary-lt">Non suivi</span>
+          <span class="badge bg-secondary-lt">{{ 'media.series_detail.header.unmonitored'|trans }}</span>
         {% endif %}
 
         {% if serie.seriesType == 'anime' %}
-          <span class="badge bg-purple-lt">Animé</span>
+          <span class="badge bg-purple-lt">{{ 'media.series_detail.header.anime'|trans }}</span>
         {% endif %}
 
         {% if serie.network %}
@@ -120,15 +120,15 @@
         {% endif %}
 
         {% if serie.runtime %}
-          <span class="badge bg-secondary-lt">{{ serie.runtime }} min</span>
+          <span class="badge bg-secondary-lt">{{ 'media.series_detail.header.runtime_tpl'|trans({min: serie.runtime}) }}</span>
         {% endif %}
 
         {% if serie.ratings %}
-          <span class="badge bg-warning-lt">★ {{ serie.ratings|number_format(1) }}</span>
+          <span class="badge bg-warning-lt">{{ 'media.series_detail.header.rating_tpl'|trans({rating: serie.ratings|number_format(1)}) }}</span>
         {% endif %}
 
         {% if serie.sizeGb %}
-          <span class="badge bg-secondary-lt">{{ serie.sizeGb }} Go</span>
+          <span class="badge bg-secondary-lt">{{ 'media.series_detail.header.size_gb_tpl'|trans({size: serie.sizeGb}) }}</span>
         {% endif %}
       </div>
 
@@ -154,10 +154,10 @@
       <div class="d-flex gap-2 mt-3">
         <button class="btn btn-sm btn-primary" id="btn-search-serie" data-id="{{ serie.id }}">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          Rechercher la série
+          {{ 'media.series_detail.header.search_series'|trans }}
         </button>
         <button class="btn btn-sm {{ serie.monitored ? 'btn-warning' : 'btn-secondary' }}" id="btn-monitor-serie" data-id="{{ serie.id }}" data-monitored="{{ serie.monitored ? '1' : '0' }}">
-          {{ serie.monitored ? 'Ne plus suivre' : 'Suivre' }}
+          {{ serie.monitored ? 'media.series_detail.header.unmonitor'|trans : 'media.series_detail.header.monitor'|trans }}
         </button>
       </div>
     </div>
@@ -177,14 +177,14 @@
   <div class="season-card">
     <div class="season-header" data-season="{{ seasonNum }}">
       <svg class="season-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-      <span class="fw-medium">{{ seasonNum == 0 ? 'Spéciaux' : 'Saison ' ~ seasonNum }}</span>
-      <span class="text-muted small">{{ epFiles }}/{{ epTotal }} épisodes</span>
+      <span class="fw-medium">{{ seasonNum == 0 ? 'media.series_detail.season.specials'|trans : 'media.series_detail.season.label_tpl'|trans({n: seasonNum}) }}</span>
+      <span class="text-muted small">{{ 'media.series_detail.season.episode_count_tpl'|trans({files: epFiles, total: epTotal}) }}</span>
       <div style="flex:1;max-width:150px;height:4px;border-radius:2px;background:var(--tblr-border-color);overflow:hidden;">
         <div style="height:100%;width:{{ sPct }}%;background:{{ sPct == 100 ? '#22c55e' : '#6366f1' }};border-radius:2px;"></div>
       </div>
       <button class="btn btn-ghost-primary btn-icon btn-sm btn-search-season ms-auto"
               data-series-id="{{ serie.id }}" data-season="{{ seasonNum }}"
-              onclick="event.stopPropagation();" title="Rechercher la saison">
+              onclick="event.stopPropagation();" title="{{ 'media.series_detail.season.search_season'|trans }}">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </button>
     </div>
@@ -192,7 +192,7 @@
       {% for ep in episodes %}
       <div class="ep-row">
         <div class="ep-dot" style="background:{{ ep.hasFile ?? false ? '#22c55e' : (ep.monitored ?? false ? '#f59e0b' : '#6b7280') }};"
-             title="{{ ep.hasFile ?? false ? 'Téléchargé' : (ep.monitored ?? false ? 'Manquant' : 'Non suivi') }}"></div>
+             title="{{ ep.hasFile ?? false ? 'media.series_detail.episode.status_downloaded'|trans : (ep.monitored ?? false ? 'media.series_detail.episode.status_missing'|trans : 'media.series_detail.episode.status_unmonitored'|trans) }}"></div>
         <div class="ep-num">{{ ep.episodeNumber is defined ? '%02d'|format(ep.episodeNumber) : '?' }}</div>
         <div class="ep-title">
           {{ ep.title ?? '—' }}
@@ -202,7 +202,7 @@
         </div>
         <div class="ep-date">{{ ep.airDate is defined and ep.airDate ? ep.airDate : '—' }}</div>
         <button class="btn btn-ghost-primary btn-icon btn-sm btn-search-ep"
-                data-ep-id="{{ ep.id ?? '' }}" title="Rechercher cet épisode"
+                data-ep-id="{{ ep.id ?? '' }}" title="{{ 'media.series_detail.episode.search_episode'|trans }}"
                 style="{{ (ep.hasFile ?? false) ? 'visibility:hidden;' : '' }}">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         </button>
@@ -219,6 +219,21 @@
 {% block javascripts %}
 <script>
 (function(){
+  var SD_I18N = {
+    search_launched: {{ 'media.series_detail.feedback.search_launched'|trans|json_encode|raw }},
+    search_season_launched_tpl: {{ 'media.series_detail.feedback.search_season_launched_tpl'|trans({n: '__N__'})|json_encode|raw }},
+    error: {{ 'media.series_detail.feedback.error'|trans|json_encode|raw }},
+    monitor: {{ 'media.series_detail.header.monitor'|trans|json_encode|raw }},
+    unmonitor: {{ 'media.series_detail.header.unmonitor'|trans|json_encode|raw }}
+  };
+  function tpl(s, map) {
+    if (!s) return '';
+    Object.keys(map || {}).forEach(function(k){
+      s = s.split('__' + k + '__').join(String(map[k]));
+    });
+    return s;
+  }
+
   var feedback = document.getElementById('serie-feedback');
   function showFeedback(msg, type) {
     feedback.className = 'alert alert-' + (type || 'success') + ' mb-3';
@@ -264,7 +279,7 @@
     postJson('/medias/series/' + btn.dataset.id + '/search', {})
     .then(function(data) {
       btn.disabled = false;
-      showFeedback(data.ok ? 'Recherche lancée pour toute la série.' : 'Erreur.', data.ok ? 'success' : 'danger');
+      showFeedback(data.ok ? SD_I18N.search_launched : SD_I18N.error, data.ok ? 'success' : 'danger');
     });
   });
 
@@ -278,7 +293,7 @@
       btn.disabled = false;
       if (data.ok) {
         btn.dataset.monitored = newMon ? '1' : '0';
-        btn.textContent = newMon ? 'Ne plus suivre' : 'Suivre';
+        btn.textContent = newMon ? SD_I18N.unmonitor : SD_I18N.monitor;
         btn.className = 'btn btn-sm ' + (newMon ? 'btn-warning' : 'btn-secondary');
       }
     });
@@ -295,7 +310,7 @@
       .then(function(data) {
         btn.disabled = false;
         btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-        showFeedback(data.ok ? 'Recherche saison ' + season + ' lancée.' : 'Erreur.', data.ok ? 'success' : 'danger');
+        showFeedback(data.ok ? tpl(SD_I18N.search_season_launched_tpl, { N: season }) : SD_I18N.error, data.ok ? 'success' : 'danger');
       });
     });
   });

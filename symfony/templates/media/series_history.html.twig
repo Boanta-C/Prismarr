@@ -1,13 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Historique séries{% endblock %}
+{% block title %}{{ 'media.series_history.title'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
       <div class="col">
-        <h2 class="page-title">Historique séries</h2>
+        <h2 class="page-title">{{ 'media.series_history.title'|trans }}</h2>
       </div>
       <div class="col-auto ms-auto d-flex gap-2 align-items-center">
         {% include 'media/_sonarr_nav.html.twig' ignore missing %}
@@ -26,16 +26,23 @@
     <table class="table table-vcenter table-hover card-table mb-0" style="font-size:.82rem;">
       <thead>
         <tr>
-          <th>Série</th>
-          <th>Épisode</th>
-          <th>Action</th>
-          <th>Source</th>
-          <th>Qualité</th>
-          <th>Date</th>
+          <th>{{ 'media.series_history.col_series'|trans }}</th>
+          <th>{{ 'media.series_history.col_episode'|trans }}</th>
+          <th>{{ 'media.series_history.col_action'|trans }}</th>
+          <th>{{ 'media.series_history.col_source'|trans }}</th>
+          <th>{{ 'media.series_history.col_quality'|trans }}</th>
+          <th>{{ 'media.series_history.col_date'|trans }}</th>
         </tr>
       </thead>
       <tbody>
-        {% set eventLabels = {grabbed: 'Téléchargé', downloadFolderImported: 'Importé', episodeFileDeleted: 'Supprimé', episodeFileRenamed: 'Renommé', downloadFailed: 'Échoué', seriesFolderImported: 'Importé (dossier)'} %}
+        {% set eventLabels = {
+          grabbed: 'media.series_history.event_grabbed'|trans,
+          downloadFolderImported: 'media.series_history.event_imported'|trans,
+          episodeFileDeleted: 'media.series_history.event_deleted'|trans,
+          episodeFileRenamed: 'media.series_history.event_renamed'|trans,
+          downloadFailed: 'media.series_history.event_failed'|trans,
+          seriesFolderImported: 'media.series_history.event_folder_imported'|trans
+        } %}
         {% set eventColors = {grabbed: 'success', downloadFolderImported: 'primary', episodeFileDeleted: 'danger', episodeFileRenamed: 'secondary', downloadFailed: 'danger', seriesFolderImported: 'primary'} %}
         {% for h in records %}
         <tr>
@@ -55,7 +62,7 @@
           <td class="text-muted">{{ h.date ? h.date|date('d/m/Y H:i', 'Europe/Paris') : '—' }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="text-center text-muted py-4">Aucun historique.</td></tr>
+        <tr><td colspan="6" class="text-center text-muted py-4">{{ 'media.series_history.empty'|trans }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -64,9 +71,9 @@
 
 {% if history.totalRecords is defined and history.totalRecords > 50 %}
 <div class="d-flex justify-content-center gap-2 mt-3">
-  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">← Précédent</a>{% endif %}
-  <span class="text-muted small align-self-center">Page {{ page }} / {{ (history.totalRecords / 50)|round(0, 'ceil') }}</span>
-  {% if page * 50 < history.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">Suivant →</a>{% endif %}
+  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">{{ 'media.series_history.prev'|trans }}</a>{% endif %}
+  <span class="text-muted small align-self-center">{{ 'media.series_history.pagination_summary_tpl'|trans({page: page, total: (history.totalRecords / 50)|round(0, 'ceil')}) }}</span>
+  {% if page * 50 < history.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">{{ 'media.series_history.next'|trans }}</a>{% endif %}
 </div>
 {% endif %}
 

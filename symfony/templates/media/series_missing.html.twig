@@ -1,13 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Épisodes manquants{% endblock %}
+{% block title %}{{ 'media.series_missing.title'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
       <div class="col">
-        <h2 class="page-title">Épisodes manquants
+        <h2 class="page-title">{{ 'media.series_missing.title'|trans }}
           {% if missing.totalRecords is defined %}
             <span class="badge bg-warning-lt text-warning ms-2">{{ missing.totalRecords }}</span>
           {% endif %}
@@ -31,7 +31,7 @@
 <div class="d-flex justify-content-end mb-3">
   <button id="btn-search-all-missing" class="btn btn-primary btn-sm">
     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    Rechercher tous les manquants
+    {{ 'media.series_missing.search_all'|trans }}
   </button>
 </div>
 {% endif %}
@@ -41,11 +41,11 @@
     <table class="table table-vcenter table-hover card-table mb-0" style="font-size:.82rem;">
       <thead>
         <tr>
-          <th>Série</th>
-          <th>Épisode</th>
-          <th>Titre épisode</th>
-          <th>Date diffusion</th>
-          <th class="text-end" style="width:80px">Actions</th>
+          <th>{{ 'media.series_missing.col_series'|trans }}</th>
+          <th>{{ 'media.series_missing.col_episode'|trans }}</th>
+          <th>{{ 'media.series_missing.col_title'|trans }}</th>
+          <th>{{ 'media.series_missing.col_air_date'|trans }}</th>
+          <th class="text-end" style="width:80px">{{ 'media.series_missing.col_actions'|trans }}</th>
         </tr>
       </thead>
       <tbody>
@@ -56,13 +56,13 @@
           <td class="text-muted">{{ ep.title ?? '—' }}</td>
           <td class="text-muted">{{ ep.airDateUtc ? ep.airDateUtc|date('d/m/Y', 'Europe/Paris') : '—' }}</td>
           <td class="text-end">
-            <button class="btn btn-ghost-primary btn-icon btn-sm btn-search-ep" data-ep-id="{{ ep.id }}" title="Rechercher">
+            <button class="btn btn-ghost-primary btn-icon btn-sm btn-search-ep" data-ep-id="{{ ep.id }}" title="{{ 'media.series_missing.search_title'|trans }}">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </button>
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="text-center text-muted py-4">Aucun épisode manquant.</td></tr>
+        <tr><td colspan="5" class="text-center text-muted py-4">{{ 'media.series_missing.empty'|trans }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -71,9 +71,9 @@
 
 {% if missing.totalRecords is defined and missing.totalRecords > 50 %}
 <div class="d-flex justify-content-center gap-2 mt-3">
-  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">← Précédent</a>{% endif %}
-  <span class="text-muted small align-self-center">Page {{ page }} / {{ (missing.totalRecords / 50)|round(0, 'ceil') }}</span>
-  {% if page * 50 < missing.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">Suivant →</a>{% endif %}
+  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">{{ 'media.series_missing.prev'|trans }}</a>{% endif %}
+  <span class="text-muted small align-self-center">{{ 'media.series_missing.pagination_summary_tpl'|trans({page: page, total: (missing.totalRecords / 50)|round(0, 'ceil')}) }}</span>
+  {% if page * 50 < missing.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">{{ 'media.series_missing.next'|trans }}</a>{% endif %}
 </div>
 {% endif %}
 
@@ -84,6 +84,14 @@
 {% block javascripts %}
 <script>
 (function() {
+  var SM_I18N = {
+    searching_all: {{ 'media.series_missing.searching_all'|trans|json_encode|raw }},
+    search_all: {{ 'media.series_missing.search_all'|trans|json_encode|raw }},
+    searching_label: {{ 'media.series_missing.searching_label'|trans|json_encode|raw }},
+    search_launched: {{ 'media.series_missing.search_launched'|trans|json_encode|raw }},
+    error: {{ 'media.series_missing.error'|trans|json_encode|raw }}
+  };
+
   function showBanner(msg, type) {
     var el = document.getElementById('missing-banner');
     el.className = 'alert alert-' + type + ' mb-3';
@@ -110,17 +118,17 @@
   if (btnAll) {
     btnAll.addEventListener('click', function() {
       btnAll.disabled = true;
-      btnAll.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Recherche...';
-      showBanner('<span class="spinner-border spinner-border-sm me-2"></span> Recherche de tous les épisodes manquants...', 'info');
+      btnAll.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> ' + SM_I18N.searching_all;
+      showBanner('<span class="spinner-border spinner-border-sm me-2"></span> ' + SM_I18N.searching_label, 'info');
       fetch('/medias/series/command/missing-search', {
         method: 'POST',
         headers: {'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
         body: '{}'
       }).then(function(r) { return r.json(); }).then(function(d) {
         btnAll.disabled = false;
-        btnAll.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Rechercher tous les manquants';
-        if (d.ok) showBanner('✅ Recherche lancée.', 'success');
-        else showBanner('❌ Erreur.', 'danger');
+        btnAll.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> ' + SM_I18N.search_all;
+        if (d.ok) showBanner(SM_I18N.search_launched, 'success');
+        else showBanner(SM_I18N.error, 'danger');
       });
     });
   }

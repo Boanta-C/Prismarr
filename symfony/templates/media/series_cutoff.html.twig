@@ -1,13 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Cutoff non atteint{% endblock %}
+{% block title %}{{ 'media.series_cutoff.title'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
       <div class="col">
-        <h2 class="page-title">Cutoff non atteint
+        <h2 class="page-title">{{ 'media.series_cutoff.title'|trans }}
           {% if cutoff.totalRecords is defined %}
             <span class="badge bg-info-lt text-info ms-2">{{ cutoff.totalRecords }}</span>
           {% endif %}
@@ -30,11 +30,11 @@
     <table class="table table-vcenter table-hover card-table mb-0" style="font-size:.82rem;">
       <thead>
         <tr>
-          <th>Série</th>
-          <th>Épisode</th>
-          <th>Titre</th>
-          <th>Qualité actuelle</th>
-          <th>Date diffusion</th>
+          <th>{{ 'media.series_cutoff.col_series'|trans }}</th>
+          <th>{{ 'media.series_cutoff.col_episode'|trans }}</th>
+          <th>{{ 'media.series_cutoff.col_title'|trans }}</th>
+          <th>{{ 'media.series_cutoff.col_current_quality'|trans }}</th>
+          <th>{{ 'media.series_cutoff.col_air_date'|trans }}</th>
         </tr>
       </thead>
       <tbody>
@@ -51,7 +51,7 @@
           <td class="text-muted">{{ ep.airDateUtc ? ep.airDateUtc|date('d/m/Y', 'Europe/Paris') : '—' }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="text-center text-muted py-4">Tous les épisodes atteignent le cutoff.</td></tr>
+        <tr><td colspan="5" class="text-center text-muted py-4">{{ 'media.series_cutoff.empty'|trans }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -60,9 +60,9 @@
 
 {% if cutoff.totalRecords is defined and cutoff.totalRecords > 50 %}
 <div class="d-flex justify-content-center gap-2 mt-3">
-  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">← Précédent</a>{% endif %}
-  <span class="text-muted small align-self-center">Page {{ page }} / {{ (cutoff.totalRecords / 50)|round(0, 'ceil') }}</span>
-  {% if page * 50 < cutoff.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">Suivant →</a>{% endif %}
+  {% if page > 1 %}<a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline-secondary">{{ 'media.series_cutoff.prev'|trans }}</a>{% endif %}
+  <span class="text-muted small align-self-center">{{ 'media.series_cutoff.pagination_summary_tpl'|trans({page: page, total: (cutoff.totalRecords / 50)|round(0, 'ceil')}) }}</span>
+  {% if page * 50 < cutoff.totalRecords %}<a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline-secondary">{{ 'media.series_cutoff.next'|trans }}</a>{% endif %}
 </div>
 {% endif %}
 
