@@ -1,18 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Clients de téléchargement — Radarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.download_clients.title_radarr'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
       <div class="col">
-        <h2 class="page-title">Clients de téléchargement</h2>
+        <h2 class="page-title">{{ 'media.arr_admin.download_clients.page_title'|trans }}</h2>
       </div>
       <div class="col-auto ms-auto d-flex gap-2 align-items-center">
         <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-dc">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
-          Ajouter
+          {{ 'media.arr_admin.download_clients.add'|trans }}
         </button>
         {% include 'media/_radarr_nav.html.twig' %}
       </div>
@@ -24,33 +24,33 @@
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger">Impossible de joindre Radarr.</div>
+<div class="alert alert-danger">{{ 'media.arr_admin.download_clients.error_unreachable_radarr'|trans }}</div>
 {% endif %}
 
 <div id="dc-feedback" class="alert d-none mb-3"></div>
 
 <div class="card">
   <div class="card-header">
-    <h3 class="card-title">Clients configurés</h3>
+    <h3 class="card-title">{{ 'media.arr_admin.download_clients.card_title'|trans }}</h3>
     <div class="card-options">
       <span class="badge bg-secondary-lt">{{ clients|length }}</span>
     </div>
   </div>
   <div class="card-body p-0">
     {% if clients is empty %}
-      <div class="text-muted text-center py-5">Aucun client de téléchargement configuré.</div>
+      <div class="text-muted text-center py-5">{{ 'media.arr_admin.download_clients.empty'|trans }}</div>
     {% else %}
       <div class="table-responsive">
         <table class="table table-vcenter mb-0">
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Type</th>
-              <th>Hôte</th>
-              <th>Port</th>
-              <th>Activé</th>
-              <th>Priorité</th>
-              <th class="text-end">Actions</th>
+              <th>{{ 'media.arr_admin.download_clients.col_name'|trans }}</th>
+              <th>{{ 'media.arr_admin.download_clients.col_type'|trans }}</th>
+              <th>{{ 'media.arr_admin.download_clients.col_host'|trans }}</th>
+              <th>{{ 'media.arr_admin.download_clients.col_port'|trans }}</th>
+              <th>{{ 'media.arr_admin.download_clients.col_enabled'|trans }}</th>
+              <th>{{ 'media.arr_admin.download_clients.col_priority'|trans }}</th>
+              <th class="text-end">{{ 'media.arr_admin.download_clients.col_actions'|trans }}</th>
             </tr>
           </thead>
           <tbody>
@@ -74,20 +74,20 @@
               </td>
               <td>
                 {% if client.enable ?? client.enabled ?? false %}
-                  <span class="badge bg-success-lt text-success">Oui</span>
+                  <span class="badge bg-success-lt text-success">{{ 'media.arr_admin.download_clients.yes'|trans }}</span>
                 {% else %}
-                  <span class="badge bg-secondary-lt">Non</span>
+                  <span class="badge bg-secondary-lt">{{ 'media.arr_admin.download_clients.no'|trans }}</span>
                 {% endif %}
               </td>
               <td class="text-muted">{{ client.priority ?? '—' }}</td>
               <td class="text-end d-flex gap-2 justify-content-end">
-                <button class="btn btn-ghost-secondary btn-icon" data-bs-toggle="modal" data-bs-target="#modal-dc" data-edit-item="{{ client|json_encode|e('html_attr') }}" title="Modifier">
+                <button class="btn btn-ghost-secondary btn-icon" data-bs-toggle="modal" data-bs-target="#modal-dc" data-edit-item="{{ client|json_encode|e('html_attr') }}" title="{{ 'media.arr_admin.download_clients.edit'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                 </button>
-                <button class="btn btn-ghost-primary btn-icon btn-dc-test" data-id="{{ client.id }}" title="Tester">
+                <button class="btn btn-ghost-primary btn-icon btn-dc-test" data-id="{{ client.id }}" title="{{ 'media.arr_admin.download_clients.test'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                 </button>
-                <button class="btn btn-ghost-danger btn-icon btn-dc-delete" data-id="{{ client.id }}" data-name="{{ client.name ?? '' }}" title="Supprimer">
+                <button class="btn btn-ghost-danger btn-icon btn-dc-delete" data-id="{{ client.id }}" data-name="{{ client.name ?? '' }}" title="{{ 'media.arr_admin.download_clients.delete'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                 </button>
               </td>
@@ -105,8 +105,8 @@
 
 {% include 'radarr/_schema_modal.html.twig' with {
   modal_id: 'modal-dc',
-  modal_title_add: 'Ajouter un client de téléchargement',
-  modal_title_edit: 'Modifier le client',
+  modal_title_add: 'media.arr_admin.download_clients.modal_title_add'|trans,
+  modal_title_edit: 'media.arr_admin.download_clients.modal_title_edit'|trans,
   schema_url: path('radarr_download_client_schema'),
   save_url_add: path('radarr_download_client_add'),
   save_url_edit: '/radarr/clients-telechargement/__ID__/modifier',
@@ -117,6 +117,19 @@
 {% block javascripts %}
 <script>
 (function() {
+  var I18N = {
+    fallback_name: {{ 'media.arr_admin.download_clients.fallback_name'|trans|json_encode|raw }},
+    test_success_title: {{ 'media.arr_admin.download_clients.test_success_title'|trans|json_encode|raw }},
+    test_failure: {{ 'media.arr_admin.download_clients.test_failure'|trans|json_encode|raw }},
+    test_label: {{ 'media.arr_admin.download_clients.test'|trans|json_encode|raw }},
+    test_success_feedback_tpl: {{ 'media.arr_admin.download_clients.test_success_feedback_tpl'|trans({name: '__NAME__'})|json_encode|raw }},
+    test_failure_feedback_tpl: {{ 'media.arr_admin.download_clients.test_failure_feedback_tpl'|trans({name: '__NAME__', error: '__ERR__'})|json_encode|raw }},
+    error_network_title: {{ 'media.arr_admin.download_clients.error_network_title'|trans|json_encode|raw }},
+    error_network: {{ 'media.arr_admin.download_clients.error_network'|trans|json_encode|raw }},
+    error_delete: {{ 'media.arr_admin.download_clients.error_delete'|trans|json_encode|raw }},
+    confirm_delete_tpl: {{ 'media.arr_admin.download_clients.confirm_delete_tpl'|trans({name: '__NAME__'})|json_encode|raw }}
+  };
+
   const feedback = document.getElementById('dc-feedback');
   function showFeedback(msg, type = 'success') {
     feedback.className = `alert alert-${type} mb-3`;
@@ -136,36 +149,36 @@
       btn.innerHTML = SVG_SPIN;
       try {
         const client = JSON.parse(btn.closest('tr').dataset.client);
-        const name = client.name || 'Client';
+        const name = client.name || I18N.fallback_name;
         const r = await fetch('/radarr/clients-telechargement/tester', {
           method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
           body: JSON.stringify(client),
         });
         const data = await r.json();
         btn.innerHTML = data.ok ? SVG_OK : SVG_FAIL;
-        btn.title = data.ok ? 'Test réussi' : (data.error || 'Échec du test');
+        btn.title = data.ok ? I18N.test_success_title : (data.error || I18N.test_failure);
         if (data.ok) {
-          showFeedback('✅ ' + name + ' — test réussi', 'success');
+          showFeedback(I18N.test_success_feedback_tpl.replace('__NAME__', name), 'success');
         } else {
-          showFeedback('❌ ' + name + ' — ' + (data.error || 'Échec du test'), 'danger');
+          showFeedback(I18N.test_failure_feedback_tpl.replace('__NAME__', name).replace('__ERR__', (data.error || I18N.test_failure)), 'danger');
         }
-      } catch { btn.innerHTML = SVG_FAIL; btn.title = 'Erreur réseau'; showFeedback('❌ Erreur réseau', 'danger'); }
+      } catch { btn.innerHTML = SVG_FAIL; btn.title = I18N.error_network_title; showFeedback(I18N.error_network, 'danger'); }
       finally {
         btn.disabled = false;
-        setTimeout(() => { btn.innerHTML = SVG_CHECK; btn.title = 'Tester'; }, 3000);
+        setTimeout(() => { btn.innerHTML = SVG_CHECK; btn.title = I18N.test_label; }, 3000);
       }
     });
   });
 
   document.querySelectorAll('.btn-dc-delete').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!confirm(`Supprimer le client "${btn.dataset.name}" ?`)) return;
+      if (!confirm(I18N.confirm_delete_tpl.replace('__NAME__', btn.dataset.name))) return;
       const r = await fetch(`/radarr/clients-telechargement/${btn.dataset.id}/supprimer`, {
         method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, body: '{}',
       });
       const data = await r.json();
       if (data.ok) location.reload();
-      else showFeedback('Erreur lors de la suppression.', 'danger');
+      else showFeedback(I18N.error_delete, 'danger');
     });
   });
 })();

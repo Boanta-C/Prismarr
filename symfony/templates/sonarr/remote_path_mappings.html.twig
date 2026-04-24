@@ -1,14 +1,14 @@
 {% extends 'base.html.twig' %}
-{% block title %}Chemins distants — Sonarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.remote_path_mappings.title_sonarr'|trans }}{% endblock %}
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
-      <div class="col"><h2 class="page-title">Chemins distants</h2></div>
+      <div class="col"><h2 class="page-title">{{ 'media.arr_admin.remote_path_mappings.page_title'|trans }}</h2></div>
       <div class="col-auto ms-auto d-flex gap-2 align-items-center">
         <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-rpm" id="btn-rpm-add">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
-          Ajouter
+          {{ 'media.arr_admin.remote_path_mappings.add'|trans }}
         </button>
         {% include 'media/_sonarr_nav.html.twig' %}
       </div>
@@ -16,18 +16,18 @@
   </div>
 </div>
 <div class="page-body"><div class="container-xl">
-{% if error %}<div class="alert alert-danger">Impossible de joindre Sonarr.</div>{% endif %}
+{% if error %}<div class="alert alert-danger">{{ 'media.arr_admin.remote_path_mappings.error_unreachable_sonarr'|trans }}</div>{% endif %}
 <div id="rpm-feedback" class="alert d-none mb-3"></div>
 
 <div class="card">
-  <div class="card-header"><h3 class="card-title">Mappings configurés</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ mappings|length }}</span></div></div>
+  <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.remote_path_mappings.card_title'|trans }}</h3><div class="card-options"><span class="badge bg-secondary-lt">{{ mappings|length }}</span></div></div>
   <div class="card-body p-0">
     {% if mappings is empty %}
-      <div class="text-muted text-center py-5">Aucun chemin distant configuré.</div>
+      <div class="text-muted text-center py-5">{{ 'media.arr_admin.remote_path_mappings.empty'|trans }}</div>
     {% else %}
       <div class="table-responsive">
         <table class="table table-vcenter table-sm mb-0">
-          <thead><tr><th>Hote</th><th>Chemin distant</th><th>Chemin local</th><th class="text-end">Actions</th></tr></thead>
+          <thead><tr><th>{{ 'media.arr_admin.remote_path_mappings.col_host'|trans }}</th><th>{{ 'media.arr_admin.remote_path_mappings.col_remote_path'|trans }}</th><th>{{ 'media.arr_admin.remote_path_mappings.col_local_path'|trans }}</th><th class="text-end">{{ 'media.arr_admin.remote_path_mappings.col_actions'|trans }}</th></tr></thead>
           <tbody>
             {% for m in mappings %}
             <tr>
@@ -42,13 +42,13 @@
                         data-host="{{ m.host ?? '' }}"
                         data-remote="{{ m.remotePath ?? '' }}"
                         data-local="{{ m.localPath ?? '' }}"
-                        title="Modifier">
+                        title="{{ 'media.arr_admin.remote_path_mappings.edit'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                 </button>
                 <button class="btn btn-ghost-danger btn-sm btn-rpm-delete"
                         data-id="{{ m.id }}"
                         data-host="{{ m.host ?? '' }}"
-                        title="Supprimer">
+                        title="{{ 'media.arr_admin.remote_path_mappings.delete'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                 </button>
               </td>
@@ -68,28 +68,28 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="rpm-modal-title">Ajouter un chemin distant</h5>
+        <h5 class="modal-title" id="rpm-modal-title">{{ 'media.arr_admin.remote_path_mappings.modal_title_add'|trans }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="rpm-edit-id" value="">
         <div class="mb-3">
-          <label class="form-label fw-medium">Hote <span class="text-danger">*</span></label>
-          <input type="text" id="rpm-host" class="form-control form-control-sm" placeholder="localhost">
+          <label class="form-label fw-medium">{{ 'media.arr_admin.remote_path_mappings.host_label'|trans }} <span class="text-danger">*</span></label>
+          <input type="text" id="rpm-host" class="form-control form-control-sm" placeholder="{{ 'media.arr_admin.remote_path_mappings.host_placeholder'|trans }}">
         </div>
         <div class="mb-3">
-          <label class="form-label fw-medium">Chemin distant <span class="text-danger">*</span></label>
-          <input type="text" id="rpm-remote" class="form-control form-control-sm font-monospace" placeholder="/download/">
+          <label class="form-label fw-medium">{{ 'media.arr_admin.remote_path_mappings.remote_path_label'|trans }} <span class="text-danger">*</span></label>
+          <input type="text" id="rpm-remote" class="form-control form-control-sm font-monospace" placeholder="{{ 'media.arr_admin.remote_path_mappings.remote_path_placeholder'|trans }}">
         </div>
         <div class="mb-3">
-          <label class="form-label fw-medium">Chemin local <span class="text-danger">*</span></label>
-          <input type="text" id="rpm-local" class="form-control form-control-sm font-monospace" placeholder="/data/download/">
+          <label class="form-label fw-medium">{{ 'media.arr_admin.remote_path_mappings.local_path_label'|trans }} <span class="text-danger">*</span></label>
+          <input type="text" id="rpm-local" class="form-control form-control-sm font-monospace" placeholder="{{ 'media.arr_admin.remote_path_mappings.local_path_placeholder'|trans }}">
         </div>
         <div id="rpm-modal-feedback" class="alert d-none mt-3"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-        <button type="button" class="btn btn-success" id="btn-rpm-save">Enregistrer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'media.arr_admin.remote_path_mappings.cancel'|trans }}</button>
+        <button type="button" class="btn btn-success" id="btn-rpm-save">{{ 'media.arr_admin.remote_path_mappings.save'|trans }}</button>
       </div>
     </div>
   </div>
@@ -99,6 +99,15 @@
 {% block javascripts %}
 <script>
 (function(){
+  var I18N = {
+    modal_title_add: {{ 'media.arr_admin.remote_path_mappings.modal_title_add'|trans|json_encode|raw }},
+    modal_title_edit: {{ 'media.arr_admin.remote_path_mappings.modal_title_edit'|trans|json_encode|raw }},
+    error_required_fields: {{ 'media.arr_admin.remote_path_mappings.error_required_fields'|trans|json_encode|raw }},
+    error_save: {{ 'media.arr_admin.remote_path_mappings.error_save'|trans|json_encode|raw }},
+    error_delete: {{ 'media.arr_admin.remote_path_mappings.error_delete'|trans|json_encode|raw }},
+    confirm_delete_tpl: {{ 'media.arr_admin.remote_path_mappings.confirm_delete_tpl'|trans({host: '__HOST__'})|json_encode|raw }}
+  };
+
   var feedback = document.getElementById('rpm-feedback');
   var mfb = document.getElementById('rpm-modal-feedback');
   var modalEl = document.getElementById('modal-rpm');
@@ -124,13 +133,13 @@
     var btn = e.relatedTarget;
     mfb.classList.add('d-none');
     if (!btn || btn.id === 'btn-rpm-add') {
-      document.getElementById('rpm-modal-title').textContent = 'Ajouter un chemin distant';
+      document.getElementById('rpm-modal-title').textContent = I18N.modal_title_add;
       document.getElementById('rpm-edit-id').value = '';
       document.getElementById('rpm-host').value = '';
       document.getElementById('rpm-remote').value = '';
       document.getElementById('rpm-local').value = '';
     } else {
-      document.getElementById('rpm-modal-title').textContent = 'Modifier le chemin distant';
+      document.getElementById('rpm-modal-title').textContent = I18N.modal_title_edit;
       document.getElementById('rpm-edit-id').value = btn.dataset.id || '';
       document.getElementById('rpm-host').value = btn.dataset.host || '';
       document.getElementById('rpm-remote').value = btn.dataset.remote || '';
@@ -144,7 +153,7 @@
     var remotePath = document.getElementById('rpm-remote').value.trim();
     var localPath = document.getElementById('rpm-local').value.trim();
     if (!host || !remotePath || !localPath) {
-      showModalFeedback('Tous les champs sont obligatoires.', 'warning');
+      showModalFeedback(I18N.error_required_fields, 'warning');
       return;
     }
     var payload = {host: host, remotePath: remotePath, localPath: localPath};
@@ -156,20 +165,20 @@
       body: JSON.stringify(payload),
     }).then(function(r){ return r.json(); }).then(function(data){
       if (data.ok !== false) { location.reload(); }
-      else { showModalFeedback(data.error || 'Erreur lors de l\'enregistrement.', 'danger'); }
+      else { showModalFeedback(data.error || I18N.error_save, 'danger'); }
     });
   };
 
   document.querySelectorAll('.btn-rpm-delete').forEach(function(btn) {
     btn.onclick = function() {
-      if (!confirm('Supprimer le mapping pour "' + btn.dataset.host + '" ?')) return;
+      if (!confirm(I18N.confirm_delete_tpl.replace('__HOST__', btn.dataset.host))) return;
       fetch('/sonarr/chemins-distants/' + btn.dataset.id + '/supprimer', {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
         body: '{}',
       }).then(function(r){ return r.json(); }).then(function(data){
         if (data.ok) location.reload();
-        else showFeedback('Erreur lors de la suppression.', 'danger');
+        else showFeedback(I18N.error_delete, 'danger');
       });
     };
   });

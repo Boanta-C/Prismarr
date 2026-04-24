@@ -1,18 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Indexeurs — Sonarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.indexers.title_sonarr'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
       <div class="col">
-        <h2 class="page-title">Indexeurs</h2>
+        <h2 class="page-title">{{ 'media.arr_admin.indexers.page_title'|trans }}</h2>
       </div>
       <div class="col-auto ms-auto d-flex gap-2 align-items-center">
         <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-indexer">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
-          Ajouter
+          {{ 'media.arr_admin.indexers.add'|trans }}
         </button>
         {% include 'media/_sonarr_nav.html.twig' %}
       </div>
@@ -24,33 +24,33 @@
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger">Impossible de joindre Sonarr.</div>
+<div class="alert alert-danger">{{ 'media.arr_admin.indexers.error_unreachable_sonarr'|trans }}</div>
 {% endif %}
 
 <div id="idx-feedback" class="alert d-none mb-3"></div>
 
 <div class="card">
   <div class="card-header">
-    <h3 class="card-title">Indexeurs configurés</h3>
+    <h3 class="card-title">{{ 'media.arr_admin.indexers.card_title'|trans }}</h3>
     <div class="card-options">
       <span class="badge bg-secondary-lt">{{ indexers|length }}</span>
     </div>
   </div>
   <div class="card-body p-0">
     {% if indexers is empty %}
-      <div class="text-muted text-center py-5">Aucun indexeur configuré. Cliquez sur "Ajouter".</div>
+      <div class="text-muted text-center py-5">{{ 'media.arr_admin.indexers.empty'|trans }}</div>
     {% else %}
       <div class="table-responsive">
         <table class="table table-vcenter mb-0">
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Implémentation</th>
-              <th>Activé</th>
-              <th>RSS</th>
-              <th>Recherche</th>
-              <th>Priorité</th>
-              <th class="text-end">Actions</th>
+              <th>{{ 'media.arr_admin.indexers.col_name'|trans }}</th>
+              <th>{{ 'media.arr_admin.indexers.col_implementation'|trans }}</th>
+              <th>{{ 'media.arr_admin.indexers.col_enabled'|trans }}</th>
+              <th>{{ 'media.arr_admin.indexers.col_rss'|trans }}</th>
+              <th>{{ 'media.arr_admin.indexers.col_search'|trans }}</th>
+              <th>{{ 'media.arr_admin.indexers.col_priority'|trans }}</th>
+              <th class="text-end">{{ 'media.arr_admin.indexers.col_actions'|trans }}</th>
             </tr>
           </thead>
           <tbody>
@@ -60,22 +60,22 @@
               <td><span class="badge bg-secondary-lt">{{ indexer.implementation ?? '—' }}</span></td>
               <td>
                 {% if (indexer.enableRss ?? false) or (indexer.enableAutomaticSearch ?? false) or (indexer.enableInteractiveSearch ?? false) %}
-                  <span class="badge bg-success-lt text-success">Oui</span>
+                  <span class="badge bg-success-lt text-success">{{ 'media.arr_admin.indexers.yes'|trans }}</span>
                 {% else %}
-                  <span class="badge bg-secondary-lt">Non</span>
+                  <span class="badge bg-secondary-lt">{{ 'media.arr_admin.indexers.no'|trans }}</span>
                 {% endif %}
               </td>
-              <td>{% if indexer.enableRss ?? false %}<span class="badge bg-blue-lt">RSS</span>{% else %}—{% endif %}</td>
-              <td>{% if (indexer.enableAutomaticSearch ?? false) or (indexer.enableInteractiveSearch ?? false) %}<span class="badge bg-blue-lt">Oui</span>{% else %}—{% endif %}</td>
+              <td>{% if indexer.enableRss ?? false %}<span class="badge bg-blue-lt">{{ 'media.arr_admin.indexers.col_rss'|trans }}</span>{% else %}—{% endif %}</td>
+              <td>{% if (indexer.enableAutomaticSearch ?? false) or (indexer.enableInteractiveSearch ?? false) %}<span class="badge bg-blue-lt">{{ 'media.arr_admin.indexers.yes'|trans }}</span>{% else %}—{% endif %}</td>
               <td class="text-muted">{{ indexer.priority ?? '—' }}</td>
               <td class="text-end d-flex gap-2 justify-content-end">
-                <button class="btn btn-ghost-secondary btn-icon" data-bs-toggle="modal" data-bs-target="#modal-indexer" data-edit-item="{{ indexer|json_encode|e('html_attr') }}" title="Modifier">
+                <button class="btn btn-ghost-secondary btn-icon" data-bs-toggle="modal" data-bs-target="#modal-indexer" data-edit-item="{{ indexer|json_encode|e('html_attr') }}" title="{{ 'media.arr_admin.indexers.edit'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                 </button>
-                <button class="btn btn-ghost-primary btn-icon btn-idx-test" data-id="{{ indexer.id }}" title="Tester">
+                <button class="btn btn-ghost-primary btn-icon btn-idx-test" data-id="{{ indexer.id }}" title="{{ 'media.arr_admin.indexers.test'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                 </button>
-                <button class="btn btn-ghost-danger btn-icon btn-idx-delete" data-id="{{ indexer.id }}" data-name="{{ indexer.name ?? '' }}" title="Supprimer">
+                <button class="btn btn-ghost-danger btn-icon btn-idx-delete" data-id="{{ indexer.id }}" data-name="{{ indexer.name ?? '' }}" title="{{ 'media.arr_admin.indexers.delete'|trans }}">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                 </button>
               </td>
@@ -93,8 +93,8 @@
 
 {% include 'radarr/_schema_modal.html.twig' with {
   modal_id: 'modal-indexer',
-  modal_title_add: 'Ajouter un indexeur',
-  modal_title_edit: 'Modifier l\'indexeur',
+  modal_title_add: 'media.arr_admin.indexers.modal_title_add'|trans,
+  modal_title_edit: 'media.arr_admin.indexers.modal_title_edit'|trans,
   schema_url: path('sonarr_indexers_schema'),
   save_url_add: path('sonarr_indexer_add'),
   save_url_edit: '/sonarr/indexeurs/__ID__/modifier',
@@ -105,6 +105,19 @@
 {% block javascripts %}
 <script>
 (function() {
+  var I18N = {
+    fallback_name: {{ 'media.arr_admin.indexers.fallback_name'|trans|json_encode|raw }},
+    test_success_title: {{ 'media.arr_admin.indexers.test_success_title'|trans|json_encode|raw }},
+    test_failure: {{ 'media.arr_admin.indexers.test_failure'|trans|json_encode|raw }},
+    test_label: {{ 'media.arr_admin.indexers.test'|trans|json_encode|raw }},
+    test_success_feedback_tpl: {{ 'media.arr_admin.indexers.test_success_feedback_tpl'|trans({name: '__NAME__'})|json_encode|raw }},
+    test_failure_feedback_tpl: {{ 'media.arr_admin.indexers.test_failure_feedback_tpl'|trans({name: '__NAME__', error: '__ERR__'})|json_encode|raw }},
+    error_network_title: {{ 'media.arr_admin.indexers.error_network_title'|trans|json_encode|raw }},
+    error_network: {{ 'media.arr_admin.indexers.error_network'|trans|json_encode|raw }},
+    error_delete: {{ 'media.arr_admin.indexers.error_delete'|trans|json_encode|raw }},
+    confirm_delete_tpl: {{ 'media.arr_admin.indexers.confirm_delete_tpl'|trans({name: '__NAME__'})|json_encode|raw }}
+  };
+
   var feedback = document.getElementById('idx-feedback');
   function showFeedback(msg, type) {
     type = type || 'success';
@@ -124,32 +137,32 @@
       btn.disabled = true;
       btn.innerHTML = SVG_SPIN;
       var indexer = JSON.parse(btn.closest('tr').dataset.indexer);
-      var name = indexer.name || 'Indexeur';
+      var name = indexer.name || I18N.fallback_name;
       fetch('/sonarr/indexeurs/tester', {
         method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
         body: JSON.stringify(indexer),
       }).then(function(r){ return r.json(); }).then(function(data) {
         btn.innerHTML = data.ok ? SVG_OK : SVG_FAIL;
-        btn.title = data.ok ? 'Test réussi' : (data.error || 'Échec du test');
-        if (data.ok) { showFeedback(name + ' — test réussi', 'success'); }
-        else { showFeedback(name + ' — ' + (data.error || 'Échec du test'), 'danger'); }
+        btn.title = data.ok ? I18N.test_success_title : (data.error || I18N.test_failure);
+        if (data.ok) { showFeedback(I18N.test_success_feedback_tpl.replace('__NAME__', name), 'success'); }
+        else { showFeedback(I18N.test_failure_feedback_tpl.replace('__NAME__', name).replace('__ERR__', (data.error || I18N.test_failure)), 'danger'); }
       }).catch(function() {
-        btn.innerHTML = SVG_FAIL; btn.title = 'Erreur réseau'; showFeedback('Erreur réseau', 'danger');
+        btn.innerHTML = SVG_FAIL; btn.title = I18N.error_network_title; showFeedback(I18N.error_network, 'danger');
       }).finally(function() {
         btn.disabled = false;
-        setTimeout(function(){ btn.innerHTML = SVG_CHECK; btn.title = 'Tester'; }, 3000);
+        setTimeout(function(){ btn.innerHTML = SVG_CHECK; btn.title = I18N.test_label; }, 3000);
       });
     });
   });
 
   document.querySelectorAll('.btn-idx-delete').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      if (!confirm('Supprimer l\'indexeur "' + btn.dataset.name + '" ?')) return;
+      if (!confirm(I18N.confirm_delete_tpl.replace('__NAME__', btn.dataset.name))) return;
       fetch('/sonarr/indexeurs/' + btn.dataset.id + '/supprimer', {
         method: 'POST', headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}, body: '{}',
       }).then(function(r){ return r.json(); }).then(function(data) {
         if (data.ok) location.reload();
-        else showFeedback('Erreur lors de la suppression.', 'danger');
+        else showFeedback(I18N.error_delete, 'danger');
       });
     });
   });

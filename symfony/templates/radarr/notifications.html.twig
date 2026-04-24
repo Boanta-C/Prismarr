@@ -1,18 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Notifications — Radarr{% endblock %}
+{% block title %}{{ 'media.arr_admin.notifications.title_radarr'|trans }}{% endblock %}
 
 {% block body %}
 <div class="page-header d-print-none">
   <div class="container-xl">
     <div class="row g-2 align-items-center">
       <div class="col">
-        <h2 class="page-title">Notifications</h2>
+        <h2 class="page-title">{{ 'media.arr_admin.notifications.page_title'|trans }}</h2>
       </div>
       <div class="col-auto ms-auto d-flex gap-2 align-items-center">
         <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-notif">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
-          Ajouter
+          {{ 'media.arr_admin.notifications.add'|trans }}
         </button>
         {% include 'media/_radarr_nav.html.twig' %}
       </div>
@@ -24,30 +24,30 @@
 <div class="container-xl">
 
 {% if error %}
-<div class="alert alert-danger">Impossible de joindre Radarr.</div>
+<div class="alert alert-danger">{{ 'media.arr_admin.notifications.error_unreachable_radarr'|trans }}</div>
 {% endif %}
 
 <div id="notif-feedback" class="alert d-none mb-3"></div>
 
 <div class="card">
   <div class="card-header">
-    <h3 class="card-title">Notifications configurées</h3>
+    <h3 class="card-title">{{ 'media.arr_admin.notifications.card_title'|trans }}</h3>
     <div class="card-options">
       <span class="badge bg-secondary-lt">{{ notifications|length }}</span>
     </div>
   </div>
   <div class="card-body p-0">
     {% if notifications is empty %}
-      <div class="text-muted text-center py-5">Aucune notification configurée.</div>
+      <div class="text-muted text-center py-5">{{ 'media.arr_admin.notifications.empty'|trans }}</div>
     {% else %}
       <div class="table-responsive">
         <table class="table table-vcenter table-hover mb-0">
           <thead>
             <tr>
-              <th>Nom</th>
-              <th>Type</th>
-              <th>Triggers</th>
-              <th class="text-end">Actions</th>
+              <th>{{ 'media.arr_admin.notifications.col_name'|trans }}</th>
+              <th>{{ 'media.arr_admin.notifications.col_type'|trans }}</th>
+              <th>{{ 'media.arr_admin.notifications.col_triggers'|trans }}</th>
+              <th class="text-end">{{ 'media.arr_admin.notifications.col_actions'|trans }}</th>
             </tr>
           </thead>
           <tbody>
@@ -59,30 +59,30 @@
               </td>
               <td class="small">
                 <div class="d-flex flex-wrap gap-1">
-                  {% if notif.onGrab ?? false %}<span class="badge bg-secondary-lt">Récupération</span>{% endif %}
-                  {% if notif.onDownload ?? false %}<span class="badge bg-secondary-lt">Téléchargement</span>{% endif %}
-                  {% if notif.onUpgrade ?? false %}<span class="badge bg-secondary-lt">Upgrade</span>{% endif %}
-                  {% if notif.onRename ?? false %}<span class="badge bg-secondary-lt">Renommage</span>{% endif %}
-                  {% if notif.onMovieAdded ?? false %}<span class="badge bg-secondary-lt">Film ajouté</span>{% endif %}
-                  {% if notif.onMovieDelete ?? false %}<span class="badge bg-secondary-lt">Suppression</span>{% endif %}
-                  {% if notif.onHealthIssue ?? false %}<span class="badge bg-secondary-lt">Santé</span>{% endif %}
-                  {% if notif.onApplicationUpdate ?? false %}<span class="badge bg-secondary-lt">MAJ</span>{% endif %}
-                  {% if notif.onManualInteractionRequired ?? false %}<span class="badge bg-secondary-lt">Interaction</span>{% endif %}
+                  {% if notif.onGrab ?? false %}<span class="badge bg-secondary-lt">{{ 'media.arr_admin.notifications.trigger_grab'|trans }}</span>{% endif %}
+                  {% if notif.onDownload ?? false %}<span class="badge bg-secondary-lt">{{ 'media.arr_admin.notifications.trigger_download'|trans }}</span>{% endif %}
+                  {% if notif.onUpgrade ?? false %}<span class="badge bg-secondary-lt">{{ 'media.arr_admin.notifications.trigger_upgrade'|trans }}</span>{% endif %}
+                  {% if notif.onRename ?? false %}<span class="badge bg-secondary-lt">{{ 'media.arr_admin.notifications.trigger_rename'|trans }}</span>{% endif %}
+                  {% if notif.onMovieAdded ?? false %}<span class="badge bg-secondary-lt">{{ 'media.arr_admin.notifications.trigger_movie_added'|trans }}</span>{% endif %}
+                  {% if notif.onMovieDelete ?? false %}<span class="badge bg-secondary-lt">{{ 'media.arr_admin.notifications.trigger_delete'|trans }}</span>{% endif %}
+                  {% if notif.onHealthIssue ?? false %}<span class="badge bg-secondary-lt">{{ 'media.arr_admin.notifications.trigger_health'|trans }}</span>{% endif %}
+                  {% if notif.onApplicationUpdate ?? false %}<span class="badge bg-secondary-lt">{{ 'media.arr_admin.notifications.trigger_update'|trans }}</span>{% endif %}
+                  {% if notif.onManualInteractionRequired ?? false %}<span class="badge bg-secondary-lt">{{ 'media.arr_admin.notifications.trigger_interaction'|trans }}</span>{% endif %}
                 </div>
               </td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">
                   <button class="btn btn-ghost-secondary btn-icon btn-notif-edit"
                           data-bs-toggle="modal" data-bs-target="#modal-notif"
-                          data-edit-item="{{ notif|json_encode|e('html_attr') }}" title="Modifier">
+                          data-edit-item="{{ notif|json_encode|e('html_attr') }}" title="{{ 'media.arr_admin.notifications.edit'|trans }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                   </button>
                   <button class="btn btn-ghost-primary btn-icon btn-notif-test"
-                          data-id="{{ notif.id }}" title="Tester">
+                          data-id="{{ notif.id }}" title="{{ 'media.arr_admin.notifications.test'|trans }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
                   </button>
                   <button class="btn btn-ghost-danger btn-icon btn-notif-delete"
-                          data-id="{{ notif.id }}" data-name="{{ notif.name ?? '' }}" title="Supprimer">
+                          data-id="{{ notif.id }}" data-name="{{ notif.name ?? '' }}" title="{{ 'media.arr_admin.notifications.delete'|trans }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                   </button>
                 </div>
@@ -101,8 +101,8 @@
 
 {% include 'radarr/_schema_modal.html.twig' with {
   modal_id: 'modal-notif',
-  modal_title_add: 'Ajouter une notification',
-  modal_title_edit: 'Modifier la notification',
+  modal_title_add: 'media.arr_admin.notifications.modal_title_add'|trans,
+  modal_title_edit: 'media.arr_admin.notifications.modal_title_edit'|trans,
   schema_url: path('radarr_notifications_schema'),
   save_url_add: path('radarr_notification_add'),
   save_url_edit: '/radarr/notifications/__ID__/modifier',
@@ -114,6 +114,13 @@
 {% block javascripts %}
 <script>
 (function(){
+  var I18N = {
+    error_test: {{ 'media.arr_admin.notifications.error_test'|trans|json_encode|raw }},
+    error_network: {{ 'media.arr_admin.notifications.error_network'|trans|json_encode|raw }},
+    error_delete: {{ 'media.arr_admin.notifications.error_delete'|trans|json_encode|raw }},
+    confirm_delete_tpl: {{ 'media.arr_admin.notifications.confirm_delete_tpl'|trans({name: '__NAME__'})|json_encode|raw }}
+  };
+
   const feedback = document.getElementById('notif-feedback');
   function showFeedback(msg, type = 'success') {
     feedback.className = `alert alert-${type} mb-3`;
@@ -139,10 +146,10 @@
         });
         const data = await r.json();
         btn.innerHTML = data.ok ? SVG_OK : SVG_FAIL;
-        if (!data.ok) showFeedback(data.error || 'Échec du test.', 'danger');
+        if (!data.ok) showFeedback(data.error || I18N.error_test, 'danger');
       } catch(e) {
         btn.innerHTML = SVG_FAIL;
-        showFeedback('Erreur réseau.', 'danger');
+        showFeedback(I18N.error_network, 'danger');
       } finally {
         btn.disabled = false;
         setTimeout(() => { btn.innerHTML = origHTML; }, 3000);
@@ -152,7 +159,7 @@
 
   document.querySelectorAll('.btn-notif-delete').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!confirm(`Supprimer la notification "${btn.dataset.name}" ?`)) return;
+      if (!confirm(I18N.confirm_delete_tpl.replace('__NAME__', btn.dataset.name))) return;
       const r = await fetch(`/radarr/notifications/${btn.dataset.id}/supprimer`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
@@ -160,7 +167,7 @@
       });
       const data = await r.json();
       if (data.ok) location.reload();
-      else showFeedback('Erreur lors de la suppression.', 'danger');
+      else showFeedback(I18N.error_delete, 'danger');
     });
   });
 })();

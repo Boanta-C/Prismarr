@@ -2221,6 +2221,155 @@ media:
       error_network_test: Erreur réseau lors du test.
       test_success: "Test réussi ✓"
       test_failure: Échec du test.
+    indexers:
+      title_radarr: Indexeurs — Radarr
+      title_sonarr: Indexeurs — Sonarr
+      page_title: Indexeurs
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      add: Ajouter
+      card_title: Indexeurs configurés
+      empty: Aucun indexeur configuré. Cliquez sur "Ajouter".
+      col_name: Nom
+      col_implementation: Implémentation
+      col_enabled: Activé
+      col_rss: RSS
+      col_search: Recherche
+      col_priority: Priorité
+      col_actions: Actions
+      yes: Oui
+      no: Non
+      edit: Modifier
+      test: Tester
+      delete: Supprimer
+      modal_title_add: Ajouter un indexeur
+      modal_title_edit: Modifier l'indexeur
+      fallback_name: Indexeur
+      test_success_title: Test réussi
+      test_failure: Échec du test
+      test_success_feedback_tpl: "{name} — test réussi"
+      test_failure_feedback_tpl: "{name} — {error}"
+      error_network_title: Erreur réseau
+      error_network: Erreur réseau
+      error_delete: Erreur lors de la suppression.
+      confirm_delete_tpl: "Supprimer l'indexeur \"{name}\" ?"
+    download_clients:
+      title_radarr: Clients de téléchargement — Radarr
+      title_sonarr: Clients de téléchargement — Sonarr
+      page_title: Clients de téléchargement
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      add: Ajouter
+      card_title: Clients configurés
+      empty: Aucun client de téléchargement configuré.
+      col_name: Nom
+      col_type: Type
+      col_host: Hôte
+      col_port: Port
+      col_enabled: Activé
+      col_priority: Priorité
+      col_actions: Actions
+      yes: Oui
+      no: Non
+      edit: Modifier
+      test: Tester
+      delete: Supprimer
+      modal_title_add: Ajouter un client de téléchargement
+      modal_title_edit: Modifier le client
+      fallback_name: Client
+      test_success_title: Test réussi
+      test_failure: Échec du test
+      test_success_feedback_tpl: "{name} — test réussi"
+      test_failure_feedback_tpl: "{name} — {error}"
+      error_network_title: Erreur réseau
+      error_network: Erreur réseau
+      error_delete: Erreur lors de la suppression.
+      confirm_delete_tpl: "Supprimer le client \"{name}\" ?"
+    remote_path_mappings:
+      title_radarr: Chemins distants — Radarr
+      title_sonarr: Chemins distants — Sonarr
+      page_title: Chemins distants
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      add: Ajouter
+      card_title: Mappings configurés
+      empty: Aucun chemin distant configuré.
+      col_host: Hôte
+      col_remote_path: Chemin distant
+      col_local_path: Chemin local
+      col_actions: Actions
+      edit: Modifier
+      delete: Supprimer
+      modal_title_add: Ajouter un chemin distant
+      modal_title_edit: Modifier le chemin distant
+      host_label: Hôte
+      host_placeholder: localhost
+      remote_path_label: Chemin distant
+      remote_path_placeholder: "/download/"
+      local_path_label: Chemin local
+      local_path_placeholder: "/data/download/"
+      cancel: Annuler
+      save: Enregistrer
+      error_required_fields: Tous les champs sont obligatoires.
+      error_save: Erreur lors de l'enregistrement.
+      error_delete: Erreur lors de la suppression.
+      confirm_delete_tpl: "Supprimer le mapping pour \"{host}\" ?"
+    import_lists:
+      title_radarr: Listes d'import — Radarr
+      title_sonarr: Listes d'import — Sonarr
+      page_title: Listes d'import
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      add: Ajouter
+      suggestions: Suggestions
+      card_title: Listes d'import configurées
+      empty: Aucune liste d'import configurée.
+      col_name: Nom
+      col_type: Type
+      col_enabled: Activé
+      col_quality_profile: Profil qualité
+      col_root_folder: Dossier racine
+      col_actions: Actions
+      yes: Oui
+      no: Non
+      edit: Modifier
+      delete: Supprimer
+      modal_title_add: Ajouter une liste d'import
+      modal_title_edit: Modifier la liste
+      error_delete: Erreur lors de la suppression.
+      confirm_delete_tpl: "Supprimer la liste \"{name}\" ?"
+    notifications:
+      title_radarr: Notifications — Radarr
+      title_sonarr: Notifications — Sonarr
+      page_title: Notifications
+      error_unreachable_radarr: Impossible de joindre Radarr.
+      error_unreachable_sonarr: Impossible de joindre Sonarr.
+      add: Ajouter
+      card_title: Notifications configurées
+      empty: Aucune notification configurée.
+      col_name: Nom
+      col_type: Type
+      col_triggers: Déclencheurs
+      col_actions: Actions
+      edit: Modifier
+      test: Tester
+      delete: Supprimer
+      modal_title_add: Ajouter une notification
+      modal_title_edit: Modifier la notification
+      trigger_grab: Récupération
+      trigger_download: Téléchargement
+      trigger_upgrade: Upgrade
+      trigger_rename: Renommage
+      trigger_movie_added: Film ajouté
+      trigger_series_added: Série ajoutée
+      trigger_delete: Suppression
+      trigger_health: Santé
+      trigger_update: MAJ
+      trigger_interaction: Interaction
+      error_test: Échec du test.
+      error_network: Erreur réseau.
+      error_delete: Erreur lors de la suppression.
+      confirm_delete_tpl: "Supprimer la notification \"{name}\" ?"
 
 watchlist_page:
   back_to_discover: Découverte

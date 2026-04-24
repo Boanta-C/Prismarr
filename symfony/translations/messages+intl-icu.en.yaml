@@ -2222,6 +2222,155 @@ media:
       error_network_test: Network error during test.
       test_success: "Test successful ✓"
       test_failure: Test failed.
+    indexers:
+      title_radarr: Indexers — Radarr
+      title_sonarr: Indexers — Sonarr
+      page_title: Indexers
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      card_title: Configured Indexers
+      empty: 'No indexer configured. Click "Add".'
+      col_name: Name
+      col_implementation: Implementation
+      col_enabled: Enabled
+      col_rss: RSS
+      col_search: Search
+      col_priority: Priority
+      col_actions: Actions
+      yes: Yes
+      no: No
+      edit: Edit
+      test: Test
+      delete: Delete
+      modal_title_add: Add an indexer
+      modal_title_edit: Edit indexer
+      fallback_name: Indexer
+      test_success_title: Test successful
+      test_failure: Test failed
+      test_success_feedback_tpl: "{name} — test successful"
+      test_failure_feedback_tpl: "{name} — {error}"
+      error_network_title: Network error
+      error_network: Network error
+      error_delete: Error while deleting.
+      confirm_delete_tpl: 'Delete indexer "{name}"?'
+    download_clients:
+      title_radarr: Download clients — Radarr
+      title_sonarr: Download clients — Sonarr
+      page_title: Download clients
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      card_title: Configured Clients
+      empty: No download client configured.
+      col_name: Name
+      col_type: Type
+      col_host: Host
+      col_port: Port
+      col_enabled: Enabled
+      col_priority: Priority
+      col_actions: Actions
+      yes: Yes
+      no: No
+      edit: Edit
+      test: Test
+      delete: Delete
+      modal_title_add: Add a download client
+      modal_title_edit: Edit client
+      fallback_name: Client
+      test_success_title: Test successful
+      test_failure: Test failed
+      test_success_feedback_tpl: "{name} — test successful"
+      test_failure_feedback_tpl: "{name} — {error}"
+      error_network_title: Network error
+      error_network: Network error
+      error_delete: Error while deleting.
+      confirm_delete_tpl: 'Delete client "{name}"?'
+    remote_path_mappings:
+      title_radarr: Remote paths — Radarr
+      title_sonarr: Remote paths — Sonarr
+      page_title: Remote paths
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      card_title: Configured Mappings
+      empty: No remote path configured.
+      col_host: Host
+      col_remote_path: Remote path
+      col_local_path: Local path
+      col_actions: Actions
+      edit: Edit
+      delete: Delete
+      modal_title_add: Add a remote path
+      modal_title_edit: Edit remote path
+      host_label: Host
+      host_placeholder: localhost
+      remote_path_label: Remote path
+      remote_path_placeholder: "/download/"
+      local_path_label: Local path
+      local_path_placeholder: "/data/download/"
+      cancel: Cancel
+      save: Save
+      error_required_fields: All fields are required.
+      error_save: Error while saving.
+      error_delete: Error while deleting.
+      confirm_delete_tpl: 'Delete mapping for "{host}"?'
+    import_lists:
+      title_radarr: Import lists — Radarr
+      title_sonarr: Import lists — Sonarr
+      page_title: Import lists
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      suggestions: Suggestions
+      card_title: Configured Import Lists
+      empty: No import list configured.
+      col_name: Name
+      col_type: Type
+      col_enabled: Enabled
+      col_quality_profile: Quality profile
+      col_root_folder: Root folder
+      col_actions: Actions
+      yes: Yes
+      no: No
+      edit: Edit
+      delete: Delete
+      modal_title_add: Add an import list
+      modal_title_edit: Edit list
+      error_delete: Error while deleting.
+      confirm_delete_tpl: 'Delete list "{name}"?'
+    notifications:
+      title_radarr: Notifications — Radarr
+      title_sonarr: Notifications — Sonarr
+      page_title: Notifications
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      card_title: Configured Notifications
+      empty: No notification configured.
+      col_name: Name
+      col_type: Type
+      col_triggers: Triggers
+      col_actions: Actions
+      edit: Edit
+      test: Test
+      delete: Delete
+      modal_title_add: Add a notification
+      modal_title_edit: Edit notification
+      trigger_grab: Grab
+      trigger_download: Download
+      trigger_upgrade: Upgrade
+      trigger_rename: Rename
+      trigger_movie_added: Movie added
+      trigger_series_added: Series added
+      trigger_delete: Deletion
+      trigger_health: Health
+      trigger_update: Update
+      trigger_interaction: Interaction
+      error_test: Test failed.
+      error_network: Network error.
+      error_delete: Error while deleting.
+      confirm_delete_tpl: 'Delete notification "{name}"?'
 
 watchlist_page:
   back_to_discover: Discover
