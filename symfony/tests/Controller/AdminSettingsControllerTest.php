@@ -215,7 +215,9 @@ class AdminSettingsControllerTest extends TestCase
         $config = $this->createMock(ConfigService::class);
         $health = $this->createMock(HealthService::class);
         $health->expects($this->once())->method('invalidate')->with('radarr');
-        $health->method('isHealthy')->with('radarr')->willReturn(true);
+        $health->method('diagnose')->with('radarr')->willReturn([
+            'ok' => true, 'category' => 'ok', 'http' => 200,
+        ]);
 
         $response = $this->controller($settings, $config, $health)->test('radarr');
 
@@ -223,19 +225,25 @@ class AdminSettingsControllerTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
         $this->assertStringContainsString('"ok":true', $response->getContent());
         $this->assertStringContainsString('"service":"Radarr"', $response->getContent());
+        $this->assertStringContainsString('"category":"ok"', $response->getContent());
+        $this->assertStringContainsString('"http":200', $response->getContent());
     }
 
-    public function testTestEndpointReturnsFailureJsonWhenUnhealthy(): void
+    public function testTestEndpointReturnsFailureJsonWithCategoryAndHttp(): void
     {
         $settings = $this->createMock(SettingRepository::class);
         $config = $this->createMock(ConfigService::class);
         $health = $this->createMock(HealthService::class);
-        $health->method('isHealthy')->willReturn(false);
+        $health->method('diagnose')->willReturn([
+            'ok' => false, 'category' => 'auth', 'http' => 401,
+        ]);
 
         $response = $this->controller($settings, $config, $health)->test('sonarr');
 
         $this->assertSame(200, $response->getStatusCode());
         $this->assertStringContainsString('"ok":false', $response->getContent());
+        $this->assertStringContainsString('"category":"auth"', $response->getContent());
+        $this->assertStringContainsString('"http":401', $response->getContent());
     }
 
     public function testTestEndpointRejectsUnknownService(): void
@@ -257,7 +265,7 @@ class AdminSettingsControllerTest extends TestCase
         $settings = $this->createMock(SettingRepository::class);
         $config = $this->createMock(ConfigService::class);
         $health = $this->createMock(HealthService::class);
-        $health->method('isHealthy')->willThrowException(
+        $health->method('diagnose')->willThrowException(
             new \RuntimeException('SQLSTATE[HY000]: /var/www/.../internal/path leak')
         );
 
@@ -267,5 +275,6 @@ class AdminSettingsControllerTest extends TestCase
         $this->assertStringNotContainsString('SQLSTATE', $response->getContent());
         $this->assertStringNotContainsString('/var/www', $response->getContent());
         $this->assertStringContainsString('"ok":false', $response->getContent());
+        $this->assertStringContainsString('"category":"unknown"', $response->getContent());
     }
 }

@@ -368,18 +368,30 @@ class AdminSettingsController extends AbstractController
 
         try {
             $this->health->invalidate($service);
-            $ok = $this->health->isHealthy($service);
+            $diag = $this->health->diagnose($service);
         } catch (\Throwable $e) {
+            // Never let the actual exception message leak into the JSON —
+            // it can carry stack frames, file paths or, worse, the api key
+            // we just used to probe the service.
             $this->logger->warning('AdminSettings test failed for {service}: {message}', [
                 'service' => $service,
                 'message' => $e->getMessage(),
             ]);
-            return new JsonResponse(['ok' => false, 'error' => $this->translator?->trans('admin.test.unreachable') ?? 'Service injoignable']);
+            $diag = ['ok' => false, 'category' => 'unknown', 'http' => null];
         }
 
+        $category = $diag['category'] ?? 'unknown';
+        $http     = $diag['http']     ?? null;
+
         return new JsonResponse([
-            'ok'      => $ok,
-            'service' => self::SERVICE_LABELS[$service],
+            'ok'       => (bool) ($diag['ok'] ?? false),
+            'service'  => self::SERVICE_LABELS[$service],
+            'category' => $category,
+            'http'     => $http,
+            'message'  => $this->translator?->trans(
+                'admin.test.category.' . $category,
+                ['{http}' => (string) ($http ?? '')],
+            ) ?? '',
         ]);
     }
 

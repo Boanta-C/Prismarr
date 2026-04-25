@@ -642,6 +642,15 @@ admin:
   test:
     unknown_service: Unknown service
     unreachable: Service unreachable
+    category:
+      ok: 'Connected ({http})'
+      unconfigured: 'Not configured (URL or key missing)'
+      network: 'Unreachable — check the URL and that the service is running'
+      auth: 'Authentication refused — invalid API key or password'
+      forbidden: 'Access refused (403) — IP banned or firewall'
+      not_found: 'Endpoint not found (404) — wrong URL or API path'
+      server_error: 'Service error ({http}) — check service logs'
+      unknown: 'Unexpected response ({http})'
   export:
     encode_failed: Cannot encode.
   import:

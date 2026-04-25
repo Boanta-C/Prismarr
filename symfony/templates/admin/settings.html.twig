@@ -892,13 +892,12 @@
           })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-              if (data.ok) {
-                pill.textContent = {{ 'admin.services.status.connected'|trans|json_encode|raw }};
-                pill.className = 'status-pill ok';
-              } else {
-                pill.textContent = {{ 'admin.services.status.unreachable'|trans|json_encode|raw }};
-                pill.className = 'status-pill ko';
-              }
+              var label = data.message || (data.ok
+                ? {{ 'admin.services.status.connected'|trans|json_encode|raw }}
+                : {{ 'admin.services.status.unreachable'|trans|json_encode|raw }});
+              pill.textContent = label;
+              pill.className = 'status-pill ' + (data.ok ? 'ok' : 'ko');
+              pill.title = label;
             })
             .catch(function () {
               pill.textContent = {{ 'admin.services.status.error'|trans|json_encode|raw }};
