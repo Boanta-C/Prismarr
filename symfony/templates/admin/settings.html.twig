@@ -597,7 +597,7 @@
               </div>
 
               <div class="display-grid">
-                {# Radarr #}
+                {# Radarr — UI #}
                 <div class="display-row">
                   <label class="display-label" for="radarr_ui">{{ 'admin.languages.radarr_ui_label'|trans }}</label>
                   {% if not languages.radarr.configured %}
@@ -613,7 +613,26 @@
                   {% endif %}
                 </div>
 
-                {# Sonarr #}
+                {# Radarr — Movie Info #}
+                <div class="display-row">
+                  <label class="display-label" for="radarr_info">{{ 'admin.languages.radarr_info_label'|trans }}</label>
+                  {% if not languages.radarr.configured %}
+                    <input class="form-control form-control-sm" disabled value="{{ 'admin.languages.not_configured'|trans }}">
+                  {% elseif languages.radarr.error %}
+                    <input class="form-control form-control-sm" disabled value="{{ 'admin.languages.unreachable'|trans }}">
+                  {% else %}
+                    <div>
+                      <select id="radarr_info" name="radarr_info" class="form-select form-select-sm">
+                        {% for id, name in languages.radarr.available %}
+                          <option value="{{ id }}" {% if languages.radarr.current_info == id %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                      </select>
+                      <small class="text-secondary d-block mt-1">{{ 'admin.languages.radarr_info_help'|trans }}</small>
+                    </div>
+                  {% endif %}
+                </div>
+
+                {# Sonarr — UI #}
                 <div class="display-row">
                   <label class="display-label" for="sonarr_ui">{{ 'admin.languages.sonarr_ui_label'|trans }}</label>
                   {% if not languages.sonarr.configured %}
@@ -626,6 +645,25 @@
                         <option value="{{ id }}" {% if languages.sonarr.current == id %}selected{% endif %}>{{ name }}</option>
                       {% endfor %}
                     </select>
+                  {% endif %}
+                </div>
+
+                {# Sonarr — Series Info #}
+                <div class="display-row">
+                  <label class="display-label" for="sonarr_info">{{ 'admin.languages.sonarr_info_label'|trans }}</label>
+                  {% if not languages.sonarr.configured %}
+                    <input class="form-control form-control-sm" disabled value="{{ 'admin.languages.not_configured'|trans }}">
+                  {% elseif languages.sonarr.error %}
+                    <input class="form-control form-control-sm" disabled value="{{ 'admin.languages.unreachable'|trans }}">
+                  {% else %}
+                    <div>
+                      <select id="sonarr_info" name="sonarr_info" class="form-select form-select-sm">
+                        {% for id, name in languages.sonarr.available %}
+                          <option value="{{ id }}" {% if languages.sonarr.current_info == id %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                      </select>
+                      <small class="text-secondary d-block mt-1">{{ 'admin.languages.sonarr_info_help'|trans }}</small>
+                    </div>
                   {% endif %}
                 </div>
 

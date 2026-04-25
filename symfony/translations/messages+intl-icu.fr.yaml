@@ -495,7 +495,11 @@ admin:
     prismarr_metadata_help: 'Langue des titres, synopsis et fiches récupérées depuis TMDb (pour la page Découverte et les fiches enrichies).'
     services_section: Services connectés
     radarr_ui_label: Radarr — Langue UI
+    radarr_info_label: Radarr — Langue infos film
+    radarr_info_help: Langue des titres, synopsis et metadata des films récupérés depuis TMDb par Radarr.
     sonarr_ui_label: Sonarr — Langue UI
+    sonarr_info_label: Sonarr — Langue infos série
+    sonarr_info_help: Langue des titres, synopsis et metadata des séries récupérés depuis TheTVDB/TMDb par Sonarr.
     prowlarr_ui_label: Prowlarr — Langue UI
     jellyseerr_ui_label: Jellyseerr — Langue UI (admin)
     not_configured: Service non configuré
