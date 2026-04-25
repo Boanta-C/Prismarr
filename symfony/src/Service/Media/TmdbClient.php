@@ -288,8 +288,11 @@ class TmdbClient implements ResetInterface
         curl_setopt_array($ch, [
             CURLOPT_URL            => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
-            CURLOPT_CONNECTTIMEOUT => 4,
+            // Generous timeouts: TMDb is on the open internet and the
+            // Docker embedded DNS occasionally spikes > 4s on first hit.
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_NOSIGNAL       => 1,
             CURLOPT_HTTPHEADER     => ['Accept: application/json'],
         ]);
 

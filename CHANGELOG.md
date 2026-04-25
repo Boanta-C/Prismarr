@@ -266,6 +266,12 @@ between April 18 and April 26, 2026, on top of the IH-Argos fork.
   previous values were too aggressive on slow VPN handshakes.
 
 ### Fixed
+- TMDb client timeouts raised from 4 s connect / 10 s total to 8 s / 15 s,
+  with `CURLOPT_NOSIGNAL=1` added. The 4 s budget could not absorb the
+  occasional Docker embedded-DNS latency spike (`127.0.0.11`) plus the
+  IPv6-then-IPv4 connect fallback inside the container, leading to
+  spurious "Resolving timed out" errors on TMDb calls even with a healthy
+  internet connection. Same pattern as the GluetunClient bump.
 - The Jellyseerr language dropdown in `/admin/settings → Languages` now
   reads and writes the global app locale (`GET/POST /api/v1/settings/main`)
   instead of the per-user admin setting (`/api/v1/user/1/settings/main`).
