@@ -26,6 +26,30 @@
 
 ---
 
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Prismarr Dashboard" width="100%">
+</p>
+
+<details>
+<summary><strong>More screenshots</strong> (click to expand)</summary>
+<br>
+
+| Discover | Calendar |
+|---|---|
+| ![Discover](docs/screenshots/discover.png) | ![Calendar](docs/screenshots/calendar.png) |
+
+| Movies (Radarr) | Series detail (Sonarr) |
+|---|---|
+| ![Movies](docs/screenshots/radarr.png) | ![Series detail](docs/screenshots/series-detail.png) |
+
+| Downloads (qBittorrent) | Settings (custom theme) |
+|---|---|
+| ![Downloads](docs/screenshots/downloads.png) | ![Settings](docs/screenshots/settings.png) |
+
+</details>
+
+---
+
 ## About
 
 **Prismarr** brings qBittorrent, Radarr, Sonarr, Prowlarr, Jellyseerr and

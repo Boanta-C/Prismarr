@@ -26,6 +26,30 @@
 
 ---
 
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard Prismarr" width="100%">
+</p>
+
+<details>
+<summary><strong>Plus de captures d'écran</strong> (cliquer pour déplier)</summary>
+<br>
+
+| Découverte | Calendrier |
+|---|---|
+| ![Découverte](docs/screenshots/discover.png) | ![Calendrier](docs/screenshots/calendar.png) |
+
+| Films (Radarr) | Détail série (Sonarr) |
+|---|---|
+| ![Films](docs/screenshots/radarr.png) | ![Détail série](docs/screenshots/series-detail.png) |
+
+| Téléchargements (qBittorrent) | Paramètres (thème personnalisé) |
+|---|---|
+| ![Téléchargements](docs/screenshots/downloads.png) | ![Paramètres](docs/screenshots/settings.png) |
+
+</details>
+
+---
+
 ## À propos
 
 **Prismarr** réunit qBittorrent, Radarr, Sonarr, Prowlarr, Jellyseerr et
