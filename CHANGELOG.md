@@ -155,6 +155,22 @@ into `[1.0.0]` at publication time.
   FrankenPHP worker is re-used.
 
 ### Changed
+- English is now the default application locale (`default_locale: en`).
+  French remains the first and complete translation. New installs default
+  to `display_language: en` and `display_metadata_language: en-US`. Users
+  who prefer French can switch via `/admin/settings → Languages`.
+- The Discovery search block stays visible when a query returns zero
+  results — it now shows a "no results" message instead of disappearing,
+  so users know the search completed rather than silently failing.
+- `/admin/settings → Display` no longer shows the language dropdowns
+  (`display_language`, `display_metadata_language`) since they are already
+  editable in the dedicated Languages section. The defaults are preserved
+  internally so the Languages section can pre-select the current values.
+- Series library now has a "Recently added" sort option, mirroring the one
+  already present on the movies page. Sort is client-side using
+  `data-added` (ISO 8601 from `s.addedAt`) so it works without an extra
+  API call.
+
 - Display preferences are now effective — theme colour drives a dynamic
   `--tblr-primary` / `--tblr-primary-rgb` CSS variable (declared after
   the Tabler stylesheet so Tabler's default `:root` no longer wins the
