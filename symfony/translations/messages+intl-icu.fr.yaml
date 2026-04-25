@@ -3777,6 +3777,657 @@ prowlarr:
     changes_new: Nouveautés
     changes_fixed: Corrections
 
+jellyseerr:
+  nav:
+    requests: Requêtes
+    users: Utilisateurs
+    tasks_cache: Tâches & Cache
+    settings: Paramètres
+    system: Système
+    general: Général
+    default_users: Utilisateurs par défaut
+    jellyfin: Jellyfin
+    services: Services
+    about: À propos
+    logs: Logs
+    updates: Mises à jour
+  filters:
+    all: Toutes
+    pending: En attente
+    processing: En cours
+    approved: Approuvées
+    available: Disponibles
+    partial: Partiellement dispo
+    unavailable: Indisponibles
+    failed: Échouées
+    type_all: Tout
+    type_movie: Films
+    type_tv: Séries
+    sort_added: Plus récentes
+    sort_modified: Dernière modif
+  common:
+    movie: Film
+    tv: Série
+    tv_show: Série
+    yes: Oui
+    no: Non
+    cancel: Annuler
+    save: Enregistrer
+    save_changes: Enregistrer les modifications
+    save_changes_alt: Sauvegarder les changements
+    saving: 'Enregistrement…'
+    saved: Enregistré
+    error: Erreur
+    network_error: Erreur réseau
+    delete: Supprimer
+    edit: Modifier
+    approve: Approuver
+    decline: Refuser
+    validate: Valider
+    test: Tester
+    add: Ajouter
+    none: Aucun
+    loading: Chargement
+    optional: Optionnel
+    not_linked: Non lié
+    linked: Lié
+    linked_as_tpl: 'Connecté en tant que __NAME__'
+    by_user_tpl: 'par __NAME__'
+    open_in_jellyseerr: Ouvrir Jellyseerr
+    manage_in_jellyseerr: Gérer sur Jellyseerr
+    season_tpl: 'Saison __N__'
+    confirm_delete_request: Supprimer cette requête ?
+    confirm_delete_user_tpl: 'Supprimer l''utilisateur "__NAME__" ?'
+    confirm_delete_user_irreversible: Supprimer cet utilisateur ? Cette action est irréversible.
+    confirm_delete_server_tpl: 'Supprimer ce serveur __TYPE__ ? Cette action est irréversible.'
+    error_load: Erreur lors du chargement
+    error_loading_short: Erreur de chargement
+    error_action_failed: 'Erreur : action échouée'
+    minutes: minutes
+    hours: heures
+    seconds: secondes
+  index:
+    request_title: Requêtes
+    stat_total: Total
+    stat_pending: En attente
+    stat_processing: En cours
+    stat_approved: Approuvées
+    stat_declined: Refusées
+    stat_movies_count_tpl: '__N__ films'
+    stat_tv_count_tpl: '__N__ séries'
+    none_with_filter: Aucune requête avec ce filtre
+    none: Aucune requête
+    edit_request_title: Modifier la demande
+    edit_request_title_tpl: 'Modifier — __TITLE__'
+    edit_request_fallback_tpl: 'Requête #__ID__'
+    season_col: Saison
+    episodes_col: Épisodes
+    status_col: Statut
+    not_requested: Non demandée
+    seasons_label: Saisons
+    root_folder_label: Dossier racine
+    quality_profile_label: Profil qualité
+    requested_by_label: Demandé par
+    season_status_available: Disponible
+    season_status_approved: Approuvée
+    season_status_pending: En attente
+    season_status_processing: En cours
+  user_detail:
+    page_title_tpl: '__NAME__ — Jellyseerr'
+    member_since_tpl: 'Membre depuis le __DATE__'
+    requests_count_tpl: '{count, plural, one {# demande} other {# demandes}}'
+    back: Retour
+    tab_general: Paramètres généraux
+    tab_password: Mot de passe
+    tab_perms: Permissions
+    tab_notifs: Notifications
+    tab_linked: Comptes liés
+    tab_requests: Requêtes
+    section_profile: Profil
+    section_regions_languages: Régions & langues
+    section_quotas: Quotas
+    section_information: Informations
+    field_display_name: Nom affiché
+    field_email: E-mail
+    field_discord_id: ID utilisateur Discord
+    field_display_language: Langue d'affichage
+    default_language_french: Langue par défaut (Français)
+    discover_country: Pays à découvrir
+    discover_language: Langue à découvrir
+    streaming_country: Pays de diffusion
+    server_setting: '— Paramètre du serveur —'
+    filter_by_region: Filtrer le contenu par disponibilité régionale
+    filter_by_language: Filtrer le contenu par langue d'origine
+    streaming_by_region: Afficher les sites de streaming par disponibilité
+    all_languages: Toutes les langues
+    languages_count_tpl: '{count, plural, one {# langue} other {# langues}}'
+    languages_count_one: 1 langue
+    languages_count_many_tpl: '__N__ langues'
+    languages_selected_count_tpl: '{count, plural, one {# langue sélectionnée} other {# langues sélectionnées}}'
+    languages_selected_count_one: 1 langue sélectionnée
+    languages_selected_count_many_tpl: '__N__ langues sélectionnées'
+    search_language: 'Rechercher une langue…'
+    movie_request_limit: Limite de demandes de films
+    tv_request_limit: Limite de demandes de séries
+    bypass_global_limit: Contourner la limite globale
+    movies_every: 'film(s) tous les'
+    tv_every: 'série(s) tous les'
+    days: jours
+    info_type: Type
+    info_role: Rôle
+    info_requests: Requêtes
+    info_registered: Inscription
+    info_jellyfin_username: Jellyfin
+    info_jellyfin_id: ID Jellyfin
+    info_user_local: Local
+    info_user_other: Autre
+    role_admin: Admin
+    role_manager: Gestionnaire
+    role_user: Utilisateur
+    password_card_title: Mot de passe
+    password_jellyfin_managed_html: 'Cet utilisateur est connecté via <strong>Jellyfin</strong>. Le mot de passe est géré directement par Jellyfin et ne peut pas être modifié ici.'
+    password_warning: La modification du mot de passe déconnectera l'utilisateur de toutes ses sessions actives. Il devra se reconnecter avec le nouveau mot de passe.
+    new_password: Nouveau mot de passe
+    confirm_password: Confirmer le mot de passe
+    placeholder_min8: 8 caractères minimum
+    save_password: Enregistrer le mot de passe
+    password_min_length: 8 caractères minimum
+    password_mismatch: Les mots de passe ne correspondent pas
+    notifs_unavailable_title: Notifications pas encore disponibles
+    notifs_unavailable_desc: La configuration des notifications utilisateur sera disponible prochainement.
+    select_notif_channel: Sélectionnez un canal de notification ci-dessus pour le configurer.
+    notif_discord_id_label: ID utilisateur Discord
+    notif_discord_id_placeholder: Entrez votre ID Discord
+    notif_telegram_id_label: Chat ID Telegram
+    notif_telegram_id_placeholder: Entrez votre Chat ID
+    notif_telegram_silent: Envoyer silencieusement
+    notif_pushbullet_label: Jeton d'accès Pushbullet
+    notif_pushbullet_placeholder: Jeton d'accès
+    notif_pushover_app_label: Jeton d'application Pushover
+    notif_pushover_app_placeholder: Jeton d'application
+    notif_pushover_user_label: Clé utilisateur Pushover
+    notif_pushover_user_placeholder: Clé utilisateur
+    notif_email_desc: Les notifications par e-mail seront envoyées à l'adresse configurée dans le profil de l'utilisateur.
+    notif_webpush_desc: Les notifications Web Push seront envoyées au navigateur de l'utilisateur.
+    linked_accounts_title: Comptes liés
+    account_type_label: 'Type de compte :'
+    registered_label: 'Inscrit le :'
+    last_modified_label: 'Dernière modification :'
+    no_requests: Aucune requête
+    no_4k_server: Aucun serveur 4K configuré
+    perms:
+      admin_label: Administrateur
+      admin_desc: Accès complet. Toutes les permissions sont automatiquement accordées.
+      manage_users_label: Gérer les utilisateurs
+      manage_users_desc: Autorise à gérer tous les paramètres relatifs aux utilisateurs.
+      manage_requests_label: Gérer les demandes
+      manage_requests_desc: Autorise à gérer les demandes, à les voir, les modifier et les supprimer.
+      advanced_requests_label: Demandes avancées
+      advanced_requests_desc: Autorise à modifier les options avancées lors d'une demande.
+      view_requests_label: Voir les demandes
+      view_requests_desc: Autorise à voir les demandes des autres utilisateurs.
+      view_recents_label: Voir les ajouts récents
+      view_recents_desc: Autorise à voir les médias récemment ajoutés.
+      view_jf_playlists_label: Voir les listes de lecture Jellyfin
+      view_jf_playlists_desc: Autorise à voir les listes de lecture Jellyfin.
+      request_label: Demander
+      request_desc: Autorise à faire des demandes de films et séries.
+      request_movies_label: Demander des films
+      request_movies_desc: Autorise à faire des demandes de films.
+      request_tv_label: Demander des séries
+      request_tv_desc: Autorise à faire des demandes de séries.
+      auto_approve_label: Validation automatique
+      auto_approve_desc: Valide automatiquement toutes les demandes.
+      auto_approve_movies_label: Validation automatique des films
+      auto_approve_movies_desc: Valide automatiquement les demandes de films.
+      auto_approve_tv_label: Validation automatique des séries
+      auto_approve_tv_desc: Valide automatiquement les demandes de séries.
+      auto_request_label: Demande automatique
+      auto_request_desc: Demande automatiquement les médias ajoutés à la liste de surveillance.
+      auto_request_default_desc: Demande automatiquement les médias de la liste de surveillance.
+      auto_request_movies_label: Demande automatique des films
+      auto_request_movies_desc: Demande automatiquement les films ajoutés à la liste de surveillance.
+      auto_request_movies_default_desc: Demande automatiquement les films de la liste de surveillance.
+      auto_request_tv_label: Demande automatique des séries
+      auto_request_tv_desc: Demande automatiquement les séries ajoutées à la liste de surveillance.
+      auto_request_tv_default_desc: Demande automatiquement les séries de la liste de surveillance.
+      request_4k_label: Demander en 4K
+      request_4k_desc: Autorise à demander des médias en 4K.
+      request_movies_4k_label: Demander des films en 4K
+      request_movies_4k_desc: Autorise à demander des films en 4K.
+      request_tv_4k_label: Demander des séries en 4K
+      request_tv_4k_desc: Autorise à demander des séries en 4K.
+      auto_approve_4k_label: Validation automatique 4K
+      auto_approve_4k_desc: Valide automatiquement toutes les demandes en 4K.
+      auto_approve_movies_4k_label: Validation automatique des films 4K
+      auto_approve_movies_4k_desc: Valide automatiquement les demandes de films en 4K.
+      auto_approve_tv_4k_label: Validation automatique des séries 4K
+      auto_approve_tv_4k_desc: Valide automatiquement les demandes de séries en 4K.
+      manage_issues_label: Gérer les problèmes
+      manage_issues_desc: Autorise à gérer les signalements de problèmes.
+      create_issues_label: Créer des problèmes
+      create_issues_desc: Autorise à signaler des problèmes sur les médias.
+      view_issues_label: Voir les problèmes
+      view_issues_desc: Autorise à voir les signalements des autres utilisateurs.
+      manage_blocklist_label: Gérer la liste de blocage
+      manage_blocklist_desc: Autorise à gérer la liste de blocage.
+      view_blocklist_label: Voir la liste de blocage
+      view_blocklist_desc: Autorise à voir la liste de blocage.
+      section_general: Général
+      section_auto_approve: Validation automatique
+      section_auto_request: Demande automatique
+      section_4k: Demander en 4K
+      section_auto_approve_4k: Validation automatique 4K
+      section_issues: Signaler des problèmes
+      section_blocklist: Liste de blocage
+  users:
+    page_title: Utilisateurs
+    user_list_title: Liste des utilisateurs
+    cannot_reach: Impossible de contacter Jellyseerr
+    search_placeholder: 'Rechercher un utilisateur…'
+    create_user: Créer un utilisateur
+    import_jellyfin: Importer Jellyfin
+    col_user: Utilisateur
+    col_perms: Permissions
+    col_requests: Requêtes
+    col_registered: Inscription
+    action_manage: Gérer
+    action_delete: Supprimer
+    cannot_delete_account: Ce compte ne peut pas être supprimé.
+    create_user_modal_title: Créer un utilisateur local
+    create_btn: Créer
+    import_modal_title: Importer depuis Jellyfin
+    import_btn: Importer la sélection
+    local_login_disabled_html: 'Le paramètre <strong>Activer la connexion locale</strong> est actuellement désactivé.'
+    configure_app_url_html: 'Configurez l''<strong>URL de l''application</strong> ainsi que les <strong>notifications par e-mail</strong> pour permettre la génération automatique de mots de passe.'
+    email_required_label: Email
+    email_placeholder: email@example.com
+    username_label: Nom d'utilisateur
+    username_placeholder: Optionnel
+    autogen_password_label: Générer le mot de passe automatiquement
+    autogen_password_hint: Configurez l'URL de l'application ainsi que les notifications par e-mail pour permettre cette option.
+    password_label: Mot de passe
+    password_placeholder: Mot de passe
+    email_required_error: L'email est requis.
+    email_invalid_error: Veuillez entrer une adresse email valide.
+    password_required_error: Le mot de passe est requis.
+    creation_error: Erreur lors de la création.
+    new_jellyfin_login_html: 'Le paramètre <strong>Activer la nouvelle connexion à Jellyfin</strong> est actuellement activé. Les utilisateurs de Jellyfin avec accès à la bibliothèque n''ont pas besoin d''être importés pour se connecter.'
+    all_jellyfin_imported: Tous les utilisateurs Jellyfin sont déjà importés.
+    select_users_to_import: 'Sélectionnez les utilisateurs à importer :'
+    profile_registered_on_tpl: 'Inscrit le __DATE__'
+    stat_requests: Requêtes
+    stat_pending: En attente
+    stat_available: Disponibles
+    stat_movies_tv: Films / Séries
+    profile_tab_requests: Requêtes
+    profile_tab_info: Infos
+    profile_no_requests: Aucune requête
+    profile_email_row: Email
+    profile_jellyfin_name_row: Nom Jellyfin
+    profile_type_row: Type
+    profile_jellyfin_id_row: Jellyfin ID
+    profile_registered_row: Inscription
+    profile_last_modified_row: Dernière modif
+    profile_owner_locked: Compte propriétaire — non modifiable
+    profile_manage_user: Gérer cet utilisateur
+  settings:
+    about:
+      title: À propos
+      app_title: Jellyseerr
+      version: Version
+      update_available: Mise à jour disponible
+      commit: Commit
+      timezone: Fuseau horaire
+      data_path: Chemin des données
+      restart_required: Redémarrage requis
+      stat_media: Médias
+      stat_requests: Requêtes
+      stat_movies: Films
+      stat_series: Séries
+      stat_users: Utilisateurs
+      stat_issues: Signalements
+      requests_detail_title: Détail des requêtes
+      total: Total
+      movies: Films
+      series: Séries
+      pending: En attente
+      processing: En cours
+      approved: Approuvées
+      available: Disponibles
+      declined: Refusées
+      issues_title: Signalements
+      issues_open: Ouverts
+      issues_closed: Fermés
+    general:
+      title: Paramètres généraux
+      subtitle: Configurez les paramètres généraux de votre instance Jellyseerr.
+      section_application: Application
+      section_regions_languages: Régions & Langues
+      section_filters_blocking: Filtres & Blocage
+      section_requests: Demandes
+      app_name: Nom de l'application
+      app_url: URL de l'application
+      api_key: Clé API
+      show: Afficher
+      copy: Copier
+      enable_image_proxy: Activer le proxy d'images
+      enable_image_proxy_desc: Redirige les images externes via le serveur pour la confidentialité.
+      youtube_url: YouTube URL
+      youtube_url_desc: URL personnalisée pour les bandes-annonces.
+      display_language: Langue d'affichage
+      default_language: Par défaut
+      discover_country: Pays à découvrir
+      discover_country_desc: Filtrer le contenu par disponibilité régionale.
+      all_countries: Tous les pays
+      discover_language: Langue à découvrir
+      discover_language_desc: Filtrer par langue d'origine. Plusieurs possibles.
+      all_languages: Toutes les langues
+      streaming_country: Pays de diffusion
+      streaming_country_desc: Sites de streaming par disponibilité.
+      languages_count_tpl: '{count, plural, one {# langue} other {# langues}}'
+      search_placeholder: 'Rechercher…'
+      blocked_tags: Tags de blocage
+      blocked_tags_desc: Les médias avec ces tags seront masqués. Séparés par des virgules.
+      blocked_tags_placeholder: 'tag1, tag2, ...'
+      tags_limit: Limite de tags
+      tags_limit_desc: Nombre maximum de tags de blocage.
+      hide_available: Masquer les médias disponibles
+      hide_available_desc: Masquer les médias déjà disponibles dans la bibliothèque.
+      hide_blocked: Masquer les éléments bloqués
+      hide_blocked_desc: Masquer les médias présents dans la liste de blocage.
+      partial_requests: Demandes partielles
+      partial_requests_desc: Permet de demander des saisons individuelles.
+      special_episodes: Épisodes spéciaux
+      special_episodes_desc: Afficher et permettre les demandes d'épisodes spéciaux.
+    jellyfin:
+      title: Jellyfin
+      readonly_warning_html: 'Par mesure de sécurité, les paramètres Jellyfin ne sont modifiables que depuis <a href="__URL__" target="_blank" style="color:inherit;text-decoration:underline;">l''interface native de Jellyseerr</a>. Cette page est en lecture seule.'
+      libraries_title: Bibliothèques Jellyfin
+      manage_in_jellyseerr: Gérer sur Jellyseerr
+      no_library: Aucune bibliothèque trouvée
+      lib_movies: Films
+      lib_tv: Séries
+      manual_scan_title: Analyse manuelle de la bibliothèque
+      manual_scan_desc: Lance une analyse pour détecter les modifications dans vos bibliothèques. L'analyse automatique est effectuée toutes les 24 heures.
+      run_scan: Lancer l'analyse sur Jellyseerr
+      settings_title: Paramètres Jellyfin
+      internal_name: Nom interne
+      ip_hostname: Adresse IP / Hostname
+      tls_label: Clôture TLS (SSL)
+      api_key: Clé API
+      base_url: URL de base
+      base_url_desc: Chemin de base si Jellyfin est derrière un reverse proxy.
+      external_url: URL externe
+      external_url_desc: URL utilisée pour les liens vers Jellyfin.
+      forgot_password_url: URL de récupération du mot de passe
+      forgot_password_url_desc: Lien vers la page de récupération Jellyfin.
+      not_configured: Non configurée
+      server_id: ID Serveur
+      show: Afficher
+      copy: Copier
+    logs:
+      title: Logs
+      recent_title: Logs récents
+      search_placeholder: 'Rechercher…'
+      level_all: Tous
+      level_debug: Debug
+      level_info: Info
+      level_warn: Warning
+      level_error: Error
+      none: Aucun log.
+      col_date: Date
+      col_level: Niveau
+      col_module: Module
+      col_message: Message
+      pagination_prev: Préc.
+      pagination_next: Suiv.
+    services:
+      title: Services
+      radarr_settings: Paramètres Radarr
+      radarr_subtitle: Gérez vos serveurs Radarr connectés à Jellyseerr.
+      sonarr_settings: Paramètres Sonarr
+      sonarr_subtitle: Gérez vos serveurs Sonarr connectés à Jellyseerr.
+      add_radarr: Ajouter un serveur Radarr
+      add_sonarr: Ajouter un serveur Sonarr
+      default_badge: Par défaut
+      profile: Profil
+      rules_title: Règles de substitution
+      rules_subtitle: Les règles de substitution permettent de rediriger automatiquement les demandes vers un serveur ou profil spécifique en fonction de l'utilisateur, du genre ou de la langue.
+      rules_radarr: Radarr
+      rules_sonarr: Sonarr
+      rules_users_label: 'Utilisateurs:'
+      rules_genre_label: 'Genre:'
+      rules_no_rules: Aucune règle configurée
+      manage_rules: Gérer les règles sur Jellyseerr
+      modal_title: Modifier le service
+      modal_test: Tester
+      modal_save: Sauvegarder
+      modal_delete: Supprimer
+      modal_cancel: Annuler
+      modal_add_title_tpl: 'Ajouter un serveur __TYPE__'
+      modal_edit_title_tpl: 'Modifier le serveur __TYPE__'
+      modal_test_hint_html: 'Remplissez les informations de connexion puis cliquez sur <strong>Tester</strong> pour charger les profils qualité et dossiers racine disponibles.'
+      modal_test_hint_disabled_save: Testez la connexion d'abord pour charger les profils et dossiers
+      section_mode: Mode
+      default_server: Serveur par défaut
+      server_4k: Serveur 4K
+      section_connection: Connexion
+      server_name: Nom du serveur
+      hostname_or_ip: Nom d'hôte ou adresse IP
+      enable_ssl: Activer SSL
+      api_key: Clé API
+      base_url: URL de base
+      external_url: URL externe
+      section_profiles_folders: Profils & Dossiers
+      quality_profile: Profil qualité
+      root_folder: Dossier racine
+      minimum_availability: Disponibilité minimum
+      avail_announced: Annoncé
+      avail_in_cinemas: En salles
+      avail_released: Sorti
+      series_type: Type de série
+      series_type_standard: Standard
+      series_type_daily: Quotidien
+      series_type_anime: Anime
+      section_anime: Anime
+      anime_series_type: Type de série Animé
+      anime_quality_profile: Profil qualité anime
+      anime_root_folder: Dossier racine anime
+      section_folders: Dossiers
+      auto_season_folders: Dossiers automatiques des saisons
+      section_tags: Tags
+      tags_label: Tags
+      tags_placeholder: 'tag1, tag2'
+      anime_tags_label: Tags anime
+      section_options: Options
+      enable_search: Activer la recherche
+      enable_sync: Activer la synchronisation
+      tag_requests: Tagger les demandes
+      test_connection_success: Connexion réussie — profils et dossiers chargés
+      test_connection_success_simple: Connexion réussie
+      test_connection_failed: Connexion échouée
+      testing_label: 'Test…'
+      test_ok: OK
+      test_failed: Échec
+      placeholder_radarr_base: /radarr
+      placeholder_radarr_url: https://radarr.example.com
+    tasks_cache:
+      title: Tâches & Cache
+      jobs_title: Tâches planifiées
+      jobs_count_tpl: '{count, plural, one {# tâche} other {# tâches}}'
+      col_task: Tâche
+      col_frequency: Fréquence
+      col_next: Prochaine exécution
+      col_status: Statut
+      col_actions: Actions
+      status_running: En cours
+      status_idle: Inactif
+      status_error: Erreur
+      action_run: Exécuter
+      action_cancel: Annuler
+      action_edit_schedule: Modifier
+      cache_title: Cache API
+      flush_all: Vider tout
+      cache_col_service: Service
+      cache_col_efficiency: Efficacité
+      cache_col_cached: En cache
+      cache_col_misses: Recalculés
+      cache_col_keys: Clés
+      cache_col_size: Taille
+      cache_flush_one: Vider ce cache
+      images_title: Cache Images
+      images_col_type: Type
+      images_col_count: Images
+      images_col_size: Taille
+      flush_confirm: Vider tout le cache Jellyseerr ?
+      flush_done: Cache vidé
+      flush_progress: 'Vidage…'
+      flush_network_error: Erreur réseau
+      modal_title: Modifier la planification
+      cron_type_label: Type de fréquence
+      cron_type_seconds: Toutes les X secondes
+      cron_type_minutes: Toutes les X minutes
+      cron_type_hours: Toutes les X heures
+      cron_type_daily: Chaque jour à
+      cron_type_weekly: Chaque semaine
+      cron_type_custom: Expression cron personnalisée
+      cron_seconds: Secondes
+      cron_minutes: Minutes
+      cron_hours: Heures
+      cron_hour_field: Heure
+      cron_day_and_hour: Jour et heure
+      cron_custom_label: Expression Cron (6 champs)
+      cron_custom_placeholder: 0 */5 * * * *
+      cron_custom_help: Sec Min Heure Jour Mois JourSem
+      cron_expression: 'Expression cron :'
+      day_monday: Lundi
+      day_tuesday: Mardi
+      day_wednesday: Mercredi
+      day_thursday: Jeudi
+      day_friday: Vendredi
+      day_saturday: Samedi
+      day_sunday: Dimanche
+      mins_15: 15 secondes
+      mins_30: 30 secondes
+      mins_45: 45 secondes
+      min_1: 1 minute
+      min_2: 2 minutes
+      min_5: 5 minutes
+      min_10: 10 minutes
+      min_15: 15 minutes
+      min_30: 30 minutes
+      h_1: 1 heure
+      h_2: 2 heures
+      h_3: 3 heures
+      h_4: 4 heures
+      h_6: 6 heures
+      h_8: 8 heures
+      h_12: 12 heures
+      modal_save: Sauvegarder
+      modal_cancel: Annuler
+    updates:
+      title: Mises à jour
+      docker_warning_html: 'Jellyseerr tourne en conteneur Docker. Pour mettre à jour, mettez à jour l''image Docker (ex: <code>docker pull</code> ou via Portainer).'
+      installed_version: Version installée
+      update_available: Mise à jour disponible
+      up_to_date: À jour
+      history_title: Historique des versions
+      cant_fetch_releases: Impossible de récupérer les releases GitHub.
+      col_version: Version
+      col_release_date: Date de sortie
+      col_status: Statut
+      installed_badge: Installée
+      status_installed: Installée
+      status_available: Disponible
+      status_old: Ancienne
+      view_on_github: Voir sur GitHub
+      changes_security: Sécurité
+      changes_features: Nouveautés
+      changes_fixes: Corrections
+      changes_refactor: Refactoring
+      changes_performance: Performance
+    settings_users:
+      title: Paramètres utilisateur
+      subtitle: Configurez les paramètres par défaut pour les utilisateurs.
+      section_auth: Authentification
+      enable_local_login: Activer la connexion locale
+      enable_local_login_desc: Permet aux utilisateurs de se connecter avec un compte local.
+      enable_jellyfin_login: Activer la connexion à Jellyfin
+      enable_jellyfin_login_desc: Permet aux utilisateurs Jellyfin de se connecter automatiquement.
+      allow_new_jellyfin_login: Autoriser nouvelle connexion Jellyfin
+      allow_new_jellyfin_login_desc: Permet aux utilisateurs Jellyfin de créer un compte en se connectant pour la première fois.
+      section_global_quotas: Limites globales de demandes
+      global_movie_limit: Limite globale de demandes de films
+      global_tv_limit: Limite globale de demandes de séries
+      movies_every: 'film(s) tous les'
+      tv_every: 'série(s) tous les'
+      days: jours
+      section_default_perms: Permissions par défaut
+      perm_admin: Administrateur
+      perm_admin_desc: Accès complet. Toutes les permissions sont automatiquement accordées.
+      perm_manage_users: Gérer les utilisateurs
+      perm_manage_users_desc: Autorise à gérer tous les paramètres relatifs aux utilisateurs.
+      perm_manage_requests: Gérer les demandes
+      perm_manage_requests_desc: Autorise à gérer les demandes, à les voir, les modifier et les supprimer.
+      perm_advanced_request: Demandes avancées
+      perm_advanced_request_desc: 'Autorise à modifier les options avancées lors d''une demande.'
+      perm_view_requests: Voir les demandes
+      perm_view_requests_desc: Autorise à voir les demandes des autres utilisateurs.
+      perm_view_recent: Voir les ajouts récents
+      perm_view_recent_desc: Autorise à voir les médias récemment ajoutés.
+      perm_view_jellyfin_playlists: Voir les listes de lecture Jellyfin
+      perm_view_jellyfin_playlists_desc: Autorise à voir les listes de lecture Jellyfin.
+      perm_request: Demander
+      perm_request_desc: Autorise à faire des demandes de films et séries.
+      perm_request_movies: Demander des films
+      perm_request_movies_desc: Autorise à faire des demandes de films.
+      perm_request_tv: Demander des séries
+      perm_request_tv_desc: Autorise à faire des demandes de séries.
+      section_auto_approve: Validation automatique
+      perm_auto_approve: Validation automatique
+      perm_auto_approve_desc: Valide automatiquement toutes les demandes.
+      perm_auto_approve_movies: Validation automatique des films
+      perm_auto_approve_movies_desc: Valide automatiquement les demandes de films.
+      perm_auto_approve_tv: Validation automatique des séries
+      perm_auto_approve_tv_desc: Valide automatiquement les demandes de séries.
+      section_auto_request: Demande automatique
+      perm_auto_request: Demande automatique
+      perm_auto_request_desc: Demande automatiquement les médias de la liste de surveillance.
+      perm_auto_request_movies: Demande automatique des films
+      perm_auto_request_movies_desc: Demande automatiquement les films de la liste de surveillance.
+      perm_auto_request_tv: Demande automatique des séries
+      perm_auto_request_tv_desc: Demande automatiquement les séries de la liste de surveillance.
+      section_request_4k: Demander en 4K
+      perm_request_4k: Demander en 4K
+      perm_request_4k_desc: Autorise à demander des médias en 4K.
+      perm_request_4k_movies: Demander des films en 4K
+      perm_request_4k_movies_desc: Autorise à demander des films en 4K.
+      perm_request_4k_tv: Demander des séries en 4K
+      perm_request_4k_tv_desc: Autorise à demander des séries en 4K.
+      section_auto_approve_4k: Validation automatique 4K
+      perm_auto_approve_4k: Validation automatique 4K
+      perm_auto_approve_4k_desc: Valide automatiquement toutes les demandes en 4K.
+      perm_auto_approve_4k_movies: Validation automatique des films 4K
+      perm_auto_approve_4k_movies_desc: Valide automatiquement les demandes de films en 4K.
+      perm_auto_approve_4k_tv: Validation automatique des séries 4K
+      perm_auto_approve_4k_tv_desc: Valide automatiquement les demandes de séries en 4K.
+      section_issues: Signaler des problèmes
+      perm_manage_issues: Gérer les problèmes
+      perm_manage_issues_desc: Autorise à gérer les signalements de problèmes.
+      perm_create_issues: Créer des problèmes
+      perm_create_issues_desc: Autorise à signaler des problèmes sur les médias.
+      perm_view_issues: Voir les problèmes
+      perm_view_issues_desc: Autorise à voir les signalements des autres utilisateurs.
+      section_blocklist: Liste de blocage
+      perm_manage_blocklist: Gérer la liste de blocage
+      perm_manage_blocklist_desc: Autorise à gérer la liste de blocage.
+      perm_view_blocklist: Voir la liste de blocage
+      perm_view_blocklist_desc: Autorise à voir la liste de blocage.
+      save_changes: Sauvegarder les changements
+      saved: Enregistré
+      error: Erreur
+
 watchlist_page:
   back_to_discover: Découverte
   count_titles: '{count, plural, one {# titre} other {# titres}}'

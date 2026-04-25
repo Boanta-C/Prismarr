@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
-{% block title %}Mises a jour — Jellyseerr{% endblock %}
-{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> Mises a jour{% endblock %}
+{% block title %}{{ 'jellyseerr.settings.updates.title'|trans }} — Jellyseerr{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> {{ 'jellyseerr.settings.updates.title'|trans }}{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
 {% block body %}
@@ -12,7 +12,7 @@
 {# ── Bandeau Docker ── #}
 <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" style="font-size:.82rem;">
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
-    <div>Jellyseerr tourne en conteneur Docker. Pour mettre a jour, mettez a jour l'image Docker (ex: <code>docker pull</code> ou via Portainer).</div>
+    <div>{{ 'jellyseerr.settings.updates.docker_warning_html'|trans|raw }}</div>
 </div>
 
 {# ── Version actuelle ── #}
@@ -23,14 +23,14 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 8l0 4"/><path d="M12 16l.01 0"/></svg>
             </div>
             <div>
-                <div class="text-secondary small mb-1">Version installee</div>
+                <div class="text-secondary small mb-1">{{ 'jellyseerr.settings.updates.installed_version'|trans }}</div>
                 <div class="fw-bold fs-4" style="color:#a259ff;">{{ status.version ?? '?' }}</div>
             </div>
             <div class="ms-auto">
                 {% if status.updateAvailable ?? false %}
-                    <span class="badge bg-warning-lt text-warning fs-6">Mise a jour disponible</span>
+                    <span class="badge bg-warning-lt text-warning fs-6">{{ 'jellyseerr.settings.updates.update_available'|trans }}</span>
                 {% else %}
-                    <span class="badge bg-success-lt text-success fs-6">A jour</span>
+                    <span class="badge bg-success-lt text-success fs-6">{{ 'jellyseerr.settings.updates.up_to_date'|trans }}</span>
                 {% endif %}
             </div>
         </div>
@@ -40,7 +40,7 @@
 {# ── Liste des versions ── #}
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Historique des versions</h3>
+        <h3 class="card-title">{{ 'jellyseerr.settings.updates.history_title'|trans }}</h3>
         <div class="card-options">
             <span class="badge bg-secondary-lt">{{ releases|length }}</span>
         </div>
@@ -49,16 +49,16 @@
         {% if releases is empty %}
             <div class="text-muted text-center py-5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="mb-2 text-success d-block mx-auto"><path d="M5 12l5 5l10 -10"/></svg>
-                Impossible de recuperer les releases GitHub.
+                {{ 'jellyseerr.settings.updates.cant_fetch_releases'|trans }}
             </div>
         {% else %}
             <div class="table-responsive">
                 <table class="table table-vcenter table-sm mb-0">
                     <thead>
                         <tr>
-                            <th>Version</th>
-                            <th>Date de sortie</th>
-                            <th>Statut</th>
+                            <th>{{ 'jellyseerr.settings.updates.col_version'|trans }}</th>
+                            <th>{{ 'jellyseerr.settings.updates.col_release_date'|trans }}</th>
+                            <th>{{ 'jellyseerr.settings.updates.col_status'|trans }}</th>
                             <th class="text-end"></th>
                         </tr>
                     </thead>
@@ -68,7 +68,7 @@
                             <td class="fw-medium">
                                 v{{ rel.version }}
                                 {% if rel.current %}
-                                    <span class="badge bg-purple-lt ms-1" style="font-size:.65rem">Installee</span>
+                                    <span class="badge bg-purple-lt ms-1" style="font-size:.65rem">{{ 'jellyseerr.settings.updates.installed_badge'|trans }}</span>
                                 {% endif %}
                             </td>
                             <td class="text-muted small">
@@ -76,13 +76,13 @@
                             </td>
                             <td>
                                 {% if rel.current %}
-                                    <span class="badge bg-success-lt text-success">Installee</span>
+                                    <span class="badge bg-success-lt text-success">{{ 'jellyseerr.settings.updates.status_installed'|trans }}</span>
                                 {% else %}
-                                    <span class="badge bg-secondary-lt">{{ loop.first and not rel.current ? 'Disponible' : 'Ancienne' }}</span>
+                                    <span class="badge bg-secondary-lt">{{ loop.first and not rel.current ? ('jellyseerr.settings.updates.status_available'|trans) : ('jellyseerr.settings.updates.status_old'|trans) }}</span>
                                 {% endif %}
                             </td>
                             <td class="text-end">
-                                <a href="{{ rel.url }}" target="_blank" class="btn btn-sm btn-ghost-secondary" title="Voir sur GitHub">
+                                <a href="{{ rel.url }}" target="_blank" class="btn btn-sm btn-ghost-secondary" title="{{ 'jellyseerr.settings.updates.view_on_github'|trans }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>
                                 </a>
                             </td>
@@ -93,7 +93,7 @@
                             <td colspan="4" style="padding:.5rem 1rem;background:rgba(255,255,255,.015);">
                                 {% if rel.sections.security is defined %}
                                 <div class="mb-2">
-                                    <div class="small fw-semibold" style="color:#ef4444;">Securite</div>
+                                    <div class="small fw-semibold" style="color:#ef4444;">{{ 'jellyseerr.settings.updates.changes_security'|trans }}</div>
                                     <ul class="mb-0" style="font-size:.75rem;padding-left:1.2rem;color:var(--tblr-text-secondary);">
                                         {% for item in rel.sections.security %}<li>{{ item }}</li>{% endfor %}
                                     </ul>
@@ -101,7 +101,7 @@
                                 {% endif %}
                                 {% if rel.sections.features is defined %}
                                 <div class="mb-2">
-                                    <div class="small fw-semibold" style="color:#22c55e;">Nouveautes</div>
+                                    <div class="small fw-semibold" style="color:#22c55e;">{{ 'jellyseerr.settings.updates.changes_features'|trans }}</div>
                                     <ul class="mb-0" style="font-size:.75rem;padding-left:1.2rem;color:var(--tblr-text-secondary);">
                                         {% for item in rel.sections.features %}<li>{{ item }}</li>{% endfor %}
                                     </ul>
@@ -109,7 +109,7 @@
                                 {% endif %}
                                 {% if rel.sections.fixes is defined %}
                                 <div class="mb-2">
-                                    <div class="small fw-semibold" style="color:#38bdf8;">Corrections</div>
+                                    <div class="small fw-semibold" style="color:#38bdf8;">{{ 'jellyseerr.settings.updates.changes_fixes'|trans }}</div>
                                     <ul class="mb-0" style="font-size:.75rem;padding-left:1.2rem;color:var(--tblr-text-secondary);">
                                         {% for item in rel.sections.fixes %}<li>{{ item }}</li>{% endfor %}
                                     </ul>
@@ -117,7 +117,7 @@
                                 {% endif %}
                                 {% if rel.sections.refactor is defined %}
                                 <div class="mb-2">
-                                    <div class="small fw-semibold" style="color:#f59e0b;">Refactoring</div>
+                                    <div class="small fw-semibold" style="color:#f59e0b;">{{ 'jellyseerr.settings.updates.changes_refactor'|trans }}</div>
                                     <ul class="mb-0" style="font-size:.75rem;padding-left:1.2rem;color:var(--tblr-text-secondary);">
                                         {% for item in rel.sections.refactor %}<li>{{ item }}</li>{% endfor %}
                                     </ul>
@@ -125,7 +125,7 @@
                                 {% endif %}
                                 {% if rel.sections.performance is defined %}
                                 <div>
-                                    <div class="small fw-semibold" style="color:#a259ff;">Performance</div>
+                                    <div class="small fw-semibold" style="color:#a259ff;">{{ 'jellyseerr.settings.updates.changes_performance'|trans }}</div>
                                     <ul class="mb-0" style="font-size:.75rem;padding-left:1.2rem;color:var(--tblr-text-secondary);">
                                         {% for item in rel.sections.performance %}<li>{{ item }}</li>{% endfor %}
                                     </ul>

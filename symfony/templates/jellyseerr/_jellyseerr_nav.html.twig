@@ -3,14 +3,14 @@
 
 <div class="d-flex align-items-center gap-2 flex-wrap w-100">
     {% set filters = [
-        {key: 'all',         label: 'Toutes',                color: 'primary',  count: counts.total ?? 0},
-        {key: 'pending',     label: 'En attente',             color: 'warning',  count: counts.pending ?? 0},
-        {key: 'processing',  label: 'En cours',               color: 'purple',   count: counts.processing ?? 0},
-        {key: 'approved',    label: 'Approuvées',             color: 'info',     count: counts.approved ?? 0},
-        {key: 'available',   label: 'Disponibles',            color: 'success',  count: null},
-        {key: 'partial',     label: 'Partiellement dispo',    color: 'cyan',     count: null},
-        {key: 'unavailable', label: 'Indisponibles',          color: 'orange',   count: null},
-        {key: 'failed',      label: 'Échouées',               color: 'danger',   count: null},
+        {key: 'all',         label: 'jellyseerr.filters.all'|trans,         color: 'primary',  count: counts.total ?? 0},
+        {key: 'pending',     label: 'jellyseerr.filters.pending'|trans,     color: 'warning',  count: counts.pending ?? 0},
+        {key: 'processing',  label: 'jellyseerr.filters.processing'|trans,  color: 'purple',   count: counts.processing ?? 0},
+        {key: 'approved',    label: 'jellyseerr.filters.approved'|trans,    color: 'info',     count: counts.approved ?? 0},
+        {key: 'available',   label: 'jellyseerr.filters.available'|trans,   color: 'success',  count: null},
+        {key: 'partial',     label: 'jellyseerr.filters.partial'|trans,     color: 'cyan',     count: null},
+        {key: 'unavailable', label: 'jellyseerr.filters.unavailable'|trans, color: 'orange',   count: null},
+        {key: 'failed',      label: 'jellyseerr.filters.failed'|trans,      color: 'danger',   count: null},
     ] %}
 
     {% for f in filters %}
@@ -25,14 +25,14 @@
 
     <div class="ms-auto d-flex align-items-center gap-2">
         <div class="btn-group btn-group-sm" id="js-type-filter">
-            <button class="btn btn-sm js-type-btn active" data-type="all">Tout</button>
-            <button class="btn btn-sm js-type-btn" data-type="movie" style="color:#ef4444;">Films</button>
-            <button class="btn btn-sm js-type-btn" data-type="tv" style="color:#38bdf8;">Séries</button>
+            <button class="btn btn-sm js-type-btn active" data-type="all">{{ 'jellyseerr.filters.type_all'|trans }}</button>
+            <button class="btn btn-sm js-type-btn" data-type="movie" style="color:#ef4444;">{{ 'jellyseerr.filters.type_movie'|trans }}</button>
+            <button class="btn btn-sm js-type-btn" data-type="tv" style="color:#38bdf8;">{{ 'jellyseerr.filters.type_tv'|trans }}</button>
         </div>
 
         <select class="form-select form-select-sm" style="width:auto;" id="js-sort-select">
-            <option value="added" {{ (sort ?? 'added') == 'added' ? 'selected' }}>Plus récentes</option>
-            <option value="modified" {{ (sort ?? 'added') == 'modified' ? 'selected' }}>Dernière modif</option>
+            <option value="added" {{ (sort ?? 'added') == 'added' ? 'selected' }}>{{ 'jellyseerr.filters.sort_added'|trans }}</option>
+            <option value="modified" {{ (sort ?? 'added') == 'modified' ? 'selected' }}>{{ 'jellyseerr.filters.sort_modified'|trans }}</option>
         </select>
     </div>
 </div>

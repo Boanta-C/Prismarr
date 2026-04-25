@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
-{% block title %}Services — Paramètres{% endblock %}
-{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> Services{% endblock %}
+{% block title %}{{ 'jellyseerr.settings.services.title'|trans }} — {{ 'jellyseerr.nav.settings'|trans }}{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> {{ 'jellyseerr.settings.services.title'|trans }}{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
 {% block body %}
@@ -18,7 +18,7 @@
                     <div>
                         <div class="d-flex align-items-center gap-2">
                             <strong style="font-size:1rem;">{{ srv.name ?? type }}</strong>
-                            {% if srv.isDefault ?? false %}<span class="badge bg-purple-lt text-purple" style="font-size:.55rem;">Par défaut</span>{% endif %}
+                            {% if srv.isDefault ?? false %}<span class="badge bg-purple-lt text-purple" style="font-size:.55rem;">{{ 'jellyseerr.settings.services.default_badge'|trans }}</span>{% endif %}
                             {% if srv.is4k ?? false %}<span class="badge bg-yellow-lt text-yellow" style="font-size:.55rem;">4K</span>{% endif %}
                         </div>
                         <div class="text-secondary" style="font-size:.8rem;">{{ srv.hostname ?? '' }}:{{ srv.port ?? '' }}{% if srv.useSsl ?? false %} (SSL){% endif %}</div>
@@ -26,7 +26,7 @@
                     <div class="d-flex align-items-center gap-3" style="font-size:.78rem;">
                         <div class="text-center">
                             <div style="font-weight:600;">{{ srv.activeProfileName ?? '?' }}</div>
-                            <div class="text-secondary" style="font-size:.68rem;">Profil</div>
+                            <div class="text-secondary" style="font-size:.68rem;">{{ 'jellyseerr.settings.services.profile'|trans }}</div>
                         </div>
                     </div>
                 </div>
@@ -55,14 +55,14 @@
                             data-folders="{{ (svc.rootFolders ?? [])|json_encode|e('html_attr') }}"
                             data-bs-toggle="modal" data-bs-target="#modal-edit-srv">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"/><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"/><path d="M16 5l3 3"/></svg>
-                        Modifier
+                        {{ 'jellyseerr.common.edit'|trans }}
                     </button>
                     <button class="btn btn-sm btn-outline-success js-test-srv"
                             data-type="{{ type }}" data-srv-id="{{ srv.id ?? 0 }}"
                             data-hostname="{{ srv.hostname ?? '' }}" data-port="{{ srv.port ?? '' }}"
                             data-ssl="{{ srv.useSsl ?? false ? '1' : '0' }}" data-base="{{ srv.baseUrl ?? '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10 -10"/></svg>
-                        Tester
+                        {{ 'jellyseerr.common.test'|trans }}
                     </button>
                 </div>
             </div>
@@ -74,10 +74,10 @@
 <div class="d-flex align-items-center justify-content-between mb-2">
     <h3 style="font-weight:700;font-size:1rem;">
         <svg width="20" height="20" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="me-2" style="vertical-align:-3px;"><g transform="translate(70 21)"><path d="M105.3 154.9L112.8 869.5C52.7 877 7.5 846.9 7.5 786.8L0 192.6C0 4.5 173-40.6 278.3 34.6L812.3 343C887.5 395.6 902.6 493.4 865 561.1C857.5 508.5 834.9 478.4 789.8 448.3L188 109.8C142.9 79.7 105.3 87.2 105.3 154.9Z" fill="#FFC230"/></g></svg>
-        Paramètres Radarr
+        {{ 'jellyseerr.settings.services.radarr_settings'|trans }}
     </h3>
 </div>
-<p class="text-secondary mb-3" style="font-size:.8rem;">Gérez vos serveurs Radarr connectés à Jellyseerr.</p>
+<p class="text-secondary mb-3" style="font-size:.8rem;">{{ 'jellyseerr.settings.services.radarr_subtitle'|trans }}</p>
 <div class="row g-3 mb-2">
     {% for srv in radarr %}
         {{ _self.srvCard(srv, 'radarr', radarrProfiles[srv.id ?? 0] ?? {}) }}
@@ -86,7 +86,7 @@
 <div class="mb-4">
     <button class="btn btn-sm btn-outline-secondary js-add-srv" data-type="radarr" data-bs-toggle="modal" data-bs-target="#modal-edit-srv">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
-        Ajouter un serveur Radarr
+        {{ 'jellyseerr.settings.services.add_radarr'|trans }}
     </button>
 </div>
 
@@ -94,10 +94,10 @@
 <div class="d-flex align-items-center justify-content-between mb-2">
     <h3 style="font-weight:700;font-size:1rem;">
         <svg width="20" height="20" viewBox="0 0 216.7 216.9" xmlns="http://www.w3.org/2000/svg" class="me-2" style="vertical-align:-3px;"><path d="M194.65 42.5l-22.4 22.4C159.15 78 158 89.4 158 109.5c0 17.93 2.85 34.35 16.2 47.7l19 18.95c-2.5 3.07-5.2 6.07-8.1 9-.7.83-1.48 1.6-2.35 2.3-2.53 2.5-5.17 4.82-7.9 6.95l-17.55-17.55c-15.6-15.6-28-17.1-48.6-17.1-19.77 0-33.22 1.82-47.7 16.3l-18.55 18.6c-3.77-2.87-7.33-6.03-10.7-9.5-2.8-2.8-5.42-5.67-7.85-8.6l19.15-19.2c13.85-13.85 16.1-29.92 16.1-47.85 0-17.5-2.87-33.82-15.6-46.55L22.45 43.85c2.83-3.6 5.92-7.07 9.25-10.4 2.93-2.87 5.93-5.55 9-8.05L61.1 43.85C74.1 56.85 90.77 60.2 108.7 60.2c18.47 0 35.08-3.58 48.6-17.1l19.3-19.25c2.9 2.37 5.73 4.93 8.5 7.7 3.47 3.53 6.65 7.18 9.55 10.95z" fill="#0CF"/><circle cx="108.35" cy="108.45" r="29.5" fill="#0CF" opacity=".8"/></svg>
-        Paramètres Sonarr
+        {{ 'jellyseerr.settings.services.sonarr_settings'|trans }}
     </h3>
 </div>
-<p class="text-secondary mb-3" style="font-size:.8rem;">Gérez vos serveurs Sonarr connectés à Jellyseerr.</p>
+<p class="text-secondary mb-3" style="font-size:.8rem;">{{ 'jellyseerr.settings.services.sonarr_subtitle'|trans }}</p>
 <div class="row g-3 mb-2">
     {% for srv in sonarr %}
         {{ _self.srvCard(srv, 'sonarr', sonarrProfiles[srv.id ?? 0] ?? {}) }}
@@ -106,16 +106,16 @@
 <div class="mb-4">
     <button class="btn btn-sm btn-outline-secondary js-add-srv" data-type="sonarr" data-bs-toggle="modal" data-bs-target="#modal-edit-srv">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
-        Ajouter un serveur Sonarr
+        {{ 'jellyseerr.settings.services.add_sonarr'|trans }}
     </button>
 </div>
 
 {# ── Règles de substitution ── #}
 <h3 style="font-weight:700;font-size:1rem;margin-bottom:.75rem;">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="2" class="me-2" style="vertical-align:-3px;"><path d="M3 12h4l3 8l4 -16l3 8h4"/></svg>
-    Règles de substitution
+    {{ 'jellyseerr.settings.services.rules_title'|trans }}
 </h3>
-<p class="text-secondary mb-3" style="font-size:.8rem;">Les règles de substitution permettent de rediriger automatiquement les demandes vers un serveur ou profil spécifique en fonction de l'utilisateur, du genre ou de la langue.</p>
+<p class="text-secondary mb-3" style="font-size:.8rem;">{{ 'jellyseerr.settings.services.rules_subtitle'|trans }}</p>
 
 {% if rules|length > 0 %}
     {% for rule in rules %}
@@ -123,25 +123,25 @@
             <div class="card-body d-flex align-items-center justify-content-between" style="font-size:.85rem;">
                 <div class="d-flex align-items-center gap-3 flex-wrap">
                     {% if rule.radarrServiceId is not null %}
-                        <span class="badge bg-yellow-lt text-yellow">Radarr</span>
+                        <span class="badge bg-yellow-lt text-yellow">{{ 'jellyseerr.settings.services.rules_radarr'|trans }}</span>
                     {% elseif rule.sonarrServiceId is not null %}
-                        <span class="badge bg-cyan-lt text-cyan">Sonarr</span>
+                        <span class="badge bg-cyan-lt text-cyan">{{ 'jellyseerr.settings.services.rules_sonarr'|trans }}</span>
                     {% endif %}
-                    {% if rule.users %}<span class="text-secondary">Utilisateurs: <strong>{{ rule.users }}</strong></span>{% endif %}
-                    {% if rule.genre %}<span class="text-secondary">Genre: <strong>{{ rule.genre }}</strong></span>{% endif %}
+                    {% if rule.users %}<span class="text-secondary">{{ 'jellyseerr.settings.services.rules_users_label'|trans }} <strong>{{ rule.users }}</strong></span>{% endif %}
+                    {% if rule.genre %}<span class="text-secondary">{{ 'jellyseerr.settings.services.rules_genre_label'|trans }} <strong>{{ rule.genre }}</strong></span>{% endif %}
                     {% if rule.rootFolder %}<span class="text-secondary">→ <strong>{{ rule.rootFolder }}</strong></span>{% endif %}
                 </div>
             </div>
         </div>
     {% endfor %}
 {% else %}
-    <div class="card mb-2"><div class="card-body text-center py-3 text-secondary" style="font-size:.85rem;">Aucune règle configurée</div></div>
+    <div class="card mb-2"><div class="card-body text-center py-3 text-secondary" style="font-size:.85rem;">{{ 'jellyseerr.settings.services.rules_no_rules'|trans }}</div></div>
 {% endif %}
 
 <div class="mb-4">
     <a href="http://192.168.10.220:5055/settings/services" target="_blank" class="btn btn-sm btn-outline-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>
-        Gérer les règles sur Jellyseerr
+        {{ 'jellyseerr.settings.services.manage_rules'|trans }}
     </a>
 </div>
 
@@ -150,16 +150,16 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width:700px;">
         <div class="modal-content" style="border:0;border-radius:.75rem;">
             <div class="modal-header">
-                <h5 class="modal-title" id="js-modal-title">Modifier le service</h5>
+                <h5 class="modal-title" id="js-modal-title">{{ 'jellyseerr.settings.services.modal_title'|trans }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="js-modal-body" style="max-height:70vh;overflow-y:auto;"></div>
             <div class="modal-footer">
                 <div id="js-modal-status" class="me-auto small"></div>
-                <button class="btn btn-outline-danger" id="js-modal-delete" style="display:none;">Supprimer</button>
-                <button class="btn" data-bs-dismiss="modal">Annuler</button>
-                <button class="btn btn-outline-success" id="js-modal-test">Tester</button>
-                <button class="btn btn-primary" id="js-modal-save" style="background:#a259ff;border-color:#a259ff;">Sauvegarder</button>
+                <button class="btn btn-outline-danger" id="js-modal-delete" style="display:none;">{{ 'jellyseerr.settings.services.modal_delete'|trans }}</button>
+                <button class="btn" data-bs-dismiss="modal">{{ 'jellyseerr.settings.services.modal_cancel'|trans }}</button>
+                <button class="btn btn-outline-success" id="js-modal-test">{{ 'jellyseerr.settings.services.modal_test'|trans }}</button>
+                <button class="btn btn-primary" id="js-modal-save" style="background:#a259ff;border-color:#a259ff;">{{ 'jellyseerr.settings.services.modal_save'|trans }}</button>
             </div>
         </div>
     </div>
@@ -171,6 +171,62 @@
 {% block javascripts %}
 <script>
 (function(){
+    var _I18N = {
+        addTitleTpl: {{ 'jellyseerr.settings.services.modal_add_title_tpl'|trans|json_encode|raw }},
+        editTitleTpl: {{ 'jellyseerr.settings.services.modal_edit_title_tpl'|trans|json_encode|raw }},
+        testHintHtml: {{ 'jellyseerr.settings.services.modal_test_hint_html'|trans|json_encode|raw }},
+        testHintDisabled: {{ 'jellyseerr.settings.services.modal_test_hint_disabled_save'|trans|json_encode|raw }},
+        sectionMode: {{ 'jellyseerr.settings.services.section_mode'|trans|json_encode|raw }},
+        defaultServer: {{ 'jellyseerr.settings.services.default_server'|trans|json_encode|raw }},
+        server4k: {{ 'jellyseerr.settings.services.server_4k'|trans|json_encode|raw }},
+        sectionConnection: {{ 'jellyseerr.settings.services.section_connection'|trans|json_encode|raw }},
+        serverName: {{ 'jellyseerr.settings.services.server_name'|trans|json_encode|raw }},
+        hostnameOrIp: {{ 'jellyseerr.settings.services.hostname_or_ip'|trans|json_encode|raw }},
+        enableSsl: {{ 'jellyseerr.settings.services.enable_ssl'|trans|json_encode|raw }},
+        apiKey: {{ 'jellyseerr.settings.services.api_key'|trans|json_encode|raw }},
+        baseUrl: {{ 'jellyseerr.settings.services.base_url'|trans|json_encode|raw }},
+        externalUrl: {{ 'jellyseerr.settings.services.external_url'|trans|json_encode|raw }},
+        sectionProfilesFolders: {{ 'jellyseerr.settings.services.section_profiles_folders'|trans|json_encode|raw }},
+        qualityProfile: {{ 'jellyseerr.settings.services.quality_profile'|trans|json_encode|raw }},
+        rootFolder: {{ 'jellyseerr.settings.services.root_folder'|trans|json_encode|raw }},
+        minimumAvailability: {{ 'jellyseerr.settings.services.minimum_availability'|trans|json_encode|raw }},
+        availAnnounced: {{ 'jellyseerr.settings.services.avail_announced'|trans|json_encode|raw }},
+        availInCinemas: {{ 'jellyseerr.settings.services.avail_in_cinemas'|trans|json_encode|raw }},
+        availReleased: {{ 'jellyseerr.settings.services.avail_released'|trans|json_encode|raw }},
+        seriesType: {{ 'jellyseerr.settings.services.series_type'|trans|json_encode|raw }},
+        seriesTypeStandard: {{ 'jellyseerr.settings.services.series_type_standard'|trans|json_encode|raw }},
+        seriesTypeDaily: {{ 'jellyseerr.settings.services.series_type_daily'|trans|json_encode|raw }},
+        seriesTypeAnime: {{ 'jellyseerr.settings.services.series_type_anime'|trans|json_encode|raw }},
+        sectionAnime: {{ 'jellyseerr.settings.services.section_anime'|trans|json_encode|raw }},
+        animeSeriesType: {{ 'jellyseerr.settings.services.anime_series_type'|trans|json_encode|raw }},
+        animeQualityProfile: {{ 'jellyseerr.settings.services.anime_quality_profile'|trans|json_encode|raw }},
+        animeRootFolder: {{ 'jellyseerr.settings.services.anime_root_folder'|trans|json_encode|raw }},
+        sectionFolders: {{ 'jellyseerr.settings.services.section_folders'|trans|json_encode|raw }},
+        autoSeasonFolders: {{ 'jellyseerr.settings.services.auto_season_folders'|trans|json_encode|raw }},
+        sectionTags: {{ 'jellyseerr.settings.services.section_tags'|trans|json_encode|raw }},
+        tagsLabel: {{ 'jellyseerr.settings.services.tags_label'|trans|json_encode|raw }},
+        tagsPlaceholder: {{ 'jellyseerr.settings.services.tags_placeholder'|trans|json_encode|raw }},
+        animeTagsLabel: {{ 'jellyseerr.settings.services.anime_tags_label'|trans|json_encode|raw }},
+        sectionOptions: {{ 'jellyseerr.settings.services.section_options'|trans|json_encode|raw }},
+        enableSearch: {{ 'jellyseerr.settings.services.enable_search'|trans|json_encode|raw }},
+        enableSync: {{ 'jellyseerr.settings.services.enable_sync'|trans|json_encode|raw }},
+        tagRequests: {{ 'jellyseerr.settings.services.tag_requests'|trans|json_encode|raw }},
+        confirmDeleteTpl: {{ 'jellyseerr.common.confirm_delete_server_tpl'|trans|json_encode|raw }},
+        testSuccess: {{ 'jellyseerr.settings.services.test_connection_success'|trans|json_encode|raw }},
+        testSuccessSimple: {{ 'jellyseerr.settings.services.test_connection_success_simple'|trans|json_encode|raw }},
+        testFailed: {{ 'jellyseerr.settings.services.test_connection_failed'|trans|json_encode|raw }},
+        testingLabel: {{ 'jellyseerr.settings.services.testing_label'|trans|json_encode|raw }},
+        testOk: {{ 'jellyseerr.settings.services.test_ok'|trans|json_encode|raw }},
+        testFailedShort: {{ 'jellyseerr.settings.services.test_failed'|trans|json_encode|raw }},
+        testBtn: {{ 'jellyseerr.common.test'|trans|json_encode|raw }},
+        error: {{ 'jellyseerr.common.error'|trans|json_encode|raw }},
+        networkError: {{ 'jellyseerr.common.network_error'|trans|json_encode|raw }},
+        radarrLabel: 'Radarr',
+        sonarrLabel: 'Sonarr',
+        radarrBasePlaceholder: {{ 'jellyseerr.settings.services.placeholder_radarr_base'|trans|json_encode|raw }},
+        radarrUrlPlaceholder: {{ 'jellyseerr.settings.services.placeholder_radarr_url'|trans|json_encode|raw }}
+    };
+    function tpl(s, map) { for (var k in map) { s = s.split('__' + k + '__').join(map[k]); } return s; }
     var currentType = '';
     var currentId = -1; // -1 = création
 
@@ -201,7 +257,8 @@
         currentType = trigger.dataset.type;
         currentId = isNew ? -1 : srv.id;
 
-        document.getElementById('js-modal-title').textContent = (isNew ? 'Ajouter un serveur ' : 'Modifier le serveur ') + (currentType === 'radarr' ? 'Radarr' : 'Sonarr');
+        var typeLabel = currentType === 'radarr' ? _I18N.radarrLabel : _I18N.sonarrLabel;
+        document.getElementById('js-modal-title').textContent = tpl(isNew ? _I18N.addTitleTpl : _I18N.editTitleTpl, {TYPE: typeLabel});
         document.getElementById('js-modal-status').innerHTML = '';
 
         var profOpts = profiles.map(function(p){ return {value:p.id, label:p.name}; });
@@ -212,7 +269,7 @@
         var modalDeleteBtn = document.getElementById('js-modal-delete');
         if (isNew) {
             modalSaveBtn.disabled = true;
-            modalSaveBtn.title = 'Testez la connexion d\'abord pour charger les profils et dossiers';
+            modalSaveBtn.title = _I18N.testHintDisabled;
             modalDeleteBtn.style.display = 'none';
         } else {
             modalSaveBtn.disabled = false;
@@ -225,67 +282,67 @@
 
         var html = '';
         if (isNew) {
-            html += '<div class="alert alert-info d-flex align-items-start gap-2 mb-3" style="font-size:.82rem;" id="js-test-hint"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg><div>Remplissez les informations de connexion puis cliquez sur <strong>Tester</strong> pour charger les profils qualité et dossiers racine disponibles.</div></div>';
+            html += '<div class="alert alert-info d-flex align-items-start gap-2 mb-3" style="font-size:.82rem;" id="js-test-hint"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:2px;"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg><div>' + _I18N.testHintHtml + '</div></div>';
         }
         html += '<div class="row g-3">';
 
         // ── Mode ──
-        html += sectionTitle('Mode');
-        html += makeToggle('Serveur par défaut', 'js-srv-default', srv.isDefault);
-        html += makeToggle('Serveur 4K', 'js-srv-4k', srv.is4k);
+        html += sectionTitle(_I18N.sectionMode);
+        html += makeToggle(_I18N.defaultServer, 'js-srv-default', srv.isDefault);
+        html += makeToggle(_I18N.server4k, 'js-srv-4k', srv.is4k);
 
         // ── Connexion ──
-        html += sep + sectionTitle('Connexion');
-        html += makeField('Nom du serveur', 'js-srv-name', srv.name, 'Radarr');
-        html += '<div class="col-12 col-sm-6"><label class="form-label small">Nom d\'hôte ou adresse IP</label><div class="input-group input-group-sm"><input type="text" class="form-control" id="js-srv-host" value="' + (srv.hostname||'') + '"><span class="input-group-text">:</span><input type="number" class="form-control" id="js-srv-port" value="' + (srv.port||'') + '" style="max-width:80px;"></div></div>';
-        html += makeToggle('Activer SSL', 'js-srv-ssl', srv.useSsl);
-        html += '<div class="col-12 col-sm-6"><label class="form-label small">Clé API</label><div class="input-group input-group-sm"><input type="password" class="form-control" id="js-srv-apikey" value="' + (srv.apiKey||'') + '"><button class="btn btn-outline-secondary" type="button" onclick="var e=document.getElementById(\'js-srv-apikey\');e.type=e.type===\'password\'?\'text\':\'password\';"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4-5.4 6-9 6c-3.6 0-6.6-2-9-6c2.4-4 5.4-6 9-6c3.6 0 6.6 2 9 6"/></svg></button></div></div>';
-        html += makeField('URL de base', 'js-srv-base', srv.baseUrl, '/radarr');
-        html += makeField('URL externe', 'js-srv-exturl', srv.externalUrl, 'https://radarr.example.com');
+        html += sep + sectionTitle(_I18N.sectionConnection);
+        html += makeField(_I18N.serverName, 'js-srv-name', srv.name, 'Radarr');
+        html += '<div class="col-12 col-sm-6"><label class="form-label small">' + _I18N.hostnameOrIp + '</label><div class="input-group input-group-sm"><input type="text" class="form-control" id="js-srv-host" value="' + (srv.hostname||'') + '"><span class="input-group-text">:</span><input type="number" class="form-control" id="js-srv-port" value="' + (srv.port||'') + '" style="max-width:80px;"></div></div>';
+        html += makeToggle(_I18N.enableSsl, 'js-srv-ssl', srv.useSsl);
+        html += '<div class="col-12 col-sm-6"><label class="form-label small">' + _I18N.apiKey + '</label><div class="input-group input-group-sm"><input type="password" class="form-control" id="js-srv-apikey" value="' + (srv.apiKey||'') + '"><button class="btn btn-outline-secondary" type="button" onclick="var e=document.getElementById(\'js-srv-apikey\');e.type=e.type===\'password\'?\'text\':\'password\';"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4-5.4 6-9 6c-3.6 0-6.6-2-9-6c2.4-4 5.4-6 9-6c3.6 0 6.6 2 9 6"/></svg></button></div></div>';
+        html += makeField(_I18N.baseUrl, 'js-srv-base', srv.baseUrl, _I18N.radarrBasePlaceholder);
+        html += makeField(_I18N.externalUrl, 'js-srv-exturl', srv.externalUrl, _I18N.radarrUrlPlaceholder);
 
         // ── Profils ──
-        html += sep + sectionTitle('Profils & Dossiers');
-        html += makeSelect('Profil qualité', 'js-srv-profile', profOpts, srv.activeProfileId);
-        html += makeSelect('Dossier racine', 'js-srv-folder', folderOpts, srv.activeDirectory);
+        html += sep + sectionTitle(_I18N.sectionProfilesFolders);
+        html += makeSelect(_I18N.qualityProfile, 'js-srv-profile', profOpts, srv.activeProfileId);
+        html += makeSelect(_I18N.rootFolder, 'js-srv-folder', folderOpts, srv.activeDirectory);
 
         if (currentType === 'radarr') {
-            html += makeSelect('Disponibilité minimum', 'js-srv-avail', [
-                {value:'announced',label:'Annoncé'}, {value:'inCinemas',label:'En salles'}, {value:'released',label:'Sorti'}
+            html += makeSelect(_I18N.minimumAvailability, 'js-srv-avail', [
+                {value:'announced',label:_I18N.availAnnounced}, {value:'inCinemas',label:_I18N.availInCinemas}, {value:'released',label:_I18N.availReleased}
             ], srv.minimumAvailability);
         }
 
         // ── Sonarr: Anime ──
         if (currentType === 'sonarr') {
-            html += makeSelect('Type de série', 'js-srv-series-type', [
-                {value:'standard',label:'Standard'}, {value:'daily',label:'Quotidien'}, {value:'anime',label:'Anime'}
+            html += makeSelect(_I18N.seriesType, 'js-srv-series-type', [
+                {value:'standard',label:_I18N.seriesTypeStandard}, {value:'daily',label:_I18N.seriesTypeDaily}, {value:'anime',label:_I18N.seriesTypeAnime}
             ], srv.seriesType || 'standard');
 
-            html += sep + sectionTitle('Anime');
-            html += makeSelect('Type de série Animé', 'js-srv-anime-type', [
-                {value:'standard',label:'Standard'}, {value:'daily',label:'Quotidien'}, {value:'anime',label:'Anime'}
+            html += sep + sectionTitle(_I18N.sectionAnime);
+            html += makeSelect(_I18N.animeSeriesType, 'js-srv-anime-type', [
+                {value:'standard',label:_I18N.seriesTypeStandard}, {value:'daily',label:_I18N.seriesTypeDaily}, {value:'anime',label:_I18N.seriesTypeAnime}
             ], srv.animeSeriesType || 'anime');
-            html += makeSelect('Profil qualité anime', 'js-srv-anime-profile', profOpts, srv.activeAnimeProfileId);
-            html += makeSelect('Dossier racine anime', 'js-srv-anime-folder', folderOpts, srv.activeAnimeDirectory);
+            html += makeSelect(_I18N.animeQualityProfile, 'js-srv-anime-profile', profOpts, srv.activeAnimeProfileId);
+            html += makeSelect(_I18N.animeRootFolder, 'js-srv-anime-folder', folderOpts, srv.activeAnimeDirectory);
         }
 
         // ── Dossiers saison (Sonarr) ──
         if (currentType === 'sonarr') {
-            html += sep + sectionTitle('Dossiers');
-            html += makeToggle('Dossiers automatiques des saisons', 'js-srv-season-folders', srv.enableSeasonFolders);
+            html += sep + sectionTitle(_I18N.sectionFolders);
+            html += makeToggle(_I18N.autoSeasonFolders, 'js-srv-season-folders', srv.enableSeasonFolders);
         }
 
         // ── Tags ──
-        html += sep + sectionTitle('Tags');
-        html += makeField('Tags', 'js-srv-tags', (srv.tags||[]).join(','), 'tag1, tag2');
+        html += sep + sectionTitle(_I18N.sectionTags);
+        html += makeField(_I18N.tagsLabel, 'js-srv-tags', (srv.tags||[]).join(','), _I18N.tagsPlaceholder);
         if (currentType === 'sonarr') {
-            html += makeField('Tags anime', 'js-srv-anime-tags', (srv.animeTags||[]).join(','), 'tag1, tag2');
+            html += makeField(_I18N.animeTagsLabel, 'js-srv-anime-tags', (srv.animeTags||[]).join(','), _I18N.tagsPlaceholder);
         }
 
         // ── Options ──
-        html += sep + sectionTitle('Options');
-        html += makeToggle('Activer la recherche', 'js-srv-search', !srv.preventSearch);
-        html += makeToggle('Activer la synchronisation', 'js-srv-sync', srv.syncEnabled);
-        html += makeToggle('Tagger les demandes', 'js-srv-tag-req', srv.tagRequests);
+        html += sep + sectionTitle(_I18N.sectionOptions);
+        html += makeToggle(_I18N.enableSearch, 'js-srv-search', !srv.preventSearch);
+        html += makeToggle(_I18N.enableSync, 'js-srv-sync', srv.syncEnabled);
+        html += makeToggle(_I18N.tagRequests, 'js-srv-tag-req', srv.tagRequests);
 
         html += '</div>';
         document.getElementById('js-modal-body').innerHTML = html;
@@ -342,14 +399,14 @@
             body: JSON.stringify(payload)
         })
         .then(function(r){ return r.json(); })
-        .then(function(d){ if (d.ok) window.location.reload(); else { btn.disabled=false; btn.textContent='Erreur'; } })
-        .catch(function(){ btn.disabled=false; btn.textContent='Erreur'; });
+        .then(function(d){ if (d.ok) window.location.reload(); else { btn.disabled=false; btn.textContent=_I18N.error; } })
+        .catch(function(){ btn.disabled=false; btn.textContent=_I18N.error; });
     });
 
     // ── Test modal ──
     document.getElementById('js-modal-test').addEventListener('click', function(){
         var statusEl = document.getElementById('js-modal-status');
-        statusEl.innerHTML = '<div class="spinner-border spinner-border-sm text-success" style="width:14px;height:14px;"></div> Test…';
+        statusEl.innerHTML = '<div class="spinner-border spinner-border-sm text-success" style="width:14px;height:14px;"></div> ' + _I18N.testingLabel;
         fetch('/jellyseerr/parametres/services/test', {
             method:'POST', credentials:'same-origin',
             headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'},
@@ -358,7 +415,7 @@
         .then(function(r){ return r.json(); })
         .then(function(d){
             if (d.ok && d.data) {
-                statusEl.innerHTML = '<span class="text-success">Connexion réussie — profils et dossiers chargés</span>';
+                statusEl.innerHTML = '<span class="text-success">' + _I18N.testSuccess + '</span>';
                 // Débloquer le save
                 var saveB = document.getElementById('js-modal-save');
                 if (saveB) { saveB.disabled = false; saveB.title = ''; }
@@ -392,22 +449,23 @@
                     d.data.rootFolders.forEach(function(f){ var o = document.createElement('option'); o.value = f.path; o.textContent = f.path; if (f.path === prev2) o.selected = true; animeFolderSel.appendChild(o); });
                 }
             } else {
-                statusEl.innerHTML = d.ok ? '<span class="text-success">Connexion réussie</span>' : '<span class="text-danger">Connexion échouée</span>';
+                statusEl.innerHTML = d.ok ? '<span class="text-success">' + _I18N.testSuccessSimple + '</span>' : '<span class="text-danger">' + _I18N.testFailed + '</span>';
             }
         })
-        .catch(function(){ statusEl.innerHTML = '<span class="text-danger">Erreur réseau</span>'; });
+        .catch(function(){ statusEl.innerHTML = '<span class="text-danger">' + _I18N.networkError + '</span>'; });
     });
 
     // ── Delete ──
     document.getElementById('js-modal-delete').addEventListener('click', function(){
-        if (!confirm('Supprimer ce serveur ' + (currentType === 'radarr' ? 'Radarr' : 'Sonarr') + ' ? Cette action est irréversible.')) return;
+        var typeLabel = currentType === 'radarr' ? _I18N.radarrLabel : _I18N.sonarrLabel;
+        if (!confirm(tpl(_I18N.confirmDeleteTpl, {TYPE: typeLabel}))) return;
         this.disabled = true;
         fetch('/jellyseerr/parametres/services/' + currentType + '/' + currentId + '/delete', {
             method:'POST', credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'}
         })
         .then(function(r){ return r.json(); })
-        .then(function(d){ if (d.ok) window.location.reload(); else alert('Erreur'); })
-        .catch(function(){ alert('Erreur réseau'); });
+        .then(function(d){ if (d.ok) window.location.reload(); else alert(_I18N.error); })
+        .catch(function(){ alert(_I18N.networkError); });
     });
 
 
@@ -423,9 +481,9 @@
             .then(function(r){ return r.json(); })
             .then(function(d){
                 self.disabled=false;
-                if (d.ok) { self.className='btn btn-sm btn-success'; self.textContent='OK'; }
-                else { self.className='btn btn-sm btn-danger'; self.textContent='Échec'; }
-                setTimeout(function(){ self.className='btn btn-sm btn-outline-success js-test-srv'; self.textContent='Tester'; }, 3000);
+                if (d.ok) { self.className='btn btn-sm btn-success'; self.textContent=_I18N.testOk; }
+                else { self.className='btn btn-sm btn-danger'; self.textContent=_I18N.testFailedShort; }
+                setTimeout(function(){ self.className='btn btn-sm btn-outline-success js-test-srv'; self.textContent=_I18N.testBtn; }, 3000);
             });
         });
     });

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
-{% block title %}Utilisateurs par défaut — Paramètres{% endblock %}
-{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> Paramètres utilisateur{% endblock %}
+{% block title %}{{ 'jellyseerr.settings.settings_users.title'|trans }} — {{ 'jellyseerr.nav.settings'|trans }}{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> {{ 'jellyseerr.settings.settings_users.title'|trans }}{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
 {% block stylesheets %}
@@ -20,48 +20,48 @@
 </div>
 <div class="page-body"><div class="container-xl">
 
-<h3 style="font-weight:700;font-size:1.1rem;margin-bottom:.25rem;">Paramètres utilisateur</h3>
-<p class="text-secondary mb-3" style="font-size:.82rem;">Configurez les paramètres par défaut pour les utilisateurs.</p>
+<h3 style="font-weight:700;font-size:1.1rem;margin-bottom:.25rem;">{{ 'jellyseerr.settings.settings_users.title'|trans }}</h3>
+<p class="text-secondary mb-3" style="font-size:.82rem;">{{ 'jellyseerr.settings.settings_users.subtitle'|trans }}</p>
 
 {# ── Authentification & Quotas ── #}
 <div class="card mb-4">
     <div class="list-group list-group-flush">
-        <div class="list-group-item js-section-header"><span>Authentification</span></div>
+        <div class="list-group-item js-section-header"><span>{{ 'jellyseerr.settings.settings_users.section_auth'|trans }}</span></div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Activer la connexion locale</div><div class="js-desc">Permet aux utilisateurs de se connecter avec un compte local.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.settings_users.enable_local_login'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.settings_users.enable_local_login_desc'|trans }}</div></div>
             <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="localLogin" {{ main.localLogin ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Activer la connexion à Jellyfin</div><div class="js-desc">Permet aux utilisateurs Jellyfin de se connecter automatiquement.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.settings_users.enable_jellyfin_login'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.settings_users.enable_jellyfin_login_desc'|trans }}</div></div>
             <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="mediaServerLogin" {{ main.mediaServerLogin ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Autoriser nouvelle connexion Jellyfin</div><div class="js-desc">Permet aux utilisateurs Jellyfin de créer un compte en se connectant pour la première fois.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.settings_users.allow_new_jellyfin_login'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.settings_users.allow_new_jellyfin_login_desc'|trans }}</div></div>
             <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="newPlexLogin" {{ main.newPlexLogin ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
         </div>
 
-        <div class="list-group-item js-section-header"><span>Limites globales de demandes</span></div>
+        <div class="list-group-item js-section-header"><span>{{ 'jellyseerr.settings.settings_users.section_global_quotas'|trans }}</span></div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Limite globale de demandes de films</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.settings_users.global_movie_limit'|trans }}</div></div>
             <div class="d-flex align-items-center gap-2">
                 <input type="number" class="form-control form-control-sm" id="js-dq-movie-limit" value="{{ main.defaultQuotas.movie.quotaLimit ?? 0 }}" min="0" style="width:70px;">
-                <span class="text-secondary" style="font-size:.82rem;">film(s) tous les</span>
+                <span class="text-secondary" style="font-size:.82rem;">{{ 'jellyseerr.settings.settings_users.movies_every'|trans }}</span>
                 <input type="number" class="form-control form-control-sm" id="js-dq-movie-days" value="{{ main.defaultQuotas.movie.quotaDays ?? 7 }}" min="1" style="width:70px;">
-                <span class="text-secondary" style="font-size:.82rem;">jours</span>
+                <span class="text-secondary" style="font-size:.82rem;">{{ 'jellyseerr.settings.settings_users.days'|trans }}</span>
             </div>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Limite globale de demandes de séries</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.settings_users.global_tv_limit'|trans }}</div></div>
             <div class="d-flex align-items-center gap-2">
                 <input type="number" class="form-control form-control-sm" id="js-dq-tv-limit" value="{{ main.defaultQuotas.tv.quotaLimit ?? 0 }}" min="0" style="width:70px;">
-                <span class="text-secondary" style="font-size:.82rem;">série(s) tous les</span>
+                <span class="text-secondary" style="font-size:.82rem;">{{ 'jellyseerr.settings.settings_users.tv_every'|trans }}</span>
                 <input type="number" class="form-control form-control-sm" id="js-dq-tv-days" value="{{ main.defaultQuotas.tv.quotaDays ?? 7 }}" min="1" style="width:70px;">
-                <span class="text-secondary" style="font-size:.82rem;">jours</span>
+                <span class="text-secondary" style="font-size:.82rem;">{{ 'jellyseerr.settings.settings_users.days'|trans }}</span>
             </div>
         </div>
     </div>
@@ -70,46 +70,46 @@
 {# ── Permissions par défaut — toggles style natif ── #}
 {% set dp = main.defaultPermissions ?? 0 %}
 {% set permList = [
-    {bit: 2,        label: 'Administrateur', desc: 'Accès complet. Toutes les permissions sont automatiquement accordées.', section: 'Permissions par défaut'},
-    {bit: 8,        label: 'Gérer les utilisateurs', desc: 'Autorise à gérer tous les paramètres relatifs aux utilisateurs.'},
-    {bit: 16,       label: 'Gérer les demandes', desc: 'Autorise à gérer les demandes, à les voir, les modifier et les supprimer.'},
-    {bit: 8192,     label: 'Demandes avancées', desc: 'Autorise à modifier les options avancées lors d\'une demande.', parent: 16},
-    {bit: 16384,    label: 'Voir les demandes', desc: 'Autorise à voir les demandes des autres utilisateurs.', parent: 16},
-    {bit: 67108864, label: 'Voir les ajouts récents', desc: 'Autorise à voir les médias récemment ajoutés.', parent: 16},
-    {bit: 134217728,label: 'Voir les listes de lecture Jellyfin', desc: 'Autorise à voir les listes de lecture Jellyfin.', parent: 16},
-    {bit: 32,       label: 'Demander', desc: 'Autorise à faire des demandes de films et séries.'},
-    {bit: 262144,   label: 'Demander des films', desc: 'Autorise à faire des demandes de films.', parent: 32},
-    {bit: 524288,   label: 'Demander des séries', desc: 'Autorise à faire des demandes de séries.', parent: 32},
+    {bit: 2,        k: 'perm_admin',                   section: 'section_default_perms'},
+    {bit: 8,        k: 'perm_manage_users'},
+    {bit: 16,       k: 'perm_manage_requests'},
+    {bit: 8192,     k: 'perm_advanced_request',        parent: 16},
+    {bit: 16384,    k: 'perm_view_requests',           parent: 16},
+    {bit: 67108864, k: 'perm_view_recent',             parent: 16},
+    {bit: 134217728,k: 'perm_view_jellyfin_playlists', parent: 16},
+    {bit: 32,       k: 'perm_request'},
+    {bit: 262144,   k: 'perm_request_movies',          parent: 32},
+    {bit: 524288,   k: 'perm_request_tv',              parent: 32},
 
-    {bit: 128,   label: 'Validation automatique', desc: 'Valide automatiquement toutes les demandes.', section: 'Validation automatique', requires: [32]},
-    {bit: 256,   label: 'Validation automatique des films', desc: 'Valide automatiquement les demandes de films.', parent: 128, requires: [32, 262144]},
-    {bit: 512,   label: 'Validation automatique des séries', desc: 'Valide automatiquement les demandes de séries.', parent: 128, requires: [32, 524288]},
+    {bit: 128,   k: 'perm_auto_approve',         section: 'section_auto_approve', requires: [32]},
+    {bit: 256,   k: 'perm_auto_approve_movies',  parent: 128, requires: [32, 262144]},
+    {bit: 512,   k: 'perm_auto_approve_tv',      parent: 128, requires: [32, 524288]},
 
-    {bit: 8388608,  label: 'Demande automatique', desc: 'Demande automatiquement les médias de la liste de surveillance.', section: 'Demande automatique', requires: [32]},
-    {bit: 16777216, label: 'Demande automatique des films', desc: 'Demande automatiquement les films de la liste de surveillance.', parent: 8388608, requires: [32, 262144]},
-    {bit: 33554432, label: 'Demande automatique des séries', desc: 'Demande automatiquement les séries de la liste de surveillance.', parent: 8388608, requires: [32, 524288]},
+    {bit: 8388608,  k: 'perm_auto_request',         section: 'section_auto_request', requires: [32]},
+    {bit: 16777216, k: 'perm_auto_request_movies',  parent: 8388608, requires: [32, 262144]},
+    {bit: 33554432, k: 'perm_auto_request_tv',      parent: 8388608, requires: [32, 524288]},
 
-    {bit: 1024,  label: 'Demander en 4K', desc: 'Autorise à demander des médias en 4K.', section: 'Demander en 4K', requires: [32]},
-    {bit: 2048,  label: 'Demander des films en 4K', desc: 'Autorise à demander des films en 4K.', parent: 1024, requires: [32, 262144]},
-    {bit: 4096,  label: 'Demander des séries en 4K', desc: 'Autorise à demander des séries en 4K.', parent: 1024, requires: [32, 524288]},
+    {bit: 1024,  k: 'perm_request_4k',         section: 'section_request_4k', requires: [32]},
+    {bit: 2048,  k: 'perm_request_4k_movies',  parent: 1024, requires: [32, 262144]},
+    {bit: 4096,  k: 'perm_request_4k_tv',      parent: 1024, requires: [32, 524288]},
 
-    {bit: 32768,  label: 'Validation automatique 4K', desc: 'Valide automatiquement toutes les demandes en 4K.', section: 'Validation automatique 4K', requires: [1024]},
-    {bit: 65536,  label: 'Validation automatique des films 4K', desc: 'Valide automatiquement les demandes de films en 4K.', parent: 32768, requires: [1024, 2048]},
-    {bit: 131072, label: 'Validation automatique des séries 4K', desc: 'Valide automatiquement les demandes de séries en 4K.', parent: 32768, requires: [1024, 4096]},
+    {bit: 32768,  k: 'perm_auto_approve_4k',         section: 'section_auto_approve_4k', requires: [1024]},
+    {bit: 65536,  k: 'perm_auto_approve_4k_movies',  parent: 32768, requires: [1024, 2048]},
+    {bit: 131072, k: 'perm_auto_approve_4k_tv',      parent: 32768, requires: [1024, 4096]},
 
-    {bit: 1048576,  label: 'Gérer les problèmes', desc: 'Autorise à gérer les signalements de problèmes.', section: 'Signaler des problèmes'},
-    {bit: 4194304,  label: 'Créer des problèmes', desc: 'Autorise à signaler des problèmes sur les médias.', parent: 1048576},
-    {bit: 2097152,  label: 'Voir les problèmes', desc: 'Autorise à voir les signalements des autres utilisateurs.', parent: 1048576},
+    {bit: 1048576,  k: 'perm_manage_issues',  section: 'section_issues'},
+    {bit: 4194304,  k: 'perm_create_issues',  parent: 1048576},
+    {bit: 2097152,  k: 'perm_view_issues',    parent: 1048576},
 
-    {bit: 268435456,  label: 'Gérer la liste de blocage', desc: 'Autorise à gérer la liste de blocage.', section: 'Liste de blocage'},
-    {bit: 1073741824, label: 'Voir la liste de blocage', desc: 'Autorise à voir la liste de blocage.', parent: 268435456}
+    {bit: 268435456,  k: 'perm_manage_blocklist', section: 'section_blocklist'},
+    {bit: 1073741824, k: 'perm_view_blocklist',   parent: 268435456}
 ] %}
 
 <div class="card mb-4">
     <div class="list-group list-group-flush js-perm-toggle">
     {% for p in permList %}
         {% if p.section is defined %}
-            <div class="list-group-item js-section-header"><span>{{ p.section }}</span></div>
+            <div class="list-group-item js-section-header"><span>{{ ('jellyseerr.settings.settings_users.' ~ p.section)|trans }}</span></div>
         {% endif %}
 
         {% set isChecked = (dp b-and p.bit) ? true : false %}
@@ -120,8 +120,8 @@
              {% if hasParent %}data-parent="{{ p.parent }}"{% endif %}
              {% if p.requires is defined %}data-requires="{{ p.requires|join(',') }}"{% endif %}>
             <div style="min-width:0;">
-                <div style="font-weight:{{ hasParent ? '500' : '600' }};font-size:{{ hasParent ? '.84rem' : '.88rem' }};">{{ p.label }}</div>
-                <div class="text-secondary" style="font-size:.75rem;">{{ p.desc }}</div>
+                <div style="font-weight:{{ hasParent ? '500' : '600' }};font-size:{{ hasParent ? '.84rem' : '.88rem' }};">{{ ('jellyseerr.settings.settings_users.' ~ p.k)|trans }}</div>
+                <div class="text-secondary" style="font-size:.75rem;">{{ ('jellyseerr.settings.settings_users.' ~ p.k ~ '_desc')|trans }}</div>
             </div>
             <label class="form-check form-switch mb-0" style="flex-shrink:0;">
                 <input type="checkbox" class="form-check-input js-perm-cb" value="{{ p.bit }}"
@@ -138,7 +138,7 @@
     <div class="d-flex justify-content-end">
         <button class="btn btn-primary" id="js-save-users" style="background:#a259ff;border-color:#a259ff;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10 -10"/></svg>
-            Sauvegarder les changements
+            {{ 'jellyseerr.settings.settings_users.save_changes'|trans }}
         </button>
         <span id="js-save-status" class="ms-2 small d-flex align-items-center"></span>
     </div>
@@ -150,6 +150,11 @@
 {% block javascripts %}
 <script>
 (function(){
+    var SU_I18N = {
+        saved: {{ 'jellyseerr.settings.settings_users.saved'|trans|json_encode|raw }},
+        error: {{ 'jellyseerr.settings.settings_users.error'|trans|json_encode|raw }}
+    };
+
     // ── Permissions parent/enfants (même logique que user_detail) ──
     var ADMIN_BIT = 2;
     function getPermCb(bit) { return document.querySelector('.js-perm-cb[value="' + bit + '"]'); }
@@ -204,8 +209,8 @@
         saveBtn.innerHTML = '<div class="spinner-border spinner-border-sm" style="width:16px;height:16px;"></div>';
         fetch('/jellyseerr/parametres/save', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'}, body:JSON.stringify(payload) })
         .then(function(r){ return r.json(); })
-        .then(function(d){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML=d.ok?'<span class="text-success">Enregistré</span>':'<span class="text-danger">Erreur</span>'; setTimeout(function(){statusEl.innerHTML='';},3000); })
-        .catch(function(){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML='<span class="text-danger">Erreur</span>'; });
+        .then(function(d){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML=d.ok?'<span class="text-success">'+SU_I18N.saved+'</span>':'<span class="text-danger">'+SU_I18N.error+'</span>'; setTimeout(function(){statusEl.innerHTML='';},3000); })
+        .catch(function(){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML='<span class="text-danger">'+SU_I18N.error+'</span>'; });
     });
 })();
 </script>

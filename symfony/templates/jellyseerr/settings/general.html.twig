@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
-{% block title %}Paramètres — Jellyseerr{% endblock %}
-{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> Paramètres généraux{% endblock %}
+{% block title %}{{ 'jellyseerr.nav.settings'|trans }} — Jellyseerr{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> {{ 'jellyseerr.settings.general.title'|trans }}{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
 {% block stylesheets %}
@@ -19,81 +19,81 @@
 </div>
 <div class="page-body"><div class="container-xl">
 
-<h3 style="font-weight:700;font-size:1.1rem;margin-bottom:.25rem;">Paramètres généraux</h3>
-<p class="text-secondary mb-3" style="font-size:.82rem;">Configurez les paramètres généraux de votre instance Jellyseerr.</p>
+<h3 style="font-weight:700;font-size:1.1rem;margin-bottom:.25rem;">{{ 'jellyseerr.settings.general.title'|trans }}</h3>
+<p class="text-secondary mb-3" style="font-size:.82rem;">{{ 'jellyseerr.settings.general.subtitle'|trans }}</p>
 
 <div class="card mb-4">
     <div class="list-group list-group-flush">
 
         {# ── Application ── #}
-        <div class="list-group-item js-section-header"><span>Application</span></div>
+        <div class="list-group-item js-section-header"><span>{{ 'jellyseerr.settings.general.section_application'|trans }}</span></div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Nom de l'application</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.app_name'|trans }}</div></div>
             <div style="width:45%;"><input type="text" class="form-control form-control-sm js-main-field" data-key="applicationTitle" value="{{ main.applicationTitle ?? '' }}"></div>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">URL de l'application</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.app_url'|trans }}</div></div>
             <div style="width:45%;"><input type="text" class="form-control form-control-sm js-main-field" data-key="applicationUrl" value="{{ main.applicationUrl ?? '' }}" placeholder="https://jellyseerr.example.com"></div>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Clé API</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.api_key'|trans }}</div></div>
             <div style="width:45%;">
                 <div class="input-group input-group-sm">
                     <input type="password" class="form-control form-control-sm" id="js-api-key" value="{{ main.apiKey ?? '' }}" readonly>
-                    <button class="btn btn-outline-secondary btn-sm" id="js-toggle-api" title="Afficher"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4-5.4 6-9 6c-3.6 0-6.6-2-9-6c2.4-4 5.4-6 9-6c3.6 0 6.6 2 9 6"/></svg></button>
-                    <button class="btn btn-outline-secondary btn-sm" id="js-copy-api" title="Copier"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15h-2a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"/></svg></button>
+                    <button class="btn btn-outline-secondary btn-sm" id="js-toggle-api" title="{{ 'jellyseerr.settings.general.show'|trans }}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4-5.4 6-9 6c-3.6 0-6.6-2-9-6c2.4-4 5.4-6 9-6c3.6 0 6.6 2 9 6"/></svg></button>
+                    <button class="btn btn-outline-secondary btn-sm" id="js-copy-api" title="{{ 'jellyseerr.settings.general.copy'|trans }}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15h-2a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h9a2 2 0 0 1 2 2v2"/></svg></button>
                 </div>
             </div>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Activer le proxy d'images</div><div class="js-desc">Redirige les images externes via le serveur pour la confidentialité.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.enable_image_proxy'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.enable_image_proxy_desc'|trans }}</div></div>
             <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="cacheImages" {{ main.cacheImages ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">YouTube URL</div><div class="js-desc">URL personnalisée pour les bandes-annonces.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.youtube_url'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.youtube_url_desc'|trans }}</div></div>
             <div style="width:45%;"><input type="text" class="form-control form-control-sm js-main-field" data-key="youtubeUrl" value="{{ main.youtubeUrl ?? '' }}" placeholder="https://youtube.com"></div>
         </div>
 
         {# ── Régions & Langues ── #}
-        <div class="list-group-item js-section-header"><span>Régions & Langues</span></div>
+        <div class="list-group-item js-section-header"><span>{{ 'jellyseerr.settings.general.section_regions_languages'|trans }}</span></div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Langue d'affichage</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.display_language'|trans }}</div></div>
             <div style="width:45%;">
                 <select class="form-select form-select-sm js-main-field" data-key="locale">
-                    <option value="">Par défaut</option>
+                    <option value="">{{ 'jellyseerr.settings.general.default_language'|trans }}</option>
                     {% for lang in languages %}<option value="{{ lang.iso_639_1 ?? '' }}" {{ (main.locale ?? '') == (lang.iso_639_1 ?? '') ? 'selected' }}>{{ lang.english_name ?? '?' }}{% if lang.name is defined and lang.name and lang.name != lang.english_name %} ({{ lang.name }}){% endif %}</option>{% endfor %}
                 </select>
             </div>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Pays à découvrir</div><div class="js-desc">Filtrer le contenu par disponibilité régionale.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.discover_country'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.discover_country_desc'|trans }}</div></div>
             <div style="width:45%;">
                 <select class="form-select form-select-sm js-main-field" data-key="discoverRegion">
-                    <option value="">Tous les pays</option>
+                    <option value="">{{ 'jellyseerr.settings.general.all_countries'|trans }}</option>
                     {% for r in regions %}<option value="{{ r.iso_3166_1 ?? '' }}" {{ (main.discoverRegion ?? '') == (r.iso_3166_1 ?? '') ? 'selected' }}>{{ r.english_name ?? '?' }}</option>{% endfor %}
                 </select>
             </div>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Langue à découvrir</div><div class="js-desc">Filtrer par langue d'origine. Plusieurs possibles.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.discover_language'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.discover_language_desc'|trans }}</div></div>
             <div style="width:45%;">
                 {% set selectedLangs = (main.originalLanguage ?? '')|split('|') %}
                 <div id="js-lang-picker" style="position:relative;">
                     <div id="js-lang-toggle" class="form-control form-control-sm d-flex align-items-center justify-content-between" style="cursor:pointer;min-height:31px;">
-                        <span id="js-lang-display" class="text-truncate" style="font-size:.82rem;">{% if selectedLangs|first == '' %}Toutes les langues{% else %}{{ selectedLangs|length }} langue(s){% endif %}</span>
+                        <span id="js-lang-display" class="text-truncate" style="font-size:.82rem;">{% if selectedLangs|first == '' %}{{ 'jellyseerr.settings.general.all_languages'|trans }}{% else %}{{ 'jellyseerr.settings.general.languages_count_tpl'|trans({count: selectedLangs|length}) }}{% endif %}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6l6 -6"/></svg>
                     </div>
                     <div id="js-lang-dropdown" style="display:none;position:absolute;z-index:100;top:100%;left:0;right:0;max-height:250px;overflow-y:auto;background:var(--tblr-card-bg);border:1px solid var(--tblr-border-color);border-radius:.4rem;margin-top:2px;box-shadow:0 4px 12px rgba(0,0,0,.2);padding:.25rem 0;">
                         <div style="padding:.25rem .5rem;position:sticky;top:0;background:var(--tblr-card-bg);z-index:1;">
-                            <input type="text" class="form-control form-control-sm" id="js-lang-search" placeholder="Rechercher…">
+                            <input type="text" class="form-control form-control-sm" id="js-lang-search" placeholder="{{ 'jellyseerr.settings.general.search_placeholder'|trans }}">
                         </div>
                         {% for lang in languages %}
                             <div class="js-lang-option" data-name="{{ ((lang.english_name ?? '') ~ ' ' ~ (lang.name ?? '') ~ ' ' ~ (lang.iso_639_1 ?? ''))|lower }}">
@@ -109,48 +109,48 @@
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Pays de diffusion</div><div class="js-desc">Sites de streaming par disponibilité.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.streaming_country'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.streaming_country_desc'|trans }}</div></div>
             <div style="width:45%;">
                 <select class="form-select form-select-sm js-main-field" data-key="streamingRegion">
-                    <option value="">Tous les pays</option>
+                    <option value="">{{ 'jellyseerr.settings.general.all_countries'|trans }}</option>
                     {% for r in regions %}<option value="{{ r.iso_3166_1 ?? '' }}" {{ (main.streamingRegion ?? '') == (r.iso_3166_1 ?? '') ? 'selected' }}>{{ r.english_name ?? '?' }}</option>{% endfor %}
                 </select>
             </div>
         </div>
 
         {# ── Filtres & Blocage ── #}
-        <div class="list-group-item js-section-header"><span>Filtres & Blocage</span></div>
+        <div class="list-group-item js-section-header"><span>{{ 'jellyseerr.settings.general.section_filters_blocking'|trans }}</span></div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Tags de blocage</div><div class="js-desc">Les médias avec ces tags seront masqués. Séparés par des virgules.</div></div>
-            <div style="width:45%;"><input type="text" class="form-control form-control-sm js-main-field" data-key="blacklistedTags" value="{{ main.blacklistedTags ?? '' }}" placeholder="tag1, tag2, ..."></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.blocked_tags'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.blocked_tags_desc'|trans }}</div></div>
+            <div style="width:45%;"><input type="text" class="form-control form-control-sm js-main-field" data-key="blacklistedTags" value="{{ main.blacklistedTags ?? '' }}" placeholder="{{ 'jellyseerr.settings.general.blocked_tags_placeholder'|trans }}"></div>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Limite de tags</div><div class="js-desc">Nombre maximum de tags de blocage.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.tags_limit'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.tags_limit_desc'|trans }}</div></div>
             <div style="width:100px;"><input type="number" class="form-control form-control-sm js-main-field" data-key="blacklistedTagsLimit" value="{{ main.blacklistedTagsLimit ?? 50 }}" min="0"></div>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Masquer les médias disponibles</div><div class="js-desc">Masquer les médias déjà disponibles dans la bibliothèque.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.hide_available'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.hide_available_desc'|trans }}</div></div>
             <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="hideAvailable" {{ main.hideAvailable ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Masquer les éléments bloqués</div><div class="js-desc">Masquer les médias présents dans la liste de blocage.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.hide_blocked'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.hide_blocked_desc'|trans }}</div></div>
             <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="hideBlacklisted" {{ main.hideBlacklisted ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
         </div>
 
         {# ── Demandes ── #}
-        <div class="list-group-item js-section-header"><span>Demandes</span></div>
+        <div class="list-group-item js-section-header"><span>{{ 'jellyseerr.settings.general.section_requests'|trans }}</span></div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Demandes partielles</div><div class="js-desc">Permet de demander des saisons individuelles.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.partial_requests'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.partial_requests_desc'|trans }}</div></div>
             <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="partialRequestsEnabled" {{ main.partialRequestsEnabled ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
         </div>
 
         <div class="list-group-item js-setting-item d-flex align-items-center justify-content-between gap-3">
-            <div><div class="js-label">Épisodes spéciaux</div><div class="js-desc">Afficher et permettre les demandes d'épisodes spéciaux.</div></div>
+            <div><div class="js-label">{{ 'jellyseerr.settings.general.special_episodes'|trans }}</div><div class="js-desc">{{ 'jellyseerr.settings.general.special_episodes_desc'|trans }}</div></div>
             <label class="form-check form-switch mb-0"><input type="checkbox" class="form-check-input js-main-toggle" data-key="enableSpecialEpisodes" {{ main.enableSpecialEpisodes ?? false ? 'checked' }} style="width:2.2rem;height:1.1rem;cursor:pointer;"></label>
         </div>
 
@@ -163,7 +163,7 @@
     <div class="d-flex justify-content-end">
         <button class="btn btn-primary" id="js-save-main" style="background:#a259ff;border-color:#a259ff;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10 -10"/></svg>
-            Sauvegarder les changements
+            {{ 'jellyseerr.common.save_changes_alt'|trans }}
         </button>
         <span id="js-save-status" class="ms-2 small d-flex align-items-center"></span>
     </div>
@@ -175,6 +175,15 @@
 {% block javascripts %}
 <script>
 (function(){
+    var _I18N = {
+        allLanguages: {{ 'jellyseerr.settings.general.all_languages'|trans|json_encode|raw }},
+        languagesCountOne: {{ 'jellyseerr.user_detail.languages_count_one'|trans|json_encode|raw }},
+        languagesCountManyTpl: {{ 'jellyseerr.user_detail.languages_count_many_tpl'|trans|json_encode|raw }},
+        saved: {{ 'jellyseerr.common.saved'|trans|json_encode|raw }},
+        error: {{ 'jellyseerr.common.error'|trans|json_encode|raw }}
+    };
+    function tpl(s, map) { for (var k in map) { s = s.split('__' + k + '__').join(map[k]); } return s; }
+    function plural(one, manyTpl, n) { return n === 1 ? one : tpl(manyTpl, {N: n}); }
     // API key
     var apiInput = document.getElementById('js-api-key');
     var toggleBtn = document.getElementById('js-toggle-api');
@@ -195,7 +204,7 @@
         langToggle.addEventListener('click', function(){ langDropdown.style.display = langDropdown.style.display === 'none' ? 'block' : 'none'; if (langDropdown.style.display === 'block' && langSearch) langSearch.focus(); });
         document.addEventListener('click', function(ev){ if (!ev.target.closest('#js-lang-picker')) langDropdown.style.display = 'none'; });
         if (langSearch) { langSearch.addEventListener('click', function(ev){ ev.stopPropagation(); }); langSearch.addEventListener('keyup', function(){ var q = this.value.toLowerCase(); document.querySelectorAll('.js-lang-option').forEach(function(opt){ opt.style.display = (!q || opt.dataset.name.indexOf(q) !== -1) ? '' : 'none'; }); }); }
-        function updateLangDisplay(){ var checked = document.querySelectorAll('.js-lang-cb:checked'); if (checked.length === 0) langDisplay.textContent = 'Toutes les langues'; else if (checked.length <= 3) { var n=[]; checked.forEach(function(cb){n.push(cb.closest('.js-lang-option').textContent.trim());}); langDisplay.textContent = n.join(', '); } else langDisplay.textContent = checked.length + ' langue(s)'; }
+        function updateLangDisplay(){ var checked = document.querySelectorAll('.js-lang-cb:checked'); if (checked.length === 0) langDisplay.textContent = _I18N.allLanguages; else if (checked.length <= 3) { var n=[]; checked.forEach(function(cb){n.push(cb.closest('.js-lang-option').textContent.trim());}); langDisplay.textContent = n.join(', '); } else langDisplay.textContent = plural(_I18N.languagesCountOne, _I18N.languagesCountManyTpl, checked.length); }
         document.querySelectorAll('.js-lang-cb').forEach(function(cb){ cb.addEventListener('change', updateLangDisplay); });
     }
 
@@ -210,8 +219,8 @@
         if (payload.blacklistedTagsLimit) payload.blacklistedTagsLimit = parseInt(payload.blacklistedTagsLimit)||50;
         saveBtn.disabled = true; var orig = saveBtn.innerHTML; saveBtn.innerHTML = '<div class="spinner-border spinner-border-sm" style="width:16px;height:16px;"></div>';
         fetch('/jellyseerr/parametres/save', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'}, body:JSON.stringify(payload) })
-        .then(function(r){ return r.json(); }).then(function(d){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML=d.ok?'<span class="text-success">Enregistré</span>':'<span class="text-danger">Erreur</span>'; setTimeout(function(){statusEl.innerHTML='';},3000); })
-        .catch(function(){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML='<span class="text-danger">Erreur</span>'; });
+        .then(function(r){ return r.json(); }).then(function(d){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML=d.ok?'<span class="text-success">' + _I18N.saved + '</span>':'<span class="text-danger">' + _I18N.error + '</span>'; setTimeout(function(){statusEl.innerHTML='';},3000); })
+        .catch(function(){ saveBtn.disabled=false; saveBtn.innerHTML=orig; statusEl.innerHTML='<span class="text-danger">' + _I18N.error + '</span>'; });
     });
 })();
 </script>

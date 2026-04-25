@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
-{% block title %}Utilisateurs — Jellyseerr{% endblock %}
-{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/><path d="M256 176c-44.2 0-80 35.8-80 80s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80zm0 120c-22.1 0-40-17.9-40-40s17.9-40 40-40 40 17.9 40 40-17.9 40-40 40z" fill="#c084fc" opacity=".6"/></svg> Utilisateurs{% endblock %}
+{% block title %}{{ 'jellyseerr.users.page_title'|trans }} — Jellyseerr{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/><path d="M256 176c-44.2 0-80 35.8-80 80s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80zm0 120c-22.1 0-40-17.9-40-40s17.9-40 40-40 40 17.9 40 40-17.9 40-40 40z" fill="#c084fc" opacity=".6"/></svg> {{ 'jellyseerr.users.page_title'|trans }}{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
 {% block stylesheets %}
@@ -27,29 +27,29 @@
 {% if error %}
     <div class="alert alert-danger d-flex align-items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>
-        <div><strong>Impossible de contacter Jellyseerr</strong></div>
+        <div><strong>{{ 'jellyseerr.users.cannot_reach'|trans }}</strong></div>
     </div>
 {% endif %}
 
 {# ── Tableau utilisateurs ── #}
 <div class="card">
     <div class="card-header d-flex align-items-center gap-2 flex-wrap">
-        <h3 class="card-title me-auto">Liste des utilisateurs <span class="badge bg-purple-lt text-purple ms-1">{{ users|length }}</span></h3>
+        <h3 class="card-title me-auto">{{ 'jellyseerr.users.user_list_title'|trans }} <span class="badge bg-purple-lt text-purple ms-1">{{ users|length }}</span></h3>
 
         {# Recherche #}
         <div class="input-group input-group-sm" style="width:220px;">
             <span class="input-group-text"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-            <input type="text" class="form-control" id="js-search" placeholder="Rechercher un utilisateur…">
+            <input type="text" class="form-control" id="js-search" placeholder="{{ 'jellyseerr.users.search_placeholder'|trans }}">
         </div>
 
         {# Boutons actions #}
         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modal-create-user">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
-            Créer un utilisateur
+            {{ 'jellyseerr.users.create_user'|trans }}
         </button>
         <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modal-import-jellyfin">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg>
-            Importer Jellyfin
+            {{ 'jellyseerr.users.import_jellyfin'|trans }}
         </button>
     </div>
     <div class="table-responsive">
@@ -57,21 +57,21 @@
             <thead>
                 <tr>
                     <th class="js-th-sort active" data-sort="name" data-dir="asc">
-                        Utilisateur <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="js-sort-icon-name"><path d="M6 9l6 6l6 -6"/></svg>
+                        {{ 'jellyseerr.users.col_user'|trans }} <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="js-sort-icon-name"><path d="M6 9l6 6l6 -6"/></svg>
                     </th>
-                    <th>Permissions</th>
+                    <th>{{ 'jellyseerr.users.col_perms'|trans }}</th>
                     <th class="text-center js-th-sort" data-sort="requests" data-dir="" style="width:100px;">
-                        Requêtes <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.3;" id="js-sort-icon-requests"><path d="M6 9l6 6l6 -6"/></svg>
+                        {{ 'jellyseerr.users.col_requests'|trans }} <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.3;" id="js-sort-icon-requests"><path d="M6 9l6 6l6 -6"/></svg>
                     </th>
                     <th class="js-th-sort" data-sort="date" data-dir="" style="width:130px;">
-                        Inscription <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.3;" id="js-sort-icon-date"><path d="M6 9l6 6l6 -6"/></svg>
+                        {{ 'jellyseerr.users.col_registered'|trans }} <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:.3;" id="js-sort-icon-date"><path d="M6 9l6 6l6 -6"/></svg>
                     </th>
                     <th style="width:80px;"></th>
                 </tr>
             </thead>
             <tbody>
             {% for user in users %}
-                {% set roleColor = user._role == 'Admin' ? 'danger' : (user._role == 'Gestionnaire' ? 'purple' : (user._role == 'Utilisateur' ? 'info' : 'secondary')) %}
+                {% set roleColor = (user._role == 'Admin' or user._role == 'jellyseerr.user_detail.role_admin'|trans) ? 'danger' : ((user._role == 'Gestionnaire' or user._role == 'jellyseerr.user_detail.role_manager'|trans) ? 'purple' : ((user._role == 'Utilisateur' or user._role == 'jellyseerr.user_detail.role_user'|trans) ? 'info' : 'secondary')) %}
                 <tr class="js-user-row"
                     data-user-id="{{ user.id }}"
                     data-name="{{ (user.displayName ?? user.jellyfinUsername ?? '')|lower }}"
@@ -116,11 +116,11 @@
                             {# Admin (bit 1) : gérer uniquement #}
                             {# Autres : gérer + supprimer #}
                             {% if user.id != 1 %}
-                                <a href="{{ path('jellyseerr_user_detail', {id: user.id}) }}" class="btn btn-sm btn-primary py-0 px-2 js-manage-link" title="Gérer" onclick="event.stopPropagation();">
+                                <a href="{{ path('jellyseerr_user_detail', {id: user.id}) }}" class="btn btn-sm btn-primary py-0 px-2 js-manage-link" title="{{ 'jellyseerr.users.action_manage'|trans }}" onclick="event.stopPropagation();">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
                                 </a>
                                 {% if not ((user.permissions ?? 0) b-and 2) and not ((user.permissions ?? 0) b-and 8) %}
-                                    <button class="btn btn-sm btn-ghost-danger py-0 px-2 js-delete-user" data-id="{{ user.id }}" data-name="{{ user.displayName ?? user.jellyfinUsername ?? '?' }}" title="Supprimer">
+                                    <button class="btn btn-sm btn-ghost-danger py-0 px-2 js-delete-user" data-id="{{ user.id }}" data-name="{{ user.displayName ?? user.jellyfinUsername ?? '?' }}" title="{{ 'jellyseerr.users.action_delete'|trans }}">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
                                     </button>
                                 {% endif %}
@@ -154,15 +154,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border:0;border-radius:.75rem;">
             <div class="modal-header">
-                <h5 class="modal-title">Créer un utilisateur local</h5>
+                <h5 class="modal-title">{{ 'jellyseerr.users.create_user_modal_title'|trans }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="js-create-body">
                 <div class="text-center py-3"><div class="spinner-border text-purple"></div></div>
             </div>
             <div class="modal-footer">
-                <button class="btn" data-bs-dismiss="modal">Annuler</button>
-                <button class="btn btn-primary" id="js-create-submit">Créer</button>
+                <button class="btn" data-bs-dismiss="modal">{{ 'jellyseerr.common.cancel'|trans }}</button>
+                <button class="btn btn-primary" id="js-create-submit">{{ 'jellyseerr.users.create_btn'|trans }}</button>
             </div>
         </div>
     </div>
@@ -173,15 +173,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border:0;border-radius:.75rem;">
             <div class="modal-header">
-                <h5 class="modal-title">Importer depuis Jellyfin</h5>
+                <h5 class="modal-title">{{ 'jellyseerr.users.import_modal_title'|trans }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="js-import-body">
                 <div class="text-center py-3"><div class="spinner-border text-purple"></div></div>
             </div>
             <div class="modal-footer">
-                <button class="btn" data-bs-dismiss="modal">Annuler</button>
-                <button class="btn btn-primary" id="js-import-submit" disabled>Importer la sélection</button>
+                <button class="btn" data-bs-dismiss="modal">{{ 'jellyseerr.common.cancel'|trans }}</button>
+                <button class="btn btn-primary" id="js-import-submit" disabled>{{ 'jellyseerr.users.import_btn'|trans }}</button>
             </div>
         </div>
     </div>
@@ -194,6 +194,52 @@
 {% block javascripts %}
 <script>
 (function(){
+    var _I18N = {
+        confirmDeleteTpl: {{ 'jellyseerr.common.confirm_delete_user_tpl'|trans|json_encode|raw }},
+        cannotDelete: {{ 'jellyseerr.users.cannot_delete_account'|trans|json_encode|raw }},
+        loadError: {{ 'jellyseerr.common.error_loading_short'|trans|json_encode|raw }},
+        localLoginDisabledHtml: {{ 'jellyseerr.users.local_login_disabled_html'|trans|json_encode|raw }},
+        configureAppUrlHtml: {{ 'jellyseerr.users.configure_app_url_html'|trans|json_encode|raw }},
+        emailLabel: {{ 'jellyseerr.users.email_required_label'|trans|json_encode|raw }},
+        emailPlaceholder: {{ 'jellyseerr.users.email_placeholder'|trans|json_encode|raw }},
+        usernameLabel: {{ 'jellyseerr.users.username_label'|trans|json_encode|raw }},
+        usernamePlaceholder: {{ 'jellyseerr.users.username_placeholder'|trans|json_encode|raw }},
+        autogenLabel: {{ 'jellyseerr.users.autogen_password_label'|trans|json_encode|raw }},
+        autogenHint: {{ 'jellyseerr.users.autogen_password_hint'|trans|json_encode|raw }},
+        passwordLabel: {{ 'jellyseerr.users.password_label'|trans|json_encode|raw }},
+        passwordPlaceholder: {{ 'jellyseerr.users.password_placeholder'|trans|json_encode|raw }},
+        emailRequired: {{ 'jellyseerr.users.email_required_error'|trans|json_encode|raw }},
+        emailInvalid: {{ 'jellyseerr.users.email_invalid_error'|trans|json_encode|raw }},
+        passwordRequired: {{ 'jellyseerr.users.password_required_error'|trans|json_encode|raw }},
+        creationError: {{ 'jellyseerr.users.creation_error'|trans|json_encode|raw }},
+        newJellyfinLoginHtml: {{ 'jellyseerr.users.new_jellyfin_login_html'|trans|json_encode|raw }},
+        allJellyfinImported: {{ 'jellyseerr.users.all_jellyfin_imported'|trans|json_encode|raw }},
+        selectUsersToImport: {{ 'jellyseerr.users.select_users_to_import'|trans|json_encode|raw }},
+        createBtn: {{ 'jellyseerr.users.create_btn'|trans|json_encode|raw }},
+        error: {{ 'jellyseerr.common.error'|trans|json_encode|raw }},
+        registeredOnTpl: {{ 'jellyseerr.users.profile_registered_on_tpl'|trans|json_encode|raw }},
+        statRequests: {{ 'jellyseerr.users.stat_requests'|trans|json_encode|raw }},
+        statPending: {{ 'jellyseerr.users.stat_pending'|trans|json_encode|raw }},
+        statAvailable: {{ 'jellyseerr.users.stat_available'|trans|json_encode|raw }},
+        statMoviesTv: {{ 'jellyseerr.users.stat_movies_tv'|trans|json_encode|raw }},
+        profileTabRequests: {{ 'jellyseerr.users.profile_tab_requests'|trans|json_encode|raw }},
+        profileTabInfo: {{ 'jellyseerr.users.profile_tab_info'|trans|json_encode|raw }},
+        profileNoRequests: {{ 'jellyseerr.users.profile_no_requests'|trans|json_encode|raw }},
+        profileEmailRow: {{ 'jellyseerr.users.profile_email_row'|trans|json_encode|raw }},
+        profileJellyfinNameRow: {{ 'jellyseerr.users.profile_jellyfin_name_row'|trans|json_encode|raw }},
+        profileTypeRow: {{ 'jellyseerr.users.profile_type_row'|trans|json_encode|raw }},
+        profileJellyfinIdRow: {{ 'jellyseerr.users.profile_jellyfin_id_row'|trans|json_encode|raw }},
+        profileRegisteredRow: {{ 'jellyseerr.users.profile_registered_row'|trans|json_encode|raw }},
+        profileLastModifiedRow: {{ 'jellyseerr.users.profile_last_modified_row'|trans|json_encode|raw }},
+        profileOwnerLocked: {{ 'jellyseerr.users.profile_owner_locked'|trans|json_encode|raw }},
+        profileManageUser: {{ 'jellyseerr.users.profile_manage_user'|trans|json_encode|raw }},
+        infoLocal: {{ 'jellyseerr.user_detail.info_user_local'|trans|json_encode|raw }},
+        infoOther: {{ 'jellyseerr.user_detail.info_user_other'|trans|json_encode|raw }},
+        movie: {{ 'jellyseerr.common.movie'|trans|json_encode|raw }},
+        tv: {{ 'jellyseerr.common.tv'|trans|json_encode|raw }}
+    };
+    function tpl(s, map) { for (var k in map) { s = s.split('__' + k + '__').join(map[k]); } return s; }
+
     // ── Recherche ──
     var searchInput = document.getElementById('js-search');
     var rows = document.querySelectorAll('.js-user-row');
@@ -257,7 +303,7 @@
             e.preventDefault();
             var id = this.dataset.id;
             var name = this.dataset.name;
-            if (!confirm('Supprimer l\'utilisateur "' + name + '" ?')) return;
+            if (!confirm(tpl(_I18N.confirmDeleteTpl, {NAME: name}))) return;
 
             var self = this;
             self.disabled = true;
@@ -271,7 +317,7 @@
                     if (row) { row.style.transition = 'opacity .3s'; row.style.opacity = '0'; setTimeout(function(){ row.remove(); }, 300); }
                 } else {
                     self.disabled = false;
-                    var msg = d.error || 'Ce compte ne peut pas être supprimé.';
+                    var msg = d.error || _I18N.cannotDelete;
                     var alert = document.createElement('div');
                     alert.className = 'alert alert-danger d-flex align-items-center gap-2 mt-2';
                     alert.style.fontSize = '.82rem';
@@ -302,14 +348,14 @@
                 if (!localLogin) {
                     html += '<div class="alert alert-warning d-flex align-items-start gap-2 mb-3" style="font-size:.82rem;">';
                     html += '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.871l-8.106 -13.534a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16h.01"/></svg>';
-                    html += '<div>Le paramètre <strong>Activer la connexion locale</strong> est actuellement désactivé.</div>';
+                    html += '<div>' + _I18N.localLoginDisabledHtml + '</div>';
                     html += '</div>';
                 }
 
                 if (!appUrl) {
                     html += '<div class="alert alert-info d-flex align-items-start gap-2 mb-3" style="font-size:.82rem;">';
                     html += '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>';
-                    html += '<div>Configurez l\'<strong>URL de l\'application</strong> ainsi que les <strong>notifications par e-mail</strong> pour permettre la génération automatique de mots de passe.</div>';
+                    html += '<div>' + _I18N.configureAppUrlHtml + '</div>';
                     html += '</div>';
                 }
 
@@ -317,30 +363,30 @@
                 var disabled = !localLogin ? 'disabled' : '';
 
                 html += '<div class="mb-3">';
-                html += '<label class="form-label">Email <span class="text-danger">*</span></label>';
-                html += '<input type="email" class="form-control" id="js-create-email" placeholder="email@example.com" ' + disabled + '>';
+                html += '<label class="form-label">' + _I18N.emailLabel + ' <span class="text-danger">*</span></label>';
+                html += '<input type="email" class="form-control" id="js-create-email" placeholder="' + _I18N.emailPlaceholder + '" ' + disabled + '>';
                 html += '</div>';
 
                 html += '<div class="mb-3">';
-                html += '<label class="form-label">Nom d\'utilisateur</label>';
-                html += '<input type="text" class="form-control" id="js-create-username" placeholder="Optionnel" ' + disabled + '>';
+                html += '<label class="form-label">' + _I18N.usernameLabel + '</label>';
+                html += '<input type="text" class="form-control" id="js-create-username" placeholder="' + _I18N.usernamePlaceholder + '" ' + disabled + '>';
                 html += '</div>';
 
                 var autoGenDisabled = (!localLogin || !appUrl) ? 'disabled' : '';
                 html += '<div class="mb-3">';
                 html += '<label class="form-check">';
                 html += '<input type="checkbox" class="form-check-input" id="js-create-autogen" ' + (disabled || autoGenDisabled) + '>';
-                html += '<span class="form-check-label">Générer le mot de passe automatiquement</span>';
+                html += '<span class="form-check-label">' + _I18N.autogenLabel + '</span>';
                 html += '</label>';
                 if (!appUrl) {
-                    html += '<div class="text-secondary mt-1" style="font-size:.75rem;">Configurez l\'URL de l\'application ainsi que les notifications par e-mail pour permettre cette option.</div>';
+                    html += '<div class="text-secondary mt-1" style="font-size:.75rem;">' + _I18N.autogenHint + '</div>';
                 }
                 html += '</div>';
 
                 html += '<div id="js-create-pw-fields">';
                 html += '<div class="mb-3">';
-                html += '<label class="form-label">Mot de passe <span class="text-danger">*</span></label>';
-                html += '<input type="password" class="form-control" id="js-create-password" placeholder="Mot de passe" ' + disabled + '>';
+                html += '<label class="form-label">' + _I18N.passwordLabel + ' <span class="text-danger">*</span></label>';
+                html += '<input type="password" class="form-control" id="js-create-password" placeholder="' + _I18N.passwordPlaceholder + '" ' + disabled + '>';
                 html += '</div>';
                 html += '</div>';
 
@@ -358,7 +404,7 @@
                 });
             })
             .catch(function(){
-                body.innerHTML = '<div class="text-danger small">Erreur de chargement</div>';
+                body.innerHTML = '<div class="text-danger small">' + _I18N.loadError + '</div>';
             });
     });
 
@@ -385,9 +431,9 @@
             setTimeout(function(){ if (alert.parentNode) { alert.style.transition = 'opacity .3s'; alert.style.opacity = '0'; setTimeout(function(){ alert.remove(); }, 300); } }, 4000);
         }
 
-        if (!email) { showCreateError('L\'email est requis.'); return; }
-        if (email.indexOf('@') === -1) { showCreateError('Veuillez entrer une adresse email valide.'); return; }
-        if (!autoGen.checked && !password) { showCreateError('Le mot de passe est requis.'); return; }
+        if (!email) { showCreateError(_I18N.emailRequired); return; }
+        if (email.indexOf('@') === -1) { showCreateError(_I18N.emailInvalid); return; }
+        if (!autoGen.checked && !password) { showCreateError(_I18N.passwordRequired); return; }
 
         var payload = { email: email };
         if (password) payload.password = password;
@@ -408,7 +454,7 @@
         .then(function(r){ return r.json(); })
         .then(function(d){
             if (d.ok) { window.location.reload(); }
-            else { createSubmit.disabled = false; createSubmit.textContent = 'Créer'; showCreateError(d.error || 'Erreur lors de la création.'); }
+            else { createSubmit.disabled = false; createSubmit.textContent = _I18N.createBtn; showCreateError(d.error || _I18N.creationError); }
         });
     });
 
@@ -432,17 +478,17 @@
                 if (mediaServerLogin) {
                     html += '<div class="alert alert-info d-flex align-items-start gap-2 mb-3" style="font-size:.82rem;">';
                     html += '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>';
-                    html += '<div>Le paramètre <strong>Activer la nouvelle connexion à Jellyfin</strong> est actuellement activé. Les utilisateurs de Jellyfin avec accès à la bibliothèque n\'ont pas besoin d\'être importés pour se connecter.</div>';
+                    html += '<div>' + _I18N.newJellyfinLoginHtml + '</div>';
                     html += '</div>';
                 }
 
                 if (users.length === 0) {
-                    html += '<div class="text-secondary text-center py-2">Tous les utilisateurs Jellyfin sont déjà importés.</div>';
+                    html += '<div class="text-secondary text-center py-2">' + _I18N.allJellyfinImported + '</div>';
                     body.innerHTML = html;
                     return;
                 }
 
-                html += '<div class="text-secondary small mb-2">Sélectionnez les utilisateurs à importer :</div>';
+                html += '<div class="text-secondary small mb-2">' + _I18N.selectUsersToImport + '</div>';
                 users.forEach(function(u){
                     var uName = u.username || u.email || u.id;
                     var uThumb = u.thumb ? 'http://192.168.10.220:5055' + u.thumb : '';
@@ -463,7 +509,7 @@
                 });
             })
             .catch(function(){
-                body.innerHTML = '<div class="text-danger small">Erreur de chargement</div>';
+                body.innerHTML = '<div class="text-danger small">' + _I18N.loadError + '</div>';
             });
     });
 
@@ -484,7 +530,7 @@
         .then(function(r){ return r.json(); })
         .then(function(d){
             if (d.ok) { window.location.reload(); }
-            else { importSubmit.disabled = false; importSubmit.textContent = 'Erreur'; }
+            else { importSubmit.disabled = false; importSubmit.textContent = _I18N.error; }
         });
     });
 
@@ -505,7 +551,7 @@
                 var name = u.displayName || u.jellyfinUsername || u.email || '?';
                 var avatar = u.avatar ? 'http://192.168.10.220:5055' + u.avatar : '';
                 var role = u._role || '?';
-                var roleColor = role === 'Admin' ? 'danger' : (role === 'Gestionnaire' ? 'purple' : 'info');
+                var roleColor = (role === 'Admin' || role === {{ 'jellyseerr.user_detail.role_admin'|trans|json_encode|raw }}) ? 'danger' : ((role === 'Gestionnaire' || role === {{ 'jellyseerr.user_detail.role_manager'|trans|json_encode|raw }}) ? 'purple' : 'info');
                 var requests = u._recentRequests || [];
                 var availCount = requests.filter(function(r){ return r.status === 5; }).length;
 
@@ -546,7 +592,7 @@
                 if (u.email) html += '<div class="text-secondary" style="font-size:.82rem;margin-top:.15rem;">' + u.email + '</div>';
                 html += '<div class="d-flex justify-content-center gap-2 mt-2">';
                 html += '<span class="badge bg-' + roleColor + '-lt text-' + roleColor + '" style="font-size:.72rem;">' + role + '</span>';
-                html += '<span class="text-secondary" style="font-size:.78rem;">Inscrit le ' + (u.createdAt ? u.createdAt.substring(0, 10) : '?') + '</span>';
+                html += '<span class="text-secondary" style="font-size:.78rem;">' + tpl(_I18N.registeredOnTpl, {DATE: (u.createdAt ? u.createdAt.substring(0, 10) : '?')}) + '</span>';
                 html += '</div>';
                 html += '</div>';
 
@@ -555,24 +601,24 @@
 
                 html += '<div style="flex:1;padding:.75rem;background:var(--tblr-bg-surface-secondary);">';
                 html += '<div style="font-size:1.5rem;font-weight:700;color:#a259ff;">' + (u.requestCount || 0) + '</div>';
-                html += '<div class="text-secondary" style="font-size:.7rem;font-weight:500;">Requêtes</div>';
+                html += '<div class="text-secondary" style="font-size:.7rem;font-weight:500;">' + _I18N.statRequests + '</div>';
                 html += '</div>';
 
                 html += '<div style="flex:1;padding:.75rem;background:var(--tblr-bg-surface-secondary);border-left:1px solid var(--tblr-border-color);">';
                 html += '<div style="font-size:1.5rem;font-weight:700;color:#f59e0b;">' + pendingCount + '</div>';
-                html += '<div class="text-secondary" style="font-size:.7rem;font-weight:500;">En attente</div>';
+                html += '<div class="text-secondary" style="font-size:.7rem;font-weight:500;">' + _I18N.statPending + '</div>';
                 html += '</div>';
 
                 html += '<div style="flex:1;padding:.75rem;background:var(--tblr-bg-surface-secondary);border-left:1px solid var(--tblr-border-color);">';
                 html += '<div style="font-size:1.5rem;font-weight:700;color:#22c55e;">' + availCount + '</div>';
-                html += '<div class="text-secondary" style="font-size:.7rem;font-weight:500;">Disponibles</div>';
+                html += '<div class="text-secondary" style="font-size:.7rem;font-weight:500;">' + _I18N.statAvailable + '</div>';
                 html += '</div>';
 
                 html += '<div style="flex:1;padding:.75rem;background:var(--tblr-bg-surface-secondary);border-left:1px solid var(--tblr-border-color);">';
                 var movieCount = requests.filter(function(r){ return r.type === 'movie'; }).length;
                 var tvCount = requests.filter(function(r){ return r.type === 'tv'; }).length;
                 html += '<div style="font-size:.85rem;font-weight:600;"><span style="color:#ef4444;">' + movieCount + '</span> <span class="text-secondary">/</span> <span style="color:#38bdf8;">' + tvCount + '</span></div>';
-                html += '<div class="text-secondary" style="font-size:.7rem;font-weight:500;">Films / Séries</div>';
+                html += '<div class="text-secondary" style="font-size:.7rem;font-weight:500;">' + _I18N.statMoviesTv + '</div>';
                 html += '</div>';
 
                 html += '</div>';
@@ -589,14 +635,14 @@
 
                 // ── Onglets Profil / Requêtes ──
                 html += '<div style="border-bottom:2px solid var(--tblr-border-color);display:flex;padding:0 1.5rem;">';
-                html += '<div class="js-profile-tab active" data-tab="profil-reqs" style="padding:.5rem 1rem;cursor:pointer;font-size:.85rem;font-weight:600;border-bottom:2px solid #a259ff;margin-bottom:-2px;color:#a259ff;">Requêtes</div>';
-                html += '<div class="js-profile-tab" data-tab="profil-info" style="padding:.5rem 1rem;cursor:pointer;font-size:.85rem;font-weight:500;color:var(--tblr-text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px;">Infos</div>';
+                html += '<div class="js-profile-tab active" data-tab="profil-reqs" style="padding:.5rem 1rem;cursor:pointer;font-size:.85rem;font-weight:600;border-bottom:2px solid #a259ff;margin-bottom:-2px;color:#a259ff;">' + _I18N.profileTabRequests + '</div>';
+                html += '<div class="js-profile-tab" data-tab="profil-info" style="padding:.5rem 1rem;cursor:pointer;font-size:.85rem;font-weight:500;color:var(--tblr-text-secondary);border-bottom:2px solid transparent;margin-bottom:-2px;">' + _I18N.profileTabInfo + '</div>';
                 html += '</div>';
 
                 // ── Tab Requêtes ──
                 html += '<div class="js-profile-panel active" data-tab="profil-reqs" style="padding:1rem 1.5rem;">';
                 if (requests.length === 0) {
-                    html += '<div class="text-center text-secondary py-3">Aucune requête</div>';
+                    html += '<div class="text-center text-secondary py-3">' + _I18N.profileNoRequests + '</div>';
                 } else {
                     // Flèches navigation
                     html += '<div class="d-flex justify-content-end gap-1 mb-2">';
@@ -625,7 +671,7 @@
                         // Overlay titre en bas
                         html += '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent, rgba(0,0,0,.9));padding:.6rem .4rem .35rem;">';
                         html += '<div style="font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + title + '</div>';
-                        html += '<div style="font-size:.58rem;color:rgba(255,255,255,.5);margin-top:1px;">' + (r.type === 'movie' ? 'Film' : 'Série') + '</div>';
+                        html += '<div style="font-size:.58rem;color:rgba(255,255,255,.5);margin-top:1px;">' + (r.type === 'movie' ? _I18N.movie : _I18N.tv) + '</div>';
                         html += '</div>';
                         html += '</div></div>';
                     });
@@ -636,23 +682,23 @@
                 // ── Tab Infos ──
                 html += '<div class="js-profile-panel" data-tab="profil-info" style="display:none;padding:1rem 1.5rem;">';
                 html += '<table class="table table-sm" style="font-size:.82rem;">';
-                html += '<tr><td class="text-secondary" style="width:140px;">Email</td><td>' + (u.email || '—') + '</td></tr>';
-                html += '<tr><td class="text-secondary">Nom Jellyfin</td><td>' + (u.jellyfinUsername || '—') + '</td></tr>';
-                html += '<tr><td class="text-secondary">Type</td><td>' + (u.userType === 3 ? 'Jellyfin' : (u.userType === 2 ? 'Local' : 'Autre')) + '</td></tr>';
-                html += '<tr><td class="text-secondary">Jellyfin ID</td><td style="font-family:monospace;font-size:.72rem;">' + (u.jellyfinUserId || '—') + '</td></tr>';
-                html += '<tr><td class="text-secondary">Inscription</td><td>' + (u.createdAt ? u.createdAt.substring(0, 10) : '—') + '</td></tr>';
-                html += '<tr><td class="text-secondary">Dernière modif</td><td>' + (u.updatedAt ? u.updatedAt.substring(0, 10) : '—') + '</td></tr>';
+                html += '<tr><td class="text-secondary" style="width:140px;">' + _I18N.profileEmailRow + '</td><td>' + (u.email || '—') + '</td></tr>';
+                html += '<tr><td class="text-secondary">' + _I18N.profileJellyfinNameRow + '</td><td>' + (u.jellyfinUsername || '—') + '</td></tr>';
+                html += '<tr><td class="text-secondary">' + _I18N.profileTypeRow + '</td><td>' + (u.userType === 3 ? 'Jellyfin' : (u.userType === 2 ? _I18N.infoLocal : _I18N.infoOther)) + '</td></tr>';
+                html += '<tr><td class="text-secondary">' + _I18N.profileJellyfinIdRow + '</td><td style="font-family:monospace;font-size:.72rem;">' + (u.jellyfinUserId || '—') + '</td></tr>';
+                html += '<tr><td class="text-secondary">' + _I18N.profileRegisteredRow + '</td><td>' + (u.createdAt ? u.createdAt.substring(0, 10) : '—') + '</td></tr>';
+                html += '<tr><td class="text-secondary">' + _I18N.profileLastModifiedRow + '</td><td>' + (u.updatedAt ? u.updatedAt.substring(0, 10) : '—') + '</td></tr>';
                 html += '</table>';
                 html += '</div>';
 
                 // ── Bouton gérer ──
                 html += '<div style="padding:.75rem 1.5rem;border-top:1px solid var(--tblr-border-color);">';
                 if (u.id === 1) {
-                    html += '<div class="text-secondary text-center small py-1">Compte propriétaire — non modifiable</div>';
+                    html += '<div class="text-secondary text-center small py-1">' + _I18N.profileOwnerLocked + '</div>';
                 } else {
                     html += '<a href="/jellyseerr/utilisateurs/' + u.id + '" class="btn btn-primary w-100">';
                     html += '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>';
-                    html += 'Gérer cet utilisateur</a>';
+                    html += _I18N.profileManageUser + '</a>';
                 }
                 html += '</div>';
 
@@ -688,7 +734,7 @@
                 });
             })
             .catch(function(){
-                body.innerHTML = '<div class="alert alert-danger m-3">Erreur</div>';
+                body.innerHTML = '<div class="alert alert-danger m-3">' + _I18N.error + '</div>';
             });
     });
 })();

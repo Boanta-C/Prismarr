@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
-{% block title %}Taches & Cache — Jellyseerr{% endblock %}
-{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> Taches & Cache{% endblock %}
+{% block title %}{{ 'jellyseerr.settings.tasks_cache.title'|trans }} — Jellyseerr{% endblock %}
+{% block page_title %}<svg width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 368c-88.4 0-160-71.6-160-160S167.6 96 256 96s160 71.6 160 160-71.6 160-160 160z" fill="#a259ff"/><circle cx="256" cy="256" r="80" fill="#a259ff"/></svg> {{ 'jellyseerr.settings.tasks_cache.title'|trans }}{% endblock %}
 {% block head_meta %}<meta name="turbo-visit-control" content="reload">{% endblock %}
 
 {% block stylesheets %}
@@ -23,18 +23,18 @@
 {# ── Taches ── #}
 <div class="card mb-4">
     <div class="card-header d-flex align-items-center justify-content-between">
-        <h3 class="card-title">Taches planifiees</h3>
-        <span class="badge bg-secondary-lt">{{ jobs|length }} taches</span>
+        <h3 class="card-title">{{ 'jellyseerr.settings.tasks_cache.jobs_title'|trans }}</h3>
+        <span class="badge bg-secondary-lt">{{ 'jellyseerr.settings.tasks_cache.jobs_count_tpl'|trans({count: jobs|length}) }}</span>
     </div>
     <div class="table-responsive">
         <table class="table table-vcenter table-sm mb-0">
             <thead>
                 <tr>
-                    <th>Tache</th>
-                    <th>Frequence</th>
-                    <th>Prochaine execution</th>
-                    <th>Statut</th>
-                    <th class="text-end" style="width:180px;">Actions</th>
+                    <th>{{ 'jellyseerr.settings.tasks_cache.col_task'|trans }}</th>
+                    <th>{{ 'jellyseerr.settings.tasks_cache.col_frequency'|trans }}</th>
+                    <th>{{ 'jellyseerr.settings.tasks_cache.col_next'|trans }}</th>
+                    <th>{{ 'jellyseerr.settings.tasks_cache.col_status'|trans }}</th>
+                    <th class="text-end" style="width:180px;">{{ 'jellyseerr.settings.tasks_cache.col_actions'|trans }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -50,7 +50,7 @@
                                 data-job-id="{{ job.id }}"
                                 data-cron="{{ job.cronSchedule ?? '' }}"
                                 data-interval="{{ job.interval ?? '' }}"
-                                title="Modifier">
+                                title="{{ 'jellyseerr.settings.tasks_cache.action_edit_schedule'|trans }}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/><path d="M13.5 6.5l4 4"/></svg>
                         </button>
                     </td>
@@ -59,14 +59,14 @@
                     </td>
                     <td>
                         <span id="status-{{ job.id }}" class="badge {{ job.running ?? false ? 'bg-purple-lt text-purple js-running' : 'bg-green-lt text-green' }}">
-                            {{ job.running ?? false ? 'En cours' : 'Inactif' }}
+                            {{ job.running ?? false ? 'jellyseerr.settings.tasks_cache.status_running'|trans : 'jellyseerr.settings.tasks_cache.status_idle'|trans }}
                         </span>
                     </td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-ghost-primary js-run-job" data-job-id="{{ job.id }}" title="Executer" {{ job.running ?? false ? 'disabled' }}>
+                        <button class="btn btn-sm btn-ghost-primary js-run-job" data-job-id="{{ job.id }}" title="{{ 'jellyseerr.settings.tasks_cache.action_run'|trans }}" {{ job.running ?? false ? 'disabled' }}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                         </button>
-                        <button class="btn btn-sm btn-ghost-danger js-cancel-job" data-job-id="{{ job.id }}" title="Annuler" {{ not (job.running ?? false) ? 'disabled' }} style="{{ not (job.running ?? false) ? 'opacity:.3;' }}">
+                        <button class="btn btn-sm btn-ghost-danger js-cancel-job" data-job-id="{{ job.id }}" title="{{ 'jellyseerr.settings.tasks_cache.action_cancel'|trans }}" {{ not (job.running ?? false) ? 'disabled' }} style="{{ not (job.running ?? false) ? 'opacity:.3;' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
                         </button>
                     </td>
@@ -80,22 +80,22 @@
 {# ── Cache API ── #}
 <div class="card mb-4">
     <div class="card-header d-flex align-items-center justify-content-between">
-        <h3 class="card-title">Cache API</h3>
+        <h3 class="card-title">{{ 'jellyseerr.settings.tasks_cache.cache_title'|trans }}</h3>
         <button class="btn btn-sm btn-outline-danger" id="js-flush-all">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
-            Vider tout
+            {{ 'jellyseerr.settings.tasks_cache.flush_all'|trans }}
         </button>
     </div>
     <div class="table-responsive">
         <table class="table table-vcenter table-sm mb-0">
             <thead>
                 <tr>
-                    <th>Service</th>
-                    <th>Efficacite</th>
-                    <th class="text-end">En cache</th>
-                    <th class="text-end">Recalcules</th>
-                    <th class="text-end">Cles</th>
-                    <th class="text-end">Taille</th>
+                    <th>{{ 'jellyseerr.settings.tasks_cache.cache_col_service'|trans }}</th>
+                    <th>{{ 'jellyseerr.settings.tasks_cache.cache_col_efficiency'|trans }}</th>
+                    <th class="text-end">{{ 'jellyseerr.settings.tasks_cache.cache_col_cached'|trans }}</th>
+                    <th class="text-end">{{ 'jellyseerr.settings.tasks_cache.cache_col_misses'|trans }}</th>
+                    <th class="text-end">{{ 'jellyseerr.settings.tasks_cache.cache_col_keys'|trans }}</th>
+                    <th class="text-end">{{ 'jellyseerr.settings.tasks_cache.cache_col_size'|trans }}</th>
                     <th class="text-end" style="width:80px;"></th>
                 </tr>
             </thead>
@@ -120,7 +120,7 @@
                     <td class="text-end" style="font-size:.82rem;">{{ api.stats.keys }}</td>
                     <td class="text-end" style="font-size:.82rem;">{{ ((api.stats.ksize + api.stats.vsize) / 1024)|round(1) }} Ko</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-ghost-danger js-flush-one" data-cache-id="{{ api.id }}" title="Vider ce cache" {{ api.stats.keys == 0 ? 'disabled' }}>
+                        <button class="btn btn-sm btn-ghost-danger js-flush-one" data-cache-id="{{ api.id }}" title="{{ 'jellyseerr.settings.tasks_cache.cache_flush_one'|trans }}" {{ api.stats.keys == 0 ? 'disabled' }}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
                         </button>
                     </td>
@@ -134,14 +134,14 @@
 {# ── Cache Images ── #}
 {% if cache.imageCache is defined %}
 <div class="card">
-    <div class="card-header"><h3 class="card-title">Cache Images</h3></div>
+    <div class="card-header"><h3 class="card-title">{{ 'jellyseerr.settings.tasks_cache.images_title'|trans }}</h3></div>
     <div class="table-responsive">
         <table class="table table-vcenter table-sm mb-0">
             <thead>
                 <tr>
-                    <th>Type</th>
-                    <th class="text-end">Images</th>
-                    <th class="text-end">Taille</th>
+                    <th>{{ 'jellyseerr.settings.tasks_cache.images_col_type'|trans }}</th>
+                    <th class="text-end">{{ 'jellyseerr.settings.tasks_cache.images_col_count'|trans }}</th>
+                    <th class="text-end">{{ 'jellyseerr.settings.tasks_cache.images_col_size'|trans }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -163,58 +163,58 @@
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Modifier la planification</h5>
+                <h5 class="modal-title">{{ 'jellyseerr.settings.tasks_cache.modal_title'|trans }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="cron-job-id">
 
-                <label class="form-label">Type de frequence</label>
+                <label class="form-label">{{ 'jellyseerr.settings.tasks_cache.cron_type_label'|trans }}</label>
                 <select class="form-select mb-3" id="cron-type">
-                    <option value="seconds">Toutes les X secondes</option>
-                    <option value="minutes">Toutes les X minutes</option>
-                    <option value="hours">Toutes les X heures</option>
-                    <option value="daily">Chaque jour a</option>
-                    <option value="weekly">Chaque semaine</option>
-                    <option value="custom">Expression cron personnalisee</option>
+                    <option value="seconds">{{ 'jellyseerr.settings.tasks_cache.cron_type_seconds'|trans }}</option>
+                    <option value="minutes">{{ 'jellyseerr.settings.tasks_cache.cron_type_minutes'|trans }}</option>
+                    <option value="hours">{{ 'jellyseerr.settings.tasks_cache.cron_type_hours'|trans }}</option>
+                    <option value="daily">{{ 'jellyseerr.settings.tasks_cache.cron_type_daily'|trans }}</option>
+                    <option value="weekly">{{ 'jellyseerr.settings.tasks_cache.cron_type_weekly'|trans }}</option>
+                    <option value="custom">{{ 'jellyseerr.settings.tasks_cache.cron_type_custom'|trans }}</option>
                 </select>
 
                 <div id="cron-seconds-group" class="d-none">
-                    <label class="form-label">Secondes</label>
+                    <label class="form-label">{{ 'jellyseerr.settings.tasks_cache.cron_seconds'|trans }}</label>
                     <select class="form-select" id="cron-seconds-val">
-                        <option value="15">15 secondes</option>
-                        <option value="30">30 secondes</option>
-                        <option value="45">45 secondes</option>
+                        <option value="15">{{ 'jellyseerr.settings.tasks_cache.mins_15'|trans }}</option>
+                        <option value="30">{{ 'jellyseerr.settings.tasks_cache.mins_30'|trans }}</option>
+                        <option value="45">{{ 'jellyseerr.settings.tasks_cache.mins_45'|trans }}</option>
                     </select>
                 </div>
 
                 <div id="cron-minutes-group" class="d-none">
-                    <label class="form-label">Minutes</label>
+                    <label class="form-label">{{ 'jellyseerr.settings.tasks_cache.cron_minutes'|trans }}</label>
                     <select class="form-select" id="cron-minutes-val">
-                        <option value="1">1 minute</option>
-                        <option value="2">2 minutes</option>
-                        <option value="5">5 minutes</option>
-                        <option value="10">10 minutes</option>
-                        <option value="15">15 minutes</option>
-                        <option value="30">30 minutes</option>
+                        <option value="1">{{ 'jellyseerr.settings.tasks_cache.min_1'|trans }}</option>
+                        <option value="2">{{ 'jellyseerr.settings.tasks_cache.min_2'|trans }}</option>
+                        <option value="5">{{ 'jellyseerr.settings.tasks_cache.min_5'|trans }}</option>
+                        <option value="10">{{ 'jellyseerr.settings.tasks_cache.min_10'|trans }}</option>
+                        <option value="15">{{ 'jellyseerr.settings.tasks_cache.min_15'|trans }}</option>
+                        <option value="30">{{ 'jellyseerr.settings.tasks_cache.min_30'|trans }}</option>
                     </select>
                 </div>
 
                 <div id="cron-hours-group" class="d-none">
-                    <label class="form-label">Heures</label>
+                    <label class="form-label">{{ 'jellyseerr.settings.tasks_cache.cron_hours'|trans }}</label>
                     <select class="form-select" id="cron-hours-val">
-                        <option value="1">1 heure</option>
-                        <option value="2">2 heures</option>
-                        <option value="3">3 heures</option>
-                        <option value="4">4 heures</option>
-                        <option value="6">6 heures</option>
-                        <option value="8">8 heures</option>
-                        <option value="12">12 heures</option>
+                        <option value="1">{{ 'jellyseerr.settings.tasks_cache.h_1'|trans }}</option>
+                        <option value="2">{{ 'jellyseerr.settings.tasks_cache.h_2'|trans }}</option>
+                        <option value="3">{{ 'jellyseerr.settings.tasks_cache.h_3'|trans }}</option>
+                        <option value="4">{{ 'jellyseerr.settings.tasks_cache.h_4'|trans }}</option>
+                        <option value="6">{{ 'jellyseerr.settings.tasks_cache.h_6'|trans }}</option>
+                        <option value="8">{{ 'jellyseerr.settings.tasks_cache.h_8'|trans }}</option>
+                        <option value="12">{{ 'jellyseerr.settings.tasks_cache.h_12'|trans }}</option>
                     </select>
                 </div>
 
                 <div id="cron-daily-group" class="d-none">
-                    <label class="form-label">Heure</label>
+                    <label class="form-label">{{ 'jellyseerr.settings.tasks_cache.cron_hour_field'|trans }}</label>
                     <div class="d-flex gap-2">
                         <select class="form-select" id="cron-daily-hour">
                             {% for h in 0..23 %}
@@ -231,15 +231,15 @@
                 </div>
 
                 <div id="cron-weekly-group" class="d-none">
-                    <label class="form-label">Jour et heure</label>
+                    <label class="form-label">{{ 'jellyseerr.settings.tasks_cache.cron_day_and_hour'|trans }}</label>
                     <select class="form-select mb-2" id="cron-weekly-day">
-                        <option value="1">Lundi</option>
-                        <option value="2">Mardi</option>
-                        <option value="3">Mercredi</option>
-                        <option value="4">Jeudi</option>
-                        <option value="5">Vendredi</option>
-                        <option value="6">Samedi</option>
-                        <option value="0">Dimanche</option>
+                        <option value="1">{{ 'jellyseerr.settings.tasks_cache.day_monday'|trans }}</option>
+                        <option value="2">{{ 'jellyseerr.settings.tasks_cache.day_tuesday'|trans }}</option>
+                        <option value="3">{{ 'jellyseerr.settings.tasks_cache.day_wednesday'|trans }}</option>
+                        <option value="4">{{ 'jellyseerr.settings.tasks_cache.day_thursday'|trans }}</option>
+                        <option value="5">{{ 'jellyseerr.settings.tasks_cache.day_friday'|trans }}</option>
+                        <option value="6">{{ 'jellyseerr.settings.tasks_cache.day_saturday'|trans }}</option>
+                        <option value="0">{{ 'jellyseerr.settings.tasks_cache.day_sunday'|trans }}</option>
                     </select>
                     <div class="d-flex gap-2">
                         <select class="form-select" id="cron-weekly-hour">
@@ -257,19 +257,19 @@
                 </div>
 
                 <div id="cron-custom-group" class="d-none">
-                    <label class="form-label">Expression Cron (6 champs)</label>
-                    <input type="text" class="form-control font-monospace" id="cron-custom-val" placeholder="0 */5 * * * *">
-                    <div class="form-text mt-1">Sec Min Heure Jour Mois JourSem</div>
+                    <label class="form-label">{{ 'jellyseerr.settings.tasks_cache.cron_custom_label'|trans }}</label>
+                    <input type="text" class="form-control font-monospace" id="cron-custom-val" placeholder="{{ 'jellyseerr.settings.tasks_cache.cron_custom_placeholder'|trans }}">
+                    <div class="form-text mt-1">{{ 'jellyseerr.settings.tasks_cache.cron_custom_help'|trans }}</div>
                 </div>
 
                 <div class="mt-3 p-2 rounded" style="background:var(--tblr-bg-surface-secondary);font-size:.78rem;">
-                    <span class="text-secondary">Expression cron :</span>
+                    <span class="text-secondary">{{ 'jellyseerr.settings.tasks_cache.cron_expression'|trans }}</span>
                     <code id="cron-preview" style="color:#a259ff;">—</code>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" id="cron-save" style="background:#a259ff;border-color:#a259ff;">Sauvegarder</button>
+                <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="modal">{{ 'jellyseerr.settings.tasks_cache.modal_cancel'|trans }}</button>
+                <button type="button" class="btn btn-primary" id="cron-save" style="background:#a259ff;border-color:#a259ff;">{{ 'jellyseerr.settings.tasks_cache.modal_save'|trans }}</button>
             </div>
         </div>
     </div>
