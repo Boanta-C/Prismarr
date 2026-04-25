@@ -103,13 +103,6 @@ class AdminSettingsController extends AbstractController
         'ru' => 'Русский',
     ];
 
-    /**
-     * Jellyseerr stores the UI language per-user. We push our admin's
-     * preference to the Jellyseerr admin account, which is always id 1
-     * on a fresh install (see Jellyseerr migrations).
-     */
-    private const JELLYSEERR_ADMIN_USER_ID = 1;
-
     private const SERVICE_LABELS = [
         'tmdb'        => 'TMDb',
         'radarr'      => 'Radarr',
@@ -479,19 +472,30 @@ class AdminSettingsController extends AbstractController
             }
         }
 
-        // Jellyseerr UI lang (per-user, admin id 1).
-        // Note : POST /user/{id}/settings/main valide l'email du payload, donc il faut
-        // envoyer le payload courant complet + locale modifié (pas seulement {locale: ...}).
+        // Jellyseerr UI lang : on pousse à la fois sur le global (`/settings/main`,
+        // visible dans Jellyseerr Settings → General → Display Language, défaut nouveaux
+        // users) ET sur user 1 per-user (`/user/1/settings/main`). Ce dernier est
+        // important parce que les appels API faits via la clé admin (par Prismarr)
+        // résolvent le locale via le user-1, donc les métadonnées TMDb (titres,
+        // overviews dans /request, /discover, etc.) suivent ce setting.
+        // Note : POST /settings/main avec full payload échoue en HTTP 400 (apiKey
+        // read-only) ; POST /user/1/settings/main valide l'email, donc full payload OK.
         if ($this->config->get('jellyseerr_url') && $this->config->get('jellyseerr_api_key') && isset($payload['jellyseerr_ui'])) {
             try {
                 /** @var JellyseerrClient $jellyseerr */
                 $jellyseerr = $this->container->get(JellyseerrClient::class);
                 $newCode    = (string) $payload['jellyseerr_ui'];
                 if (isset(self::JELLYSEERR_UI_LANGUAGES[$newCode])) {
-                    $current = $jellyseerr->getUserSettingsMain(self::JELLYSEERR_ADMIN_USER_ID) ?? [];
-                    if (($current['locale'] ?? null) !== $newCode) {
-                        $current['locale'] = $newCode;
-                        $jellyseerr->updateUserSettings(self::JELLYSEERR_ADMIN_USER_ID, $current);
+                    // Global app default
+                    $globalCurrent = $jellyseerr->getMainSettings() ?? [];
+                    if (($globalCurrent['locale'] ?? null) !== $newCode) {
+                        $jellyseerr->updateMainSettings(['locale' => $newCode]);
+                    }
+                    // User 1 (admin) per-user — drives metadata language for API calls
+                    $userCurrent = $jellyseerr->getUserSettingsMain(1) ?? [];
+                    if (($userCurrent['locale'] ?? null) !== $newCode) {
+                        $userCurrent['locale'] = $newCode;
+                        $jellyseerr->updateUserSettings(1, $userCurrent);
                     }
                 }
             } catch (\Throwable $e) {
@@ -583,13 +587,13 @@ class AdminSettingsController extends AbstractController
             }
         }
 
-        // Jellyseerr: per-user setting, we drive the admin user (id 1)
+        // Jellyseerr: global app locale (`/api/v1/settings/main`).
         if ($this->config->get('jellyseerr_url') && $this->config->get('jellyseerr_api_key')) {
             $out['jellyseerr']['configured'] = true;
             try {
                 /** @var JellyseerrClient $jellyseerr */
                 $jellyseerr = $this->container->get(JellyseerrClient::class);
-                $main = $jellyseerr->getUserSettingsMain(self::JELLYSEERR_ADMIN_USER_ID) ?? [];
+                $main = $jellyseerr->getMainSettings() ?? [];
                 $out['jellyseerr']['current'] = $main['locale'] ?? null;
             } catch (\Throwable $e) {
                 $out['jellyseerr']['error'] = true;

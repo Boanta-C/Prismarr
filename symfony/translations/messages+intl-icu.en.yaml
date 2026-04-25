@@ -507,7 +507,7 @@ admin:
     save_btn: Save languages
     saved_success: Languages updated.
     partial_error: 'Partial save: {services} failed.'
-    info_jellyseerr_per_user: Jellyseerr language is per-user. This change applies to the admin account (id 1).
+    info_jellyseerr_global: Sets the Jellyseerr app default language (Settings → General). Users who set their own profile language keep their override.
     info_existing_items: 'Tip: changing a service language does not retranslate indexers/notifications/clients that were already created. To retranslate them you need to recreate them.'
   display:
     title: Display

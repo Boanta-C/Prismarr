@@ -506,7 +506,7 @@ admin:
     save_btn: Enregistrer les langues
     saved_success: Langues mises à jour.
     partial_error: 'Sauvegarde partielle : {services} ont échoué.'
-    info_jellyseerr_per_user: La langue Jellyseerr est par-utilisateur. Cette modification s'applique au compte admin (id 1).
+    info_jellyseerr_global: Modifie la langue par défaut de l'app Jellyseerr (Settings → General). Les utilisateurs gardent leurs préférences perso s'ils en ont défini une.
     info_existing_items: 'Astuce : changer la langue d''un service ne retraduit pas les indexers/notifications/clients déjà créés. Pour cela il faut les recréer.'
   display:
     title: Affichage
