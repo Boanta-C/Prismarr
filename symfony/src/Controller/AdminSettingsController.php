@@ -444,29 +444,16 @@ class AdminSettingsController extends AbstractController
             }
         }
 
-        // Sonarr UI + Series Info lang (champ movieInfoLanguage hérité du fork Radarr)
-        if ($this->config->get('sonarr_url') && $this->config->get('sonarr_api_key')
-            && (isset($payload['sonarr_ui']) || isset($payload['sonarr_info']))) {
+        // Sonarr UI lang (Sonarr v4 n'expose pas movieInfoLanguage/seriesInfoLanguage —
+        // chaque série a son propre originalLanguage, pas de paramètre global)
+        if ($this->config->get('sonarr_url') && $this->config->get('sonarr_api_key') && isset($payload['sonarr_ui'])) {
             try {
                 /** @var SonarrClient $sonarr */
-                $sonarr   = $this->container->get(SonarrClient::class);
-                $ui       = $sonarr->getUiConfig() ?? [];
-                $changed_ = false;
-                if (isset($payload['sonarr_ui'])) {
-                    $newId = (int) $payload['sonarr_ui'];
-                    if ($newId > 0 && ($ui['uiLanguage'] ?? null) !== $newId) {
-                        $ui['uiLanguage'] = $newId;
-                        $changed_ = true;
-                    }
-                }
-                if (isset($payload['sonarr_info'])) {
-                    $newId = (int) $payload['sonarr_info'];
-                    if ($newId > 0 && ($ui['movieInfoLanguage'] ?? null) !== $newId) {
-                        $ui['movieInfoLanguage'] = $newId;
-                        $changed_ = true;
-                    }
-                }
-                if ($changed_) {
+                $sonarr = $this->container->get(SonarrClient::class);
+                $ui     = $sonarr->getUiConfig() ?? [];
+                $newId  = (int) $payload['sonarr_ui'];
+                if ($newId > 0 && ($ui['uiLanguage'] ?? null) !== $newId) {
+                    $ui['uiLanguage'] = $newId;
                     $sonarr->updateUiConfig($ui);
                 }
             } catch (\Throwable $e) {
@@ -527,7 +514,7 @@ class AdminSettingsController extends AbstractController
     {
         $out = [
             'radarr'     => ['configured' => false, 'current' => null, 'current_info' => null, 'available' => [], 'error' => false],
-            'sonarr'     => ['configured' => false, 'current' => null, 'current_info' => null, 'available' => [], 'error' => false],
+            'sonarr'     => ['configured' => false, 'current' => null, 'available' => [], 'error' => false],
             'prowlarr'   => ['configured' => false, 'current' => null, 'available' => self::PROWLARR_UI_LANGUAGES, 'error' => false],
             'jellyseerr' => ['configured' => false, 'current' => null, 'available' => self::JELLYSEERR_UI_LANGUAGES, 'error' => false],
         ];
@@ -554,7 +541,8 @@ class AdminSettingsController extends AbstractController
             }
         }
 
-        // Sonarr: same pattern (hérite le champ movieInfoLanguage du fork Radarr)
+        // Sonarr: UI language only — Sonarr v4 ne propose plus de paramètre global
+        // pour la langue des metadata séries (chaque série a son originalLanguage).
         if ($this->config->get('sonarr_url') && $this->config->get('sonarr_api_key')) {
             $out['sonarr']['configured'] = true;
             try {
@@ -562,9 +550,8 @@ class AdminSettingsController extends AbstractController
                 $sonarr = $this->container->get(SonarrClient::class);
                 $ui     = $sonarr->getUiConfig() ?? [];
                 $langs  = $sonarr->getLanguages();
-                $out['sonarr']['current']      = $ui['uiLanguage'] ?? null;
-                $out['sonarr']['current_info'] = $ui['movieInfoLanguage'] ?? null;
-                $out['sonarr']['available']    = [];
+                $out['sonarr']['current']   = $ui['uiLanguage'] ?? null;
+                $out['sonarr']['available'] = [];
                 foreach ($langs as $l) {
                     if (isset($l['id'], $l['name'])) {
                         $out['sonarr']['available'][(int) $l['id']] = (string) $l['name'];

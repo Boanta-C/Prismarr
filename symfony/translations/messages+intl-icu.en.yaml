@@ -499,8 +499,7 @@ admin:
     radarr_info_label: Radarr — Movie info language
     radarr_info_help: Language for movie titles, overviews and metadata fetched from TMDb by Radarr.
     sonarr_ui_label: Sonarr — UI language
-    sonarr_info_label: Sonarr — Series info language
-    sonarr_info_help: Language for series titles, overviews and metadata fetched from TheTVDB/TMDb by Sonarr.
+    sonarr_info_unavailable: 'Sonarr v4 no longer has a global series info language (each series has its own originalLanguage).'
     prowlarr_ui_label: Prowlarr — UI language
     jellyseerr_ui_label: Jellyseerr — UI language (admin)
     not_configured: Service not configured
