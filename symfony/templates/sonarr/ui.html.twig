@@ -169,19 +169,11 @@
         <div class="setting-hint">{{ 'media.arr_admin.ui.language.ui_language_hint_sonarr'|trans }}</div>
       </div>
     </div>
-    <div class="setting-row">
-      <div class="setting-label">{{ 'media.arr_admin.ui.language.info_language_sonarr'|trans }}</div>
-      <div class="setting-field">
-        <select name="movieInfoLanguage" class="form-select form-select-sm" style="max-width:250px;">
-          {% for lang in languages %}
-            {% if lang.id is defined and lang.id >= -1 %}
-            <option value="{{ lang.id }}" {{ (uiConfig.movieInfoLanguage ?? 1) == lang.id ? 'selected' }}>{{ lang.name ?? lang.id }}</option>
-            {% endif %}
-          {% endfor %}
-        </select>
-        <div class="setting-hint">{{ 'media.arr_admin.ui.language.info_language_hint_sonarr'|trans }}</div>
-      </div>
-    </div>
+    {# Sonarr v4 a retiré le paramètre global "Series Info Language" : le champ
+       movieInfoLanguage n'est ni renvoyé par GET /api/v3/config/ui ni persisté
+       par PUT (Sonarr répond 202 mais ignore silencieusement). Chaque série a
+       son propre originalLanguage à la place — le dropdown ne fait rien donc
+       on l'a retiré pour ne pas induire l'utilisateur en erreur. #}
   </div>
 </div>
 
