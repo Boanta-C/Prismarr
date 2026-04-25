@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  *
  * Admin is pre-seeded and logged in, setup is marked completed, but no
  * external service URL/API key is configured, so the routes are
- * expected to degrade gracefully (bandeau "service non configuré" →
+ * expected to degrade gracefully (banner "service not configured" →
  * 503, or 200 with empty state) rather than 500.
  */
 class ControllersSmokeTest extends AbstractWebTestCase

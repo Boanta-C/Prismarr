@@ -169,11 +169,11 @@
         <div class="setting-hint">{{ 'media.arr_admin.ui.language.ui_language_hint_sonarr'|trans }}</div>
       </div>
     </div>
-    {# Sonarr v4 a retiré le paramètre global "Series Info Language" : le champ
-       movieInfoLanguage n'est ni renvoyé par GET /api/v3/config/ui ni persisté
-       par PUT (Sonarr répond 202 mais ignore silencieusement). Chaque série a
-       son propre originalLanguage à la place — le dropdown ne fait rien donc
-       on l'a retiré pour ne pas induire l'utilisateur en erreur. #}
+    {# Sonarr v4 removed the global "Series Info Language" setting: the field
+       movieInfoLanguage is neither returned by GET /api/v3/config/ui nor persisted
+       by PUT (Sonarr responds 202 but silently ignores it). Each series has its
+       own originalLanguage instead — the dropdown did nothing so we removed it
+       to avoid misleading users. #}
   </div>
 </div>
 

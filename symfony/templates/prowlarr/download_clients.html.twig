@@ -49,7 +49,7 @@
                     {% endif %}
                 </div>
 
-                {# Infos clés #}
+                {# Key info #}
                 <div class="small mb-2">
                     {% for field in c.fields ?? [] %}
                         {% if field.value is defined and field.value is not null and field.value != '' and (field.privacy ?? '') != 'apiKey' and (field.privacy ?? '') != 'password' and (field.type ?? '') != 'password' and field.name in ['host','port','category','username'] %}
@@ -92,7 +92,7 @@
     {{ 'prowlarr.download_clients.add_btn'|trans }}
 </button>
 
-{# Modal Ajouter #}
+{# Add modal #}
 <div class="modal modal-blur fade" id="pw-modal-add" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
         <div class="modal-content" style="background:var(--tblr-bg-surface);">
@@ -111,7 +111,7 @@
     </div>
 </div>
 
-{# Modal Éditer #}
+{# Edit modal #}
 <div class="modal modal-blur fade" id="pw-modal-edit" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
         <div class="modal-content" style="background:var(--tblr-bg-surface);">

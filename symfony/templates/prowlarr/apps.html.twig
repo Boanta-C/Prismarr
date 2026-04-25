@@ -55,7 +55,7 @@
                     </div>
                 </div>
 
-                {# Infos clés #}
+                {# Key info #}
                 <div class="d-flex flex-wrap gap-1 mb-2">
                     <span class="badge bg-indigo-lt" style="font-size:.6rem;">{{ app.syncLevel ?? '—' }}</span>
                     {% for field in app.fields ?? [] %}
@@ -83,7 +83,7 @@
     {% endfor %}
 </div>
 
-{# Bouton ajouter petit #}
+{# Small add button #}
 <div class="mb-3">
     <button class="btn btn-sm btn-outline-secondary pw-add-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E88D1A" stroke-width="2" class="me-1"><path d="M12 5v14M5 12h14"/></svg>
@@ -154,7 +154,7 @@
     </div>
 </div>
 
-{# Modal Ajouter #}
+{# Add modal #}
 <div class="modal modal-blur fade" id="pw-modal-add" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
         <div class="modal-content" style="background:var(--tblr-bg-surface);">
@@ -173,7 +173,7 @@
     </div>
 </div>
 
-{# Modal Éditer #}
+{# Edit modal #}
 <div class="modal modal-blur fade" id="pw-modal-edit" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
         <div class="modal-content" style="background:var(--tblr-bg-surface);">

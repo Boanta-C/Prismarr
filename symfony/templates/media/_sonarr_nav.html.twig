@@ -1,6 +1,6 @@
 {#
-  Barre de navigation Sonarr — icônes avec tooltip natif (title=).
-  Utilise data-prismarr-dropdown (handler custom Turbo-safe).
+  Sonarr navigation bar — icons with native tooltips (title=).
+  Uses data-prismarr-dropdown (custom Turbo-safe handler).
 #}
 {% set _route = app.request.attributes.get('_route') %}
 {% set _activity = ['app_media_series_history_page','app_media_series_blocklist','sonarr_commands'] %}
@@ -23,7 +23,7 @@
     {{ 'media.nav.series'|trans }}
   </a>
 
-  {# ── Activité (horloge) ── #}
+  {# ── Activity (clock) ── #}
   <div style="position:relative;">
     <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _activity ? 'btn-secondary' : 'btn-ghost-secondary' }}"
             type="button" data-prismarr-dropdown="snav-activity" title="{{ 'media.group.activity'|trans }}">
@@ -38,7 +38,7 @@
     </div>
   </div>
 
-  {# ── Recherché (loupe) ── #}
+  {# ── Search (magnifier) ── #}
   <div style="position:relative;">
     <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _wanted ? 'btn-warning' : 'btn-ghost-secondary' }}"
             type="button" data-prismarr-dropdown="snav-wanted" title="{{ 'media.group.wanted'|trans }}">
@@ -53,7 +53,7 @@
     </div>
   </div>
 
-  {# ── Découverte (étoile) ── #}
+  {# ── Discover (star) ── #}
   <div style="position:relative;">
     <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _discover ? 'btn-secondary' : 'btn-ghost-secondary' }}"
             type="button" data-prismarr-dropdown="snav-discover" title="{{ 'media.group.discovery'|trans }}">
@@ -67,7 +67,7 @@
     </div>
   </div>
 
-  {# ── Paramètres (engrenage) ── #}
+  {# ── Settings (gear) ── #}
   <div style="position:relative;">
     <button class="btn btn-sm d-inline-flex align-items-center gap-1 {{ _route in _settings ? 'btn-secondary' : 'btn-ghost-secondary' }}"
             type="button" data-prismarr-dropdown="snav-settings" title="{{ 'media.group.settings'|trans }}">

@@ -204,7 +204,7 @@
 .cal-tooltip-badges { display:flex; gap:.35rem; margin-top:.4rem; }
 .cal-tooltip-badge { font-size:.55rem; font-weight:600; padding:.15em .4em; border-radius:.2rem; }
 
-/* ── Popup détail jour ── */
+/* ── Day detail popup ── */
 .cal-day-popup { position:fixed; z-index:9998; width:360px; max-height:500px; overflow-y:auto; background:#1e1e2e; border:1px solid rgba(255,255,255,.12); border-radius:.75rem; box-shadow:0 8px 32px rgba(0,0,0,.5); padding:.75rem; display:none; }
 .cal-day-popup.show { display:block; }
 .cal-day-popup-title { font-size:.9rem; font-weight:700; margin-bottom:.6rem; display:flex; align-items:center; justify-content:space-between; }
@@ -254,7 +254,7 @@
 {% block body %}
 <div class="container-xl">
 
-    {# ── Filtres — cards séparées par catégorie ── #}
+    {# ── Filters — cards split by category ── #}
     <div class="d-flex gap-3 mb-3 flex-wrap">
 
         {# Card : Tout #}
@@ -262,7 +262,7 @@
             <button class="cal-filter-pill active" data-filter="all"><div class="cal-filter-dot" style="background:var(--tblr-primary);"></div> {{ 'calendar.filter.all'|trans }} <span class="cal-filter-count" id="fc-all"></span></button>
         </div>
 
-        {# Card : Médias #}
+        {# Card: Media #}
         <div class="cal-toolbar" style="flex:0 1 auto;">
             <span class="cal-toolbar-label">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFC230" stroke-width="2" class="me-1"><path d="M7 4v16l13 -8z"/></svg>
@@ -289,7 +289,7 @@
     <div class="cal-main-header">
         <div class="cal-main-title" id="main-title"></div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            {# Toggle de vues #}
+            {# View toggles #}
             <div class="cal-view-switch" role="tablist" aria-label="{{ 'calendar.view.aria_label'|trans }}">
                 <button type="button" class="cal-view-btn is-active" data-view="month" role="tab" aria-selected="true">{{ 'calendar.view.month'|trans }}</button>
                 <button type="button" class="cal-view-btn" data-view="week" role="tab" aria-selected="false">{{ 'calendar.view.week'|trans }}</button>
@@ -325,7 +325,7 @@
 
 {# Tooltip hover #}
 <div class="cal-tooltip" id="cal-tooltip"></div>
-{# Popup détail jour #}
+{# Day detail popup #}
 <div class="cal-day-popup" id="cal-day-popup"></div>
 
 </div>
@@ -406,7 +406,7 @@
     ]|map(k => k|trans)|json_encode|raw }};
     var todayStr = fmt(today);
 
-    // Couleurs par série (hash → index)
+    // Per-series colors (hash → index)
     var seriesColors = {};
     var colorVariants = ['', 'cal-block-ep-v1','cal-block-ep-v2','cal-block-ep-v3','cal-block-ep-v4'];
     var colorIdx = 0;
@@ -497,12 +497,12 @@
         h += '</div></div>';    // close .cal-grid + .cal-grid-wrap
         container.innerHTML = h;
 
-        // Clic sur cellule → sélection + popup
+        // Click on cell → selection + popup
         container.querySelectorAll('.cal-cell[data-date]').forEach(function(c) {
             c.addEventListener('click', function(e) {
                 if (e.target.closest('.cal-block') || e.target.closest('.cal-block-more')) return;
                 selDate = c.dataset.date;
-                // Re-highlight sans tout re-render
+                // Re-highlight without re-rendering everything
                 container.querySelectorAll('.cal-cell').forEach(function(cl) { cl.classList.remove('is-selected'); });
                 c.classList.add('is-selected');
                 var bd2 = byDate();
@@ -848,8 +848,8 @@
         if (block) { clearTimeout(tooltipTimer); hideTooltip(); }
     });
 
-    // Click sur un event → ouvre la fiche sur Films/Séries via `?open=`
-    // (le poster-card tile reproduit ce contrat ailleurs dans l'app).
+    // Click on an event → opens the entry on Movies/Series via `?open=`
+    // (the poster-card tile reuses this contract elsewhere in the app).
     document.addEventListener('click', function(e) {
         var block = e.target.closest('[data-ev-idx]');
         if (!block) return;
@@ -930,7 +930,7 @@
         });
     }
 
-    // ── Popup détail jour ──
+    // ── Day detail popup ──
     var dayPopup = document.getElementById('cal-day-popup');
 
     function openDayPopup(ds, anchorRect) {
@@ -1018,7 +1018,7 @@
         if (!dayPopup.contains(e.target)) closeDayPopup();
     });
 
-    // Init — sélectionner aujourd'hui
+    // Init — select today
     selDate = todayStr;
     renderAll();
 })();

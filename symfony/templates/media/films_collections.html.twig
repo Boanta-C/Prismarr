@@ -104,7 +104,7 @@
   {% set colDl = colMovies|filter(m => m.hasFile ?? false)|length %}
   {% set pct = colTotal > 0 ? (colDl / colTotal * 100)|round : 0 %}
 
-  {# Poster : chercher dans images[] #}
+  {# Poster: look up in images[] #}
   {% set poster = null %}
   {% for img in col.images ?? [] %}
     {% if img.coverType == 'poster' %}{% set poster = img.remoteUrl ?? null %}{% endif %}
@@ -133,7 +133,7 @@
       <div style="font-size:.62rem;color:rgba(255,255,255,.7);margin-top:.2rem">
         {{ colDl }}/{{ colTotal }} {{ 'media.films_collections.films_count_suffix'|trans }}
       </div>
-      {# Barre de progression #}
+      {# Progress bar #}
       <div style="height:3px;background:rgba(255,255,255,.2);border-radius:2px;margin-top:.3rem;overflow:hidden">
         <div style="height:100%;width:{{ pct }}%;background:{% if pct == 100 %}#22c55e{% else %}var(--tblr-primary){% endif %};border-radius:2px"></div>
       </div>
@@ -152,7 +152,7 @@
 {% endfor %}
 </div>
 
-{# ── Modal détail collection ─────────────────────────────────────────── #}
+{# ── Collection detail modal ─────────────────────────────────────────── #}
 <div class="modal modal-blur fade" id="modal-collection" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">

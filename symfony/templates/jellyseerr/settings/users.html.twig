@@ -67,7 +67,7 @@
     </div>
 </div>
 
-{# ── Permissions par défaut — toggles style natif ── #}
+{# ── Default permissions — native-style toggles ── #}
 {% set dp = main.defaultPermissions ?? 0 %}
 {% set permList = [
     {bit: 2,        k: 'perm_admin',                   section: 'section_default_perms'},
@@ -155,7 +155,7 @@
         error: {{ 'jellyseerr.settings.settings_users.error'|trans|json_encode|raw }}
     };
 
-    // ── Permissions parent/enfants (même logique que user_detail) ──
+    // ── Parent/children permissions (same logic as user_detail) ──
     var ADMIN_BIT = 2;
     function getPermCb(bit) { return document.querySelector('.js-perm-cb[value="' + bit + '"]'); }
     function isPermChecked(bit) { var cb = getPermCb(bit); return cb && cb.checked; }

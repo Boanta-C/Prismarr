@@ -110,7 +110,7 @@
     </button>
 </div>
 
-{# ── Règles de substitution ── #}
+{# ── Substitution rules ── #}
 <h3 style="font-weight:700;font-size:1rem;margin-bottom:.75rem;">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="2" class="me-2" style="vertical-align:-3px;"><path d="M3 12h4l3 8l4 -16l3 8h4"/></svg>
     {{ 'jellyseerr.settings.services.rules_title'|trans }}
@@ -145,7 +145,7 @@
     </a>
 </div>
 
-{# ── Modal édition ── #}
+{# ── Edit modal ── #}
 <div class="modal modal-blur fade" id="modal-edit-srv" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width:700px;">
         <div class="modal-content" style="border:0;border-radius:.75rem;">
@@ -264,7 +264,7 @@
         var profOpts = profiles.map(function(p){ return {value:p.id, label:p.name}; });
         var folderOpts = folders.map(function(f){ return {value:f.path, label:f.path}; });
 
-        // Bloquer le save si création et pas de profils chargés
+        // Block save if creating and no profiles loaded
         var modalSaveBtn = document.getElementById('js-modal-save');
         var modalDeleteBtn = document.getElementById('js-modal-delete');
         if (isNew) {
@@ -416,13 +416,13 @@
         .then(function(d){
             if (d.ok && d.data) {
                 statusEl.innerHTML = '<span class="text-success">' + _I18N.testSuccess + '</span>';
-                // Débloquer le save
+                // Unblock save
                 var saveB = document.getElementById('js-modal-save');
                 if (saveB) { saveB.disabled = false; saveB.title = ''; }
-                // Masquer le hint
+                // Hide the hint
                 var hint = document.getElementById('js-test-hint');
                 if (hint) hint.style.display = 'none';
-                // Remplir les dropdowns profil/dossier
+                // Fill profile/folder dropdowns
                 var profileSel = document.getElementById('js-srv-profile');
                 var folderSel = document.getElementById('js-srv-folder');
                 if (profileSel && d.data.profiles) {

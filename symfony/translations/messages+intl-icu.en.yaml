@@ -84,6 +84,7 @@ topbar:
     home: Back to home
   search:
     placeholder: Search a movie, a TV show, a torrent…
+    placeholder_short: Type at least 2 characters to start searching.
     label: Global search
     shortcut_hint: Ctrl+K
     filter:
@@ -93,13 +94,22 @@ topbar:
       torrents: Downloads
     recent: Recent searches
     empty: No results
+    empty_short: No results.
     clear: Clear
+    forget: Forget
+    loading_online: Loading…
+    in_library_badge: In library
+    not_added_badge: Not added
+    group_local: In your library
+    group_online: On TMDb / TheTVDB
     more_local: See more in your library
     more_online: See more on TMDb
   theme:
     toggle: Toggle light/dark theme
     light: Light
     dark: Dark
+    label_light: Light theme
+    label_dark: Dark theme
   locale:
     toggle: Change language
     label: Language
@@ -448,6 +458,15 @@ error:
     configure_cta: 'Configure {service}'
     service_unavailable_flash: 'Configure {service} to access this section.'
     service_unavailable_warn: 'The "{service}" service is not configured yet.'
+  service_banner:
+    title_not_configured: '{service} is not configured'
+    title_unreachable: '{service} is not responding'
+    body_not_configured: 'Configure {service} from the wizard to enable this section.'
+    body_unreachable_url: 'Cannot reach <code>{url}</code>. Make sure the service is running, the URL is correct and the API key is valid.'
+    body_unreachable_no_url: 'Cannot reach the service. Make sure it is running, the URL is correct and the API key is valid.'
+    cta_configure: 'Configure {service}'
+    cta_edit: 'Edit configuration'
+    cta_retry: Retry
 
 admin:
   page:
@@ -729,6 +748,7 @@ decouverte:
   action:
     add: Add
     close: Close
+    details: Details
   card:
     rating: 'Rating {value}/10'
     status_short:
@@ -752,6 +772,8 @@ decouverte:
     cast: Main cast
     info: Details
     seasons: Seasons
+    season_label: 'Season {n}'
+    episode_short: ep
     alt_titles: Alternative titles
     reviews: Reviews
     gallery: Gallery
@@ -843,6 +865,7 @@ decouverte:
     empty_message: 'Add movies and TV shows from the <a href="{path}">Discover page</a>.'
     remove_confirm: 'Remove "{title}" from the watchlist?'
     removed_toast: Removed from watchlist
+    added_toast: Added to watchlist
     notes_title: Notes
     notes_placeholder: Add a note...
     notes_cancel: Cancel
@@ -875,8 +898,12 @@ decouverte:
     load_more: Load more
     empty_hint: 'Pick some filters and click Search, or choose a collection / actor.'
     loading: Loading...
+    resolving: Resolving...
     no_results_js: No results.
     network_error: Network error
+    results_count: '{count, plural, one {# result} other {# results}}'
+    titles_count: '{count, plural, one {# title} other {# titles}}'
+    filmography: Filmography
     watchlist: Watchlist
     watchlist_added: '✓'
     type_film: Movie

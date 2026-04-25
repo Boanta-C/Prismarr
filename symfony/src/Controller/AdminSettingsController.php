@@ -116,7 +116,7 @@ class AdminSettingsController extends AbstractController
     /**
      * Internal features — aggregated pages without their own API key/URL.
      * Same visibility-toggle pattern as SERVICE_LABELS, but no fields to edit
-     * and no "Tester la connexion" button.
+     * and no "Test connection" button.
      *
      * @var array<string, array{label: string, subtitle: string}>
      */
@@ -216,10 +216,10 @@ class AdminSettingsController extends AbstractController
                 'compact'     => 'admin.display.ui_density.options.compact',
             ],
         ],
-        // Langues : conservées dans DISPLAY_OPTIONS pour fournir les defaults
-        // à DisplayPreferencesService et loadDisplayValues, mais marquées
-        // `hidden: true` pour ne pas s'afficher dans la section Display
-        // (l'édition se fait via la section Langues unifiée).
+        // Languages: kept in DISPLAY_OPTIONS to provide defaults to
+        // DisplayPreferencesService and loadDisplayValues, but marked
+        // `hidden: true` so they don't show up in the Display section
+        // (editing happens via the unified Languages section).
         'display_language' => [
             'label'   => 'admin.display.language.label',
             'type'    => 'select',
@@ -441,7 +441,7 @@ class AdminSettingsController extends AbstractController
             try { $this->appCache->clear(); } catch (\Throwable) {}
         }
 
-        // Radarr UI + Movie Info lang (push via API, même endpoint /config/ui)
+        // Radarr UI + Movie Info lang (pushed via API, same /config/ui endpoint)
         if ($this->config->get('radarr_url') && $this->config->get('radarr_api_key')
             && (isset($payload['radarr_ui']) || isset($payload['radarr_info']))) {
             try {
@@ -472,8 +472,8 @@ class AdminSettingsController extends AbstractController
             }
         }
 
-        // Sonarr UI lang (Sonarr v4 n'expose pas movieInfoLanguage/seriesInfoLanguage —
-        // chaque série a son propre originalLanguage, pas de paramètre global)
+        // Sonarr UI lang (Sonarr v4 doesn't expose movieInfoLanguage/seriesInfoLanguage —
+        // each series has its own originalLanguage, no global setting)
         if ($this->config->get('sonarr_url') && $this->config->get('sonarr_api_key') && isset($payload['sonarr_ui'])) {
             try {
                 /** @var SonarrClient $sonarr */
@@ -507,14 +507,14 @@ class AdminSettingsController extends AbstractController
             }
         }
 
-        // Jellyseerr UI lang : on pousse à la fois sur le global (`/settings/main`,
-        // visible dans Jellyseerr Settings → General → Display Language, défaut nouveaux
-        // users) ET sur user 1 per-user (`/user/1/settings/main`). Ce dernier est
-        // important parce que les appels API faits via la clé admin (par Prismarr)
-        // résolvent le locale via le user-1, donc les métadonnées TMDb (titres,
-        // overviews dans /request, /discover, etc.) suivent ce setting.
-        // Note : POST /settings/main avec full payload échoue en HTTP 400 (apiKey
-        // read-only) ; POST /user/1/settings/main valide l'email, donc full payload OK.
+        // Jellyseerr UI lang: we push both to the global (`/settings/main`,
+        // visible in Jellyseerr Settings → General → Display Language, default for new
+        // users) AND to user 1 per-user (`/user/1/settings/main`). The latter matters
+        // because API calls made with the admin key (by Prismarr) resolve the locale
+        // via user-1, so TMDb metadata (titles, overviews in /request, /discover, etc.)
+        // follows this setting.
+        // Note: POST /settings/main with full payload fails with HTTP 400 (apiKey
+        // read-only); POST /user/1/settings/main validates the email, so full payload OK.
         if ($this->config->get('jellyseerr_url') && $this->config->get('jellyseerr_api_key') && isset($payload['jellyseerr_ui'])) {
             try {
                 /** @var JellyseerrClient $jellyseerr */
@@ -586,8 +586,8 @@ class AdminSettingsController extends AbstractController
             }
         }
 
-        // Sonarr: UI language only — Sonarr v4 ne propose plus de paramètre global
-        // pour la langue des metadata séries (chaque série a son originalLanguage).
+        // Sonarr: UI language only — Sonarr v4 no longer offers a global setting
+        // for series metadata language (each series has its own originalLanguage).
         if ($this->config->get('sonarr_url') && $this->config->get('sonarr_api_key')) {
             $out['sonarr']['configured'] = true;
             try {
@@ -711,8 +711,8 @@ class AdminSettingsController extends AbstractController
         // Display preferences — only accept values from the declared allow-list
         // (selects/colors) or '1'/'0' for switches. Anything else is dropped
         // silently and the default kicks back in on next read. Hidden options
-        // (display_language, display_metadata_language) sont édités par la
-        // section Langues, donc on les ignore ici pour ne pas les écraser.
+        // (display_language, display_metadata_language) are edited via the
+        // Languages section, so we skip them here to avoid overwriting them.
         foreach (self::DISPLAY_OPTIONS as $key => $spec) {
             if ($spec['hidden'] ?? false) continue;
             $raw = trim((string) $request->request->get($key, ''));

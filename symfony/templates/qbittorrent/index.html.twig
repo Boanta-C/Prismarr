@@ -160,7 +160,7 @@ body[data-bs-theme="dark"] .qbt-bar-wrap { background:rgba(255,255,255,.06); }
 @media(max-width:991px){ .qbt-bulk-bar { left:0; } }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   Modal Ajouter — drop zone fichiers .torrent
+   Add modal — drop zone fichiers .torrent
    ══════════════════════════════════════════════════════════════════════════ */
 .qbt-drop-zone { position:relative; border:2px dashed var(--tblr-border-color); border-radius:8px; padding:1rem; text-align:center; cursor:pointer; transition:all .15s; background:var(--tblr-bg-surface-secondary); }
 .qbt-drop-zone:hover { border-color:#2f67ba; background:rgba(47,103,186,.04); }
@@ -174,7 +174,7 @@ body[data-bs-theme="dark"] .qbt-bar-wrap { background:rgba(255,255,255,.06); }
 .qbt-drop-files li .remove:hover { color:#ef4444; }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   Modal détail
+   Detail modal
    ══════════════════════════════════════════════════════════════════════════ */
 .qbt-detail-tab { border-bottom:1px solid var(--tblr-border-color); }
 .qbt-detail-tab .nav-link { padding:.5rem 1rem; font-size:.82rem; color:var(--tblr-text-secondary); border:none; border-bottom:2px solid transparent; }
@@ -301,7 +301,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
 {% if not error %}
 
 {# ══════════════════════════════════════════════════════════════════════════
-   Stats cards — ligne 1 : états torrents
+   Stats cards — row 1: torrent states
    ══════════════════════════════════════════════════════════════════════════ #}
 <div class="row g-2 mb-2">
     <div class="col-6 col-md-4 col-lg-2">
@@ -354,7 +354,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
 </div>
 
 {# ══════════════════════════════════════════════════════════════════════════
-   Stats cards — ligne 2 : totaux + VPN + Session
+   Stats cards — row 2: totals + VPN + Session
    ══════════════════════════════════════════════════════════════════════════ #}
 <div class="row g-2 mb-3">
     <div class="col-12 col-md-6 col-lg-3">
@@ -437,7 +437,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
 </div>
 
 {# ══════════════════════════════════════════════════════════════════════════
-   Barre filtres + recherche + actions
+   Filter bar + search + actions
    ══════════════════════════════════════════════════════════════════════════ #}
 <div class="card mb-3">
     <div class="card-body py-2">
@@ -524,7 +524,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
                 </button>
             </div>
         </div>
-        {# 3e ligne de la card : pagination #}
+        {# 3rd row of the card: pagination #}
         <div id="qbt-pagination-bar" class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2 pt-2" style="display:none;border-top:1px solid var(--tblr-border-color);">
             <div class="d-flex align-items-center gap-2 flex-shrink-0" style="font-size:.78rem;">
                 <span class="text-muted" style="white-space:nowrap;font-weight:500;">{{ 'qbittorrent.pagination.per_page'|trans }}</span>
@@ -542,7 +542,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
 </div>
 
 {# ══════════════════════════════════════════════════════════════════════════
-   Header tableau (visible uniquement en mode table)
+   Table header (visible only in table mode)
    ══════════════════════════════════════════════════════════════════════════ #}
 <div id="qbt-table-header">
     <div></div>
@@ -597,7 +597,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
 </div>{# /container-xl #}
 
 {# ══════════════════════════════════════════════════════════════════════════
-   Modal détail torrent
+   Torrent detail modal
    ══════════════════════════════════════════════════════════════════════════ #}
 <div class="modal modal-blur fade" id="qbt-modal-detail" tabindex="-1">
 <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -707,7 +707,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
 </div>
 
 {# ══════════════════════════════════════════════════════════════════════════
-   Modal supprimer
+   Delete modal
    ══════════════════════════════════════════════════════════════════════════ #}
 <div class="modal modal-blur fade" id="qbt-modal-delete" tabindex="-1">
 <div class="modal-dialog modal-sm">

@@ -152,10 +152,10 @@
 .media-card .hover-info .h-badges { display: flex; gap: .25rem; flex-wrap: wrap; margin-bottom: .3rem; }
 .media-card .hover-info .h-badges .badge { font-size: .55rem; }
 .media-grid.view-extended .media-card .hover-info { display: none !important; }
-/* Vue tableau films */
+/* Table view (movies) */
 #films-table-view { display: none; }
 #films-table-view.active { display: block; }
-/* Vue étagères films */
+/* Shelves view (movies) */
 #films-shelf-view { display: none; }
 .shelf-section { margin-bottom: 1.5rem; }
 .shelf-section h4 { font-size: .85rem; margin-bottom: .5rem; padding-left: .2rem; }
@@ -272,7 +272,7 @@
   </div>
 </div>
 
-{# ── File de téléchargement (auto-refresh) ── #}
+{# ── Download queue (auto-refresh) ── #}
 <div id="queue-card" class="card mb-3" style="{{ queue is empty ? 'display:none' : '' }}">
   <div class="card-header">
     <h3 class="card-title">⬇️ {{ 'media.films.queue.title'|trans }} <span class="badge bg-primary ms-1" id="queue-count">{{ queue|length }}</span></h3>
@@ -358,10 +358,10 @@
   </div>
 </div>
 
-{# ── Vue étagères films ── #}
+{# ── Shelves view (movies) ── #}
 <div id="films-shelf-view"></div>
 
-{# ── Vue tableau films ── #}
+{# ── Table view (movies) ── #}
 <div id="films-table-view">
   <div class="card">
     <div class="table-responsive">
@@ -391,7 +391,7 @@
   </div>
 </div>
 
-{# ── Barre sélection bulk fixe en bas ── #}
+{# ── Fixed bottom bulk selection bar ── #}
 <div id="bulk-bar">
   <div class="d-flex align-items-center gap-2 flex-wrap" style="font-size:.82rem;">
     <button class="btn btn-sm btn-secondary" id="bulk-btn-edit">{{ 'media.films.bulk.edit'|trans }}</button>
@@ -406,7 +406,7 @@
   </div>
 </div>
 
-{# ── Modal bulk modifier ── #}
+{# ── Bulk edit modal ── #}
 <div class="modal modal-blur fade" id="modal-bulk-edit" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -456,7 +456,7 @@
   </div>
 </div>
 
-{# ── Modal bulk étiquettes ── #}
+{# ── Bulk tags modal ── #}
 <div class="modal modal-blur fade" id="modal-bulk-tags" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -487,7 +487,7 @@
   </div>
 </div>
 
-{# ── Modal bulk supprimer ── #}
+{# ── Bulk delete modal ── #}
 <div class="modal modal-blur fade" id="modal-bulk-delete" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -601,7 +601,7 @@
       <div class="no-poster">{{ movie.title }}</div>
     {% endif %}
 
-    {# Checkbox sélection #}
+    {# Selection checkbox #}
     <div class="select-cb"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
 
     {# Pastille statut #}
@@ -615,7 +615,7 @@
       <div class="status-dot" style="background:#6b7280;" title="{{ 'media.films.status.unmonitored'|trans }}"></div>
     {% endif %}
 
-    {# Badge qualité #}
+    {# Quality badge #}
     {% if movie.quality %}
       <div class="quality-badge">{{ movie.quality }}</div>
     {% endif %}
@@ -656,7 +656,7 @@
       {% if movie.overview %}<div class="h-overview">{{ movie.overview }}</div>{% endif %}
     </div>
 
-    {# Info étendue #}
+    {# Extended info #}
     <div class="extended-info">
       <div class="fw-bold mb-1">{{ movie.title }}{% if movie.year %} <span class="text-muted fw-normal">({{ movie.year }})</span>{% endif %}</div>
       <div class="d-flex align-items-center gap-2 mb-1 flex-wrap" style="font-size:.78rem;">
@@ -681,7 +681,7 @@
   <div class="modal-dialog modal-fullscreen-lg-down modal-xl" role="document" style="margin-top:1rem">
     <div class="modal-content" style="background:var(--tblr-bg-surface)">
 
-      {# ── Header avec fanart backdrop ── #}
+      {# ── Header with fanart backdrop ── #}
       <div class="film-header-backdrop" id="film-header-backdrop">
         <div class="film-header-content">
           <div class="d-flex justify-content-between align-items-start">
@@ -863,7 +863,7 @@
               </div>
             </div>
 
-            {# Modifier le film (collapsible) #}
+            {# Edit movie (collapsible) #}
             <div id="film-edit-card" class="card mb-2" style="display:none">
               <div class="card-header" style="cursor:pointer" id="edit-card-toggle">
                 <h3 class="card-title">
@@ -883,7 +883,7 @@
               </div>
             </div>
 
-            {# Gérer les fichiers (only if hasFile, lazy-loaded via AJAX) #}
+            {# Manage files (only if hasFile, lazy-loaded via AJAX) #}
             <div id="film-filemanager" class="card mb-2" style="display:none">
               <div class="card-header" style="cursor:pointer" id="filemanager-toggle">
                 <h3 class="card-title">
@@ -916,7 +916,7 @@
               </div>
             </div>
 
-            {# Équipe (AJAX) #}
+            {# Crew (AJAX) #}
             <div class="card mb-2" id="crew-section" style="display:none">
               <div class="card-header py-2"><h3 class="card-title mb-0">{{ 'media.films.detail.crew'|trans }}</h3></div>
               <div class="card-body py-2">
@@ -924,7 +924,7 @@
               </div>
             </div>
 
-            {# Titres alternatifs (déroulant) #}
+            {# Alternative titles (collapsible) #}
             <div class="card mb-2" id="titles-section" style="display:none">
               <div class="card-header py-2" style="cursor:pointer" id="titles-toggle">
                 <h3 class="card-title mb-0">{{ 'media.films.detail.titles'|trans }}</h3>
@@ -976,12 +976,12 @@
         <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="{{ 'media.films.detail.close'|trans }}"></button>
       </div>
       <div class="modal-body">
-        {# Recherche #}
+        {# Search #}
         <div class="d-flex gap-2 mb-4 mt-2">
           <input type="text" id="add-search-input" class="form-control form-control-lg" placeholder="{{ 'media.films.modal.search_placeholder'|trans }}" autocomplete="off" autofocus>
           <button id="add-search-btn" class="btn btn-primary flex-shrink-0">{{ 'media.films.modal.search_btn'|trans }}</button>
         </div>
-        {# Formulaire d'ajout (visible après sélection) — AU-DESSUS des résultats #}
+        {# Add form (visible after selection) — ABOVE the results #}
         <div id="add-film-form" style="display:none" class="mb-3 p-3 border border-primary rounded" style="background:var(--tblr-bg-surface-secondary)">
           <h5 id="add-film-form-title" class="mb-3"></h5>
           <div class="row g-2">
@@ -1324,16 +1324,16 @@
       row.style.display = (card && getComputedStyle(card).display !== 'none') ? '' : 'none';
     });
 
-    // Afficher les boutons bulk seulement si un filtre de statut/qualité/genre/langue est appliqué (pas le tri ni la recherche texte)
+    // Show bulk buttons only when a status/quality/genre/language filter is applied (not sort or text search)
     var hasFilter = currentFilter !== 'all' || fQual || fGenre || fLang;
     document.getElementById('btn-update-filtered').style.display = hasFilter ? '' : 'none';
     document.getElementById('btn-search-filtered').style.display = hasFilter ? '' : 'none';
 
-    // Rebuild étagères si visible
+    // Rebuild shelves if visible
     if (filmsShelfView.style.display === 'block') { filmsShelfBuilt = false; buildFilmsShelf(); }
   }
 
-  // Peupler les filtres dynamiquement depuis les données des cards
+  // Populate filters dynamically from card data
   var qualitySet = new Set();
   var genreSet = new Set();
   var languageSet = new Set();
@@ -1470,7 +1470,7 @@
               btn.innerHTML = ICON_SEARCH + ' ' + FILM_I18N.search_filtered;
               showPageBanner(tpl(FILM_I18N.w_search_failed_tpl, {ERR: msg || FILM_I18N.unknown_error}), 'danger');
             } else {
-              // En cours — compter les films traités
+              // In progress — count processed movies
               var filmMatch = msg.match(/for\s+\[(.+?)\]/i);
               if (filmMatch && filmMatch[1] !== lastFilmSeen) {
                 lastFilmSeen = filmMatch[1];
@@ -1899,7 +1899,7 @@
         scroll.style.display = '';
       }
 
-      // Crew — dédupliquer par personne (une carte par personne, tous les rôles)
+      // Crew — deduplicate by person (one card per person, all roles)
       var crew = credits.filter(function (c) { return c.type === 'crew'; });
       var jobOrder = {'Director':0,'Screenplay':1,'Writer':2,'Producer':3,'Executive Producer':4,'Director of Photography':5};
       crew.sort(function(a, b) {
@@ -1907,7 +1907,7 @@
         var ob = jobOrder[b.job] !== undefined ? jobOrder[b.job] : 99;
         return oa - ob;
       });
-      // Regrouper par personTmdbId
+      // Group by personTmdbId
       var seenCrew = {};
       var uniqueCrew = [];
       crew.forEach(function(c) {
@@ -1933,7 +1933,7 @@
       empty.style.display = '';
     });
 
-    // Titres alternatifs (depuis les données du film déjà chargées)
+    // Alternative titles (from movie data already loaded)
     if (currentMovie && currentMovie.alternateTitles && currentMovie.alternateTitles.length) {
       currentMovie.alternateTitles.forEach(function(t) {
         var tr = document.createElement('tr');
@@ -2112,7 +2112,7 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> ' + FILM_I18N.search_verify;
             showSearchFeedback(FILM_I18N.search_results_check, 'info', true);
 
-            // Étape 3 : vérifier la queue et l'historique pour le résultat
+            // Step 3: check the queue and history for the result
             Promise.all([
               ajaxGet('/medias/films/' + currentId + '/history'),
               ajaxGet('/medias/films/queue')
@@ -2121,7 +2121,7 @@
               var queue = results[1] || {};
               var queueRecords = (queue.records || queue || []);
 
-              // Chercher si un grab récent (< 2 min) existe dans l'historique
+              // Look for a recent grab (< 2 min) in the history
               var now = new Date();
               var recentGrabs = (Array.isArray(history) ? history : []).filter(function(h) {
                 if (h.eventType !== 'grabbed') return false;
@@ -2129,7 +2129,7 @@
                 return (now - d) < 120000;
               });
 
-              // Chercher dans la queue
+              // Look in the queue
               var inQueue = (Array.isArray(queueRecords) ? queueRecords : []).filter(function(q) {
                 return q.movieId === currentId;
               });
@@ -2147,7 +2147,7 @@
                 var src = (g.data || {}).indexer || '?';
                 showSearchFeedback(tpl(FILM_I18N.search_torrent_grabbed_tpl, {INDEXER: src}), 'success', false);
               } else {
-                // Recherche normale n'a rien trouvé — tenter via recherche interactive
+                // Normal search found nothing — try via interactive search
                 showSearchFeedback(FILM_I18N.search_no_auto_result, 'info', true);
                 var releaseTimer = 0;
                 var releaseCountdown = setInterval(function() {
@@ -2489,12 +2489,12 @@
       var html = '<div class="p-3" style="font-size:.85rem;max-width:500px;margin:0 auto;">';
       html += '<h4 class="mb-3" style="font-size:.95rem;">' + esc(tpl(FILM_I18N.edit_modified_title_tpl, {TITLE: m.title || ''})) + '</h4>';
 
-      // Surveillé
+      // Monitored
       html += '<div class="mb-3"><div class="form-check"><input type="checkbox" class="form-check-input" id="edit-monitored"' + (m.monitored ? ' checked' : '') + '>';
       html += '<label class="form-check-label" for="edit-monitored"><strong>' + esc(FILM_I18N.edit_monitored) + '</strong></label>';
       html += '<div class="text-muted small">' + esc(FILM_I18N.edit_monitored_help) + '</div></div></div>';
 
-      // Disponibilité minimale
+      // Minimum availability
       var availOpts = [
         {v:'announced', l: FILM_I18N.announced},
         {v:'inCinemas', l: FILM_I18N.in_cinemas},
@@ -2508,7 +2508,7 @@
       });
       html += '</select></div>';
 
-      // Profil de qualité
+      // Quality profile
       html += '<div class="mb-3"><label class="form-label">' + esc(FILM_I18N.edit_quality) + '</label>';
       html += '<select class="form-select form-select-sm" id="edit-qualityProfile">';
       profiles.forEach(function(p) {
@@ -2516,7 +2516,7 @@
       });
       html += '</select></div>';
 
-      // Chemin
+      // Path
       html += '<div class="mb-3"><label class="form-label">' + esc(FILM_I18N.edit_path) + '</label>';
       html += '<div class="input-group input-group-sm">';
       html += '<input type="text" class="form-control form-control-sm" id="edit-path" value="' + esc(m.path || '') + '">';
@@ -2672,7 +2672,7 @@
               currentMovie = data.movie;
               populateLeftCol(currentMovie);
               refreshMonitorBtn();
-              // Mettre à jour le cache de la card grille
+              // Update the grid card cache
               var gridCard = grid.querySelector('[data-id="' + currentId + '"]');
               if (gridCard && gridCard.dataset.movie) {
                 try {
@@ -2750,7 +2750,7 @@
           populateLeftCol(currentMovie);
           loadRenameProposals(currentId);
           refreshDeleteButtons();
-          // Mettre à jour la card dans la grille
+          // Update the card in the grid
           var card = document.querySelector('.media-card[data-id="' + currentId + '"]');
           if (card) {
             card.dataset.hasFile = '0';
@@ -2901,12 +2901,12 @@
             btn.disabled = false;
             btn.innerHTML = RENAME_SVG + FILM_I18N.rename_label;
             showRenameFeedback(FILM_I18N.rename_success, 'success', false);
-            // Refetch le film depuis l'API pour mettre à jour les données en cache
+            // Refetch the movie from the API to update the cache
             ajaxGet('/medias/films/' + currentId + '/detail')
             .then(function(freshMovie) {
               if (freshMovie && freshMovie.movieFile) {
                 currentMovie.movieFile = freshMovie.movieFile;
-                // Mettre à jour aussi le data-movie sur la card de la grille
+                // Also update data-movie on the grid card
                 var card = document.querySelector('.media-card[data-id="' + currentId + '"]');
                 if (card && card.dataset.movie) {
                   var cached = JSON.parse(card.dataset.movie);
@@ -3337,9 +3337,9 @@
       return;
     }
 
-    // Si un import est en cours ou un panneau de suppression est ouvert, ne pas écraser
+    // If an import is running or a delete panel is open, don't overwrite
     if (importingQueueIds.size > 0 || document.querySelector('.queue-delete-options')) {
-      // Juste mettre à jour le compteur
+      // Just update the counter
       count.textContent = (items || []).length || importingQueueIds.size;
       return;
     }
@@ -3396,7 +3396,7 @@
           (q.eta ? FILM_I18N.q_eta_prefix + new Date(q.eta).toLocaleTimeString(document.documentElement.lang || 'fr-FR', {hour:'2-digit',minute:'2-digit'}) : '') + '</div>';
       }
 
-      // Status badge — priorité à l'état d'import sur le statut DL
+      // Status badge — import state takes priority over DL status
       var statusHtml = '';
       if (state === 'importBlocked' && importingCmdIds.size > 0) {
         statusHtml = '<span class="badge bg-purple-lt text-purple">' + esc(FILM_I18N.q_status_importing) + '</span>';
@@ -3455,7 +3455,7 @@
         importingQueueIds.add(queueId);
         btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:14px;height:14px;"></span>';
 
-        // Mettre à jour visuellement la ligne
+        // Update the row visually
         if (progCell) progCell.innerHTML = '<div class="d-flex align-items-center gap-2"><div class="queue-progress flex-grow-1"><div class="queue-progress-bar" style="width:100%;background:#9b59b6;animation:pulse 1.5s infinite"></div></div><span style="color:#9b59b6" class="small fw-medium">' + esc(FILM_I18N.q_importing) + '</span></div>';
         if (statusCell) statusCell.innerHTML = '<span class="badge bg-purple-lt text-purple">' + esc(FILM_I18N.q_status_importing) + '</span>';
 
@@ -3522,11 +3522,11 @@
         var title = btn.dataset.title;
         var queueId = btn.dataset.id;
 
-        // Vérifier s'il y a déjà un panneau d'options ouvert dans cette ligne
+        // Check whether an options panel is already open in this row
         var existing = row.parentNode.querySelector('.queue-delete-options');
         if (existing) { existing.remove(); return; }
 
-        // Créer une ligne d'options sous la ligne actuelle
+        // Create an options row under the current row
         var optRow = document.createElement('tr');
         optRow.className = 'queue-delete-options';
         optRow.innerHTML = '<td colspan="5" class="py-2 px-3" style="background:var(--tblr-bg-surface-secondary)">' +
@@ -3559,17 +3559,17 @@
 
   var queueRefreshTimer = null;
   var previousQueueIds = new Set();
-  var importingQueueIds = new Set();  // IDs en cours d'import manuel — ne pas écraser
-  var importingCmdIds = new Set();   // IDs commandes ManualImport actives
+  var importingQueueIds = new Set();  // IDs currently in manual import — don't overwrite
+  var importingCmdIds = new Set();   // Active ManualImport command IDs
 
-  // Détecter les commandes actives au chargement (ManualImport + recherches)
+  // Detect active commands on page load (ManualImport + searches)
   var RADARR_POLL_CMDS = {'MoviesSearch':1,'MissingMoviesSearch':1,'RenameMovie':1,'ManualImport':1};
   ajaxGet('/medias/films/commands/active').then(function(cmds) {
     if (!cmds || !cmds.length) return;
     cmds.forEach(function(cmd) {
       if (!cmd.id) return;
 
-      // ManualImport → tracking import violet
+      // ManualImport → purple import tracking
       if (cmd.name === 'ManualImport') {
         importingCmdIds.add(cmd.id);
         refreshQueue();
@@ -3628,7 +3628,7 @@
   function refreshQueue() {
     if (!document.getElementById('warnings-banner')) return;
     refreshCount++;
-    // Toutes les 3 refresh (6s), forcer Radarr à interroger qBittorrent
+    // Every 3 refreshes (6s), force Radarr to query qBittorrent
     if (refreshCount % 3 === 1) {
       ajaxPost('/medias/films/command/refresh-downloads', {}).catch(function(){});
     }
@@ -3636,19 +3636,19 @@
       var currentIds = new Set();
       (items || []).forEach(function(q) { if (q.movieId) currentIds.add(q.movieId); });
 
-      // Détecter les films qui viennent de quitter la queue = importés
+      // Detect movies that just left the queue = imported
       previousQueueIds.forEach(function(mid) {
         if (!currentIds.has(mid)) {
           var card = document.querySelector('.media-card[data-id="' + mid + '"]');
           if (card) {
-            // Mettre à jour data-has-file
+            // Update data-has-file
             card.dataset.hasFile = '1';
 
-            // Mettre à jour la pastille : orange/gris → vert
+            // Update the dot: orange/grey → green
             var dot = card.querySelector('.status-dot');
             if (dot) { dot.style.background = '#22c55e'; dot.title = FILM_I18N.downloaded; }
 
-            // Mettre à jour le data-movie en cache
+            // Update the cached data-movie
             try {
               var m = JSON.parse(card.dataset.movie);
               m.hasFile = true;

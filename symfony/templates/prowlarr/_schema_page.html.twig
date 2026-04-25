@@ -1,6 +1,6 @@
 {#
-  Template réutilisable pour les pages schema Prowlarr (Apps, Download Clients, Notifications).
-  Variables attendues : section, sectionLabel, items, error, schemaUrl, getUrl, addUrl, updateUrl, deleteUrl, testUrl, columns
+  Reusable template for Prowlarr schema pages (Apps, Download Clients, Notifications).
+  Expected variables: section, sectionLabel, items, error, schemaUrl, getUrl, addUrl, updateUrl, deleteUrl, testUrl, columns
 #}
 {% extends 'base.html.twig' %}
 {% block title %}{{ sectionLabel }} — Prowlarr{% endblock %}
@@ -90,7 +90,7 @@
     </div>
 </div>
 
-{# Modal Ajouter #}
+{# Add modal #}
 <div class="modal modal-blur fade" id="pw-modal-add" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
         <div class="modal-content" style="background:var(--tblr-bg-surface);">
@@ -120,7 +120,7 @@
     </div>
 </div>
 
-{# Modal Éditer #}
+{# Edit modal #}
 <div class="modal modal-blur fade" id="pw-modal-edit" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
         <div class="modal-content" style="background:var(--tblr-bg-surface);">

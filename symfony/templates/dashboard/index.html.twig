@@ -452,7 +452,7 @@
 <div class="page-body dashboard-scope">
   <div class="container-xl">
 
-    {# ── Hero : bienvenue + film aléatoire de la bibliothèque ───────── #}
+    {# ── Hero: welcome + random movie from library ───────── #}
     <div class="hero {{ hero_spotlight is null ? 'hero-noBg' }}">
       {% if hero_spotlight %}
         <div class="hero-bg" style="background-image: url('{{ hero_spotlight.url }}');"></div>
@@ -597,7 +597,7 @@
       </div>
     </div>
 
-    {# ── Requêtes + Santé services ─────────────────────────────────── #}
+    {# ── Requests + Services health ─────────────────────────────────── #}
     <div class="row row-cards mb-3">
       <div class="col-12 col-lg-6">
         <div class="card h-100">
@@ -721,7 +721,7 @@
     </div>
     {% endif %}
 
-    {# ── Tendances TMDb (liens vers modal Découverte) ─────────────── #}
+    {# ── TMDb trending (links to Discover modal) ─────────────── #}
     {% if recommendations is not empty %}
     <div class="row-section">
       <div class="row-section-head">
@@ -762,7 +762,7 @@
     </div>
     {% endif %}
 
-    {# ── Ajouts récents bibliothèque ──────────────────────────────── #}
+    {# ── Recent library additions ──────────────────────────────── #}
     {% if recent_additions is not empty %}
     <div class="row-section">
       <div class="row-section-head">

@@ -43,7 +43,7 @@
 
 <div id="import-feedback" class="alert d-none mb-3"></div>
 
-{# ── Sélection du dossier + scan ───────────────────────────────────── #}
+{# ── Folder selection + scan ───────────────────────────────────── #}
 <div class="card mb-3">
   <div class="card-body py-2">
     <div class="d-flex gap-2 align-items-end">
@@ -63,12 +63,12 @@
   </div>
 </div>
 
-{# ── Tableau des dossiers non importés ─────────────────────────────── #}
+{# ── Non-imported folders table ─────────────────────────────── #}
 <div class="card d-none" id="scan-results-card">
   <div class="card-header">
     <h3 class="card-title">{{ 'media.arr_admin.library_import.not_imported_title'|trans }} <span class="badge bg-secondary-lt ms-2" id="files-count">0</span></h3>
   </div>
-  {# En-tête #}
+  {# Header #}
   <div class="d-flex align-items-center gap-2 px-3 py-2 fw-medium" style="font-size:.78rem;background:var(--tblr-bg-surface-secondary);border-bottom:1px solid var(--tblr-border-color);">
     <div style="width:30px;"><input type="checkbox" class="form-check-input" id="check-all"></div>
     <div style="flex:2;">{{ 'media.arr_admin.library_import.col_folder'|trans }}</div>

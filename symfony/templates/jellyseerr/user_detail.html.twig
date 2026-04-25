@@ -81,10 +81,10 @@
         <button class="js-tab-btn" data-tab="requetes">{{ 'jellyseerr.user_detail.tab_requests'|trans }} <span class="badge bg-purple-lt text-purple ms-1" style="font-size:.55rem;">{{ requests|length }}</span></button>
     </div>
 
-    {# ══════════ PARAMÈTRES GÉNÉRAUX ══════════ #}
+    {# ══════════ GENERAL SETTINGS ══════════ #}
     <div class="js-tab-panel active" data-tab="general">
         <div class="row g-4">
-            {# ── Colonne gauche : Compte + Identité ── #}
+            {# ── Left column: Account + Identity ── #}
             <div class="col-12 col-lg-8">
                 <div class="card mb-3">
                     <div class="card-header">
@@ -210,7 +210,7 @@
 
                         <hr class="my-2" style="opacity:.1;">
 
-                        {# Séries #}
+                        {# Series #}
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span style="font-weight:600;font-size:.85rem;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" style="vertical-align:-2px;" class="me-1"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M17 2l-5 5l-5 -5"/></svg>
@@ -233,7 +233,7 @@
                 </div>
             </div>
 
-            {# ── Colonne droite : Infos compte ── #}
+            {# ── Right column: Account info ── #}
             <div class="col-12 col-lg-4">
                 <div class="card">
                     <div class="card-header">
@@ -296,7 +296,7 @@
         </div>
     </div>
 
-    {# ══════════ MOT DE PASSE ══════════ #}
+    {# ══════════ PASSWORD ══════════ #}
     <div class="js-tab-panel" data-tab="password">
         <div class="card">
             <div class="card-header"><h3 class="card-title">{{ 'jellyseerr.user_detail.password_card_title'|trans }}</h3></div>
@@ -337,9 +337,9 @@
     <div class="js-tab-panel" data-tab="perms">
 
         {#
-          Permissions — structure exacte du natif Seerr.
-          parent: bit du parent (enfants disabled+checked quand parent coché)
-          requires: [bits] prérequis (disabled si aucun prérequis coché)
+          Permissions — exact structure mirroring native Seerr.
+          parent: bit of the parent (children disabled+checked when parent is checked)
+          requires: [bits] prerequisites (disabled when no prerequisite is checked)
         #}
         {% set permList = [
             {bit: 2,        label: 'jellyseerr.user_detail.perms.admin_label'|trans, desc: 'jellyseerr.user_detail.perms.admin_desc'|trans, section: 'jellyseerr.user_detail.perms.section_general'|trans},
@@ -438,7 +438,7 @@
         </div>
     </div>
 
-    {# ══════════ COMPTES LIÉS ══════════ #}
+    {# ══════════ LINKED ACCOUNTS ══════════ #}
     <div class="js-tab-panel" data-tab="linked">
         <div class="card">
             <div class="card-header"><h3 class="card-title">{{ 'jellyseerr.user_detail.linked_accounts_title'|trans }}</h3></div>
@@ -477,7 +477,7 @@
         </div>
     </div>
 
-    {# ══════════ REQUÊTES ══════════ #}
+    {# ══════════ REQUESTS ══════════ #}
     <div class="js-tab-panel" data-tab="requetes">
         {% if requests|length == 0 %}
             <div class="card"><div class="card-body text-center text-secondary py-4">{{ 'jellyseerr.user_detail.no_requests'|trans }}</div></div>
@@ -582,8 +582,8 @@
         .catch(function(){ btn.disabled = false; btn.innerHTML = orig; feedback(statusEl, false); });
     }
 
-    // ── Save settings (général + quotas) ──
-    // ── Dropdown langues multi-select ──
+    // ── Save settings (general + quotas) ──
+    // ── Multi-select languages dropdown ──
     var langToggle = document.getElementById('js-lang-toggle');
     var langDropdown = document.getElementById('js-lang-dropdown');
     var langDisplay = document.getElementById('js-lang-display');
@@ -627,7 +627,7 @@
         });
     }
 
-    // ── Toggles quotas ──
+    // ── Quota toggles ──
     var mqEnabled = document.getElementById('js-mq-enabled');
     var mqFields = document.getElementById('js-mq-fields');
     if (mqEnabled) mqEnabled.addEventListener('change', function(){ mqFields.style.display = this.checked ? '' : 'none'; });
@@ -641,7 +641,7 @@
         var langVal = document.getElementById('js-set-lang').value;
         var discoverVal = document.getElementById('js-set-discover').value;
         var streamingVal = document.getElementById('js-set-streaming').value;
-        // Langues sélectionnées : joindre avec |
+        // Selected languages: join with |
         var discoverLangs = [];
         document.querySelectorAll('.js-lang-cb:checked').forEach(function(cb){ discoverLangs.push(cb.value); });
         var discoverLangVal = discoverLangs.join('|');
@@ -671,11 +671,11 @@
         postJSON('/jellyseerr/utilisateurs/' + userId + '/password', {password: pw}, this, statusEl);
     });
 
-    // ── Permissions — comportement identique au natif Seerr ──
-    // 1. Admin (2) → tout disabled+checked
-    // 2. Parent → enfants disabled+checked
-    // 3. Requires → disabled si prérequis pas cochés
-    // 4. 4K → skip si pas de serveur configuré
+    // ── Permissions — same behavior as native Seerr ──
+    // 1. Admin (2) → everything disabled+checked
+    // 2. Parent → children disabled+checked
+    // 3. Requires → disabled if prerequisites not checked
+    // 4. 4K → skip if no server configured
 
     var ADMIN_BIT = 2;
 
@@ -695,14 +695,14 @@
             var parentBit = row.dataset.parent ? parseInt(row.dataset.parent) : null;
             var requiresBits = row.dataset.requires ? row.dataset.requires.split(',').map(Number) : [];
 
-            // Skip si désactivé pour raison 4K (pas de serveur configuré)
+            // Skip if disabled for 4K reason (no server configured)
             if (row.dataset.disabled4k === '1') return;
 
             // Reset
             cb.disabled = false;
             row.style.opacity = '1';
 
-            // 1. Admin → tout disabled+checked sauf Admin lui-même
+            // 1. Admin → everything disabled+checked except Admin itself
             if (isAdmin && bit !== ADMIN_BIT) {
                 cb.checked = true;
                 cb.disabled = true;
@@ -710,7 +710,7 @@
                 return;
             }
 
-            // 2. Parent coché → enfant disabled+checked
+            // 2. Parent checked → child disabled+checked
             if (parentBit && isPermChecked(parentBit)) {
                 cb.checked = true;
                 cb.disabled = true;
@@ -718,7 +718,7 @@
                 return;
             }
 
-            // 3. Requires — au moins un prérequis doit être coché (OR)
+            // 3. Requires — at least one prerequisite must be checked (OR)
             if (requiresBits.length > 0) {
                 var hasReq = requiresBits.some(function(r) { return isPermChecked(r); });
                 if (!hasReq) {
@@ -731,16 +731,16 @@
         });
     }
 
-    // Listener : quand on décoche un parent, décocher ses enfants
+    // Listener: when unchecking a parent, uncheck its children
     document.querySelectorAll('.js-perm-cb').forEach(function(cb) {
         cb.addEventListener('change', function() {
             var bit = parseInt(this.value);
             if (!this.checked) {
-                // Décocher les enfants de ce parent
+                // Uncheck this parent's children
                 document.querySelectorAll('.js-perm-row[data-parent="' + bit + '"] .js-perm-cb').forEach(function(child) {
                     child.checked = false;
                 });
-                // Admin décoché → tout décocher
+                // Admin unchecked → uncheck everything
                 if (bit === ADMIN_BIT) {
                     document.querySelectorAll('.js-perm-cb').forEach(function(c) {
                         if (parseInt(c.value) !== ADMIN_BIT) c.checked = false;
@@ -751,10 +751,10 @@
         });
     });
 
-    // État initial
+    // Initial state
     updatePermStates();
 
-    // ── Save : bits explicitement cochés + préserver les bits 4K existants ──
+    // ── Save: explicitly checked bits + preserve existing 4K bits ──
     var originalPerms = {{ perms }};
     var fourKBits = [1024, 2048, 4096, 32768, 65536, 131072];
     var savePermsBtn = document.getElementById('js-save-perms');
@@ -763,14 +763,14 @@
         document.querySelectorAll('.js-perm-cb').forEach(function(cb) {
             if (cb.checked && !cb.disabled) newPerms |= parseInt(cb.value);
         });
-        // Préserver les bits 4K existants (disabled car pas de serveur, mais valides)
+        // Preserve existing 4K bits (disabled because no server, but valid)
         fourKBits.forEach(function(bit) {
             if (originalPerms & bit) newPerms |= bit;
         });
         postJSON('/jellyseerr/utilisateurs/' + userId + '/permissions', {permissions: newPerms}, this, document.getElementById('js-perms-status'));
     });
 
-    // ── Onglets canaux notifications ──
+    // ── Notification channel tabs ──
     document.querySelectorAll('.js-notif-channel').forEach(function(btn){
         btn.addEventListener('click', function(){
             var channel = this.dataset.channel;
@@ -835,7 +835,7 @@
             notificationTypes: { email: notifBits, webpush: notifBits, discord: notifBits, telegram: notifBits }
         };
 
-        // Récupérer les tokens/IDs des canaux (si les champs existent dans le DOM)
+        // Retrieve channel tokens/IDs (if the fields exist in the DOM)
         var el;
         el = document.getElementById('js-notif-discord-id');
         if (el) payload.discordId = el.value.trim() || null;

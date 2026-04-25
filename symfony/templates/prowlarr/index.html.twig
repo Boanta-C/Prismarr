@@ -88,7 +88,7 @@
     </div>
 </div>
 
-{# ── Santé ── #}
+{# ── Health ── #}
 {% if health is not empty %}
 <div class="card mb-3">
     <div class="card-header">
@@ -247,7 +247,7 @@
 
 <div class="row g-3">
 
-{# ── Recherche Prowlarr ── #}
+{# ── Search Prowlarr ── #}
 <div class="col-lg-8">
     <div class="card mb-3">
         <div class="card-header">
@@ -264,10 +264,10 @@
     </div>
 </div>{# /col-lg-8 #}
 
-{# ── Colonne droite ── #}
+{# ── Right column ── #}
 <div class="col-lg-4">
 
-    {# Applications connectées #}
+    {# Connected applications #}
     <div class="card mb-3">
         <div class="card-header">
             <h3 class="card-title">{{ 'prowlarr.index.apps_card_title'|trans }}</h3>
@@ -300,7 +300,7 @@
 </div>{# /container-xl #}
 </div>{# /page-body #}
 
-{# ══ Modal Ajouter un indexeur ══ #}
+{# ══ Add indexer modal ══ #}
 <div class="modal modal-blur fade" id="modal-add-indexer" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
         <div class="modal-content" style="background:var(--tblr-bg-surface);">
@@ -351,7 +351,7 @@
     </div>
 </div>
 
-{# ══ Modal Éditer un indexeur ══ #}
+{# ══ Edit indexer modal ══ #}
 <div class="modal modal-blur fade" id="modal-edit-indexer" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable" style="margin-top:2rem;">
         <div class="modal-content" style="background:var(--tblr-bg-surface);">
@@ -507,7 +507,7 @@
     // ── Helpers ──
     function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
     function showAlert(el, cls, msg) { el.className = 'mt-2 alert ' + cls; el.textContent = msg; el.style.display = ''; }
-    // Nettoyer le payload avant envoi à l'API Prowlarr (supprimer selectOptions vides qui causent des erreurs de type)
+    // Clean the payload before sending to the Prowlarr API (remove empty selectOptions that cause type errors)
     function cleanPayload(data) {
         var clean = JSON.parse(JSON.stringify(data));
         if (clean.fields) {
@@ -548,7 +548,7 @@
                 setTimeout(function() { fillAppProfileSelect(topLevel.appProfileId); }, 0);
             }
         }
-        // Champs spécifiques indexeur
+        // Indexer-specific fields
         h += '<div class="row g-2">';
         fields.forEach(function (f) {
             if (f.type === 'info') {
@@ -621,7 +621,7 @@
               + (active ? '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="margin-right:3px;"><path d="M5 12l5 5l10-10"/></svg>' : '')
               + esc(t.label) + '</span>';
         });
-        // Input créer nouveau
+        // Create-new input
         h += '<div class="d-flex gap-1 align-items-center ms-1" style="border-left:1px solid rgba(255,255,255,.08);padding-left:.5rem;">'
            + '<input type="text" class="form-control form-control-sm" id="pw-tag-new" placeholder="' + esc(_I18N.newTag) + '" style="width:90px;font-size:.7rem;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);">'
            + '<button class="btn btn-sm btn-icon" id="pw-tag-add-btn" style="width:28px;height:28px;background:rgba(var(--tblr-primary-rgb),.15);color:#818cf8;border:none;border-radius:.3rem;" title="' + esc(_I18N.createTagTitle) + '">'
@@ -639,7 +639,7 @@
             });
         });
 
-        // Bind créer tag
+        // Bind create-tag
         var addBtn = document.getElementById('pw-tag-add-btn');
         var addInput = document.getElementById('pw-tag-new');
         if (addBtn && addInput) {
@@ -680,7 +680,7 @@
     function collectFields(container, baseFields) {
         var fields = JSON.parse(JSON.stringify(baseFields));
         fields.forEach(function (field) {
-            // Supprimer les selectOptions injectées côté client pour éviter les erreurs de type
+            // Remove client-side injected selectOptions to avoid type errors
             if (field.name === 'baseUrl' && field._injectedOptions) {
                 delete field.selectOptions;
                 delete field._injectedOptions;
@@ -850,7 +850,7 @@
     var selectedSchema = null;
 
     document.getElementById('btn-add-indexer').addEventListener('click', function () {
-        // Reset complet à chaque ouverture
+        // Full reset on each open
         document.getElementById('add-idx-form').style.display = 'none';
         document.getElementById('add-idx-filters').style.display = '';
         document.getElementById('add-idx-list').style.display = '';
@@ -1169,7 +1169,7 @@
         }
         h += '</div>';
 
-        // Search Capabilities (comme le natif — label + badges paramètres)
+        // Search Capabilities (like the native — label + parameter badges)
         h += '<h6 class="mb-2" style="color:#E88D1A;">' + esc(_I18N.infoSearchCapabilities) + '</h6>';
         var capRows = [
             { label: _I18N.infoCapRss, supported: raw.supportsRss },
@@ -1247,7 +1247,7 @@
     document.getElementById('info-idx-edit').addEventListener('click', function() {
         if (!infoRaw) return;
         closeModal('modal-info-indexer');
-        // Déclencher l'édition
+        // Trigger the edit
         var editBtn = document.querySelector('[data-edit-id="' + infoRaw.id + '"]');
         if (editBtn) editBtn.click();
     });

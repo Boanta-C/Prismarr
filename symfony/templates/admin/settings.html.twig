@@ -417,12 +417,12 @@
             {% endfor %}
           </section>
 
-          {# ─── Section 2 : Affichage / préférences utilisateur ──── #}
+          {# ─── Section 2: Display / user preferences ──── #}
           <section id="section-display" class="settings-group" data-section>
             <div class="settings-group-title">{{ 'admin.display.title'|trans }}</div>
             <p class="settings-group-desc">{{ 'admin.display.description'|trans }}</p>
 
-            {# --- Préférences ----------------------------------------- #}
+            {# --- Preferences ----------------------------------------- #}
             <div class="service-card">
               <div class="service-card-head" style="margin-bottom: .75rem;">
                 <div class="service-card-icon" style="background: var(--tblr-primary);">
@@ -492,7 +492,7 @@
               </div>
             </div>
 
-            {# --- Visibilité de la sidebar (services + features) ----- #}
+            {# --- Sidebar visibility (services + features) ----- #}
             <div class="service-card">
               <div class="service-card-head" style="margin-bottom: .75rem;">
                 <div class="service-card-icon" style="background: #64748b;">
@@ -535,17 +535,17 @@
             </div>
           </section>
 
-          {# Save button + close main form BEFORE the Sauvegarde section.
+          {# Save button + close main form BEFORE the Backup section.
              Nested <form> tags (import + reset-display) would otherwise
              close the outer form prematurely at their first </form>,
-             leaving the Save button orphaned. Sauvegarde + À propos
+             leaving the Save button orphaned. Backup + About
              render their own buttons below, outside the main form. #}
           <div class="settings-footer" data-settings-footer>
             <button type="submit" class="btn btn-primary">{{ 'admin.save'|trans }}</button>
           </div>
         </form>
 
-        {# ─── Section 3 : Langues unifiées ────────────────────── #}
+        {# ─── Section 3: Unified languages ────────────────────── #}
         <section id="section-languages" class="settings-group" data-section>
           <div class="settings-group-title">{{ 'admin.languages.tab_label'|trans }}</div>
           <p class="settings-group-desc">{{ 'admin.languages.description'|trans }}</p>
@@ -593,7 +593,7 @@
               </div>
             </div>
 
-            {# ── Services connectés ── #}
+            {# ── Connected services ── #}
             <div class="service-card" style="margin-top:1rem;">
               <div class="service-card-head" style="margin-bottom:.75rem;">
                 <div class="service-card-icon" style="background:#6366f1;">
@@ -660,7 +660,7 @@
                   {% endif %}
                 </div>
 
-                {# Sonarr v4 ne propose pas de "Series Info Language" globale — chaque série a son propre originalLanguage. Le selector a été retiré pour éviter d'écrire dans un champ qui n'existe pas. #}
+                {# Sonarr v4 does not expose a global "Series Info Language" — each series has its own originalLanguage. The selector was removed to avoid writing to a field that does not exist. #}
 
                 {# Prowlarr #}
                 <div class="display-row">
@@ -710,7 +710,7 @@
           </form>
         </section>
 
-        {# ─── Section 4 : Sauvegarde / Restauration ──────────── #}
+        {# ─── Section 4 : Backup / Restauration ──────────── #}
         <section id="section-backup" class="settings-group" data-section>
             <div class="settings-group-title">{{ 'admin.backup.title'|trans }}</div>
             <p class="settings-group-desc">{{ 'admin.backup.description'|trans|raw }}</p>
@@ -781,7 +781,7 @@
             </div>
           </section>
 
-          {# ─── Section 4 : À propos ───────────────────────────── #}
+          {# ─── Section 4: About ───────────────────────────── #}
           <section id="section-about" class="settings-group" data-section>
             <div class="settings-group-title">{{ 'admin.about.title'|trans }}</div>
             <p class="settings-group-desc">{{ 'admin.about.description'|trans }}</p>

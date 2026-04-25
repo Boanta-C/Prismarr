@@ -22,7 +22,7 @@
 
 {% if stats %}
 
-{# ── Cards résumé ── #}
+{# ── Summary cards ── #}
 <div class="row g-3 mb-4">
   {% set cards = [
     {label: 'media.arr_admin.stats.card_series'|trans,            value: stats.total,      color: 'primary'},
@@ -89,7 +89,7 @@
     </div>
   </div>
 
-  {# ── Réseaux ── #}
+  {# ── Networks ── #}
   <div class="col-lg-6">
     <div class="card h-100">
       <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.stats.networks_card_title'|trans }}</h3></div>

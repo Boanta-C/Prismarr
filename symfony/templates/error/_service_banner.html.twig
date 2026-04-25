@@ -1,14 +1,14 @@
 {#
-  Bandeau d'alerte affiché en haut des pages de section quand un service tiers
-  n'est pas joignable. Pour le cas "non configuré", le ServiceRouteGuardSubscriber
-  redirige en amont vers le wizard donc ce bandeau couvre surtout le cas "configuré
-  mais inaccessible" (401, 5xx, timeout…).
+  Alert banner displayed at the top of section pages when a third-party service
+  is unreachable. For the "not configured" case, ServiceRouteGuardSubscriber
+  redirects upstream to the wizard, so this banner mainly covers the
+  "configured but unreachable" case (401, 5xx, timeout…).
 
-  Paramètres attendus :
-    service       (string)  — nom lisible (ex: "Radarr")
-    wizard_route  (string)  — nom de route Symfony du wizard (ex: "app_setup_managers")
-    configured_url (string) — URL configurée (affichée pour aider au diagnostic)
-    reason        (?string) — 'unreachable' (défaut) ou 'not_configured'
+  Expected parameters:
+    service        (string)  — readable name (ex: "Radarr")
+    wizard_route   (string)  — Symfony wizard route name (ex: "app_setup_managers")
+    configured_url (string)  — configured URL (shown to help diagnostics)
+    reason         (?string) — 'unreachable' (default) or 'not_configured'
 #}
 {% set _reason = reason|default('unreachable') %}
 {% set _is_config = _reason == 'not_configured' %}
@@ -34,32 +34,30 @@
     <div class="flex-grow-1">
       <h4 class="alert-title mb-1">
         {% if _is_config %}
-          {{ service }} n'est pas configuré
+          {{ 'error.service_banner.title_not_configured'|trans({service: service}) }}
         {% else %}
-          {{ service }} ne répond pas
+          {{ 'error.service_banner.title_unreachable'|trans({service: service}) }}
         {% endif %}
-      </h4>
+      </h4>{# 'service' is already plain text (no HTML) — passed through without raw #}
       <div class="text-muted small mb-2">
         {% if _is_config %}
-          Configurez {{ service }} depuis le wizard pour activer cette section.
+          {{ 'error.service_banner.body_not_configured'|trans({service: service}) }}
         {% else %}
-          Impossible de contacter
           {% if configured_url is defined and configured_url %}
-            <code>{{ configured_url }}</code>
+            {{ 'error.service_banner.body_unreachable_url'|trans({url: configured_url|e('html')})|raw }}
           {% else %}
-            le service
-          {% endif %}.
-          Vérifiez que le service tourne, que l'URL est correcte et que la clé API est valide.
+            {{ 'error.service_banner.body_unreachable_no_url'|trans }}
+          {% endif %}
         {% endif %}
       </div>
       <div class="d-flex gap-2">
         {% set _target_route = _is_config ? wizard_route : 'admin_settings_index' %}
         <a href="{{ path(_target_route) }}" class="btn btn-sm {{ _is_config ? 'btn-primary' : 'btn-outline-danger' }}">
-          {{ _is_config ? 'Configurer ' ~ service : 'Modifier la configuration' }}
+          {{ _is_config ? 'error.service_banner.cta_configure'|trans({service: service}) : 'error.service_banner.cta_edit'|trans }}
         </a>
         {% if not _is_config %}
           <button type="button" class="btn btn-sm btn-ghost-secondary" onclick="window.location.reload()">
-            Réessayer
+            {{ 'error.service_banner.cta_retry'|trans }}
           </button>
         {% endif %}
       </div>

@@ -22,7 +22,7 @@
 
 {% if stats %}
 
-{# ── Cards résumé ──────────────────────────────────────────────────── #}
+{# ── Summary cards ──────────────────────────────────────────────────── #}
 <div class="row g-3 mb-4">
   {% set cards = [
     {label: 'media.arr_admin.stats.card_movies'|trans,     value: stats.total,    color: 'primary'},
@@ -78,7 +78,7 @@
 
 <div class="row g-3">
 
-{# ── Répartition par qualité ───────────────────────────────────────── #}
+{# ── Distribution by quality ───────────────────────────────────────── #}
 <div class="col-12 col-lg-6">
   <div class="card">
     <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.stats.by_quality_card_title'|trans }}</h3></div>
@@ -111,7 +111,7 @@
   </div>
 </div>
 
-{# ── Répartition par genre ─────────────────────────────────────────── #}
+{# ── Distribution by genre ─────────────────────────────────────────── #}
 <div class="col-12 col-lg-6">
   <div class="card">
     <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.stats.by_genre_card_title'|trans }}</h3></div>
@@ -143,7 +143,7 @@
   </div>
 </div>
 
-{# ── Répartition par décennie ──────────────────────────────────────── #}
+{# ── Distribution by decade ──────────────────────────────────────── #}
 <div class="col-12">
   <div class="card">
     <div class="card-header"><h3 class="card-title">{{ 'media.arr_admin.stats.by_decade_card_title'|trans }}</h3></div>

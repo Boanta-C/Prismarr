@@ -1,14 +1,14 @@
 {#
-  Modal générique pour créer/éditer un item à partir d'un schéma Radarr dynamique.
-  Variables attendues :
-    modal_id       : id du modal (ex: 'modal-indexer')
-    modal_title_add: titre ajout (ex: 'Ajouter un indexeur')
-    modal_title_edit: titre édition (ex: 'Modifier l\'indexeur')
-    schema_url     : URL de l'endpoint GET schema (ex: path('radarr_indexers_schema'))
-    save_url_add   : URL POST pour créer (ex: path('radarr_indexer_add'))
-    save_url_edit  : URL POST pour modifier — __ID__ sera remplacé par l'id (ex: '/radarr/indexeurs/__ID__/modifier')
-    test_url       : (optionnel) URL POST pour tester (ex: '/radarr/indexeurs/__ID__/tester')
-    mode           : 'default' | 'notification' — notifications affichent des triggers au lieu des options RSS/search
+  Generic modal to create/edit an item from a dynamic Radarr schema.
+  Expected variables:
+    modal_id       : modal id (ex: 'modal-indexer')
+    modal_title_add: add title (ex: 'Add an indexer')
+    modal_title_edit: edit title (ex: 'Edit the indexer')
+    schema_url     : URL of the GET schema endpoint (ex: path('radarr_indexers_schema'))
+    save_url_add   : POST URL to create (ex: path('radarr_indexer_add'))
+    save_url_edit  : POST URL to edit — __ID__ is replaced by the id (ex: '/radarr/indexeurs/__ID__/modifier')
+    test_url       : (optional) POST URL to test (ex: '/radarr/indexeurs/__ID__/tester')
+    mode           : 'default' | 'notification' — notifications show triggers instead of RSS/search options
 #}
 <div class="modal modal-blur fade" id="{{ modal_id }}" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -21,7 +21,7 @@
 
         <div id="{{ modal_id }}-feedback" class="alert d-none mb-3"></div>
 
-        {# Sélecteur d'implémentation (masqué en mode édition) #}
+        {# Implementation selector (hidden in edit mode) #}
         <div id="{{ modal_id }}-impl-wrap" class="mb-3">
           <label class="form-label fw-medium">{{ 'media.arr_admin.schema_modal.type'|trans }}</label>
           <select id="{{ modal_id }}-impl-select" class="form-select">
@@ -29,20 +29,20 @@
           </select>
         </div>
 
-        {# Champ nom (toujours présent) #}
+        {# Name field (always present) #}
         <div class="mb-3">
           <label class="form-label fw-medium">{{ 'media.arr_admin.schema_modal.name_label'|trans }} <span class="text-danger">*</span></label>
           <input type="text" id="{{ modal_id }}-name" class="form-control" placeholder="{{ 'media.arr_admin.schema_modal.name_placeholder'|trans }}">
         </div>
 
         {% if (mode ?? 'default') == 'notification' %}
-        {# Triggers de notification (remplis dynamiquement depuis le schema supportsOn*) #}
+        {# Notification triggers (filled dynamically from the supportsOn* schema) #}
         <div id="{{ modal_id }}-triggers" class="d-none mb-3">
           <label class="form-label fw-medium">{{ 'media.arr_admin.schema_modal.triggers_label'|trans }}</label>
           <div id="{{ modal_id }}-triggers-list" class="row g-2"></div>
         </div>
         {% else %}
-        {# Options globales (RSS, recherche auto, recherche interactive, priorité) #}
+        {# Global options (RSS, auto search, interactive search, priority) #}
         <div id="{{ modal_id }}-global-opts" class="d-none mb-3">
           <div class="d-flex flex-wrap gap-3">
             <div class="form-check">
@@ -65,7 +65,7 @@
         </div>
         {% endif %}
 
-        {# Champs dynamiques générés depuis le schéma #}
+        {# Dynamic fields generated from the schema #}
         <div id="{{ modal_id }}-fields"></div>
 
       </div>
@@ -170,7 +170,7 @@
 
   function el(id) { return document.getElementById(MID + '-' + id); }
 
-  // Mapping Newznab standard (catégories indexeurs Prowlarr/Torznab) — libellés traduits
+  // Standard Newznab mapping (Prowlarr/Torznab indexer categories) — translated labels
   var NEWZNAB_CATS = {
     1000: I18N.newznab.tv,
     2000: I18N.newznab.films,
@@ -202,7 +202,7 @@
     1080: I18N.newznab.tv_doc
   };
 
-  // ── Rendu d'un champ ────────────────────────────────────────────────────
+  // ── Render a field ────────────────────────────────────────────────────
   function renderField(field, existingFields) {
     if (field.hidden) return '';
     var id  = MID + '-f-' + field.name;
@@ -221,26 +221,26 @@
           '</div>';
 
       case 'select': {
-        // Déterminer les options effectives : schema options ou Newznab mapping
+        // Determine effective options: schema options or Newznab mapping
         var effectiveOpts = options;
         if (isArray && options.length > 0) {
-          // Vérifier si les options matchent les valeurs existantes
+          // Check whether the options match the existing values
           var optValues = new Set(options.map(function(o){ return o.value; }));
           var anyMatch = val.some(function(v){ return optValues.has(v); });
           if (!anyMatch && val.some(function(v){ return NEWZNAB_CATS[v]; })) {
-            // Les options du schéma ne matchent pas → utiliser le mapping Newznab
+            // The schema options don't match → use the Newznab mapping
             effectiveOpts = val.map(function(v){ return {value: v, name: NEWZNAB_CATS[v] || ('#' + v)}; });
           }
         }
 
         if (isArray && effectiveOpts.length > 0) {
-          // Multi-select → grille de checkboxes alignées
-          // Si on a des options connues du schéma, les montrer toutes ; sinon juste celles cochées + les Newznab courants
+          // Multi-select → aligned checkbox grid
+          // If we have known schema options, show them all; otherwise just those checked + common Newznab
           var displayOpts = effectiveOpts;
           if (effectiveOpts === options && options.length > 0) {
             displayOpts = options;
           } else if (val.some(function(v){ return NEWZNAB_CATS[v]; })) {
-            // Afficher toutes les catégories Newznab connues pour permettre la sélection
+            // Show all known Newznab categories to allow selection
             var allNewznab = Object.entries(NEWZNAB_CATS)
               .filter(function(entry){ var k = entry[0]; return Math.floor(k/1000) === Math.floor(val[0]/1000) || val.indexOf(Number(k)) !== -1; })
               .map(function(entry){ return {value: Number(entry[0]), name: entry[1]}; })
@@ -256,7 +256,7 @@
           }).join('');
           input = '<div class="schema-field d-flex flex-wrap gap-1" data-name="' + field.name + '" data-field-type="multicheck" id="' + id + '">' + checks + '</div>';
         } else if (isArray && val.some(function(v){ return NEWZNAB_CATS[v]; })) {
-          // Multi-select sans options schema mais valeurs Newznab connues → checkboxes Newznab
+          // Multi-select with no schema options but known Newznab values → Newznab checkboxes
           var mainCat = val.length > 0 ? Math.floor(val[0] / 1000) * 1000 : 2000;
           var allNewznab2 = Object.entries(NEWZNAB_CATS)
             .map(function(entry){ return {value: Number(entry[0]), name: entry[1]}; })
@@ -318,7 +318,7 @@
       '</div>';
   }
 
-  // ── Populate select implémentations ─────────────────────────────────────
+  // ── Populate implementations select ─────────────────────────────────────
   function loadSchema() {
     if (schemaCache) return Promise.resolve(schemaCache);
     return fetch(SCHEMA_URL, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
@@ -328,7 +328,7 @@
       })
       .then(function(data){
         schemaCache = Array.isArray(data) ? data : [];
-        // Auto-détecte Radarr vs Sonarr depuis l'URL du schéma pour afficher le bon message
+        // Auto-detect Radarr vs Sonarr from the schema URL to show the right message
         if (!schemaCache.length) {
           var isSonarr = SCHEMA_URL.indexOf('/sonarr/') !== -1;
           showFeedback(isSonarr ? I18N.error_schema_none_sonarr : I18N.error_schema_none_radarr, 'warning');
@@ -353,7 +353,7 @@
     });
   }
 
-  // Notification trigger labels (libellés traduits via I18N)
+  // Notification trigger labels (translated via I18N)
   var TRIGGER_LABELS = I18N.trigger;
 
   function renderTriggers(schema, existingItem) {
@@ -392,13 +392,13 @@
     }
   }
 
-  // ── Collecte des valeurs — inclut TOUS les champs (y compris cachés) ───
+  // ── Value collection — includes ALL fields (including hidden) ───
   function collectPayload() {
     if (!currentImpl) return null;
     var name = el('name').value.trim();
     if (!name) { showFeedback(I18N.error_name_required, 'warning'); return null; }
 
-    // Collecter les valeurs des champs visibles depuis le DOM
+    // Collect visible field values from the DOM
     var visibleValues = {};
     document.querySelectorAll('#' + MID + ' .schema-field').forEach(function(input){
       var ft = input.dataset.fieldType;
@@ -416,7 +416,7 @@
             : parts;
         }
       } else if (ft === 'multicheck') {
-        // Checkboxes multi-sélection → tableau de valeurs cochées
+        // Multi-select checkboxes → array of checked values
         var checked = [];
         input.querySelectorAll('.schema-multi:checked').forEach(function(cb){
           var v = cb.dataset.val;
@@ -431,7 +431,7 @@
       }
     });
 
-    // Construire le tableau fields complet (visibles + cachés avec valeurs par défaut)
+    // Build the complete fields array (visible + hidden with default values)
     var fields = (currentImpl.fields || []).map(function(f){
       var editField = editingItem && editingItem.fields ? editingItem.fields.find(function(ef){ return ef.name === f.name; }) : null;
       return {
@@ -440,7 +440,7 @@
       };
     });
 
-    // Payload complet avec toutes les métadonnées du schéma
+    // Complete payload with all schema metadata
     var payload = {
       name: name,
       implementation: currentImpl.implementation,
@@ -451,7 +451,7 @@
     };
 
     if (MODE === 'notification') {
-      // Collecter les triggers depuis les checkboxes
+      // Collect triggers from checkboxes
       document.querySelectorAll('#' + MID + ' .notif-trigger').forEach(function(cb){
         payload[cb.dataset.trigger] = cb.checked;
       });
@@ -477,7 +477,7 @@
     fb.classList.remove('d-none');
   }
 
-  // ── Initialisation via événements ────────────────────────────────────────
+  // ── Initialization via events ────────────────────────────────────────
   modalEl.addEventListener('show.bs.modal', function(e){
     try {
       var _raw = e.relatedTarget && e.relatedTarget.dataset ? e.relatedTarget.dataset.editItem : null;
@@ -523,7 +523,7 @@
     }
   });
 
-  // Changement d'implémentation → re-render des champs
+  // Implementation change → re-render the fields
   modalEl.addEventListener('change', function(e){
     if (e.target.id !== MID + '-impl-select') return;
     var idx = parseInt(e.target.value);
@@ -531,7 +531,7 @@
     loadSchema().then(function(schemas){ renderFields(schemas[idx], null); });
   });
 
-  // Sauvegarde
+  // Save
   el('save').onclick = function(){
     var payload = collectPayload();
     if (!payload) return;
@@ -550,7 +550,7 @@
       body: JSON.stringify(payload)
     }).then(function(r){ return r.json(); }).then(function(data){
       if (data.ok) {
-        // Succès : recharger la page immédiatement
+        // Success: reload the page immediately
         location.reload();
       } else {
         showFeedback(data.error || I18N.error_save, 'danger');

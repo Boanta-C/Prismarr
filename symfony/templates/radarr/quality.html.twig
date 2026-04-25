@@ -138,7 +138,7 @@
 
 <div class="row g-3">
 
-{# ── Profils de qualite ──────────────────────────────────────────────── #}
+{# ── Quality profiles ──────────────────────────────────────────────── #}
 <div class="col-12">
   <div class="card">
     <div class="card-header">
@@ -215,7 +215,7 @@
   </div>
 </div>
 
-{# ── Definitions de qualite (sliders) ────────────────────────────────── #}
+{# ── Quality definitions (sliders) ────────────────────────────────── #}
 <div class="col-12">
   <div class="card">
     <div class="card-header">
@@ -283,7 +283,7 @@
 </div>
 </div>
 
-{# ── Modal profil de qualite ─────────────────────────────────────────── #}
+{# ── Quality profile modal ─────────────────────────────────────────── #}
 <div class="modal modal-blur fade" id="modal-profile" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
@@ -296,7 +296,7 @@
         <div id="profile-modal-feedback" class="alert d-none mb-3"></div>
 
         <div class="row g-4">
-          {# ── Colonne gauche : parametres generaux + formats ── #}
+          {# ── Left column: general settings + formats ── #}
           <div class="col-md-5">
             <div class="mb-3">
               <label class="form-label fw-medium">{{ 'media.arr_admin.quality.name_label'|trans }} <span class="text-danger">*</span></label>
@@ -335,11 +335,11 @@
             <h6 class="mb-2">{{ 'media.arr_admin.quality.custom_formats_subsection'|trans }}</h6>
             <div class="small text-muted mb-2">{{ 'media.arr_admin.quality.custom_formats_help'|trans }}</div>
             <div id="profile-custom-formats" style="max-height:300px; overflow-y:auto;">
-              {# Rempli par JS #}
+              {# Populated by JS #}
             </div>
           </div>
 
-          {# ── Colonne droite : qualites ── #}
+          {# ── Right column: qualities ── #}
           <div class="col-md-7">
             <h6 class="mb-1">{{ 'media.arr_admin.quality.qualities_subsection'|trans }}</h6>
             <div class="small text-muted mb-3">
@@ -355,7 +355,7 @@
             </div>
 
             <div id="profile-qualities-list">
-              {# Rempli par JS #}
+              {# Populated by JS #}
             </div>
           </div>
         </div>
@@ -758,7 +758,7 @@ modalEl.addEventListener('show.bs.modal', function(ev) {
       dragSrc.style.opacity = '0.25';
       dragSrc.style.background = 'var(--tblr-bg-surface-secondary)';
       e.dataTransfer.effectAllowed = 'move';
-      // Petit délai pour que le navigateur capture l'image du drag
+      // Small delay so the browser captures the drag image
       setTimeout(function() { dragSrc.style.height = dragSrc.offsetHeight + 'px'; }, 0);
     }
   });
@@ -801,7 +801,7 @@ modalEl.addEventListener('show.bs.modal', function(ev) {
     var rows = listEl.querySelectorAll('[data-item-index]');
     var newItems = [];
     rows.forEach(function(r, i) {
-      // Lire l'item stocké sur la row, pas via l'ancien index
+      // Read the item stored on the row, not via the old index
       if (r._qualityItem) {
         newItems.push(r._qualityItem);
       }

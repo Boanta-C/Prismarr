@@ -327,7 +327,7 @@ class DashboardController extends AbstractController
 
     /**
      * Merged list of the most recently added Radarr movies + Sonarr series,
-     * sorted by `addedAt` desc. Used for the single "Ajouts récents" row at
+     * sorted by `addedAt` desc. Used for the single "Recent additions" row at
      * the bottom of the dashboard.
      */
     private function recentAdditions(): array
@@ -373,7 +373,7 @@ class DashboardController extends AbstractController
      * Personal watchlist — up to MAX_WATCHLIST most recently starred items.
      * Read straight from the local DB so it's always fast even when every
      * remote service is down. Each item carries tmdbId + mediaType so the
-     * dashboard tile can deep-link into the Découverte modal.
+     * dashboard tile can deep-link into the Discover modal.
      */
     private function watchlist(): array
     {

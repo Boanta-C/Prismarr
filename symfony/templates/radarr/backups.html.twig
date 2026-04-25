@@ -102,7 +102,7 @@
   </div>
 </div>
 
-{# Modal de confirmation restauration #}
+{# Restore confirmation modal #}
 <div class="modal modal-blur fade" id="modal-restore" tabindex="-1">
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
@@ -144,7 +144,7 @@ var I18N = {
 };
 var pendingRestoreId = null;
 
-// Créer une sauvegarde
+// Create a backup
 var btnCreate = document.getElementById('btn-create-backup');
 if (btnCreate) {
   btnCreate.onclick = function() {
@@ -202,7 +202,7 @@ document.querySelectorAll('.btn-backup-delete').forEach(function(btn) {
   };
 });
 
-// Restaurer — écouter l'événement show.bs.modal pour récupérer les données
+// Restore — listen to show.bs.modal to retrieve the data
 var modalRestore = document.getElementById('modal-restore');
 function onRestoreModalShow(e) {
   var btn = e.relatedTarget;

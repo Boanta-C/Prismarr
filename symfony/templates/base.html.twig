@@ -111,14 +111,16 @@
     :root[data-bs-theme="light"] .btn-ghost-secondary:hover { background: rgba(0,0,0,.05) !important; }
   </style>
 
-  {# Gestion thème clair/sombre — tout dans le <head> pour survivre aux navigations Turbo #}
+  {# Light/dark theme handling — all in <head> to survive Turbo navigations #}
   <script>
     (function () {
-      // 1. Applique le thème immédiatement (avant CSS) pour éviter tout flash
+      // 1. Apply the theme immediately (before CSS) to avoid any flash
       var t = localStorage.getItem('tablerTheme') || 'dark';
       document.documentElement.setAttribute('data-bs-theme', t);
 
-      // 2. Sync les icônes moon/sun après chaque chargement/navigation
+      // 2. Sync moon/sun icons after each load/navigation
+      var THEME_LABEL_LIGHT = {{ 'topbar.theme.label_light'|trans|json_encode|raw }};
+      var THEME_LABEL_DARK  = {{ 'topbar.theme.label_dark'|trans|json_encode|raw }};
       function syncIcons() {
         var theme = document.documentElement.getAttribute('data-bs-theme') || 'dark';
         var isDark = theme === 'dark';
@@ -127,15 +129,15 @@
         var label = document.getElementById('theme-label');
         if (moon) moon.style.display = isDark ? '' : 'none';
         if (sun)  sun.style.display  = isDark ? 'none' : '';
-        if (label) label.textContent = isDark ? 'Thème clair' : 'Thème sombre';
+        if (label) label.textContent = isDark ? THEME_LABEL_LIGHT : THEME_LABEL_DARK;
         var moonT = document.getElementById('icon-moon-top');
         var sunT  = document.getElementById('icon-sun-top');
         if (moonT) moonT.style.display = isDark ? '' : 'none';
         if (sunT)  sunT.style.display  = isDark ? 'none' : '';
       }
 
-      // 3. Click handler via event delegation sur document
-      //    → survit aux navigations Turbo, jamais dupliqué car dans le <head>
+      // 3. Click handler via event delegation on document
+      //    → survives Turbo navigations, never duplicated since it's in the <head>
       document.addEventListener('click', function (e) {
         if (e.target.closest('#theme-toggle') || e.target.closest('#theme-toggle-top')) {
           e.preventDefault();
@@ -146,21 +148,21 @@
         }
       });
 
-      // 4. Sync icônes au premier chargement et après chaque navigation Turbo
+      // 4. Sync icons on first load and after each Turbo navigation
       document.addEventListener('DOMContentLoaded', syncIcons);
       document.addEventListener('turbo:load', syncIcons);
 
     })();
 
-    // Nettoyage backdrops et modals
+    // Backdrop and modal cleanup
     (function() {
-      // Avant chaque ouverture de modal : nettoyer les backdrops en trop
+      // Before each modal opens: clean up extra backdrops
       document.addEventListener('show.bs.modal', function() {
         var backdrops = document.querySelectorAll('.modal-backdrop');
         backdrops.forEach(function(b) { b.remove(); });
       });
 
-      // Après chaque fermeture de modal
+      // After each modal closes
       document.addEventListener('hidden.bs.modal', function() {
         var openModals = document.querySelectorAll('.modal.show');
         if (openModals.length === 0) {
@@ -171,7 +173,7 @@
         }
       });
 
-      // Nettoyage complet à chaque navigation Turbo
+      // Full cleanup on each Turbo navigation
       document.addEventListener('turbo:before-render', function() {
         document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
         document.querySelectorAll('.modal.show').forEach(function(m) { m.classList.remove('show'); m.style.display = 'none'; });
@@ -189,7 +191,7 @@
   <link rel="stylesheet" href="{{ asset('static/tabler/css/tabler.min.css') }}"/>
   <link rel="stylesheet" href="{{ asset('static/tabler/css/tabler-themes.min.css') }}"/>
 
-  {# Override fond bleu Tabler dark + améliorations visuelles #}
+  {# Override Tabler dark blue background + visual tweaks #}
   <style>
     /* User-picked theme color — MUST be set after Tabler's own stylesheet,
        otherwise its own `:root { --tblr-primary }` rule wins the cascade
@@ -631,7 +633,7 @@
           </a>
         </div>
 
-        {# User menu mobile #}
+        {# Mobile user menu #}
         <div class="navbar-nav flex-row d-lg-none">
           <div class="nav-item">
             <a href="{{ path('app_logout') }}" class="nav-link px-0">
@@ -645,11 +647,11 @@
           </div>
         </div>
 
-        {# Menu principal — Prismarr #}
+        {# Main menu — Prismarr #}
         <div class="collapse navbar-collapse" id="sidebar-menu">
           <ul class="navbar-nav pt-lg-3">
 
-            {# Tableau de bord — homepage par défaut depuis Session 9b #}
+            {# Dashboard — default homepage since Session 9b #}
             <li class="nav-item">
               <a class="nav-link {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'active' }}"
                  href="{{ path('app_dashboard') }}">
@@ -667,7 +669,7 @@
               </a>
             </li>
 
-            {# Découverte TMDb — page d'accueil Prismarr #}
+            {# Discover TMDb — Prismarr home page #}
             {% if service_visible_in_sidebar('tmdb') %}
             <li class="nav-item">
               <a class="nav-link {{ app.request.attributes.get('_route') starts with 'tmdb_' ? 'active' }}"
@@ -767,7 +769,7 @@
 
           </ul>
 
-          {# ── Pied sidebar : paramètres admin + logout (mobile inclus) ── #}
+          {# ── Sidebar footer: admin settings + logout (mobile included) ── #}
           <div class="mt-auto">
             <ul class="navbar-nav">
               {% if is_granted('ROLE_ADMIN') %}
@@ -801,8 +803,8 @@
               </li>
             </ul>
 
-            {# Toggle replier/déplier la sidebar — persist via localStorage
-               (inutile sur mobile puisque la sidebar est un overlay plein écran). #}
+            {# Toggle to collapse/expand the sidebar — persisted via localStorage
+               (no use on mobile since the sidebar is a full-screen overlay there). #}
             <button type="button" class="sidebar-toggle-btn d-none d-lg-flex" id="sidebar-toggle-btn"
                     aria-label="{{ 'sidebar.footer.collapse'|trans }}">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -820,7 +822,7 @@
     {# ===================== CONTENU PRINCIPAL ===================== #}
     <div class="page-wrapper">
 
-      {# Command Center Argos supprimé pour Prismarr — un command center médias light pourra être ajouté plus tard si besoin #}
+      {# Argos Command Center removed for Prismarr — a light media command center could be added later if needed #}
 
       <div class="page-header d-print-none prismarr-topbar">
         <div class="container-xl">
@@ -862,7 +864,7 @@
 
                 {% block page_actions %}{% endblock %}
 
-                {# Santé des services — dropdown lazy-loaded au click #}
+                {# Services health — dropdown lazy-loaded on click #}
                 <div class="dropdown" style="position:relative;">
                   <button type="button" class="btn btn-icon btn-ghost-secondary" id="topbar-health-btn"
                           data-prismarr-dropdown="health-menu" title="{{ 'topbar.health.title'|trans }}" aria-label="{{ 'topbar.health.title'|trans }}">
@@ -880,7 +882,7 @@
                   </div>
                 </div>
 
-                {# Thème #}
+                {# Theme #}
                 <a href="#" id="theme-toggle-top" class="btn btn-icon btn-ghost-secondary" title="{{ 'topbar.theme.toggle'|trans }}">
                   <svg id="icon-moon-top" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -893,7 +895,7 @@
                   </svg>
                 </a>
 
-                {# Profil #}
+                {# Profile #}
                 <div class="dropdown" style="position:relative;">
                   <button type="button" class="btn btn-icon btn-ghost-secondary" data-prismarr-dropdown="profile-menu">
                     <span style="display:inline-flex;width:1.375rem;height:1.375rem;border-radius:50%;background-image:url({% if app.user and app.user.avatarPath %}{{ path('app_profile_avatar_serve', {filename: app.user.avatarPath}) }}{% else %}https://ui-avatars.com/api/?name={{ app.user ? app.user.email|url_encode : 'U' }}&background=6366f1&color=fff&size=64{% endif %});background-size:cover;background-position:center;flex-shrink:0;"></span>
@@ -981,7 +983,7 @@
     </div>
     {# ===================== FIN CONTENU PRINCIPAL ===================== #}
 
-    {# ── Modal ajout rapide (recherche globale) ── #}
+    {# ── Quick add modal (global search) ── #}
     <div class="modal modal-blur fade" id="modal-quick-add" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg" role="document" style="margin-top:3rem">
         <div class="modal-content" style="background:var(--tblr-bg-surface)">
@@ -1001,7 +1003,7 @@
               {{ 'quickadd.already_in_library'|trans }}
             </div>
 
-            {# ── Formulaire FILM (Radarr) ── #}
+            {# ── MOVIE form (Radarr) ── #}
             <div id="qa-form-film" style="display:none">
               <div class="row g-2">
                 <div class="col-12 col-sm-4">
@@ -1033,7 +1035,7 @@
               </div>
             </div>
 
-            {# ── Formulaire SÉRIE (Sonarr) ── #}
+            {# ── TV SHOW form (Sonarr) ── #}
             <div id="qa-form-serie" style="display:none">
               <div class="row g-2">
                 <div class="col-6 col-sm-3">
@@ -1099,15 +1101,19 @@
   <script>
     window._i18n = {{ {
       'search.recent':         'topbar.search.recent'|trans,
-      'search.empty':          'topbar.search.empty'|trans,
-      'search.empty_hint':     'topbar.search.placeholder'|trans,
+      'search.empty':          'topbar.search.empty_short'|trans,
+      'search.empty_hint':     'topbar.search.placeholder_short'|trans,
       'search.filter_all':     'topbar.search.filter.all'|trans,
       'search.filter_films':   'topbar.search.filter.films'|trans,
       'search.filter_series':  'topbar.search.filter.series'|trans,
-      'search.group_online':   'topbar.search.more_online'|trans,
-      'search.group_local':    'topbar.search.more_local'|trans,
-      'search.online_loading': 'common.status.loading'|trans,
-      'search.forget':         'common.action.delete'|trans,
+      'search.group_online':   'topbar.search.group_online'|trans,
+      'search.group_local':    'topbar.search.group_local'|trans,
+      'search.online_loading': 'topbar.search.loading_online'|trans,
+      'search.forget':         'topbar.search.forget'|trans,
+      'search.in_library_badge': 'topbar.search.in_library_badge'|trans,
+      'search.not_added_badge':  'topbar.search.not_added_badge'|trans,
+      'theme.label_light':     'topbar.theme.label_light'|trans,
+      'theme.label_dark':      'topbar.theme.label_dark'|trans,
       'health.all_ok':         'topbar.health.summary_ok'|trans,
       'health.loading':        'topbar.health.loading'|trans,
       'health.unknown':        'topbar.health.summary_unknown'|trans,
@@ -1189,8 +1195,8 @@
           ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFC230" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>'
           : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0CF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>';
         var badge = item.inLibrary
-          ? '<span class="badge bg-green-lt ms-auto flex-shrink-0" style="font-size:.6rem;">En bibliothèque</span>'
-          : '<span class="badge bg-secondary-lt ms-auto flex-shrink-0" style="font-size:.6rem;">Non ajouté</span>';
+          ? '<span class="badge bg-green-lt ms-auto flex-shrink-0" style="font-size:.6rem;">' + (window._i18n && window._i18n['search.in_library_badge'] || 'In library') + '</span>'
+          : '<span class="badge bg-secondary-lt ms-auto flex-shrink-0" style="font-size:.6rem;">' + (window._i18n && window._i18n['search.not_added_badge'] || 'Not added') + '</span>';
         var poster = item.poster
           ? '<img src="' + item.poster + '" style="width:30px;height:45px;object-fit:cover;border-radius:4px;" class="flex-shrink-0" loading="lazy">'
           : '<div style="width:30px;height:45px;background:rgba(255,255,255,.05);border-radius:4px;display:flex;align-items:center;justify-content:center;" class="flex-shrink-0">' + typeIcon + '</div>';
@@ -1230,17 +1236,17 @@
       function renderRecent() {
         var recent = loadRecent();
         if (!recent.length) {
-          resultsDiv.innerHTML = '<div class="prismarr-search-empty">' + (window._i18n && window._i18n['search.empty_hint'] || 'Tapez au moins 2 caractères pour lancer la recherche.') + '</div>';
+          resultsDiv.innerHTML = '<div class="prismarr-search-empty">' + (window._i18n && window._i18n['search.empty_hint'] || 'Type at least 2 characters to start searching.') + '</div>';
           openResults();
           return;
         }
-        var html = '<div class="prismarr-search-section">' + (window._i18n && window._i18n['search.recent'] || 'Recherches récentes') + '</div>';
+        var html = '<div class="prismarr-search-section">' + (window._i18n && window._i18n['search.recent'] || 'Recent searches') + '</div>';
         recent.forEach(function (q) {
           html += '<div class="prismarr-search-recent" data-recent-q="' + q.replace(/"/g, '&quot;') + '">'
                 + '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
                 + '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>'
                 + '<span class="text-truncate">' + q + '</span>'
-                + '<span class="clear-x" data-remove-q="' + q.replace(/"/g, '&quot;') + '" title="' + (window._i18n && window._i18n['search.forget'] || 'Oublier') + '">'
+                + '<span class="clear-x" data-remove-q="' + q.replace(/"/g, '&quot;') + '" title="' + (window._i18n && window._i18n['search.forget'] || 'Forget') + '">'
                 + '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
                 + '</span></div>';
         });
@@ -1259,9 +1265,9 @@
       function renderPills() {
         var i18n = window._i18n || {};
         return '<div class="prismarr-search-filters">'
-          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'all'    ? 'is-active' : '') + '" data-filter="all">' + (i18n['search.filter_all'] || 'Tous') + '</button>'
-          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'film'   ? 'is-active' : '') + '" data-filter="film">' + (i18n['search.filter_films'] || 'Films') + '</button>'
-          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'series' ? 'is-active' : '') + '" data-filter="series">' + (i18n['search.filter_series'] || 'Séries') + '</button>'
+          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'all'    ? 'is-active' : '') + '" data-filter="all">' + (i18n['search.filter_all'] || 'All') + '</button>'
+          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'film'   ? 'is-active' : '') + '" data-filter="film">' + (i18n['search.filter_films'] || 'Movies') + '</button>'
+          + '<button type="button" class="prismarr-search-pill ' + (activeFilter === 'series' ? 'is-active' : '') + '" data-filter="series">' + (i18n['search.filter_series'] || 'TV Shows') + '</button>'
           + '</div>';
       }
 
@@ -1275,15 +1281,15 @@
 
       function renderSearchResults(localItems, onlineItems, onlineLoading) {
         var i18n = window._i18n || {};
-        var onlineLabel = i18n['search.group_online'] || 'Sur TMDb / TheTVDB';
-        var localLabel  = i18n['search.group_local']  || 'Dans votre bibliothèque';
+        var onlineLabel = i18n['search.group_online'] || 'On TMDb / TheTVDB';
+        var localLabel  = i18n['search.group_local']  || 'In your library';
         var html = renderPills();
         var idx = 0;
 
-        // Online (TMDb / TheTVDB) first — découvrir est le use-case primaire.
+        // Online (TMDb / TheTVDB) first — discovery is the primary use-case.
         if (onlineLoading) {
           html += '<div class="prismarr-search-section">' + onlineLabel + '</div>'
-               + '<div class="py-2 text-center"><div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div><span class="small text-secondary ms-2">' + (i18n['search.online_loading'] || 'Chargement…') + '</span></div>';
+               + '<div class="py-2 text-center"><div class="spinner-border spinner-border-sm text-secondary" style="width:.85rem;height:.85rem;border-width:2px;" role="status"></div><span class="small text-secondary ms-2">' + (i18n['search.online_loading'] || 'Loading…') + '</span></div>';
         } else {
           var onlineSec = renderSection(onlineLabel, onlineItems || [], idx);
           if (onlineSec.count) { html += onlineSec.html; idx += onlineSec.count; }
@@ -1295,7 +1301,7 @@
 
         // Empty state when nothing on either side (and not still loading)
         if (!onlineLoading && idx === 0) {
-          html += '<div class="prismarr-search-empty">' + (i18n['search.empty'] || 'Aucun résultat.') + '</div>';
+          html += '<div class="prismarr-search-empty">' + (i18n['search.empty'] || 'No results.') + '</div>';
         }
 
         resultsDiv.innerHTML = html;
@@ -1342,8 +1348,8 @@
                 onlineReq = null;
                 lastOnline = onlineItems || [];
                 renderSearchResults(lastLocal, lastOnline, false);
-                // Une query qui a au moins un hit est worth saving — l'user
-                // a probablement tapé quelque chose de pertinent.
+                // A query with at least one hit is worth saving — the user
+                // probably typed something relevant.
                 if (lastLocal.length || lastOnline.length) saveRecent(q);
               })
               .catch(function (err) {
@@ -1497,15 +1503,15 @@
         else { poster.style.display = 'none'; }
         document.getElementById('qa-title').textContent = qaItem.title || '—';
         document.getElementById('qa-subtitle').innerHTML = (isFilm
-          ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFC230" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg> Film'
-          : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0CF" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg> Série')
+          ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFC230" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg> ' + ((window._i18n && window._i18n['qa.toast_film']) || 'Movie')
+          : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0CF" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg> ' + ((window._i18n && window._i18n['qa.toast_series']) || 'TV Show'))
           + (qaItem.year ? ' · ' + qaItem.year : '');
 
-        // Afficher le bon formulaire
+        // Show the right form
         document.getElementById('qa-form-film').style.display = isFilm ? '' : 'none';
         document.getElementById('qa-form-serie').style.display = isFilm ? 'none' : '';
 
-        // Bibliothèque ?
+        // In library?
         var alreadyEl = document.getElementById('qa-already');
         if (qaItem.inLibrary) {
           alreadyEl.style.cssText = '';
@@ -1519,9 +1525,9 @@
         document.getElementById('qa-result').className = 'mt-3 alert d-none';
         var confirmBtn = document.getElementById(isFilm ? 'qa-film-confirm' : 'qa-serie-confirm');
         confirmBtn.disabled = false;
-        confirmBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg> ' + (isFilm ? (window._i18n['qa.add_radarr'] || 'Ajouter à Radarr') : (window._i18n['qa.add_sonarr'] || 'Ajouter à Sonarr'));
+        confirmBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg> ' + (isFilm ? (window._i18n['qa.add_radarr'] || 'Add to Radarr') : (window._i18n['qa.add_sonarr'] || 'Add to Sonarr'));
 
-        // Charger profils/dossiers
+        // Load profiles/folders
         var cacheKey = isFilm ? 'film' : 'serie';
         if (qaCache[cacheKey]) {
           fillSelects(isFilm, qaCache[cacheKey]);
@@ -1537,12 +1543,12 @@
           });
         }
 
-        // Auto-détection anime
+        // Auto-detect anime
         if (!isFilm && qaItem.seriesType === 'anime') {
           document.getElementById('qa-serie-type').value = 'anime';
         }
 
-        // Ouvrir modal
+        // Open modal
         var searchResults = document.getElementById('global-search-results');
         if (searchResults) searchResults.style.display = 'none';
         qaModal.classList.add('show');
@@ -1567,7 +1573,7 @@
         }).join('');
       }
 
-      // Fermer modal (Turbo-safe : relire le DOM)
+      // Close modal (Turbo-safe: re-read the DOM)
       document.addEventListener('click', function(e) {
         var m = getQaModal();
         if (!m) return;
@@ -1587,15 +1593,15 @@
         document.body.classList.remove('modal-open');
         var bd = document.querySelector('.modal-backdrop');
         if (bd) bd.remove();
-        // Reset boutons confirm pour le prochain usage
+        // Reset confirm buttons for next usage
         ['qa-film-confirm', 'qa-serie-confirm'].forEach(function(id) {
           var btn = document.getElementById(id);
           if (btn) {
             btn.disabled = false;
             btn.className = 'btn btn-success';
             var ctaLabel = id === 'qa-film-confirm'
-              ? (window._i18n['qa.add_radarr'] || 'Ajouter à Radarr')
-              : (window._i18n['qa.add_sonarr'] || 'Ajouter à Sonarr');
+              ? (window._i18n['qa.add_radarr'] || 'Add to Radarr')
+              : (window._i18n['qa.add_sonarr'] || 'Add to Sonarr');
             btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg> ' + ctaLabel;
           }
         });
@@ -1613,12 +1619,12 @@
 
         if (!qualVal || !folderVal) {
           result.className = 'mt-3 alert alert-warning';
-          result.textContent = window._i18n['qa.missing_fields'] || 'Sélectionnez un profil et un dossier.';
+          result.textContent = window._i18n['qa.missing_fields'] || 'Pick a profile and a folder.';
           return;
         }
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>' + (window._i18n['qa.adding'] || 'Ajout…');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>' + (window._i18n['qa.adding'] || 'Adding…');
 
         var url, payload;
         if (isFilm) {
@@ -1648,11 +1654,11 @@
           .then(function (data) {
             if (data.ok) {
               result.className = 'mt-3 alert alert-success';
-              result.textContent = (isFilm ? window._i18n['qa.added_film'] : window._i18n['qa.added_series']) || 'Ajouté !';
-              btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg> ' + (window._i18n['qa.added_done'] || 'Ajouté !');
+              result.textContent = (isFilm ? window._i18n['qa.added_film'] : window._i18n['qa.added_series']) || 'Added!';
+              btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5l10-10"/></svg> ' + (window._i18n['qa.added_done'] || '✓ Added!');
               btn.className = 'btn btn-outline-success';
               if (window._prismarrToast) window._prismarrToast(
-                (isFilm ? window._i18n['qa.toast_added_film_radarr'] : window._i18n['qa.toast_added_series_sonarr']) || 'Ajouté',
+                (isFilm ? window._i18n['qa.toast_added_film_radarr'] : window._i18n['qa.toast_added_series_sonarr']) || 'Added',
                 'success'
               );
               setTimeout(function () {
@@ -1660,17 +1666,17 @@
               }, 1000);
             } else {
               result.className = 'mt-3 alert alert-danger';
-              var errTpl = window._i18n['qa.error_tpl'] || 'Erreur : __REASON__';
-              result.textContent = errTpl.replace('__REASON__', data.error || (window._i18n['qa.cannot_add'] || 'Ajout impossible'));
+              var errTpl = window._i18n['qa.error_tpl'] || 'Error: __REASON__';
+              result.textContent = errTpl.replace('__REASON__', data.error || (window._i18n['qa.cannot_add'] || 'Cannot add'));
               btn.disabled = false;
-              btn.innerHTML = window._i18n['qa.retry'] || 'Réessayer';
+              btn.innerHTML = window._i18n['qa.retry'] || 'Retry';
             }
           })
           .catch(function () {
             result.className = 'mt-3 alert alert-danger';
-            result.textContent = window._i18n['qa.network_error'] || 'Erreur réseau';
+            result.textContent = window._i18n['qa.network_error'] || 'Network error';
             btn.disabled = false;
-            btn.innerHTML = window._i18n['qa.retry'] || 'Réessayer';
+            btn.innerHTML = window._i18n['qa.retry'] || 'Retry';
           });
       }
 
@@ -1802,7 +1808,7 @@
         danger: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>',
         info: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
       };
-      // Icône via innerHTML (contenu figé), message via textContent (XSS-safe même si msg contient du HTML)
+      // Icon via innerHTML (frozen content), message via textContent (XSS-safe even if msg contains HTML)
       toast.innerHTML = (icons[type] || icons.info) + '<span></span>';
       toast.querySelector('span').textContent = String(msg == null ? '' : msg);
       container.appendChild(toast);
@@ -1812,15 +1818,15 @@
       }, duration || 4000);
     };
 
-    /* Command Center + SSE multi-topics Argos supprimés pour Prismarr.
-       Seul le poll qBit (badge sidebar + toasts fin DL) reste dans le bloc plus bas. */
+    /* Argos Command Center + SSE multi-topics removed for Prismarr.
+       Only the qBit poll (sidebar badge + DL-finished toasts) remains in the block below. */
 
   })();
   </script>
 
   {# ══════════════════════════════════════════════════════════════════════════
-     Poll qBittorrent global — toasts fin DL / erreurs + badge sidebar
-     Actif uniquement sur les pages média (évite de charger qBit partout)
+     Global qBittorrent poll — DL completion / error toasts + sidebar badge
+     Active only on media pages (avoids hitting qBit everywhere)
      ══════════════════════════════════════════════════════════════════════════ #}
   {% set route = app.request.attributes.get('_route') ?? '' %}
   {% if route starts with 'app_qbittorrent_'
@@ -1838,16 +1844,16 @@
     if (QBT_POLL_INTERVAL_SECONDS <= 0) return;  // poll disabled via /admin/settings
     var QBT_POLL_INTERVAL = QBT_POLL_INTERVAL_SECONDS * 1000;
     var STATE_KEY = 'prismarr_qbt_last_state';
-    var NOTIFIED_KEY = 'prismarr_qbt_notified';  // hashs déjà notifiés (dédup cross-tab)
-    var NOTIFIED_TTL = 60 * 60 * 1000; // 1h — au-delà on réautorise la notif (torrent re-DL par ex)
+    var NOTIFIED_KEY = 'prismarr_qbt_notified';  // hashes already notified (cross-tab dedup)
+    var NOTIFIED_TTL = 60 * 60 * 1000; // 1h — beyond that we re-allow the notification (e.g. torrent re-DL)
 
-    // Canal cross-tab pour synchroniser les notifs entre plusieurs onglets ouverts
+    // Cross-tab channel to sync notifications across multiple open tabs
     var bchan = null;
     try { if (typeof BroadcastChannel !== 'undefined') bchan = new BroadcastChannel('prismarr-qbt-toasts'); } catch (e) {}
     if (bchan && !window._prismarrQbtBchanBound) {
       window._prismarrQbtBchanBound = true;
       bchan.onmessage = function (e) {
-        // Un autre onglet a déjà notifié ce hash → on marque localement pour skip
+        // Another tab already notified this hash → mark locally to skip
         if (e.data && e.data.type === 'notified' && e.data.hash) markNotified(e.data.hash);
       };
     }
@@ -1856,7 +1862,7 @@
     function markNotified(hash) {
       var n = loadNotified();
       n[hash] = Date.now();
-      // Purge des entrées trop vieilles pour éviter de gonfler
+      // Purge entries that are too old to avoid bloat
       var cutoff = Date.now() - NOTIFIED_TTL;
       Object.keys(n).forEach(function (k) { if (n[k] < cutoff) delete n[k]; });
       try { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(n)); } catch (e) {}
@@ -1921,7 +1927,7 @@
           window._prismarrQbtFailCount = 0;
           updateBadge(d.active || 0);
 
-          // Détection transitions (vs snapshot précédent)
+          // Detect transitions (vs previous snapshot)
           var prev = loadPrev();
           var next = {};
           var justCompleted = [];
@@ -1962,11 +1968,11 @@
         });
     }
 
-    // Pattern singleton Turbo-safe : un seul poll global même avec re-exec
+    // Turbo-safe singleton pattern: a single global poll even with re-exec
     if (window._prismarrQbtPollTimer) clearTimeout(window._prismarrQbtPollTimer);
     pollQbt();
 
-    // Pause quand onglet caché, reprise au retour
+    // Pause when tab is hidden, resume when it returns
     if (!window._prismarrQbtVisibilityBound) {
       window._prismarrQbtVisibilityBound = true;
       document.addEventListener('visibilitychange', function () {
@@ -2008,8 +2014,8 @@
 
         var i18n = window._i18n || {};
         summ.textContent = total === 0
-          ? (i18n['health.no_service'] || 'Aucun service configuré')
-          : (i18n['health.summary_tpl'] || '__OK__ / __TOTAL__ services opérationnels')
+          ? (i18n['health.no_service'] || 'No service configured')
+          : (i18n['health.summary_tpl'] || '__OK__ / __TOTAL__ services up')
               .replace('__OK__', ok).replace('__TOTAL__', total);
 
         var html = '';
@@ -2017,10 +2023,10 @@
           var state = services[id];
           var cls   = state === null || state === undefined ? 'is-unk' : (state ? 'is-ok' : 'is-ko');
           var label = state === null || state === undefined
-            ? (i18n['health.status_unk']  || 'Non configuré')
+            ? (i18n['health.status_unk']  || 'Not configured')
             : (state
-                ? (i18n['health.status_ok']   || 'Opérationnel')
-                : (i18n['health.status_down'] || 'Injoignable'));
+                ? (i18n['health.status_ok']   || 'Up')
+                : (i18n['health.status_down'] || 'Unreachable'));
           html += '<div class="prismarr-health-row">'
                +  '<span class="prismarr-health-row-dot ' + cls + '"></span>'
                +  '<span class="prismarr-health-row-name">' + SERVICE_LABELS[id] + '</span>'
@@ -2038,7 +2044,7 @@
       }
 
       fetchHealth();
-      // Refresh auto toutes les 60s — HealthService cache déjà 10s serveur-side.
+      // Auto refresh every 60s — HealthService already caches 10s server-side.
       if (!window._prismarrHealthTimer) {
         window._prismarrHealthTimer = setInterval(fetchHealth, 60000);
       }
@@ -2048,9 +2054,9 @@
 
   <script>
     // Sidebar collapsible toggle + tooltip setup (Turbo-safe).
-    // - Click sur #sidebar-toggle-btn → toggle `html.sidebar-collapsed` + persist
-    // - Au load/après nav Turbo : copie .nav-link-title → data-tooltip sur chaque
-    //   lien pour alimenter le CSS tooltip qui s'affiche uniquement en collapsed.
+    // - Click on #sidebar-toggle-btn → toggle `html.sidebar-collapsed` + persist
+    // - On load/after Turbo nav: copy .nav-link-title → data-tooltip on each
+    //   link to feed the CSS tooltip that only shows when collapsed.
     (function () {
       function setupSidebarTooltips() {
         document.querySelectorAll('aside.navbar-vertical .nav-link').forEach(function (a) {

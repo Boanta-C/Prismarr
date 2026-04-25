@@ -267,7 +267,7 @@
   </div>
 </div>
 
-{# ── File de téléchargement (auto-refresh) ── #}
+{# ── Download queue (auto-refresh) ── #}
 <div class="card mb-3" id="queue-card" style="{{ queue is empty ? 'display:none;' : '' }}">
   <div class="card-header" style="cursor:pointer;" id="queue-toggle">
     <h3 class="card-title d-flex align-items-center gap-2">
@@ -285,7 +285,7 @@
   </div>
 </div>
 
-{# ── Calendrier épisodes (déroulant) ── #}
+{# ── Episode calendar (collapsible) ── #}
 {% if calendar is not empty %}
 <div class="card mb-3">
   <div class="card-header" style="cursor:pointer;" id="calendar-toggle">
@@ -401,10 +401,10 @@
   </div>
 </div>
 
-{# ── Vue étagères (Netflix) ── #}
+{# ── Shelves view (Netflix) ── #}
 <div id="series-shelf-view" style="display:none;"></div>
 
-{# ── Vue tableau alternative ── #}
+{# ── Alternative table view ── #}
 <div id="series-table-view">
   <div class="card">
     <div class="table-responsive">
@@ -499,10 +499,10 @@
       <div class="no-poster">{{ s.title }}</div>
     {% endif %}
 
-    {# Checkbox sélection #}
+    {# Selection checkbox #}
     <div class="select-cb"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
 
-    {# Bandeau haut : badge type à gauche, coche + pastille à droite #}
+    {# Top banner: type badge on the left, checkbox + status dot on the right #}
     <div class="top-indicators">
       {% if s.seriesType == 'anime' %}
         <span style="font-size:.6rem;font-weight:700;margin-right:auto;">{{ 'media.series.status.anime_emoji'|trans }}</span>
@@ -525,7 +525,7 @@
       {% endif %}
     </div>
 
-    {# Barre progression colorée #}
+    {# Coloured progress bar #}
     {% set barColor = '#22c55e' %}
     {% set barTooltip = s.episodeFileCount ~ '/' ~ s.episodeCount ~ ' ' ~ ('media.series.status.episodes_suffix'|trans) %}
     {% if not s.monitored and s.episodeFileCount == 0 %}
@@ -587,14 +587,14 @@
         {% if s.network %}<span class="badge bg-dark">{{ s.network }}</span>{% endif %}
       </div>
       <div class="h-title">{{ s.title }}</div>
-      <div class="h-year">{{ s.year }}{% if s.seasonCount %} · {{ 'media.series.status.season_tpl'|trans({count: s.seasonCount}) }}{% endif %} · {{ s.episodeFileCount }}/{{ s.episodeCount }} ép.</div>
+      <div class="h-year">{{ s.year }}{% if s.seasonCount %} · {{ 'media.series.status.season_tpl'|trans({count: s.seasonCount}) }}{% endif %} · {{ s.episodeFileCount }}/{{ s.episodeCount }} {{ 'media.series.status.episodes_suffix'|trans }}</div>
       {% if s.overview %}<div class="h-overview">{{ s.overview }}</div>{% endif %}
       <div style="height:3px;border-radius:2px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:.4rem;">
         <div style="height:100%;width:{{ s.percent }}%;background:{{ barColor }};border-radius:2px;"></div>
       </div>
     </div>
 
-    {# Info étendue (masqué par défaut, affiché en vue extended) #}
+    {# Extended info (hidden by default, shown in extended view) #}
     <div class="extended-info">
       <div class="fw-bold mb-1">{{ s.title }}{% if s.year %} <span class="text-muted fw-normal">({{ s.year }})</span>{% endif %}</div>
       <div class="d-flex align-items-center gap-2 mb-1 flex-wrap" style="font-size:.78rem;">
@@ -616,7 +616,7 @@
 {% endfor %}
 </div>
 
-{# ── Modal détail série ── #}
+{# ── Series detail modal ── #}
 <div class="modal modal-blur fade" id="modal-serie" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-fullscreen-lg-down modal-xl" role="document" style="margin-top:1rem;">
     <div class="modal-content" style="background:var(--tblr-bg-surface);position:relative;">
@@ -647,7 +647,7 @@
       <div class="modal-body pt-0">
         <div class="row g-4" style="margin-top:-1rem;">
 
-          {# Colonne gauche : poster + badges + actions #}
+          {# Left column: poster + badges + actions #}
           <div class="col-md-4 col-lg-3">
             <div class="mb-3" style="margin-top:-3rem;position:relative;z-index:2;">
               <img id="modal-serie-poster" src="" alt="" style="width:100%;border-radius:.5rem;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;">
@@ -699,7 +699,7 @@
             </div>
           </div>
 
-          {# Colonne droite : synopsis + releases + file manager + saisons #}
+          {# Right column: synopsis + releases + file manager + seasons #}
           <div class="col-md-8 col-lg-9">
             {# Synopsis #}
             <div class="mb-3">
@@ -783,7 +783,7 @@
 
 </div>
 
-{# ── Modal ajout série ── #}
+{# ── Add series modal ── #}
 <div class="modal modal-blur fade" id="modal-add-serie" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document" style="margin-top:2rem">
     <div class="modal-content">
@@ -792,12 +792,12 @@
         <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        {# Recherche #}
+        {# Search #}
         <div class="d-flex gap-2 mb-4 mt-2">
           <input type="text" id="add-serie-search" class="form-control form-control-lg" placeholder="{{ 'media.series.modal.search_placeholder'|trans }}" autocomplete="off" autofocus>
         </div>
 
-        {# Formulaire (visible après sélection, au-dessus des résultats) #}
+        {# Form (visible after selection, above results) #}
         <div id="add-serie-form" style="display:none" class="mb-3 p-3 border border-primary rounded">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 id="add-serie-title" class="mb-0"></h5>
@@ -851,8 +851,8 @@
   </div>
 </div>
 
-{# ── Barre bulk séries fixe en bas ── #}
-{# ── Modal bulk modifier séries ── #}
+{# ── Fixed bottom bulk bar (series) ── #}
+{# ── Bulk edit series modal ── #}
 <div class="modal modal-blur fade" id="modal-bulk-edit-series" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -872,7 +872,7 @@
   </div>
 </div>
 
-{# ── Modal bulk étiquettes séries ── #}
+{# ── Bulk tags series modal ── #}
 <div class="modal modal-blur fade" id="modal-bulk-tags-series" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -887,7 +887,7 @@
   </div>
 </div>
 
-{# ── Modal bulk supprimer séries ── #}
+{# ── Bulk delete series modal ── #}
 <div class="modal modal-blur fade" id="modal-bulk-delete-series" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
@@ -903,7 +903,7 @@
   </div>
 </div>
 
-{# ── Modal bulk renommer séries ── #}
+{# ── Bulk rename series modal ── #}
 <div class="modal modal-blur fade" id="modal-bulk-rename-series" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">

@@ -80,7 +80,7 @@
 
 <div id="serie-feedback" class="alert d-none mb-3"></div>
 
-{# ── Header avec fanart ────────────────────────────────────────────── #}
+{# ── Header with fanart ────────────────────────────────────────────── #}
 <div class="serie-header">
   {% if serie.fanart %}
   <div class="serie-header-bg" style="background-image:url('{{ serie.fanart }}');"></div>
@@ -164,7 +164,7 @@
   </div>
 </div>
 
-{# ── Saisons / Épisodes ───────────────────────────────────────────── #}
+{# ── Seasons / Episodes ───────────────────────────────────────────── #}
 {% for seasonNum, episodes in seasons %}
   {% set seasonData = null %}
   {% for s in serie.seasons %}

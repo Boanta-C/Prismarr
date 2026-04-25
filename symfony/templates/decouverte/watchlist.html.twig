@@ -103,7 +103,7 @@
 </style>
 
 <div class="container-xl">
-  <!-- Retour Découverte -->
+  <!-- Back to Discover -->
   <div class="mb-3">
     <a href="{{ path('tmdb_index') }}" class="btn btn-outline-secondary btn-sm">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
@@ -390,7 +390,7 @@
     });
   });
 
-  // Clic sur card → redirection vers découverte avec ouverture modal
+  // Click on card → redirect to discover with modal open
   grid && grid.addEventListener('click', function(e) {
     if (e.target.closest('.wl-remove') || e.target.closest('.wl-notes-ico')) return;
     var card = e.target.closest('.wl-card');
