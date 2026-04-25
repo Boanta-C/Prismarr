@@ -3,6 +3,7 @@
 namespace App\Tests\EventSubscriber;
 
 use App\EventSubscriber\ProfilerGuardSubscriber;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -10,6 +11,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class ProfilerGuardSubscriberTest extends TestCase
 {
     private function event(string $path, string $clientIp): RequestEvent

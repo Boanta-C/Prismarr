@@ -5,8 +5,10 @@ namespace App\Tests\Service;
 use App\Exception\ServiceNotConfiguredException;
 use App\Repository\SettingRepository;
 use App\Service\ConfigService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class ConfigServiceTest extends TestCase
 {
     public function testGetReturnsValue(): void

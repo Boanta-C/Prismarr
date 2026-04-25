@@ -4,10 +4,12 @@ namespace App\Tests\Controller;
 
 use App\Controller\HealthController;
 use Doctrine\DBAL\Connection;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+#[AllowMockObjectsWithoutExpectations]
 class HealthControllerTest extends TestCase
 {
     private function newController(): HealthController

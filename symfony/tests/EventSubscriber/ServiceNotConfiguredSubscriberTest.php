@@ -4,6 +4,7 @@ namespace App\Tests\EventSubscriber;
 
 use App\EventSubscriber\ServiceNotConfiguredSubscriber;
 use App\Exception\ServiceNotConfiguredException;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -15,6 +16,7 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Twig\Environment;
 
+#[AllowMockObjectsWithoutExpectations]
 class ServiceNotConfiguredSubscriberTest extends TestCase
 {
     private function event(\Throwable $exception, ?Session $session = null): ExceptionEvent

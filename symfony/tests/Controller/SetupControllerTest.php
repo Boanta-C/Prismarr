@@ -8,6 +8,7 @@ use App\Repository\UserRepository;
 use App\Service\ConfigService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -27,6 +28,7 @@ use Symfony\Bundle\SecurityBundle\Security;
  * fix introduced in Session 8b. A full functional test with WebTestCase is
  * tracked in the v1.1 backlog.
  */
+#[AllowMockObjectsWithoutExpectations]
 class SetupControllerTest extends TestCase
 {
     private function newController(

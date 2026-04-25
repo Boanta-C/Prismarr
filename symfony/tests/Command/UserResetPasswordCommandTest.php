@@ -6,10 +6,12 @@ use App\Command\UserResetPasswordCommand;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class UserResetPasswordCommandTest extends TestCase
 {
     private function commandTester(

@@ -5,6 +5,7 @@ namespace App\Tests\EventSubscriber;
 use App\EventSubscriber\ServiceRouteGuardSubscriber;
 use App\Service\ConfigService;
 use App\Service\HealthService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,6 +15,7 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class ServiceRouteGuardSubscriberTest extends TestCase
 {
     private function event(string $routeName): RequestEvent

@@ -11,6 +11,7 @@ use App\Service\Media\RadarrClient;
 use App\Service\Media\SonarrClient;
 use App\Service\Media\TmdbClient;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -24,6 +25,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * making each client implement ResetInterface — Symfony calls reset()
  * between requests in worker mode.
  */
+#[AllowMockObjectsWithoutExpectations]
 class ClientResetTest extends TestCase
 {
     /**

@@ -5,6 +5,7 @@ namespace App\Tests\EventSubscriber;
 use App\Controller\SetupController;
 use App\EventSubscriber\SetupRedirectSubscriber;
 use App\Repository\SettingRepository;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,6 +13,7 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class SetupRedirectSubscriberTest extends TestCase
 {
     private function event(string $path, bool $mainRequest = true): RequestEvent

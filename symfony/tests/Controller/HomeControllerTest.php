@@ -6,6 +6,7 @@ use App\Controller\HomeController;
 use App\EventSubscriber\LastVisitedRouteSubscriber;
 use App\Service\ConfigService;
 use App\Service\DisplayPreferencesService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -22,6 +23,7 @@ use Symfony\Component\Routing\RouterInterface;
  * only fall back to the legacy service-availability chain when the chosen
  * target isn't reachable.
  */
+#[AllowMockObjectsWithoutExpectations]
 class HomeControllerTest extends TestCase
 {
     private function newController(): HomeController

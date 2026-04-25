@@ -4,12 +4,14 @@ namespace App\Tests\EventSubscriber;
 
 use App\EventSubscriber\CspHeaderSubscriber;
 use App\Service\ConfigService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class CspHeaderSubscriberTest extends TestCase
 {
     private function event(Response $response): ResponseEvent

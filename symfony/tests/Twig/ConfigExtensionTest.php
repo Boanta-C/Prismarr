@@ -4,8 +4,10 @@ namespace App\Tests\Twig;
 
 use App\Service\ConfigService;
 use App\Twig\ConfigExtension;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class ConfigExtensionTest extends TestCase
 {
     private function extension(array $configuredKeys): ConfigExtension

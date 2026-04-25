@@ -4,9 +4,11 @@ namespace App\Tests\Service;
 
 use App\Service\ConfigService;
 use App\Service\DisplayPreferencesService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\Service\ResetInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class DisplayPreferencesServiceTest extends TestCase
 {
     /**

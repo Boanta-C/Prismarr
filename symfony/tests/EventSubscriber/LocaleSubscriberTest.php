@@ -4,11 +4,13 @@ namespace App\Tests\EventSubscriber;
 
 use App\EventSubscriber\LocaleSubscriber;
 use App\Service\DisplayPreferencesService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class LocaleSubscriberTest extends TestCase
 {
     private function event(Request $request, bool $mainRequest = true): RequestEvent

@@ -6,6 +6,7 @@ use App\Controller\AdminSettingsController;
 use App\Repository\SettingRepository;
 use App\Service\ConfigService;
 use App\Service\HealthService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -13,6 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+#[AllowMockObjectsWithoutExpectations]
 class AdminSettingsControllerTest extends TestCase
 {
     private function controller(
@@ -215,7 +217,7 @@ class AdminSettingsControllerTest extends TestCase
         $config = $this->createMock(ConfigService::class);
         $health = $this->createMock(HealthService::class);
         $health->expects($this->once())->method('invalidate')->with('radarr');
-        $health->method('diagnose')->with('radarr')->willReturn([
+        $health->expects($this->once())->method('diagnose')->with('radarr')->willReturn([
             'ok' => true, 'category' => 'ok', 'http' => 200,
         ]);
 
