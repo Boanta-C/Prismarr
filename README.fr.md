@@ -28,12 +28,27 @@
 
 ## À propos
 
-**Prismarr** réunit **qBittorrent**, **Radarr**, **Sonarr**, **Prowlarr**,
-**Jellyseerr** et **TMDb** dans une seule interface Symfony moderne. Plus
-besoin de jongler entre six onglets pour gérer votre bibliothèque.
+Faire tourner une stack médias chez soi, c'est vivre dans un cimetière
+d'onglets : un pour qBittorrent, un pour Radarr, un autre pour Sonarr,
+puis Prowlarr, Jellyseerr, TMDb… **Prismarr** rassemble tout ça dans une
+seule interface Symfony 8.
 
-Conçu pour les homelabs : un seul container Docker, aucune base de données à
-configurer, toute la configuration se fait depuis l'interface.
+Ce n'est pas un remplaçant de Radarr ou de Sonarr — ces services tournent
+en parallèle et continuent de faire ce qu'ils font de mieux. Prismarr est
+la surface de contrôle unifiée : une barre de recherche qui couvre la
+bibliothèque locale et TMDb, un calendrier qui fusionne sorties films et
+épisodes, un dashboard qui remonte ce qui compte aujourd'hui (un téléchargement
+récent, une requête en attente, une tendance), et une page paramètres où
+chaque clé API est stockée — jamais en clair sur disque, jamais en variable
+d'environnement.
+
+Le tout dans un seul container Docker avec SQLite embarqué. Au premier
+démarrage, un wizard 7 étapes : créer l'admin, brancher les services,
+terminé. Pas de BDD externe, pas de Redis, pas de fichiers `.env` par
+service. Pull de l'image, un volume monté, c'est en route.
+
+Conçu pour les homelabs qui veulent du soigné sans un docker-compose.yml
+de la taille d'un petit roman.
 
 ---
 
@@ -99,9 +114,8 @@ configurer, toute la configuration se fait depuis l'interface.
 ### Installation
 
 ```bash
-# 1. Télécharger l'exemple de compose
-curl -O https://raw.githubusercontent.com/Shoshuo/Prismarr/main/docker-compose.example.yml
-mv docker-compose.example.yml docker-compose.yml
+# 1. Télécharger le template compose user-facing
+wget -O docker-compose.yml https://raw.githubusercontent.com/Shoshuo/Prismarr/main/docker-compose.example.yml
 
 # 2. Démarrer le container
 docker compose up -d
@@ -113,6 +127,11 @@ docker compose up -d
 #      - URLs et clés Radarr / Sonarr / Prowlarr / Jellyseerr
 #      - qBittorrent + Gluetun (optionnel)
 ```
+
+> Le fichier s'appelle `docker-compose.example.yml` dans le repo pour que
+> les contributeurs qui clonent les sources ne lancent pas par accident
+> l'image de prod au lieu du build de dev. Le renommer en local est juste
+> un confort.
 
 `APP_SECRET` et `MERCURE_JWT_SECRET` sont auto-générés au premier démarrage et
 persistés dans le volume `prismarr_data`. Aucune édition de `.env` requise.
@@ -136,9 +155,16 @@ Tout se configure depuis l'interface :
 - **Premier démarrage** : le wizard 7 étapes à `/setup`
 - **Après** : la page Paramètres `/admin/settings` (admin uniquement)
 
-Les clés API, URLs des services, préférences d'affichage et langue sont
-stockées dans la BDD SQLite (table `setting`). Aucune information sensible
-ne vit dans les variables d'environnement.
+Les credentials des services externes (clés API TMDb / Radarr / Sonarr /
+Prowlarr / Jellyseerr, mot de passe qBittorrent, URLs des services), les
+préférences d'affichage et la langue sont stockés dans la BDD SQLite
+(table `setting`). Ils n'apparaissent jamais dans les variables
+d'environnement ni dans aucun fichier committable.
+
+Deux secrets framework — `APP_SECRET` et `MERCURE_JWT_SECRET` — sont
+auto-générés au premier démarrage et persistés dans le volume sous
+`var/data/.env.local`. Ils ne quittent jamais le volume ; aucun besoin de
+les définir, faire tourner ou sauvegarder à la main.
 
 ### Variables d'environnement (optionnelles)
 
@@ -197,18 +223,6 @@ services:
 ```bash
 docker exec -it prismarr php bin/console app:user:reset-password <email>
 ```
-
-### qBittorrent IP bannie après une boucle de mots de passe vides
-
-Si vous avez utilisé un build Prismarr antérieur à v1.0, une action de
-sauvegarde admin (par ex. changer la couleur du thème) pouvait silencieusement
-écraser toutes les clés API avec une chaîne vide — y compris le mot de passe
-qBittorrent — et qBit bannissait l'IP de Prismarr. Corrigé en 1.0.
-
-Pour récupérer : ouvrir l'UI qBittorrent web, aller dans
-Outils → Options → Web UI → "Bypass authentication for clients in whitelisted
-IP subnets" ou vider temporairement la liste des IP bannies, puis re-saisir
-les credentials dans `/admin/settings` de Prismarr.
 
 ### Le wizard de setup boucle indéfiniment
 
@@ -317,4 +331,7 @@ Inspiré par les travaux remarquables de :
 - La famille [Servarr](https://wiki.servarr.com/) (Radarr, Sonarr, Prowlarr, Bazarr…)
 - [Tabler](https://tabler.io/) pour l'UI kit
 
-Et merci à toute la communauté r/selfhosted.
+Et, sur une note plus personnelle : merci à mes amis et ma famille pour
+leur patience, leurs encouragements, et pour avoir demandé "ça sort
+quand ?" assez souvent pour me faire tenir la cadence. Cette release
+est pour vous.

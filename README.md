@@ -28,12 +28,25 @@
 
 ## About
 
-**Prismarr** brings **qBittorrent**, **Radarr**, **Sonarr**, **Prowlarr**,
-**Jellyseerr** and **TMDb** together in a single modern Symfony interface.
-No more juggling six tabs to manage your library.
+Running a media stack at home means living in a tab graveyard: one for
+qBittorrent, one for Radarr, another for Sonarr, then Prowlarr, Jellyseerr,
+TMDb… **Prismarr** collapses all of that into a single Symfony 8 interface.
 
-Designed for homelabs: one Docker container, no database to set up, every
-piece of configuration done from the UI.
+It's not a replacement for Radarr or Sonarr — those run side by side and
+keep doing what they do best. Prismarr is the unified control surface:
+one search bar that hits the local library and TMDb, one calendar that
+merges movie releases and episode airs, one dashboard that surfaces what
+matters today (a recent download, a pending request, a trending pick),
+and one settings page where every API key lives — never on disk in plain
+text and never in environment variables.
+
+The whole thing ships as a single Docker container with SQLite inside.
+First boot opens a 7-step wizard: create the admin, plug your services in,
+done. No external database, no Redis, no per-service `.env` files. Pull
+the image, mount one volume, you're up.
+
+Built for homelabs that want polish without a docker-compose.yml the size
+of a small novel.
 
 ---
 
@@ -94,9 +107,8 @@ piece of configuration done from the UI.
 ### Install
 
 ```bash
-# 1. Download the example compose file
-curl -O https://raw.githubusercontent.com/Shoshuo/Prismarr/main/docker-compose.example.yml
-mv docker-compose.example.yml docker-compose.yml
+# 1. Download the user-facing compose template
+wget -O docker-compose.yml https://raw.githubusercontent.com/Shoshuo/Prismarr/main/docker-compose.example.yml
 
 # 2. Start the container
 docker compose up -d
@@ -108,6 +120,11 @@ docker compose up -d
 #      - Radarr / Sonarr / Prowlarr / Jellyseerr URLs and keys
 #      - qBittorrent + Gluetun (optional)
 ```
+
+> The file is named `docker-compose.example.yml` in the repo so that
+> contributors who clone the source don't accidentally start the
+> production image instead of the dev build. Renaming it locally is
+> just an ergonomics choice.
 
 `APP_SECRET` and `MERCURE_JWT_SECRET` are auto-generated on first boot and
 persisted in the `prismarr_data` volume. No `.env` editing required.
@@ -131,9 +148,15 @@ Everything is configured from the UI:
 - **First boot**: the 7-step setup wizard at `/setup`
 - **Later**: the Settings page at `/admin/settings` (admin only)
 
-API keys, service URLs, display preferences and language are stored in the
-SQLite database (`setting` table). Nothing sensitive lives in environment
-variables.
+External service credentials (TMDb / Radarr / Sonarr / Prowlarr / Jellyseerr
+API keys, qBittorrent password, service URLs), display preferences and
+language are stored in the SQLite database (`setting` table). They never
+appear in environment variables or in any committable file.
+
+Two framework-level secrets — `APP_SECRET` and `MERCURE_JWT_SECRET` — are
+auto-generated on first boot and persisted inside the volume at
+`var/data/.env.local`. They never leave the volume; you don't have to set,
+rotate or back them up manually.
 
 ### Environment variables (optional)
 
@@ -191,18 +214,6 @@ services:
 ```bash
 docker exec -it prismarr php bin/console app:user:reset-password <email>
 ```
-
-### qBittorrent IP banned after empty-password loop
-
-If you ever ran a Prismarr build from before v1.0, an admin save action
-(e.g. changing the theme colour) could silently overwrite every API key
-with an empty string — including the qBittorrent password — and qBit would
-ban Prismarr's IP. Fixed in 1.0.
-
-To recover: open the qBittorrent web UI, go to Tools → Options → Web UI →
-"Bypass authentication for clients in whitelisted IP subnets" or
-temporarily clear the IP ban list, then re-enter the credentials in
-Prismarr's `/admin/settings`.
 
 ### Setup wizard loops forever
 
@@ -311,4 +322,6 @@ Inspired by the remarkable work of:
 - The [Servarr](https://wiki.servarr.com/) family (Radarr, Sonarr, Prowlarr, Bazarr…)
 - [Tabler](https://tabler.io/) for the UI kit
 
-And thanks to the whole r/selfhosted community.
+And, on a more personal note: thank you to my friends and family for the
+patience, the encouragement, and for asking "so when does it ship?" often
+enough to keep me going. This release is for you.
