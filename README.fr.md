@@ -1,0 +1,320 @@
+<p align="center">
+  <img src="symfony/public/img/prismarr/prismarr-logo-horizontal.png" alt="Prismarr" width="420">
+</p>
+
+<p align="center">
+  <strong>Un seul dashboard pour votre stack médias self-hosted.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Shoshuo/Prismarr/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="AGPL-3.0"></a>
+  <img src="https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white" alt="PHP 8.4">
+  <img src="https://img.shields.io/badge/Symfony-8-000000?logo=symfony&logoColor=white" alt="Symfony 8">
+  <img src="https://img.shields.io/badge/FrankenPHP-1.3-orange" alt="FrankenPHP 1.3">
+  <img src="https://img.shields.io/badge/SQLite-zero--config-003B57?logo=sqlite&logoColor=white" alt="SQLite">
+</p>
+
+<p align="center">
+  <a href="#fonctionnalités">Fonctionnalités</a> ·
+  <a href="#démarrage-rapide">Démarrage rapide</a> ·
+  <a href="#configuration">Configuration</a> ·
+  <a href="#mise-à-jour">Mise à jour</a> ·
+  <a href="#dépannage">Dépannage</a> ·
+  <a href="#roadmap">Roadmap</a> ·
+  <a href="#licence">Licence</a>
+</p>
+
+---
+
+## À propos
+
+**Prismarr** réunit **qBittorrent**, **Radarr**, **Sonarr**, **Prowlarr**,
+**Jellyseerr** et **TMDb** dans une seule interface Symfony moderne. Plus
+besoin de jongler entre six onglets pour gérer votre bibliothèque.
+
+Conçu pour les homelabs : un seul container Docker, aucune base de données à
+configurer, toute la configuration se fait depuis l'interface.
+
+---
+
+## Fonctionnalités
+
+### Gestion médias unifiée
+- Films (Radarr) et Séries (Sonarr) avec cinq modes de vue
+- Recherche globale `Ctrl+K` qui couvre la bibliothèque locale + TMDb / TheTVDB
+- Modal d'ajout rapide accessible depuis n'importe quelle page
+- Calendrier unifié (sorties films + épisodes) avec vues Mois / Semaine / Jour
+  et export iCal
+
+### Dashboard
+- Hero spotlight avec un film tiré au hasard dans votre bibliothèque
+- Sorties à venir (mini-calendrier sur 7 jours)
+- Requêtes Jellyseerr en attente, enrichies avec les métadonnées TMDb
+- État en temps réel des six services
+- Watchlist personnelle, tendances TMDb hebdomadaires, derniers ajouts
+
+### Téléchargements
+- Dashboard qBittorrent complet : pagination, tri et filtres côté serveur
+- Upload `.torrent` drag-and-drop (multi-fichiers)
+- Badges pipeline : cliquer sur un torrent ouvre directement le film/série
+- Toasts cross-tab à la fin des téléchargements
+- Intégration Gluetun optionnelle : IP publique, pays, sync port forwarding
+
+### Découverte
+- Page TMDb : hero, recommandations personnalisées, tendances
+- Watchlist personnelle, Explorer avec filtres (genre / décennie / casting)
+- Countdown des sorties à venir
+- Deep-links vers votre bibliothèque existante
+
+### Profil et préférences
+- Page `/profil` : modifier nom d'affichage, mot de passe et avatar
+  (JPG / PNG / WebP / GIF, 2 Mo max)
+- Préférences d'affichage : couleur du thème, densité UI, toasts, fuseau
+  horaire, format date / heure, auto-refresh qBit, page d'accueil par défaut
+- UI Anglais / Français (EN par défaut, FR entièrement traduit, support des
+  pluriels ICU)
+- Export / import des paramètres (les credentials sont toujours strippés)
+
+### Sécurité
+- Authentification Symfony avec rate-limiter sur le login (5 tentatives par
+  IP+username / 15 min)
+- Container non-root, Content-Security-Policy dynamique
+- Protection SSRF sur les URLs fournies par l'utilisateur (whitelist
+  protocoles, blocklist cloud-metadata)
+- Tokens CSRF sur chaque mutation, pages d'erreur brandées qui n'exposent
+  jamais les données d'exception
+- Routes profiler retournent 403 pour les clients non-RFC1918 en dev
+
+---
+
+## Démarrage rapide
+
+### Pré-requis
+
+- Docker et Docker Compose
+- Au moins un de : qBittorrent, Radarr, Sonarr, Prowlarr, Jellyseerr
+- Optionnel : Gluetun si qBittorrent tourne derrière un VPN
+- Optionnel : une clé API TMDb (gratuite) pour activer la page Découverte
+
+### Installation
+
+```bash
+# 1. Télécharger l'exemple de compose
+curl -O https://raw.githubusercontent.com/Shoshuo/Prismarr/main/docker-compose.example.yml
+mv docker-compose.example.yml docker-compose.yml
+
+# 2. Démarrer le container
+docker compose up -d
+
+# 3. Ouvrir http://localhost:7070
+#    Le setup wizard guide :
+#      - création du compte admin
+#      - clé API TMDb
+#      - URLs et clés Radarr / Sonarr / Prowlarr / Jellyseerr
+#      - qBittorrent + Gluetun (optionnel)
+```
+
+`APP_SECRET` et `MERCURE_JWT_SECRET` sont auto-générés au premier démarrage et
+persistés dans le volume `prismarr_data`. Aucune édition de `.env` requise.
+
+### Port par défaut
+
+Prismarr écoute sur le port `7070`. Pour utiliser un autre port, changer la
+partie gauche du mapping dans `docker-compose.yml` :
+
+```yaml
+ports:
+  - "8080:7070"  # accessible sur http://localhost:8080
+```
+
+---
+
+## Configuration
+
+Tout se configure depuis l'interface :
+
+- **Premier démarrage** : le wizard 7 étapes à `/setup`
+- **Après** : la page Paramètres `/admin/settings` (admin uniquement)
+
+Les clés API, URLs des services, préférences d'affichage et langue sont
+stockées dans la BDD SQLite (table `setting`). Aucune information sensible
+ne vit dans les variables d'environnement.
+
+### Variables d'environnement (optionnelles)
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `APP_ENV` | `prod` | Passer à `dev` uniquement pour le développement local |
+| `PRISMARR_PORT` | `7070` | Port interne d'écoute |
+| `TRUSTED_PROXIES` | `127.0.0.1,REMOTE_ADDR` | À ajuster si derrière Traefik / nginx / Caddy / Cloudflare Tunnel |
+
+### Données persistantes
+
+Tout vit dans le volume Docker `prismarr_data` :
+
+- `prismarr.db` (BDD SQLite)
+- `.env.local` (secrets auto-générés)
+- `sessions/` (sessions de connexion)
+- `cache/` (vignettes TMDb / covers)
+- `avatars/` (avatars uploadés)
+
+Backup standard :
+`docker run --rm -v prismarr_data:/data -v $(pwd):/backup alpine tar czf /backup/prismarr-data.tgz -C /data .`
+
+### Reverse proxy
+
+Prismarr gère lui-même les headers HSTS et Permissions-Policy. Quand l'app
+est derrière un reverse proxy qui termine TLS (Traefik, nginx, Caddy,
+Cloudflare Tunnel), définir `TRUSTED_PROXIES` pour que Symfony lise
+correctement les headers `X-Forwarded-*`.
+
+---
+
+## Mise à jour
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Les migrations SQLite s'appliquent automatiquement au démarrage. Le volume
+`prismarr_data` est préservé.
+
+Pour pinner une version spécifique au lieu de `latest` :
+
+```yaml
+services:
+  prismarr:
+    image: prismarr/prismarr:1.0.0
+```
+
+---
+
+## Dépannage
+
+### Mot de passe admin oublié
+
+```bash
+docker exec -it prismarr php bin/console app:user:reset-password <email>
+```
+
+### qBittorrent IP bannie après une boucle de mots de passe vides
+
+Si vous avez utilisé un build Prismarr antérieur à v1.0, une action de
+sauvegarde admin (par ex. changer la couleur du thème) pouvait silencieusement
+écraser toutes les clés API avec une chaîne vide — y compris le mot de passe
+qBittorrent — et qBit bannissait l'IP de Prismarr. Corrigé en 1.0.
+
+Pour récupérer : ouvrir l'UI qBittorrent web, aller dans
+Outils → Options → Web UI → "Bypass authentication for clients in whitelisted
+IP subnets" ou vider temporairement la liste des IP bannies, puis re-saisir
+les credentials dans `/admin/settings` de Prismarr.
+
+### Le wizard de setup boucle indéfiniment
+
+Le wizard se termine quand le flag `setup_completed` est posé. Pour le
+remettre à l'étape 1 :
+
+```bash
+docker exec -it prismarr php bin/console doctrine:query:sql \
+  "DELETE FROM setting WHERE key = 'setup_completed'"
+```
+
+### Le healthcheck retourne 503
+
+`GET /api/health` retourne 503 quand SQLite est inaccessible. Inspecter les
+logs du container :
+
+```bash
+docker logs prismarr --tail 200
+```
+
+La cause la plus fréquente est un volume corrompu après un disk full sur
+l'hôte. Restaurer le dernier backup est le chemin le plus rapide.
+
+### Le container ne démarre pas
+
+```bash
+docker logs prismarr
+```
+
+Si l'erreur mentionne `permission denied` sur le volume, le filesystem
+hôte empêche l'utilisateur `www-data` du container (UID 33 par défaut)
+d'écrire. S'assurer que le volume est un volume Docker managé et pas un bind
+mount sur un répertoire appartenant à root.
+
+---
+
+## Roadmap
+
+### v1.0 — Release publique
+- [x] Wizard de setup 7 étapes
+- [x] Authentification avec rate-limiter login
+- [x] Migrations Doctrine (mises à jour propres)
+- [x] Suite PHPUnit (179 tests / 376 assertions)
+- [x] Image Docker multi-architecture (amd64 + arm64)
+- [x] UI Anglais / Français (EN source de vérité)
+- [x] Page admin paramètres (services, affichage, langues, backup)
+- [x] Dashboard, Calendrier (mois / semaine / jour + export iCal), Profil
+- [x] Publiée sur Docker Hub
+
+### v1.x — Améliorations
+- [ ] Multi-utilisateurs avec rôles (lecture seule vs admin)
+- [ ] Widget Jellyfin (sessions live + stats)
+- [ ] Notifications Discord / Ntfy / Telegram
+- [ ] Graphiques historiques de bande passante
+- [ ] API REST publique pour intégrations tierces
+
+### v2.0 — Automation
+- [ ] Auto-import d'une bibliothèque existante
+- [ ] Règles de traitement personnalisées
+- [ ] Backend MariaDB / PostgreSQL en option
+
+---
+
+## Stack technique
+
+- **Backend** : PHP 8.4 / Symfony 8 / Doctrine ORM
+- **Serveur** : FrankenPHP (Caddy + PHP embed, mode worker) supervisé par s6-overlay
+- **Frontend** : Tabler UI + Alpine.js + Turbo (Hotwire) via Symfony AssetMapper
+- **BDD** : SQLite (zéro-config, migrations Doctrine automatiques)
+- **Cache + sessions** : filesystem (pas besoin de Redis)
+- **Queue** : Symfony Messenger (transport Doctrine)
+- **Temps réel** : Mercure SSE intégré à Caddy
+
+Un seul container Docker embarque tout. L'image fait `~282 Mo` et tourne sur
+`amd64` et `arm64`.
+
+---
+
+## Contribuer
+
+Les contributions sont les bienvenues — merci d'ouvrir une issue d'abord pour
+discuter du scope avant de soumettre une PR.
+
+- **Guide contributeur** : [CONTRIBUTING.md](CONTRIBUTING.md) (Definition of Done + règles d'or)
+- **Code de conduite** : [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1)
+- **Vulnérabilité de sécurité** : [SECURITY.md](SECURITY.md) — **ne pas** ouvrir d'issue publique, contact par email
+- **Changelog** : [CHANGELOG.md](CHANGELOG.md)
+
+Avant tout commit : `make check` (lint PHP + lint Twig + suite PHPUnit complète).
+
+---
+
+## Licence
+
+[AGPL-3.0](LICENSE) — vous pouvez utiliser, modifier et redistribuer Prismarr
+librement, y compris en self-hosted production. Les dérivés doivent rester
+open source sous la même licence.
+
+---
+
+## Remerciements
+
+Inspiré par les travaux remarquables de :
+
+- [Overseerr / Jellyseerr](https://github.com/Fallenbagel/jellyseerr)
+- La famille [Servarr](https://wiki.servarr.com/) (Radarr, Sonarr, Prowlarr, Bazarr…)
+- [Tabler](https://tabler.io/) pour l'UI kit
+
+Et merci à toute la communauté r/selfhosted.
