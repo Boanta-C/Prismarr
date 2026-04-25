@@ -311,7 +311,30 @@ Avant tout commit : `make check` (lint PHP + lint Twig + suite PHPUnit complète
 
 ---
 
-## Construit avec l'aide d'une IA
+## Licence
+
+[AGPL-3.0](LICENSE) - vous pouvez utiliser, modifier et redistribuer Prismarr
+librement, y compris en self-hosted production. Les dérivés doivent rester
+open source sous la même licence.
+
+---
+
+## Remerciements
+
+Inspiré par les travaux remarquables de :
+
+- [Overseerr / Jellyseerr](https://github.com/Fallenbagel/jellyseerr)
+- La famille [Servarr](https://wiki.servarr.com/) (Radarr, Sonarr, Prowlarr, Bazarr…)
+- [Tabler](https://tabler.io/) pour l'UI kit
+
+Et, sur une note plus personnelle : merci à mes amis et ma famille pour
+leur patience, leurs encouragements, et pour avoir demandé "ça sort
+quand ?" assez souvent pour me faire tenir la cadence. Cette release
+est pour vous.
+
+---
+
+## Mention sur l'utilisation de l'IA
 
 Je suis le seul développeur de Prismarr. Chaque décision d'architecture, chaque arbitrage de sécurité, chaque choix d'UX et chaque "on ship ou pas" m'incombe. [Claude Code](https://claude.com/claude-code) (Anthropic) a été utilisé comme un outil de support, pas comme co-auteur : il a accéléré l'implémentation sur certains points précis, mais la direction du design, le jugement d'ingénierie et la responsabilité du résultat me reviennent entièrement. L'IA n'a jamais eu le dernier mot sur quoi que ce soit.
 
@@ -334,26 +357,3 @@ Pour rester transparent, voici les domaines concrets où elle a été activement
 - **Architecture single-container Docker** - le layout FrankenPHP + s6-overlay qui supervise le serveur web et le worker messenger.
 
 > Chaque ligne de code a été lue, testée en local, et validée par moi avant merge. `make check` (lint PHP + lint Twig + suite PHPUnit complète) devait être vert. L'IA a accéléré l'implémentation ; j'ai gardé le jugement d'ingénierie et la responsabilité du projet.
-
----
-
-## Licence
-
-[AGPL-3.0](LICENSE) - vous pouvez utiliser, modifier et redistribuer Prismarr
-librement, y compris en self-hosted production. Les dérivés doivent rester
-open source sous la même licence.
-
----
-
-## Remerciements
-
-Inspiré par les travaux remarquables de :
-
-- [Overseerr / Jellyseerr](https://github.com/Fallenbagel/jellyseerr)
-- La famille [Servarr](https://wiki.servarr.com/) (Radarr, Sonarr, Prowlarr, Bazarr…)
-- [Tabler](https://tabler.io/) pour l'UI kit
-
-Et, sur une note plus personnelle : merci à mes amis et ma famille pour
-leur patience, leurs encouragements, et pour avoir demandé "ça sort
-quand ?" assez souvent pour me faire tenir la cadence. Cette release
-est pour vous.

@@ -303,7 +303,29 @@ Before any commit: `make check` (PHP lint + Twig lint + full PHPUnit suite).
 
 ---
 
-## Built with AI assistance
+## License
+
+[AGPL-3.0](LICENSE) - you may use, modify and redistribute Prismarr freely,
+including in self-hosted production. Derivatives must remain open source
+under the same license.
+
+---
+
+## Acknowledgements
+
+Inspired by the remarkable work of:
+
+- [Overseerr / Jellyseerr](https://github.com/Fallenbagel/jellyseerr)
+- The [Servarr](https://wiki.servarr.com/) family (Radarr, Sonarr, Prowlarr, Bazarr…)
+- [Tabler](https://tabler.io/) for the UI kit
+
+And, on a more personal note: thank you to my friends and family for the
+patience, the encouragement, and for asking "so when does it ship?" often
+enough to keep me going. This release is for you.
+
+---
+
+## Note on AI usage
 
 I'm the sole developer of Prismarr. Every architectural decision, every security trade-off, every UX choice and every "ship it or don't" call was mine. [Claude Code](https://claude.com/claude-code) (Anthropic) was used as a support tool, not as a co-author: it accelerated implementation in specific areas, but the design direction, the engineering judgement and the responsibility for the result are mine alone. The AI never had the final word on anything.
 
@@ -326,25 +348,3 @@ To stay transparent, here are the concrete areas where it was actively helpful:
 - **Single-container Docker design** - the FrankenPHP + s6-overlay layout that supervises the web server and the messenger worker.
 
 > Every line of code was read, tested locally, and signed off by me before merging. `make check` (PHP lint + Twig lint + full PHPUnit suite) had to be green. The AI accelerated implementation; I kept the engineering judgement and the ownership of the project.
-
----
-
-## License
-
-[AGPL-3.0](LICENSE) - you may use, modify and redistribute Prismarr freely,
-including in self-hosted production. Derivatives must remain open source
-under the same license.
-
----
-
-## Acknowledgements
-
-Inspired by the remarkable work of:
-
-- [Overseerr / Jellyseerr](https://github.com/Fallenbagel/jellyseerr)
-- The [Servarr](https://wiki.servarr.com/) family (Radarr, Sonarr, Prowlarr, Bazarr…)
-- [Tabler](https://tabler.io/) for the UI kit
-
-And, on a more personal note: thank you to my friends and family for the
-patience, the encouragement, and for asking "so when does it ship?" often
-enough to keep me going. This release is for you.
