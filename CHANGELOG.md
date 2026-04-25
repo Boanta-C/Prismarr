@@ -212,6 +212,16 @@ into `[1.0.0]` at publication time.
   previous values were too aggressive on slow VPN handshakes.
 
 ### Fixed
+- The Jellyseerr language dropdown in `/admin/settings → Languages` now
+  reads and writes the global app locale (`GET/POST /api/v1/settings/main`)
+  instead of the per-user admin setting (`/api/v1/user/1/settings/main`).
+  The dropdown was showing "English" while Jellyseerr's own Settings →
+  General → Display Language correctly showed "Français". On save,
+  Prismarr now pushes a minimal `{locale}` payload to the global endpoint
+  (a full payload triggers HTTP 400 because `apiKey` is read-only there)
+  and also updates user 1's per-user setting (which drives the language
+  of TMDb metadata returned by Jellyseerr API calls made via the admin
+  API key).
 - Dashboard mini-calendar no longer drops the upcoming events of the
   last displayed days. The earlier 8-item cap was applied globally and
   silently truncated the week; events are now limited per day with a
