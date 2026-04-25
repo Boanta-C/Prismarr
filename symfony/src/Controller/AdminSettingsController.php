@@ -273,7 +273,7 @@ class AdminSettingsController extends AbstractController
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_settings', (string) $request->request->get('_csrf_token'))) {
-                $errors[] = $this->translator?->trans('flash.csrf.invalid') ?? 'Jeton CSRF invalide, réessayez.';
+                $errors[] = $this->translator?->trans('flash.csrf.invalid') ?? 'Invalid CSRF token, please try again.';
             }
 
             if ($errors === []) {
@@ -363,7 +363,7 @@ class AdminSettingsController extends AbstractController
     public function test(string $service, Request $request): JsonResponse
     {
         if (!isset(self::SERVICE_LABELS[$service])) {
-            return new JsonResponse(['ok' => false, 'error' => $this->translator?->trans('admin.test.unknown_service') ?? 'Service inconnu'], 400);
+            return new JsonResponse(['ok' => false, 'error' => $this->translator?->trans('admin.test.unknown_service') ?? 'Unknown service'], 400);
         }
 
         // Whitelisted overrides — only the fields actually owned by this
@@ -416,7 +416,7 @@ class AdminSettingsController extends AbstractController
     public function languagesSave(Request $request): Response
     {
         if (!$this->isCsrfTokenValid('admin_languages', (string) $request->request->get('_csrf_token'))) {
-            $this->addFlash('danger', $this->translator?->trans('flash.csrf.invalid') ?? 'Jeton CSRF invalide, réessayez.');
+            $this->addFlash('danger', $this->translator?->trans('flash.csrf.invalid') ?? 'Invalid CSRF token, please try again.');
             return $this->redirectToRoute('admin_settings_index');
         }
 
@@ -540,9 +540,9 @@ class AdminSettingsController extends AbstractController
         }
 
         if ($failed === []) {
-            $this->addFlash('success', $this->translator?->trans('admin.languages.saved_success') ?? 'Langues mises à jour.');
+            $this->addFlash('success', $this->translator?->trans('admin.languages.saved_success') ?? 'Languages updated.');
         } else {
-            $this->addFlash('warning', $this->translator?->trans('admin.languages.partial_error', ['services' => implode(', ', $failed)]) ?? 'Sauvegarde partielle : ' . implode(', ', $failed) . ' ont échoué.');
+            $this->addFlash('warning', $this->translator?->trans('admin.languages.partial_error', ['services' => implode(', ', $failed)]) ?? 'Partial save: ' . implode(', ', $failed) . ' failed.');
         }
 
         return $this->redirectToRoute('admin_settings_index');
@@ -725,7 +725,7 @@ class AdminSettingsController extends AbstractController
         // Purge TMDb/Radarr/Sonarr response cache so data fetched with
         // the previous config doesn't linger up to an hour.
         $this->appCache->clear();
-        $this->addFlash('success', $this->translator?->trans('admin.flash.saved') ?? 'Configuration enregistrée.');
+        $this->addFlash('success', $this->translator?->trans('admin.flash.saved') ?? 'Configuration saved.');
     }
 
     /**
@@ -751,7 +751,7 @@ class AdminSettingsController extends AbstractController
     public function resetDisplay(Request $request): Response
     {
         if (!$this->isCsrfTokenValid('admin_settings_reset_display', (string) $request->request->get('_csrf_token'))) {
-            $this->addFlash('error', $this->translator?->trans('flash.csrf.invalid') ?? 'Jeton CSRF invalide.');
+            $this->addFlash('error', $this->translator?->trans('flash.csrf.invalid') ?? 'Invalid CSRF token.');
             return $this->redirectToRoute('admin_settings_index');
         }
 
@@ -766,7 +766,7 @@ class AdminSettingsController extends AbstractController
         $this->health->invalidate();
         $this->appCache->clear();
 
-        $this->addFlash('success', $this->translator?->trans('admin.flash.display_reset_full') ?? 'Préférences d\'affichage réinitialisées aux valeurs par défaut.');
+        $this->addFlash('success', $this->translator?->trans('admin.flash.display_reset_full') ?? 'Display preferences reset to defaults.');
         return $this->redirectToRoute('admin_settings_index');
     }
 
@@ -792,7 +792,7 @@ class AdminSettingsController extends AbstractController
 
         $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($json === false) {
-            return new JsonResponse(['error' => $this->translator?->trans('admin.export.encode_failed') ?? 'Encodage impossible.'], 500);
+            return new JsonResponse(['error' => $this->translator?->trans('admin.export.encode_failed') ?? 'Encoding failed.'], 500);
         }
 
         return new Response(
@@ -809,36 +809,36 @@ class AdminSettingsController extends AbstractController
     public function import(Request $request): Response
     {
         if (!$this->isCsrfTokenValid('admin_settings_import', (string) $request->request->get('_csrf_token'))) {
-            $this->addFlash('error', $this->translator?->trans('flash.csrf.invalid') ?? 'Jeton CSRF invalide.');
+            $this->addFlash('error', $this->translator?->trans('flash.csrf.invalid') ?? 'Invalid CSRF token.');
             return $this->redirectToRoute('admin_settings_index');
         }
 
         $file = $request->files->get('config');
         if (!$file || !$file->isValid()) {
-            $this->addFlash('error', $this->translator?->trans('admin.import.no_file') ?? 'Aucun fichier reçu.');
+            $this->addFlash('error', $this->translator?->trans('admin.import.no_file') ?? 'No file received.');
             return $this->redirectToRoute('admin_settings_index');
         }
 
         if ($file->getSize() > 64_000) {
-            $this->addFlash('error', $this->translator?->trans('admin.import.too_big') ?? 'Fichier trop volumineux (max 64 Ko).');
+            $this->addFlash('error', $this->translator?->trans('admin.import.too_big') ?? 'File too large (64 KB max).');
             return $this->redirectToRoute('admin_settings_index');
         }
 
         $raw = @file_get_contents($file->getPathname());
         if ($raw === false) {
-            $this->addFlash('error', $this->translator?->trans('admin.import.read_failed') ?? 'Lecture du fichier impossible.');
+            $this->addFlash('error', $this->translator?->trans('admin.import.read_failed') ?? 'Cannot read file.');
             return $this->redirectToRoute('admin_settings_index');
         }
 
         try {
             $payload = json_decode($raw, true, 8, JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
-            $this->addFlash('error', ($this->translator?->trans('admin.import.invalid_json') ?? 'JSON invalide') . ' : ' . $e->getMessage());
+            $this->addFlash('error', ($this->translator?->trans('admin.import.invalid_json') ?? 'Invalid JSON') . ' : ' . $e->getMessage());
             return $this->redirectToRoute('admin_settings_index');
         }
 
         if (!is_array($payload) || ($payload['prismarr_export_version'] ?? 0) !== 1 || !is_array($payload['settings'] ?? null)) {
-            $this->addFlash('error', $this->translator?->trans('admin.import.unknown_format') ?? 'Format non reconnu (version export v1 attendue).');
+            $this->addFlash('error', $this->translator?->trans('admin.import.unknown_format') ?? 'Unknown format (export v1 expected).');
             return $this->redirectToRoute('admin_settings_index');
         }
 
@@ -877,7 +877,7 @@ class AdminSettingsController extends AbstractController
             $this->translator?->trans('admin.import.result', [
                 'applied' => $applied,
                 'skipped' => $skipped,
-            ]) ?? sprintf('%d réglage%s importé%s, %d ignoré%s.', $applied, $applied > 1 ? 's' : '', $applied > 1 ? 's' : '', $skipped, $skipped > 1 ? 's' : ''),
+            ]) ?? sprintf('%d setting%s imported, %d skipped.', $applied, $applied > 1 ? 's' : '', $skipped),
         );
 
         return $this->redirectToRoute('admin_settings_index');

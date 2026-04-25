@@ -15,7 +15,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[AsCommand(
     name: 'app:user:reset-password',
-    description: 'Réinitialise le mot de passe d\'un utilisateur (recovery admin).',
+    description: 'Reset a user password (admin recovery).',
 )]
 class UserResetPasswordCommand extends Command
 {
@@ -32,13 +32,13 @@ class UserResetPasswordCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('email', InputArgument::REQUIRED, 'Adresse email du compte à réinitialiser')
+            ->addArgument('email', InputArgument::REQUIRED, 'Email address of the account to reset')
             ->setHelp(<<<'HELP'
-Réinitialise le mot de passe d'un utilisateur existant. À utiliser si
-l'admin a perdu ses identifiants.
+Reset the password of an existing user. Useful when the admin has
+lost their credentials.
 
-Exemple :
-  docker exec -it prismarr php bin/console app:user:reset-password admin@exemple.com
+Example:
+  docker exec -it prismarr php bin/console app:user:reset-password admin@example.com
 HELP);
     }
 
@@ -49,31 +49,31 @@ HELP);
 
         $user = $this->users->findOneBy(['email' => $email]);
         if ($user === null) {
-            $io->error(sprintf('Aucun compte trouvé pour "%s".', $email));
+            $io->error(sprintf('No account found for "%s".', $email));
             return Command::FAILURE;
         }
 
-        $io->section(sprintf('Réinitialisation du mot de passe — %s', $email));
+        $io->section(sprintf('Password reset — %s', $email));
 
-        $password = $this->askPassword($io, 'Nouveau mot de passe : ');
+        $password = $this->askPassword($io, 'New password: ');
         if ($password === null) {
             return Command::FAILURE;
         }
 
-        $confirm = $this->askPassword($io, 'Confirmez le mot de passe : ');
+        $confirm = $this->askPassword($io, 'Confirm password: ');
         if ($confirm === null) {
             return Command::FAILURE;
         }
 
         if ($password !== $confirm) {
-            $io->error('Les deux mots de passe ne correspondent pas.');
+            $io->error('The two passwords do not match.');
             return Command::FAILURE;
         }
 
         $user->setPassword($this->hasher->hashPassword($user, $password));
         $this->em->flush();
 
-        $io->success(sprintf('Mot de passe réinitialisé pour %s.', $email));
+        $io->success(sprintf('Password reset for %s.', $email));
         return Command::SUCCESS;
     }
 
@@ -85,7 +85,7 @@ HELP);
         $value = (string) $io->askQuestion($question);
 
         if (strlen($value) < self::MIN_LENGTH) {
-            $io->error(sprintf('Le mot de passe doit faire au moins %d caractères.', self::MIN_LENGTH));
+            $io->error(sprintf('Password must be at least %d characters long.', self::MIN_LENGTH));
             return null;
         }
 

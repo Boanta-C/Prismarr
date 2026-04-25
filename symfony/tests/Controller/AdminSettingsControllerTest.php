@@ -255,7 +255,7 @@ class AdminSettingsControllerTest extends TestCase
         $response = $this->controller($settings, $config, $health)->test('bogus', Request::create('/admin/settings/test/bogus', 'POST'));
 
         $this->assertSame(400, $response->getStatusCode());
-        $this->assertStringContainsString('inconnu', $response->getContent());
+        $this->assertStringContainsString('Unknown', $response->getContent());
     }
 
     public function testTestEndpointForwardsFormOverridesToHealth(): void

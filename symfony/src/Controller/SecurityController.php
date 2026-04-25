@@ -25,6 +25,6 @@ class SecurityController extends AbstractController
     #[Route('/logout', name: 'app_logout')]
     public function logout(): never
     {
-        throw new \LogicException('Ce chemin est intercepté par le firewall Symfony.');
+        throw new \LogicException('This route is intercepted by the Symfony firewall.');
     }
 }

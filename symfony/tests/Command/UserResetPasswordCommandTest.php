@@ -38,7 +38,7 @@ class UserResetPasswordCommandTest extends TestCase
         $exitCode = $tester->execute(['email' => 'ghost@example.com']);
 
         $this->assertSame(1, $exitCode);
-        $this->assertStringContainsString('Aucun compte trouvé', $tester->getDisplay());
+        $this->assertStringContainsString('No account found', $tester->getDisplay());
     }
 
     public function testSucceedsWithValidPasswords(): void
@@ -64,7 +64,7 @@ class UserResetPasswordCommandTest extends TestCase
 
         $this->assertSame(0, $exitCode);
         $this->assertSame('hashed-value', $user->getPassword());
-        $this->assertStringContainsString('réinitialisé', $tester->getDisplay());
+        $this->assertStringContainsString('Password reset', $tester->getDisplay());
     }
 
     public function testFailsIfPasswordTooShort(): void
@@ -83,7 +83,7 @@ class UserResetPasswordCommandTest extends TestCase
         $exitCode = $tester->execute(['email' => 'joshua@example.com']);
 
         $this->assertSame(1, $exitCode);
-        $this->assertStringContainsString('au moins 8 caractères', $tester->getDisplay());
+        $this->assertStringContainsString('at least 8 characters', $tester->getDisplay());
     }
 
     public function testFailsIfPasswordsDoNotMatch(): void
@@ -102,7 +102,7 @@ class UserResetPasswordCommandTest extends TestCase
         $exitCode = $tester->execute(['email' => 'joshua@example.com']);
 
         $this->assertSame(1, $exitCode);
-        $this->assertStringContainsString('ne correspondent pas', $tester->getDisplay());
+        $this->assertStringContainsString('do not match', $tester->getDisplay());
     }
 
     public function testEmailArgumentIsTrimmed(): void
