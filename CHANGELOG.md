@@ -115,7 +115,35 @@ into `[1.0.0]` at publication time.
 - PHPUnit test suite (~100 tests, services + subscribers + controllers + entities + Twig extensions).
 - `make check` target: PHP lint + Twig lint + full PHPUnit suite.
 
+### Added
+- **Categorised connection test** in `/admin/settings` — the "Test connection"
+  button now returns a structured diagnosis (`ok / unconfigured / network /
+  auth / forbidden / not_found / server_error / unknown`) with the HTTP status
+  code included. The result is shown with an i18n message matching the category,
+  so admins know whether the problem is a wrong URL, a bad API key, or a
+  firewall blocking the request.
+- **Live form override for connection test** — the test button now sends the
+  current form values (URL, API key / password) as overrides instead of always
+  reading from the database. The admin can type new credentials and test them
+  before saving. A server-side allowlist validates which keys may be overridden
+  per service.
+- **Unified sidebar-visibility section** in `/admin/settings → Display` —
+  service toggles and internal-feature toggles (Calendar, Dashboard) are now
+  grouped under a single "Sidebar visibility" sub-section with an auto-fill
+  two-column grid, freeing the service cards to focus solely on connection
+  status.
+
 ### Security
+- **Admin credentials no longer wiped on partial saves** — browsers (Firefox,
+  Chrome) strip the `value` attribute of `input[type=password]` fields on
+  page render. Previously, any admin save action (e.g. changing the theme
+  colour) would silently overwrite every API key and password in the database
+  with an empty string, eventually causing qBittorrent to ban the Prismarr IP
+  after repeated empty-password login attempts. `saveSubmitted()` now skips
+  any field whose trimmed value is empty and whose name matches the sensitive
+  key pattern (`password`, `api_key`, `secret`). A regression test
+  (`testEmptyPasswordFieldsAreNotWiped`) is added.
+
 - `always_use_default_target_path: true` on the main firewall — Symfony
   no longer redirects to whatever URL was in the session at login time
   (typically an expired AJAX endpoint such as `/api/health/services`).
@@ -155,6 +183,14 @@ into `[1.0.0]` at publication time.
   FrankenPHP worker is re-used.
 
 ### Changed
+- All user-visible strings in Twig templates (~50 hard-coded strings) and PHP
+  controllers are now routed through the Symfony Translator. The EN and FR
+  YAML files are in exact parity (4 188 keys each, zero duplicates, zero
+  broken placeholders). ICU plural forms are used where count varies
+  (`media.import.blocked_warning`). Flash messages, JSON API responses, and
+  the `UniqueEntity` constraint on `User::email` are fully translated.
+- Internal service messages (RadarrClient, SonarrClient, TorrentResolverService)
+  are hardcoded in English — they surface only in server logs, never in the UI.
 - English is now the default application locale (`default_locale: en`).
   French remains the first and complete translation. New installs default
   to `display_language: en` and `display_metadata_language: en-US`. Users
@@ -283,6 +319,11 @@ into `[1.0.0]` at publication time.
 
 ### Contributor
 
+- PHPUnit 13 deprecations and notices eliminated: one `with()` call without a
+  matching `expects()` rule was converted to `expects($this->once())`, and 17
+  TestCase classes that use mocks purely for stub return values are now
+  annotated with `#[AllowMockObjectsWithoutExpectations]`. The test run output
+  is now a clean `OK (179 tests, 376 assertions)` with no extra lines.
 - `CONTRIBUTING.md` adds a six-category "Definition of Done" checklist and
   five non-negotiable golden rules. `make check` must be green before every commit.
 - New `tests/AbstractWebTestCase` base class boots a real kernel with an
