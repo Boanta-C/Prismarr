@@ -49,15 +49,20 @@ the image, mount one volume, you're up.
 
 ## Project status
 
-Prismarr is maintained by a single developer in spare time. The codebase
-is production-ready - I run it on my own homelab daily - but support,
-bug fixes and new features land when I have the bandwidth. There is no
-SLA, no commercial backing and no team behind this. If you need rock-solid
-24/7 support for a homelab dashboard, this is probably not the right
-project for you.
+Prismarr is maintained by a single developer (for now) in spare time.
+The codebase is production-ready - I run it on my own homelab daily - but
+support, bug fixes and new features land when I have the bandwidth. There
+is no SLA, no commercial backing and no team behind this.
 
-That said: issues, PRs and translations are very welcome, and the
-[CHANGELOG](CHANGELOG.md) is kept up to date.
+That said, I actively welcome and encourage feedback. **Feature requests,
+bug reports, code reviews, UI critiques, design ideas, translations** - if
+you take the time to write something, I'll take the time to read it
+carefully and reply. Open an issue, drop a PR, or just tell me what's
+missing or what could be better. Outside contributors are exactly how a
+solo project becomes a real one, and I'd love that to happen.
+
+The [CHANGELOG](CHANGELOG.md) is kept up to date and the roadmap is open
+to discussion.
 
 ---
 
@@ -346,12 +351,6 @@ Because the developer (me) is comfortable with it and Symfony 8 lets a
 solo dev ship a polished, testable, batteries-included web app fast.
 The runtime is FrankenPHP in worker mode, so the per-request overhead
 is small. Performance is a non-issue at homelab scale.
-
-**Does Prismarr include Plex / Jellyfin / Emby?**
-No. Prismarr is a control surface for Servarr-style stacks
-(Radarr / Sonarr / Prowlarr / Jellyseerr / qBittorrent / TMDb). The
-media server itself is not embedded. A Jellyfin widget is on the
-v1.x roadmap.
 
 **ARM / Raspberry Pi support?**
 Yes. The image is built for `linux/amd64` and `linux/arm64`. It runs

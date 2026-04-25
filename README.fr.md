@@ -50,16 +50,23 @@ service. Pull de l'image, un volume monté, c'est en route.
 
 ## Statut du projet
 
-Prismarr est maintenu par un seul développeur sur son temps libre. Le code
-est production-ready - je le fais tourner sur mon propre homelab au
-quotidien - mais le support, les corrections de bugs et les nouvelles
-fonctionnalités arrivent quand j'ai la bande passante. Pas de SLA, pas de
-soutien commercial, pas d'équipe derrière. Si vous avez besoin d'un support
-24/7 béton pour un dashboard homelab, ce n'est probablement pas le bon
-projet pour vous.
+Prismarr est maintenu par un seul développeur (pour l'instant) sur son
+temps libre. Le code est production-ready - je le fais tourner sur mon
+propre homelab au quotidien - mais le support, les corrections de bugs
+et les nouvelles fonctionnalités arrivent quand j'ai la bande passante.
+Pas de SLA, pas de soutien commercial, pas d'équipe derrière.
 
-Ceci dit : les issues, PR et traductions sont les bienvenues, et le
-[CHANGELOG](CHANGELOG.md) est tenu à jour.
+Ceci dit, j'accueille et j'encourage activement les retours. **Demandes
+de fonctionnalités, rapports de bugs, code reviews, critiques d'UI,
+idées de design, traductions** - si vous prenez le temps d'écrire quelque
+chose, je prends le temps de le lire attentivement et de répondre. Ouvrez
+une issue, soumettez une PR, ou dites-moi simplement ce qui manque ou ce
+qui pourrait être mieux. Les contributeurs externes sont précisément ce
+qui transforme un projet solo en vrai projet, et j'aimerais beaucoup que
+ça arrive.
+
+Le [CHANGELOG](CHANGELOG.md) est tenu à jour et la roadmap est ouverte à
+la discussion.
 
 ---
 
@@ -360,12 +367,6 @@ permet à un dev solo de livrer une app web soignée, testable et
 batteries-included rapidement. Le runtime est FrankenPHP en mode
 worker, donc l'overhead par requête est faible. La performance n'est
 pas un problème à l'échelle d'un homelab.
-
-**Prismarr inclut-il Plex / Jellyfin / Emby ?**
-Non. Prismarr est une surface de contrôle pour les stacks de type
-Servarr (Radarr / Sonarr / Prowlarr / Jellyseerr / qBittorrent / TMDb).
-Le serveur média lui-même n'est pas embarqué. Un widget Jellyfin est
-prévu sur la roadmap v1.x.
 
 **Support ARM / Raspberry Pi ?**
 Oui. L'image est buildée pour `linux/amd64` et `linux/arm64`. Elle
