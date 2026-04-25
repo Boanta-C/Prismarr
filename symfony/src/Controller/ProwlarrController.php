@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[IsGranted('ROLE_ADMIN')]
 #[Route('/prowlarr', name: 'prowlarr_')]
@@ -20,6 +21,7 @@ class ProwlarrController extends AbstractController
         private readonly ProwlarrClient $prowlarr,
         private readonly ConfigService $config,
         private readonly LoggerInterface $logger,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     // ── Page principale — Indexeurs ───────────────────────────────────────────
@@ -116,7 +118,7 @@ class ProwlarrController extends AbstractController
     public function indexerToggle(int $id): JsonResponse
     {
         $raw = $this->prowlarr->getRawIndexer($id);
-        if (!$raw) return $this->json(['ok' => false, 'error' => 'Indexeur introuvable']);
+        if (!$raw) return $this->json(['ok' => false, 'error' => $this->translator->trans('prowlarr.index.indexer_not_found')]);
         $raw['enable'] = !($raw['enable'] ?? false);
         $result = $this->prowlarr->updateIndexer($id, $raw);
         return $this->json(['ok' => $result !== null, 'enabled' => $raw['enable']]);

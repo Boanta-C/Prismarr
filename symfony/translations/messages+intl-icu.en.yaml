@@ -3395,6 +3395,7 @@ prowlarr:
     edit_title_tpl: 'Edit — __NAME__'
   index:
     title: Prowlarr
+    indexer_not_found: Indexer not found
     stats_indexers: Indexers
     stats_active: Active
     stats_failing: Failing
