@@ -479,14 +479,20 @@ class AdminSettingsController extends AbstractController
             }
         }
 
-        // Jellyseerr UI lang (per-user, admin id 1)
+        // Jellyseerr UI lang (per-user, admin id 1).
+        // Note : POST /user/{id}/settings/main valide l'email du payload, donc il faut
+        // envoyer le payload courant complet + locale modifié (pas seulement {locale: ...}).
         if ($this->config->get('jellyseerr_url') && $this->config->get('jellyseerr_api_key') && isset($payload['jellyseerr_ui'])) {
             try {
                 /** @var JellyseerrClient $jellyseerr */
                 $jellyseerr = $this->container->get(JellyseerrClient::class);
                 $newCode    = (string) $payload['jellyseerr_ui'];
                 if (isset(self::JELLYSEERR_UI_LANGUAGES[$newCode])) {
-                    $jellyseerr->updateUserSettings(self::JELLYSEERR_ADMIN_USER_ID, ['locale' => $newCode]);
+                    $current = $jellyseerr->getUserSettingsMain(self::JELLYSEERR_ADMIN_USER_ID) ?? [];
+                    if (($current['locale'] ?? null) !== $newCode) {
+                        $current['locale'] = $newCode;
+                        $jellyseerr->updateUserSettings(self::JELLYSEERR_ADMIN_USER_ID, $current);
+                    }
                 }
             } catch (\Throwable $e) {
                 $failed[] = 'Jellyseerr';
