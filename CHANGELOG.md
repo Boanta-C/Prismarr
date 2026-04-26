@@ -15,6 +15,28 @@ together behind one Symfony 8 / FrankenPHP UI. Everything below was built
 between April 18 and April 26, 2026, on top of the IH-Argos fork.
 
 ### Added
+- **Animated README showcase** - looped GIF carousel on top of the README cycling
+  through seven UI screenshots (Dashboard, Discovery, Calendar, Movies, Series
+  detail, Downloads, Settings) at 3 s per slide, with the same screenshots also
+  available as static images inside a collapsible `<details>` block.
+- **Status badges in the README** - latest release, CI status, Docker Hub pulls,
+  image size, GitHub stars and last-commit date, alongside the existing stack
+  badges (license, PHP, Symfony, FrankenPHP, SQLite).
+- **New README sections** for the v1.0 public release: "Project status" (solo-dev
+  disclaimer plus an explicit call for feature requests, bug reports, code
+  reviews, UI critiques, design ideas and translations), "Why Prismarr?" (a
+  short comparison against Organizr, Heimdall, Homer, Homepage, Homarr,
+  Jellyseerr and the raw Servarr UIs), "FAQ" (six entries: PHP / Symfony, ARM
+  / Raspberry Pi, internet requirements, reverse proxy, API-key storage,
+  backups, third-party translations), and "Star history".
+- **"Note on AI usage" disclosure** at the bottom of the README - rendered as a
+  blockquote (greyed-out) so it stays discreet, listing primary uses (i18n
+  translation, log / JS debugging, API endpoint cataloguing, code audits, SVG
+  icons & illustrations) and secondary uses (PHPUnit test debugging, mobile
+  responsive design, security review, doc translation, local commit messages,
+  single-container Docker design) of Claude Code as a support tool, with a
+  reminder that every line was reviewed and signed off by a human and that
+  `make check` had to be green before any commit.
 - **Categorised connection test** in `/admin/settings` — the "Test connection"
   button returns a structured diagnosis (`ok / unconfigured / network /
   auth / forbidden / not_found / server_error / unknown`) with the HTTP status
@@ -185,6 +207,12 @@ between April 18 and April 26, 2026, on top of the IH-Argos fork.
   FrankenPHP worker is re-used.
 
 ### Changed
+- **README is now in English and is the sole published version** of the
+  project README. The temporary French copy used during the v1.0 review pass
+  has been removed; English is the source of truth for all public-facing
+  documentation. Twig `<title>` separators were also migrated from em dash
+  (`—`) to ASCII dash (`-`) for cleaner browser tab titles
+  (`base.html.twig`, `security/login.html.twig`, all `setup/*.html.twig`).
 - All user-visible strings in Twig templates (~50 hard-coded strings) and PHP
   controllers are now routed through the Symfony Translator. The EN and FR
   YAML files are in exact parity (4 188 keys each, zero duplicates, zero
@@ -327,6 +355,26 @@ between April 18 and April 26, 2026, on top of the IH-Argos fork.
 
 ### Contributor
 
+- **GitHub Actions CI workflow** (`.github/workflows/ci.yml`) running
+  `make check` (PHP syntax lint + Twig lint + full PHPUnit suite) on every
+  pull request and on every push to `main`. The job builds the Prismarr
+  container with the dev compose overlay, installs Composer dev dependencies
+  inside it, waits for `/api/health` to be ready, then runs the same
+  `make check` contract that contributors run locally.
+- **GitHub Actions release workflow** (`.github/workflows/release.yml`):
+  triggered by pushing a `v*.*.*` tag, sets up QEMU + Buildx, builds a
+  multi-architecture image (`linux/amd64` + `linux/arm64`), pushes it to
+  Docker Hub under `prismarr/prismarr` (or a configurable image name) with
+  semver tags `:X.Y.Z`, `:X.Y`, `:X` and `:latest`, and creates a GitHub
+  release whose body is auto-extracted from the matching `CHANGELOG.md`
+  section.
+- **Public docs polished for the v1.0 release**: every em dash (`—`)
+  replaced by an ASCII dash (`-`) across `CONTRIBUTING.md`, `SECURITY.md`,
+  `.github/PULL_REQUEST_TEMPLATE.md` and `.github/ISSUE_TEMPLATE/*.md`;
+  `CONTRIBUTING.md` updated to reflect the EN-first i18n reality (UI strings
+  go through `messages+intl-icu.{en,fr}.yaml`, English is the source of
+  truth) and the live CI workflow (no longer "starting in v1.1"). Commit
+  messages are now allowed in either English or French.
 - PHPUnit 13 deprecations and notices eliminated: one `with()` call without a
   matching `expects()` rule was converted to `expects($this->once())`, and 17
   TestCase classes that use mocks purely for stub return values are now
