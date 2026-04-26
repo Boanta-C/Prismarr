@@ -7,6 +7,15 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Shoshuo/Prismarr/releases"><img src="https://img.shields.io/github/v/release/Shoshuo/Prismarr?label=release&color=6366f1" alt="Dernière release"></a>
+  <a href="https://github.com/Shoshuo/Prismarr/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Shoshuo/Prismarr/ci.yml?branch=main&label=CI" alt="CI"></a>
+  <a href="https://hub.docker.com/r/prismarr/prismarr"><img src="https://img.shields.io/docker/pulls/prismarr/prismarr?color=2496ED&logo=docker&logoColor=white" alt="Pulls Docker"></a>
+  <a href="https://hub.docker.com/r/prismarr/prismarr"><img src="https://img.shields.io/docker/image-size/prismarr/prismarr/latest?color=2496ED&logo=docker&logoColor=white" alt="Taille de l'image"></a>
+  <a href="https://github.com/Shoshuo/Prismarr"><img src="https://img.shields.io/github/stars/Shoshuo/Prismarr?style=flat&color=f59e0b" alt="Étoiles"></a>
+  <a href="https://github.com/Shoshuo/Prismarr/commits/main"><img src="https://img.shields.io/github/last-commit/Shoshuo/Prismarr?color=6366f1" alt="Dernier commit"></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/Shoshuo/Prismarr/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="AGPL-3.0"></a>
   <img src="https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white" alt="PHP 8.4">
   <img src="https://img.shields.io/badge/Symfony-8-000000?logo=symfony&logoColor=white" alt="Symfony 8">
