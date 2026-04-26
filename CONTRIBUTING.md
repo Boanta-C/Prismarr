@@ -85,7 +85,7 @@ the process - "we'll fix it later" becomes a user-reported bug in v1.x.
 ## The workflow in one sentence
 
 > Feature works → tests green → migration reviewed → security checked →
-> UI tested → docs updated → commit in French → push.
+> UI tested → docs updated → commit message in English or French → push.
 
 ---
 
