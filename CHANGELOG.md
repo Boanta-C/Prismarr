@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-04-26
+
+### Fixed
+- Container init script (`docker/frankenphp/init.sh`) now performs a
+  recursive `chown www-data:www-data` on `var/` after the Doctrine
+  migrations step. Migrations run in root context (PID 1 / s6 init), and
+  Symfony pre-creates the Doctrine parser cache pools under
+  `var/cache/prod/pools/system/...` as root while parsing the migration
+  query. Once frankenphp and messenger-worker drop to `www-data`, they
+  could not write back into those pools and every HTTP request spammed
+  the logs with `Permission denied` warnings on
+  `Doctrine\ORM\Query\ParserResult`. The catch-all chown fixes that;
+  no functional impact for existing v1.0.0 installs but `:latest`,
+  `:1`, `:1.0` will now point at this clean image.
+
 ## [1.0.0] — 2026-04-26
 
 First public release. Prismarr is a single-container, self-hosted dashboard
@@ -408,5 +423,6 @@ between April 18 and April 26, 2026, on top of the IH-Argos fork.
 [X.Y.Z]: https://github.com/Shoshuo/Prismarr/compare/vPREV...vX.Y.Z
 -->
 
-[Unreleased]: https://github.com/Shoshuo/Prismarr/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Shoshuo/Prismarr/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/Shoshuo/Prismarr/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Shoshuo/Prismarr/releases/tag/v1.0.0

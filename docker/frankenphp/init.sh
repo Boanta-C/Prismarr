@@ -72,6 +72,14 @@ if echo "$migrate_output" | grep -qE "Migrating up to|executed"; then
 fi
 chown www-data:www-data "$DB_FILE" 2>/dev/null || true
 
+# Migrations run in root context (s6 init / PID 1). Symfony resolves the
+# Doctrine ORM parser cache while parsing the migration query, which
+# pre-creates the cache pool directories under var/cache/prod/pools/system/
+# owned by root. Once frankenphp and messenger-worker drop to www-data,
+# they can't write back into those pools and every request spams a
+# "Permission denied" warning. Catch-all recursive chown fixes that.
+chown -R www-data:www-data "$APP_DIR/var" 2>/dev/null || true
+
 # ── Startup banner ──────────────────────────────────────────────────────────
 cat <<BANNER
 
