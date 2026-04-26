@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-04-26
+
+### Added
+- **Language picker on the setup wizard's first screen.** Non-anglophone users no longer have to read the wizard in English just to find the language setting six steps later. The picker writes to a session key (`_locale`) read by `LocaleSubscriber` with priority just below the URL `?_locale=` override and above the DB-backed `display_language` preference - which is how it works during setup, where the DB has no setting yet. Once setup is complete, the admin's `display_language` takes over and the session value is no longer consulted.
+- **Updates / changelog page in `/admin/settings`** (similar to Sonarr / Radarr's "System -> Updates"). Shows the running version, the latest GitHub release, and the last 15 release notes inline with their published date. A small orange badge appears in the settings nav when a newer version is available. Release notes are fetched from `api.github.com/repos/Shoshuo/Prismarr/releases` with a 1-hour cache and a hard 8 s connect / 4 s total timeout - if GitHub is unreachable the page degrades gracefully and just shows the current version. Powered by the new `AppVersion` service (implements `ResetInterface` for FrankenPHP worker safety).
+
+### Changed
+- `AppVersion::VERSION = '1.0.4'` is now the source of truth for the running build.
+
 ## [1.0.3] - 2026-04-26
 
 ### Added

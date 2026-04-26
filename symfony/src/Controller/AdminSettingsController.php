@@ -258,6 +258,7 @@ class AdminSettingsController extends AbstractController
         private readonly LoggerInterface $logger,
         #[Autowire(service: 'cache.app')]
         private readonly AdapterInterface $appCache,
+        private readonly \App\Service\AppVersion $appVersion,
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir = '',
         #[Autowire('%kernel.environment%')]
@@ -296,6 +297,10 @@ class AdminSettingsController extends AbstractController
             'export_counts'      => $this->exportCounts(),
             'languages'          => $this->loadServiceLanguages(),
             'errors'             => $errors,
+            'app_current'        => $this->appVersion->current(),
+            'app_latest'         => $this->appVersion->latest(),
+            'app_update_available' => $this->appVersion->isUpdateAvailable(),
+            'app_releases'       => $this->appVersion->releases(),
         ]);
     }
 

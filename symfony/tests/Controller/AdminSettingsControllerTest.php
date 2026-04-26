@@ -22,12 +22,19 @@ class AdminSettingsControllerTest extends TestCase
         ConfigService $config,
         HealthService $health,
     ): AdminSettingsController {
+        $appVersion = $this->createMock(\App\Service\AppVersion::class);
+        $appVersion->method('current')->willReturn('test');
+        $appVersion->method('latest')->willReturn(null);
+        $appVersion->method('isUpdateAvailable')->willReturn(false);
+        $appVersion->method('releases')->willReturn([]);
+
         $controller = new AdminSettingsController(
             $settings,
             $config,
             $health,
             $this->createMock(LoggerInterface::class),
             $this->createMock(\Symfony\Component\Cache\Adapter\AdapterInterface::class),
+            $appVersion,
             projectDir: sys_get_temp_dir(),
             environment: 'test',
         );

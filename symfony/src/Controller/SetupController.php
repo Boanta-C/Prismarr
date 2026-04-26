@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\SettingRepository;
 use App\Repository\UserRepository;
+use App\EventSubscriber\LocaleSubscriber;
 use App\Service\ConfigService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -43,12 +44,36 @@ class SetupController extends AbstractController
     // ─── Step 1: Welcome ───────────────────────────────────────────────────
 
     #[Route('/welcome', name: 'app_setup_welcome')]
-    public function welcome(): Response
+    public function welcome(Request $request): Response
     {
         return $this->render('setup/welcome.html.twig', [
             'active_step'      => 'welcome',
             'completed_steps'  => $this->completedSteps(),
+            'current_locale'   => $request->getLocale(),
+            'supported_locales' => LocaleSubscriber::SUPPORTED,
         ]);
+    }
+
+    /**
+     * Stores a UI locale in the session so the wizard (and the rest of the app
+     * until DB-backed `display_language` takes over) renders in the user's
+     * preferred language. Called via fetch from welcome.html.twig.
+     */
+    #[Route('/locale', name: 'app_setup_locale', methods: ['POST'])]
+    public function locale(Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('setup_locale', (string) $request->request->get('_csrf_token'))) {
+            return new Response('', 400);
+        }
+
+        $picked = (string) $request->request->get('locale', '');
+        if (!in_array($picked, LocaleSubscriber::SUPPORTED, true)) {
+            return new Response('', 400);
+        }
+
+        $request->getSession()->set(LocaleSubscriber::SESSION_KEY, $picked);
+
+        return $this->redirectToRoute('app_setup_welcome');
     }
 
     // ─── Step 2: Admin account (required) ──────────────────────────────────

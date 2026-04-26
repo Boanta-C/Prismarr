@@ -272,6 +272,17 @@
           </svg>
           {{ 'admin.nav.backup'|trans }}
         </a>
+        <a href="#section-updates" data-settings-nav="section-updates">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/>
+            <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+          </svg>
+          {{ 'admin.nav.updates'|trans }}
+          {% if app_update_available %}
+            <span class="badge bg-orange ms-auto" style="font-size:.7rem;">{{ 'admin.updates.badge_available'|trans }}</span>
+          {% endif %}
+        </a>
         <a href="#section-about" data-settings-nav="section-about">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round">
@@ -778,6 +789,72 @@
                   {{ 'admin.backup.reset.cta'|trans }}
                 </button>
               </form>
+            </div>
+          </section>
+
+          {# ─── Section: Updates ────────────────────────────── #}
+          <section id="section-updates" class="settings-group" data-section>
+            <div class="settings-group-title">{{ 'admin.updates.title'|trans }}</div>
+            <p class="settings-group-desc">{{ 'admin.updates.description'|trans }}</p>
+
+            <div class="service-card" style="margin-bottom:1rem;">
+              <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                <div>
+                  <p class="service-card-title" style="margin-bottom:.25rem;">{{ 'admin.updates.current_version'|trans }}</p>
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span style="font-family:monospace;font-size:1.4rem;font-weight:600;">v{{ app_current }}</span>
+                    {% if app_update_available %}
+                      <span class="badge bg-orange">{{ 'admin.updates.update_available'|trans({version: 'v' ~ app_latest}) }}</span>
+                    {% elseif app_latest %}
+                      <span class="badge bg-green-lt">{{ 'admin.updates.up_to_date'|trans }}</span>
+                    {% else %}
+                      <span class="text-secondary small">{{ 'admin.updates.no_remote_info'|trans }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <a href="https://github.com/Shoshuo/Prismarr/releases" target="_blank" rel="noopener" class="btn btn-sm btn-ghost-primary">
+                    {{ 'admin.updates.view_on_github'|trans }}
+                  </a>
+                  <a href="https://hub.docker.com/r/shoshuo/prismarr/tags" target="_blank" rel="noopener" class="btn btn-sm btn-ghost-primary">
+                    {{ 'admin.updates.docker_hub'|trans }}
+                  </a>
+                </div>
+              </div>
+              {% if app_update_available %}
+                <p class="text-secondary small" style="margin-top:.75rem;margin-bottom:0;">
+                  {{ 'admin.updates.upgrade_hint_html'|trans|raw }}
+                </p>
+              {% endif %}
+            </div>
+
+            <div class="service-card">
+              <p class="service-card-title">{{ 'admin.updates.release_notes'|trans }}</p>
+
+              {% if app_releases is empty %}
+                <p class="text-secondary">{{ 'admin.updates.no_releases'|trans }}</p>
+              {% else %}
+                <div class="d-flex flex-column gap-3">
+                  {% for r in app_releases %}
+                    <article style="border-left: 3px solid var(--tblr-primary); padding-left: .75rem;">
+                      <div class="d-flex align-items-baseline gap-2 flex-wrap" style="margin-bottom:.4rem;">
+                        <a href="{{ r.html_url|e('html_attr') }}" target="_blank" rel="noopener" style="font-family:monospace;font-weight:600;text-decoration:none;">
+                          v{{ r.tag }}
+                        </a>
+                        {% if r.tag == app_current %}
+                          <span class="badge bg-blue-lt">{{ 'admin.updates.installed'|trans }}</span>
+                        {% endif %}
+                        {% if r.published_at %}
+                          <span class="text-secondary small">{{ r.published_at|prismarr_date }}</span>
+                        {% endif %}
+                      </div>
+                      {% if r.body %}
+                        <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; padding: .5rem .75rem; background: var(--tblr-bg-surface-secondary); border-radius: 4px; font-size: .85rem; max-height: 220px; overflow-y: auto;">{{ r.body }}</pre>
+                      {% endif %}
+                    </article>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
           </section>
 

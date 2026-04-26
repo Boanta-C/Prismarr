@@ -231,6 +231,10 @@ setup:
         downloads: Downloads
         discovery: TMDb discovery
       cta: 'Start the setup →'
+      language_label: Language
+      language:
+        en: English
+        fr: Français
     admin:
       eyebrow: 'Step 2 of 7'
       title: Create your admin account
@@ -478,6 +482,7 @@ admin:
     services: External services
     display: Display
     backup: Backup
+    updates: Updates
     about: About
     email_notifications: Email notifications
     security_sessions: 'Security · sessions'
@@ -682,6 +687,20 @@ admin:
     invalid_json: Invalid JSON
     unknown_format: 'Unknown format (export v1 expected).'
     result: '{applied, plural, =0 {No settings imported} one {# setting imported} other {# settings imported}}, {skipped, plural, one {# skipped.} other {# skipped.}}'
+  updates:
+    title: Updates
+    description: 'Track the version you are running and review release notes published on GitHub. Prismarr does not auto-update — you stay in control.'
+    current_version: Current version
+    update_available: '{version} available'
+    badge_available: Update
+    up_to_date: Up to date
+    no_remote_info: 'No remote info (GitHub unreachable)'
+    view_on_github: GitHub releases
+    docker_hub: Docker Hub
+    upgrade_hint_html: 'To upgrade: <code>docker compose pull &amp;&amp; docker compose up -d</code>. Read the release notes below for any breaking change.'
+    release_notes: Release notes
+    no_releases: 'No release information available right now (GitHub API unreachable).'
+    installed: Installed
   coming:
     v1_1: v1.1
 

@@ -12,14 +12,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
  *
  * Priority order:
  *   1. `?_locale=xx` query param (one-off preview, never persisted)
- *   2. Admin preference `display_language` from the DB
- *   3. Hard-coded `fr` fallback
+ *   2. Session `_locale` (set by the setup wizard before any DB pref exists,
+ *      and by the top-bar picker for one-off overrides)
+ *   3. Admin preference `display_language` from the DB
+ *   4. Hard-coded `en` fallback
  *
- * Prismarr is a single-instance homelab tool where admin + users typically
- * share the same language — so we expose the language as a single admin
- * setting instead of a per-user override. Users who want a different UI
- * language can still use `?_locale=en` for a single request, but nothing is
- * persisted client-side.
+ * The session-based step lets the setup wizard offer a language picker on the
+ * very first screen — at that point the DB is empty, so we cannot rely on the
+ * `display_language` setting yet. Once setup is complete, that pref takes over.
  *
  * We accept only whitelisted locales to avoid breaking Twig/Translator when
  * someone crafts a `?_locale=zz` URL — unknown values silently fall back to
@@ -27,8 +27,9 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class LocaleSubscriber implements EventSubscriberInterface
 {
-    public const SUPPORTED = ['en', 'fr'];
-    public const FALLBACK  = 'en';
+    public const SUPPORTED      = ['en', 'fr'];
+    public const FALLBACK       = 'en';
+    public const SESSION_KEY    = '_locale';
 
     public function __construct(
         private readonly DisplayPreferencesService $prefs,
@@ -49,7 +50,24 @@ class LocaleSubscriber implements EventSubscriberInterface
 
         $request = $event->getRequest();
 
+        // Read session-stored locale only if a session already exists (cookie set
+        // or session previously started). We deliberately avoid creating a fresh
+        // session just to read a missing key — that would set a session cookie
+        // for every cold visitor, including bots and 404 hits.
+        $sessionLocale = null;
+        if ($request->hasSession()) {
+            $session = $request->getSession();
+            if ($session->isStarted() || $request->hasPreviousSession()) {
+                try {
+                    $sessionLocale = $session->get(self::SESSION_KEY);
+                } catch (\Throwable) {
+                    $sessionLocale = null;
+                }
+            }
+        }
+
         $locale = $this->pickLocale($request->query->get('_locale'))
+            ?? $this->pickLocale($sessionLocale)
             ?? $this->pickLocale($this->safePrefLanguage())
             ?? self::FALLBACK;
 
