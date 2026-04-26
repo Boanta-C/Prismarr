@@ -13,7 +13,7 @@
 services:
 
   prismarr:
-    image: prismarr/prismarr:latest
+    image: shoshuo/prismarr:latest
     container_name: prismarr
     restart: unless-stopped
 

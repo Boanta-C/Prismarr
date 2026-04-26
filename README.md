@@ -9,8 +9,8 @@
 <p align="center">
   <a href="https://github.com/Shoshuo/Prismarr/releases"><img src="https://img.shields.io/github/v/release/Shoshuo/Prismarr?label=release&color=6366f1" alt="Latest release"></a>
   <a href="https://github.com/Shoshuo/Prismarr/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Shoshuo/Prismarr/ci.yml?branch=main&label=CI" alt="CI"></a>
-  <a href="https://hub.docker.com/r/prismarr/prismarr"><img src="https://img.shields.io/docker/pulls/prismarr/prismarr?color=2496ED&logo=docker&logoColor=white" alt="Docker pulls"></a>
-  <a href="https://hub.docker.com/r/prismarr/prismarr"><img src="https://img.shields.io/docker/image-size/prismarr/prismarr/latest?color=2496ED&logo=docker&logoColor=white" alt="Image size"></a>
+  <a href="https://hub.docker.com/r/shoshuo/prismarr"><img src="https://img.shields.io/docker/pulls/shoshuo/prismarr?color=2496ED&logo=docker&logoColor=white" alt="Docker pulls"></a>
+  <a href="https://hub.docker.com/r/shoshuo/prismarr"><img src="https://img.shields.io/docker/image-size/shoshuo/prismarr/latest?color=2496ED&logo=docker&logoColor=white" alt="Image size"></a>
   <a href="https://github.com/Shoshuo/Prismarr"><img src="https://img.shields.io/github/stars/Shoshuo/Prismarr?style=flat&color=f59e0b" alt="Stars"></a>
   <a href="https://github.com/Shoshuo/Prismarr/commits/main"><img src="https://img.shields.io/github/last-commit/Shoshuo/Prismarr?color=6366f1" alt="Last commit"></a>
 </p>
@@ -292,7 +292,7 @@ To pin a specific version instead of `latest`:
 ```yaml
 services:
   prismarr:
-    image: prismarr/prismarr:1.0.0
+    image: shoshuo/prismarr:1.0.0
 ```
 
 ---

@@ -11,7 +11,7 @@ stable releases. Security fixes are applied to:
 | `< 1.0`       | :x:                |
 
 Always run the latest minor version of the major you're on. Docker users can
-follow `prismarr/prismarr:latest` or pin to a specific tag.
+follow `shoshuo/prismarr:latest` or pin to a specific tag.
 
 ## Reporting a vulnerability
 

@@ -364,7 +364,7 @@ between April 18 and April 26, 2026, on top of the IH-Argos fork.
 - **GitHub Actions release workflow** (`.github/workflows/release.yml`):
   triggered by pushing a `v*.*.*` tag, sets up QEMU + Buildx, builds a
   multi-architecture image (`linux/amd64` + `linux/arm64`), pushes it to
-  Docker Hub under `prismarr/prismarr` (or a configurable image name) with
+  Docker Hub under `shoshuo/prismarr` (or a configurable image name) with
   semver tags `:X.Y.Z`, `:X.Y`, `:X` and `:latest`, and creates a GitHub
   release whose body is auto-extracted from the matching `CHANGELOG.md`
   section.
