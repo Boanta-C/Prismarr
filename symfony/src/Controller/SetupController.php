@@ -302,6 +302,20 @@ class SetupController extends AbstractController
             if (!$this->isCsrfTokenValid('setup_finish', (string) $request->request->get('_csrf_token'))) {
                 return $this->redirectToRoute('app_setup_finish');
             }
+
+            // Promote the session-only locale picked at /setup/welcome into the
+            // permanent admin pref `display_language`, then drop the session key
+            // so the DB becomes the single source of truth from now on.
+            // Without this, changing the language from /admin/settings would not
+            // appear to take effect until the session expires (the session-stored
+            // locale takes priority over the DB pref in LocaleSubscriber).
+            $session = $request->getSession();
+            $sessionLocale = $session->get(LocaleSubscriber::SESSION_KEY);
+            if (is_string($sessionLocale) && in_array($sessionLocale, LocaleSubscriber::SUPPORTED, true)) {
+                $this->settings->set('display_language', $sessionLocale);
+                $session->remove(LocaleSubscriber::SESSION_KEY);
+            }
+
             $this->settings->set(self::SETUP_DONE_KEY, '1');
             $this->config->invalidate();
             $this->addFlash('success', $this->translator->trans('setup.flash.welcome'));

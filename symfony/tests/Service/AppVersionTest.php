@@ -73,6 +73,50 @@ class AppVersionTest extends TestCase
         $this->assertFalse($svc->isUpdateAvailable());
     }
 
+    public function testRenderBodyEmptyReturnsEmpty(): void
+    {
+        $this->assertSame('', AppVersion::renderBody(''));
+    }
+
+    public function testRenderBodyEscapesHtml(): void
+    {
+        $html = AppVersion::renderBody('<script>alert(1)</script>');
+        $this->assertStringContainsString('&lt;script&gt;', $html);
+        $this->assertStringNotContainsString('<script>', $html);
+    }
+
+    public function testRenderBodyHandlesBoldItalicCode(): void
+    {
+        $html = AppVersion::renderBody('plain **bold** *italic* `code` end');
+        $this->assertStringContainsString('<strong>bold</strong>', $html);
+        $this->assertStringContainsString('<em>italic</em>', $html);
+        $this->assertStringContainsString('<code', $html);
+        $this->assertStringContainsString('>code</code>', $html);
+    }
+
+    public function testRenderBodyHandlesHeadingsAndLists(): void
+    {
+        $html = AppVersion::renderBody("## Added\n- one item\n- two\n\n### Changed\n- three");
+        $this->assertStringContainsString('<h5', $html);
+        $this->assertStringContainsString('Added</h5>', $html);
+        $this->assertStringContainsString('<h6', $html);
+        $this->assertStringContainsString('Changed</h6>', $html);
+        $this->assertStringContainsString('<ul', $html);
+        $this->assertStringContainsString('<li>one item</li>', $html);
+        $this->assertStringContainsString('<li>three</li>', $html);
+    }
+
+    public function testRenderBodyAllowsHttpsLinksOnly(): void
+    {
+        $html = AppVersion::renderBody('See [docs](https://example.org/page) here');
+        $this->assertStringContainsString('<a href="https://example.org/page" target="_blank" rel="noopener">docs</a>', $html);
+
+        // javascript: must never produce an <a> tag — it falls through as escaped text.
+        $jsAttempt = AppVersion::renderBody('Click [me](javascript:alert(1)) please');
+        $this->assertStringNotContainsString('<a ', $jsAttempt);
+        $this->assertStringNotContainsString('href=', $jsAttempt);
+    }
+
     public function testResetClearsInProcessCache(): void
     {
         $svc = $this->withCachedReleases([

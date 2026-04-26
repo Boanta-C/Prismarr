@@ -848,8 +848,12 @@
                           <span class="text-secondary small">{{ r.published_at|prismarr_date }}</span>
                         {% endif %}
                       </div>
-                      {% if r.body %}
-                        <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; padding: .5rem .75rem; background: var(--tblr-bg-surface-secondary); border-radius: 4px; font-size: .85rem; max-height: 220px; overflow-y: auto;">{{ r.body }}</pre>
+                      {% if r.body_html is defined and r.body_html %}
+                        <div class="release-body" style="font-size:.88rem;line-height:1.5;padding:.5rem .75rem;background:var(--tblr-bg-surface-secondary);border-radius:4px;max-height:340px;overflow-y:auto;">
+                          {{ r.body_html|raw }}
+                        </div>
+                      {% elseif r.body %}
+                        <div class="release-body" style="font-size:.88rem;line-height:1.5;padding:.5rem .75rem;background:var(--tblr-bg-surface-secondary);border-radius:4px;max-height:340px;overflow-y:auto;white-space:pre-wrap;">{{ r.body }}</div>
                       {% endif %}
                     </article>
                   {% endfor %}
