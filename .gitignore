@@ -30,3 +30,8 @@ symfony/config/jwt/
 
 # Claude Code artefacts
 .claude/
+
+# Internal/private docs (not for the public repo)
+PROGRESSION.md
+CLAUDE.md
+AGENTS.md
