@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -27,22 +27,16 @@ jobs:
       - name: Create empty env file
         run: touch symfony/.env.local
 
+      # Use the production compose (image with vendor/ + assets baked in).
+      # The dev compose overlay bind-mounts ./symfony over the image, which
+      # hides the baked vendor/ and breaks the init script (which runs
+      # `bin/console doctrine:migrations:migrate` before frankenphp starts).
       - name: Build and start the Prismarr container
         run: |
           docker compose \
             --env-file symfony/.env.local \
             -f docker-compose.yml \
-            -f docker-compose.dev.yml \
             up -d --build
-
-      # The dev compose bind-mounts ./symfony over the image, so the
-      # vendor/ baked into the image is hidden. Re-install dev deps inside
-      # the running container.
-      - name: Install Composer dependencies (with dev)
-        run: docker exec prismarr composer install --no-interaction --prefer-dist
-
-      - name: Install AssetMapper imports
-        run: docker exec prismarr php bin/console importmap:install --no-interaction
 
       - name: Wait for /api/health
         run: |
@@ -56,6 +50,12 @@ jobs:
           echo "Container did not become healthy in time"
           docker logs prismarr
           exit 1
+
+      # The baked image was built with `composer install --no-dev`, which
+      # excludes PHPUnit and the other test dependencies. Add them now so
+      # `make check` can run the test suite.
+      - name: Install dev dependencies (PHPUnit + test deps)
+        run: docker exec prismarr composer install --no-interaction --prefer-dist
 
       - name: Run make check
         run: make check
