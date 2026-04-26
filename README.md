@@ -469,6 +469,7 @@ enough to keep me going. This release is for you.
 > - **Log and JavaScript debugging** - faster triage of stack traces, Turbo/Alpine quirks, and front-end edge cases I couldn't reproduce locally.
 > - **API endpoint cataloguing** - mapping the ~600 endpoints across Radarr v3, Sonarr v3, Prowlarr v1, Jellyseerr, qBittorrent v2 and TMDb v3 from their OpenAPI specs.
 > - **Code audits** - flagging missed translations, forgotten edge cases and bugs in my own code.
+> - **SVG icons and illustrations** - generating and tweaking inline SVGs (logo variants, empty-state illustrations, status icons) when no off-the-shelf asset matched.
 >
 > **Secondary uses**
 >

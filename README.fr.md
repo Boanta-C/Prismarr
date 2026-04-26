@@ -489,6 +489,7 @@ est pour vous.
 > - **Debug des logs et du JavaScript** - triage plus rapide des stack traces, des comportements Turbo/Alpine et des edge cases front que je n'arrivais pas à reproduire en local.
 > - **Listage des endpoints d'API** - cartographier les ~600 endpoints Radarr v3, Sonarr v3, Prowlarr v1, Jellyseerr, qBittorrent v2 et TMDb v3 à partir de leurs specs OpenAPI.
 > - **Audit du code** - remonter les traductions manquées, les edge cases oubliés et les bugs dans mon propre code.
+> - **Icônes et illustrations SVG** - génération et ajustement de SVG inline (variantes du logo, illustrations d'états vides, icônes de statut) quand aucun asset existant ne convenait.
 >
 > **Usages secondaires**
 >
