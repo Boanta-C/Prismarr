@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] — 2026-04-26
+
+### Fixed
+- Production Docker image now runs `php bin/console asset-map:compile` at
+  build time so that the hashed CSS/JS files under `public/assets/` are
+  actually present. Previous v1.0.0 / v1.0.1 images shipped without
+  compiled assets: under `APP_ENV=prod` (the default for the published
+  image) every request to `/assets/styles/app-XXXX.css`,
+  `/assets/app-XXXX.js`, etc. fell through to the framework error page,
+  which Firefox / Chrome rejected with `NS_ERROR_CORRUPTED_CONTENT` and
+  "blocked due to MIME type (text/html)" because of `X-Content-Type-Options:
+  nosniff`. The whole UI rendered unstyled. The dev compose
+  (`APP_ENV=dev`) served assets dynamically via AssetMapper, which is why
+  the bug was invisible during local development and only surfaced once
+  someone ran the published image in production.
+
 ## [1.0.1] — 2026-04-26
 
 ### Fixed
@@ -423,6 +439,7 @@ between April 18 and April 26, 2026, on top of the IH-Argos fork.
 [X.Y.Z]: https://github.com/Shoshuo/Prismarr/compare/vPREV...vX.Y.Z
 -->
 
-[Unreleased]: https://github.com/Shoshuo/Prismarr/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/Shoshuo/Prismarr/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/Shoshuo/Prismarr/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/Shoshuo/Prismarr/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Shoshuo/Prismarr/releases/tag/v1.0.0

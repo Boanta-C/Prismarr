@@ -79,6 +79,7 @@ COPY symfony/ .
 # virtual group (git, zip, dev headers) — shaves ~10 MB off the final image.
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction \
     && php bin/console importmap:install --no-interaction \
+    && php bin/console asset-map:compile --no-interaction \
     && apk del --purge .build-deps
 
 # Permissions
