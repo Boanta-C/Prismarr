@@ -1,0 +1,45 @@
+name: Sync README to Docker Hub
+
+# Pushes the GitHub README to the Docker Hub repository description so
+# both stay in sync. Docker Hub doesn't render relative image paths, so
+# we rewrite docs/screenshots/* URLs to absolute raw.githubusercontent
+# links before pushing.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'README.md'
+      - 'docs/screenshots/**'
+      - '.github/workflows/dockerhub-readme.yml'
+  workflow_dispatch:  # Allow manual trigger from the Actions tab.
+
+jobs:
+  sync:
+    name: Push README to Docker Hub
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # Rewrite relative image paths so Docker Hub can render them.
+      # docs/screenshots/foo.png  ->  https://raw.githubusercontent.com/Shoshuo/Prismarr/main/docs/screenshots/foo.png
+      # symfony/public/img/...    ->  https://raw.githubusercontent.com/Shoshuo/Prismarr/main/symfony/public/img/...
+      - name: Rewrite relative image paths to absolute
+        run: |
+          sed -i \
+            -e 's|src="docs/screenshots/|src="https://raw.githubusercontent.com/Shoshuo/Prismarr/main/docs/screenshots/|g' \
+            -e 's|src="symfony/public/img/|src="https://raw.githubusercontent.com/Shoshuo/Prismarr/main/symfony/public/img/|g' \
+            -e 's|](docs/screenshots/|](https://raw.githubusercontent.com/Shoshuo/Prismarr/main/docs/screenshots/|g' \
+            README.md
+
+      - name: Push to Docker Hub
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ vars.DOCKERHUB_IMAGE || 'shoshuo/prismarr' }}
+          short-description: "Self-hosted media stack dashboard - Radarr, Sonarr, Prowlarr, Jellyseerr, qBittorrent, TMDb in one Symfony UI."
+          readme-filepath: ./README.md
