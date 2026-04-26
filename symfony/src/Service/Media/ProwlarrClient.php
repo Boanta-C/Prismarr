@@ -9,13 +9,25 @@ use Symfony\Contracts\Service\ResetInterface;
 class ProwlarrClient implements ResetInterface
 {
     private const SERVICE = 'Prowlarr';
+    private const SERVICE_KEY = 'prowlarr';
 
     private string $baseUrl = '';
     private string $apiKey = '';
 
+    /** @var array{code:int, method:string, path:string, message:string}|null */
+    private ?array $lastError = null;
+
+    /**
+     * Circuit breaker — once a network error / timeout occurs in this request,
+     * short-circuit subsequent calls to avoid stacking 4s timeouts and tripping
+     * PHP's max_execution_time. Reset between worker requests via reset().
+     */
+    private bool $serviceUnavailable = false;
+
     public function __construct(
         private readonly ConfigService $config,
         private readonly LoggerInterface $logger,
+        private readonly ServiceHealthCache $health,
     ) {}
 
     private function ensureConfig(): void
@@ -30,6 +42,64 @@ class ProwlarrClient implements ResetInterface
     {
         $this->baseUrl = '';
         $this->apiKey  = '';
+        $this->lastError = null;
+        $this->serviceUnavailable = false;
+    }
+
+    /**
+     * Returns the last upstream error captured by an HTTP method on this client,
+     * or null if the most recent call succeeded. Reset between worker requests.
+     *
+     * @return array{code:int, method:string, path:string, message:string}|null
+     */
+    public function getLastError(): ?array
+    {
+        return $this->lastError;
+    }
+
+    private function extractApiErrorMessage(string $body, int $code, string $curlError): string
+    {
+        $body = trim($body);
+        $decoded = $body !== '' ? json_decode($body, true) : null;
+
+        if (is_array($decoded)) {
+            if (isset($decoded[0]) && is_array($decoded[0])) {
+                $messages = [];
+                foreach ($decoded as $entry) {
+                    if (!is_array($entry)) continue;
+                    $msg = $entry['errorMessage'] ?? $entry['error'] ?? $entry['message'] ?? $entry['detail'] ?? null;
+                    if (is_string($msg) && $msg !== '') {
+                        $prop = $entry['propertyName'] ?? '';
+                        $messages[] = $prop !== '' ? "{$prop}: {$msg}" : $msg;
+                    }
+                }
+                if (!empty($messages)) return implode('; ', $messages);
+            }
+
+            foreach (['errorMessage', 'error', 'message', 'detail'] as $key) {
+                if (isset($decoded[$key]) && is_string($decoded[$key]) && $decoded[$key] !== '') {
+                    return $decoded[$key];
+                }
+            }
+        }
+
+        if ($body !== '' && strlen($body) < 200) {
+            return $body;
+        }
+
+        if ($curlError !== '') return $curlError;
+
+        return "HTTP {$code}";
+    }
+
+    private function recordError(string $method, string $path, int $code, string $body, string $curlError): void
+    {
+        $this->lastError = [
+            'code'    => $code,
+            'method'  => $method,
+            'path'    => $path,
+            'message' => $this->extractApiErrorMessage($body, $code, $curlError),
+        ];
     }
 
     /** Light ping — true if the API responds and accepts the key. */
@@ -532,6 +602,14 @@ class ProwlarrClient implements ResetInterface
 
     private function get(string $path, array $params = []): ?array
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return null;
+        }
+        if ($this->serviceUnavailable) {
+            return null;
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) {
@@ -541,7 +619,9 @@ class ProwlarrClient implements ResetInterface
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_NOSIGNAL       => 1,
             CURLOPT_HTTPHEADER     => ["X-Api-Key: {$this->apiKey}", 'Accept: application/json'],
         ]);
 
@@ -552,14 +632,28 @@ class ProwlarrClient implements ResetInterface
 
         if ($body === false || $code !== 200) {
             $this->logger->warning("ProwlarrClient GET {$path} → HTTP {$code} {$err}");
+            $this->recordError('GET', $path, (int) $code, is_string($body) ? $body : '', $err);
+            if ($err !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
             return null;
         }
 
+        $this->health->clear(self::SERVICE_KEY);
         return json_decode($body, true);
     }
 
     private function request(string $method, string $path, array $params = [], array $body = []): ?array
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return null;
+        }
+        if ($this->serviceUnavailable) {
+            return null;
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) $url .= '?' . http_build_query($params);
@@ -567,7 +661,9 @@ class ProwlarrClient implements ResetInterface
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_NOSIGNAL       => 1,
             CURLOPT_CUSTOMREQUEST  => $method,
             CURLOPT_POSTFIELDS     => json_encode($body),
             CURLOPT_HTTPHEADER     => ["X-Api-Key: {$this->apiKey}", 'Content-Type: application/json', 'Accept: application/json'],
@@ -575,18 +671,33 @@ class ProwlarrClient implements ResetInterface
 
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
         curl_close($ch);
 
         if ($code < 200 || $code >= 300) {
             $this->logger->warning("ProwlarrClient {$method} {$path} → HTTP {$code}");
+            $this->recordError($method, $path, (int) $code, is_string($resp) ? $resp : '', $err);
+            if ($err !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
             return null;
         }
 
+        $this->health->clear(self::SERVICE_KEY);
         return $resp ? json_decode($resp, true) : [];
     }
 
     private function requestWithError(string $method, string $path, array $body): array
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return ['ok' => false, 'error' => 'Service unavailable (circuit breaker open)', 'code' => 0];
+        }
+        if ($this->serviceUnavailable) {
+            return ['ok' => false, 'error' => 'Service unavailable (circuit breaker open)', 'code' => 0];
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
 
@@ -601,12 +712,20 @@ class ProwlarrClient implements ResetInterface
 
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
         curl_close($ch);
 
         $data = $resp ? json_decode($resp, true) : null;
 
         if ($code >= 200 && $code < 300) {
+            $this->health->clear(self::SERVICE_KEY);
             return ['ok' => true, 'data' => $data];
+        }
+
+        $this->recordError($method, $path, (int) $code, is_string($resp) ? $resp : '', $err);
+        if ($err !== '' || (int) $code === 0) {
+            $this->serviceUnavailable = true;
+            $this->health->markDown(self::SERVICE_KEY);
         }
 
         $error = '—';
@@ -619,37 +738,79 @@ class ProwlarrClient implements ResetInterface
 
     private function deleteWithBody(string $path, array $body): bool
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return false;
+        }
+        if ($this->serviceUnavailable) {
+            return false;
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_NOSIGNAL       => 1,
             CURLOPT_CUSTOMREQUEST  => 'DELETE',
             CURLOPT_POSTFIELDS     => json_encode($body),
             CURLOPT_HTTPHEADER     => ["X-Api-Key: {$this->apiKey}", 'Content-Type: application/json'],
         ]);
-        curl_exec($ch);
+        $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
         curl_close($ch);
-        return $code >= 200 && $code < 300;
+        if ($code < 200 || $code >= 300) {
+            $this->logger->warning("ProwlarrClient DELETE (body) {$path} → HTTP {$code}");
+            $this->recordError('DELETE', $path, (int) $code, is_string($resp) ? $resp : '', $err);
+            if ($err !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
+            return false;
+        }
+        $this->health->clear(self::SERVICE_KEY);
+        return true;
     }
 
     private function delete(string $path): bool
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return false;
+        }
+        if ($this->serviceUnavailable) {
+            return false;
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_NOSIGNAL       => 1,
             CURLOPT_CUSTOMREQUEST  => 'DELETE',
             CURLOPT_HTTPHEADER     => ["X-Api-Key: {$this->apiKey}"],
         ]);
-        curl_exec($ch);
+        $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
         curl_close($ch);
-        return $code >= 200 && $code < 300;
+        if ($code < 200 || $code >= 300) {
+            $this->logger->warning("ProwlarrClient DELETE {$path} → HTTP {$code}");
+            $this->recordError('DELETE', $path, (int) $code, is_string($resp) ? $resp : '', $err);
+            if ($err !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
+            return false;
+        }
+        $this->health->clear(self::SERVICE_KEY);
+        return true;
     }
 }

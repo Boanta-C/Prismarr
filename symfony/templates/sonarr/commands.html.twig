@@ -141,7 +141,7 @@ function bindCancelButtons() {
           showFeedback(I18N.cancelledTpl.replace('__ID__', cmdId));
           setTimeout(function(){ location.reload(); }, 800);
         } else {
-          showFeedback(I18N.errorCancel, 'danger');
+          showFeedback(data.error || I18N.errorCancel, 'danger');
           btn.disabled = false;
         }
       }).catch(function(){

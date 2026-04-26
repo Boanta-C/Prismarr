@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Concerns\ApiClientErrorTrait;
 use App\Service\ConfigService;
 use App\Service\Media\GluetunClient;
 use App\Service\Media\QBittorrentClient;
@@ -19,6 +20,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[Route('/qbittorrent', name: 'app_qbittorrent_')]
 class QBittorrentController extends AbstractController
 {
+    use ApiClientErrorTrait;
+
     public function __construct(
         private readonly QBittorrentClient $qbt,
         private readonly GluetunClient $gluetun,
@@ -273,58 +276,67 @@ class QBittorrentController extends AbstractController
     #[Route('/api/torrent/{hash}/pause', name: 'api_pause', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
     public function pause(string $hash): JsonResponse
     {
-        return $this->json(['ok' => $this->qbt->pauseTorrents([$hash])]);
+        $ok = $this->qbt->pauseTorrents([$hash]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/resume', name: 'api_resume', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
     public function resume(string $hash): JsonResponse
     {
-        return $this->json(['ok' => $this->qbt->resumeTorrents([$hash])]);
+        $ok = $this->qbt->resumeTorrents([$hash]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/delete', name: 'api_delete', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
     public function delete(Request $request, string $hash): JsonResponse
     {
         $deleteFiles = (bool)($request->toArray()['deleteFiles'] ?? false);
-        return $this->json(['ok' => $this->qbt->deleteTorrents([$hash], $deleteFiles)]);
+        $ok = $this->qbt->deleteTorrents([$hash], $deleteFiles);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/recheck', name: 'api_recheck', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
     public function recheck(string $hash): JsonResponse
     {
-        return $this->json(['ok' => $this->qbt->recheckTorrents([$hash])]);
+        $ok = $this->qbt->recheckTorrents([$hash]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/reannounce', name: 'api_reannounce', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
     public function reannounce(string $hash): JsonResponse
     {
-        return $this->json(['ok' => $this->qbt->reannounceTorrents([$hash])]);
+        $ok = $this->qbt->reannounceTorrents([$hash]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/force-start', name: 'api_force_start', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
     public function forceStart(Request $request, string $hash): JsonResponse
     {
         $value = (bool)($request->toArray()['value'] ?? true);
-        return $this->json(['ok' => $this->qbt->setForceStart([$hash], $value)]);
+        $ok = $this->qbt->setForceStart([$hash], $value);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/category', name: 'api_set_category', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
     public function setCategory(Request $request, string $hash): JsonResponse
     {
         $category = $request->toArray()['category'] ?? '';
-        return $this->json(['ok' => $this->qbt->setTorrentCategory([$hash], $category)]);
+        $ok = $this->qbt->setTorrentCategory([$hash], $category);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/sequential', name: 'api_toggle_sequential', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
     public function toggleSequential(string $hash): JsonResponse
     {
-        return $this->json(['ok' => $this->qbt->toggleSequentialDownload([$hash])]);
+        $ok = $this->qbt->toggleSequentialDownload([$hash]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/first-last', name: 'api_toggle_first_last', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
     public function toggleFirstLast(string $hash): JsonResponse
     {
-        return $this->json(['ok' => $this->qbt->toggleFirstLastPiecePrio([$hash])]);
+        $ok = $this->qbt->toggleFirstLastPiecePrio([$hash]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/files/priority', name: 'api_file_priority', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
@@ -333,7 +345,8 @@ class QBittorrentController extends AbstractController
         $data = $request->toArray();
         $fileIds  = $data['fileIds'] ?? [];
         $priority = (int)($data['priority'] ?? 1);
-        return $this->json(['ok' => $this->qbt->setFilePriority($hash, $fileIds, $priority)]);
+        $ok = $this->qbt->setFilePriority($hash, $fileIds, $priority);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/rename', name: 'api_rename', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
@@ -341,7 +354,8 @@ class QBittorrentController extends AbstractController
     {
         $name = $request->toArray()['name'] ?? '';
         if (!$name) return $this->json(['ok' => false, 'error' => $this->translator->trans('qbittorrent.api.empty_name')], 400);
-        return $this->json(['ok' => $this->qbt->renameTorrent($hash, $name)]);
+        $ok = $this->qbt->renameTorrent($hash, $name);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/torrent/{hash}/limit', name: 'api_set_limit', methods: ['POST'], requirements: ['hash' => '[a-fA-F0-9]{32,64}'])]
@@ -372,7 +386,8 @@ class QBittorrentController extends AbstractController
     {
         $hashes = self::sanitizeHashes($request->toArray()['hashes'] ?? []);
         if (empty($hashes)) return $this->json(['ok' => false, 'error' => $this->translator->trans('qbittorrent.api.no_valid_hash')], 400);
-        return $this->json(['ok' => $this->qbt->pauseTorrents($hashes)]);
+        $ok = $this->qbt->pauseTorrents($hashes);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/bulk/resume', name: 'api_bulk_resume', methods: ['POST'])]
@@ -380,7 +395,8 @@ class QBittorrentController extends AbstractController
     {
         $hashes = self::sanitizeHashes($request->toArray()['hashes'] ?? []);
         if (empty($hashes)) return $this->json(['ok' => false, 'error' => $this->translator->trans('qbittorrent.api.no_valid_hash')], 400);
-        return $this->json(['ok' => $this->qbt->resumeTorrents($hashes)]);
+        $ok = $this->qbt->resumeTorrents($hashes);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/bulk/delete', name: 'api_bulk_delete', methods: ['POST'])]
@@ -390,7 +406,8 @@ class QBittorrentController extends AbstractController
         $hashes      = self::sanitizeHashes($data['hashes'] ?? []);
         $deleteFiles = (bool)($data['deleteFiles'] ?? false);
         if (empty($hashes)) return $this->json(['ok' => false, 'error' => $this->translator->trans('qbittorrent.api.no_valid_hash')], 400);
-        return $this->json(['ok' => $this->qbt->deleteTorrents($hashes, $deleteFiles)]);
+        $ok = $this->qbt->deleteTorrents($hashes, $deleteFiles);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/bulk/recheck', name: 'api_bulk_recheck', methods: ['POST'])]
@@ -398,7 +415,8 @@ class QBittorrentController extends AbstractController
     {
         $hashes = self::sanitizeHashes($request->toArray()['hashes'] ?? []);
         if (empty($hashes)) return $this->json(['ok' => false, 'error' => $this->translator->trans('qbittorrent.api.no_valid_hash')], 400);
-        return $this->json(['ok' => $this->qbt->recheckTorrents($hashes)]);
+        $ok = $this->qbt->recheckTorrents($hashes);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/bulk/category', name: 'api_bulk_category', methods: ['POST'])]
@@ -408,7 +426,8 @@ class QBittorrentController extends AbstractController
         $hashes   = self::sanitizeHashes($data['hashes'] ?? []);
         $category = is_string($data['category'] ?? null) ? $data['category'] : '';
         if (empty($hashes)) return $this->json(['ok' => false, 'error' => $this->translator->trans('qbittorrent.api.no_valid_hash')], 400);
-        return $this->json(['ok' => $this->qbt->setTorrentCategory($hashes, $category)]);
+        $ok = $this->qbt->setTorrentCategory($hashes, $category);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -431,7 +450,8 @@ class QBittorrentController extends AbstractController
             return $this->json(['ok' => false, 'error' => $error], 400);
         }
 
-        return $this->json(['ok' => $this->qbt->addTorrentFromUrl($urls, $category, $savepath, $paused)]);
+        $ok = $this->qbt->addTorrentFromUrl($urls, $category, $savepath, $paused);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     /**
@@ -546,7 +566,8 @@ class QBittorrentController extends AbstractController
     #[Route('/api/speed-mode', name: 'api_speed_mode', methods: ['POST'])]
     public function toggleSpeedMode(): JsonResponse
     {
-        return $this->json(['ok' => $this->qbt->toggleSpeedLimitsMode()]);
+        $ok = $this->qbt->toggleSpeedLimitsMode();
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('qBittorrent', $this->qbt);
     }
 
     #[Route('/api/global-limit', name: 'api_global_limit', methods: ['POST'])]

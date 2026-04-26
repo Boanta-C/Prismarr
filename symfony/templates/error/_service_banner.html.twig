@@ -56,7 +56,8 @@
           {{ _is_config ? 'error.service_banner.cta_configure'|trans({service: service}) : 'error.service_banner.cta_edit'|trans }}
         </a>
         {% if not _is_config %}
-          <button type="button" class="btn btn-sm btn-ghost-secondary" onclick="window.location.reload()">
+          <button type="button" class="btn btn-sm btn-ghost-secondary"
+                  onclick="fetch('{{ path('admin_settings_health_invalidate', {service: service|lower}) }}', {method:'POST'}).finally(function(){ window.location.reload(); });">
             {{ 'error.service_banner.cta_retry'|trans }}
           </button>
         {% endif %}

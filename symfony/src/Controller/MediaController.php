@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Concerns\ApiClientErrorTrait;
 use App\Service\ConfigService;
 use App\Service\Media\ProwlarrClient;
 use App\Service\Media\QBittorrentClient;
@@ -22,6 +23,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[Route('/medias', name: 'app_media_')]
 class MediaController extends AbstractController
 {
+    use ApiClientErrorTrait;
+
     public function __construct(
         private readonly RadarrClient      $radarr,
         private readonly SonarrClient      $sonarr,
@@ -448,7 +451,8 @@ class MediaController extends AbstractController
     #[Route('/films/files/{fileId}/delete', name: 'films_file_delete', methods: ['POST'])]
     public function filmFileDelete(int $fileId): JsonResponse
     {
-        return $this->json(['ok' => $this->radarr->deleteMovieFile($fileId)]);
+        $ok = $this->radarr->deleteMovieFile($fileId);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
     }
 
     #[Route('/films/files/{fileId}/update', name: 'films_file_update', methods: ['POST'])]
@@ -533,7 +537,7 @@ class MediaController extends AbstractController
         if (isset($data['tags'])) $changes['tags'] = $data['tags'];
         if (isset($data['applyTags'])) $changes['applyTags'] = $data['applyTags']; // add, remove, replace
         $ok = $this->radarr->bulkUpdateMovies($ids, $changes);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
     }
 
     #[Route('/films/bulk/delete', name: 'films_bulk_delete', methods: ['POST'])]
@@ -545,7 +549,7 @@ class MediaController extends AbstractController
         $addExclusion = (bool) ($data['addExclusion'] ?? false);
         if (!$ids) return $this->json(['ok' => false]);
         $ok = $this->radarr->bulkDeleteMovies($ids, $deleteFiles, $addExclusion);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
     }
 
     #[Route('/films/command/refresh-downloads', name: 'films_refresh_downloads', methods: ['POST'])]
@@ -623,7 +627,8 @@ class MediaController extends AbstractController
     #[Route('/series/blocklist/{id}/delete', name: 'series_blocklist_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function seriesBlocklistDelete(int $id): JsonResponse
     {
-        return $this->json(['ok' => $this->sonarr->deleteBlocklistItem($id)]);
+        $ok = $this->sonarr->deleteBlocklistItem($id);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
     }
 
     #[Route('/series/blocklist/bulk-delete', name: 'series_blocklist_bulk', methods: ['POST'])]
@@ -631,7 +636,8 @@ class MediaController extends AbstractController
     {
         $ids = $request->toArray()['ids'] ?? [];
         if (!$ids) return $this->json(['ok' => false]);
-        return $this->json(['ok' => $this->sonarr->bulkDeleteBlocklist($ids)]);
+        $ok = $this->sonarr->bulkDeleteBlocklist($ids);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
     }
 
     #[Route('/series/systeme', name: 'series_system')]
@@ -745,7 +751,7 @@ class MediaController extends AbstractController
         $deleteFiles = (bool) ($data['deleteFiles'] ?? false);
         $addExclusion = (bool) ($data['addImportExclusion'] ?? false);
         $ok = $this->sonarr->bulkDeleteSeries($ids, $deleteFiles, $addExclusion);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
     }
 
     #[Route('/series/import/batch', name: 'series_import_batch', methods: ['POST'])]
@@ -916,14 +922,16 @@ class MediaController extends AbstractController
     #[Route('/films/blocklist/{id}/delete', name: 'films_blocklist_delete', methods: ['POST'])]
     public function filmBlocklistDelete(int $id): JsonResponse
     {
-        return $this->json(['ok' => $this->radarr->deleteBlocklistItem($id)]);
+        $ok = $this->radarr->deleteBlocklistItem($id);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
     }
 
     #[Route('/films/blocklist/bulk-delete', name: 'films_blocklist_bulk', methods: ['POST'])]
     public function filmBlocklistBulk(Request $request): JsonResponse
     {
         $ids = $request->toArray()['ids'] ?? [];
-        return $this->json(['ok' => $this->radarr->bulkDeleteBlocklist($ids)]);
+        $ok = $this->radarr->bulkDeleteBlocklist($ids);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
     }
 
     #[Route('/films/{id}/blocklist', name: 'films_movie_blocklist', methods: ['GET'], requirements: ['id' => '\d+'])]
@@ -1088,7 +1096,8 @@ class MediaController extends AbstractController
     {
         $listId = (int) ($request->toArray()['listId'] ?? 0);
         if (!$listId) return $this->json(['ok' => false]);
-        return $this->json(['ok' => $this->radarr->deleteImportList($listId)]);
+        $ok = $this->radarr->deleteImportList($listId);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
     }
 
     #[Route('/films/person/following', name: 'films_person_following', methods: ['GET'])]
@@ -1169,7 +1178,7 @@ class MediaController extends AbstractController
     {
         $monitored = (bool) ($request->toArray()['monitored'] ?? true);
         $ok = $this->sonarr->setEpisodeMonitored($id, $monitored);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
     }
 
     #[Route('/series/episode/search', name: 'series_episode_search', methods: ['POST'])]
@@ -1200,7 +1209,7 @@ class MediaController extends AbstractController
     {
         $data = $request->toArray();
         $ok = $this->sonarr->deleteQueueItem($id, (bool) ($data['removeFromClient'] ?? false), (bool) ($data['blocklist'] ?? false));
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
     }
 
     #[Route('/series/queue/{id}/grab', name: 'series_queue_grab', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -1245,7 +1254,8 @@ class MediaController extends AbstractController
     #[Route('/series/file/{id}/delete', name: 'series_file_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function seriesFileDelete(int $id): JsonResponse
     {
-        return $this->json(['ok' => $this->sonarr->deleteEpisodeFile($id)]);
+        $ok = $this->sonarr->deleteEpisodeFile($id);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
     }
 
     #[Route('/series/{id}/history', name: 'series_history', methods: ['GET'], requirements: ['id' => '\d+'])]
@@ -1262,7 +1272,7 @@ class MediaController extends AbstractController
         $seasonNum = (int) ($data['seasonNumber'] ?? 0);
         $monitored = (bool) ($data['monitored'] ?? true);
         $ok = $this->sonarr->setSeasonMonitored($seriesId, $seasonNum, $monitored);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
     }
 
     #[Route('/series/{id}/rename', name: 'series_rename', methods: ['GET'], requirements: ['id' => '\d+'])]
@@ -1627,7 +1637,7 @@ class MediaController extends AbstractController
     {
         $deleteFiles = (bool) ($request->toArray()['deleteFiles'] ?? false);
         $ok = $this->sonarr->deleteSeries($id, $deleteFiles);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
     }
 
     #[Route('/telechargements', name: 'downloads')]

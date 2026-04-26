@@ -6,6 +6,7 @@ use App\Service\Media\JellyseerrClient;
 use App\Service\Media\ProwlarrClient;
 use App\Service\Media\QBittorrentClient;
 use App\Service\Media\RadarrClient;
+use App\Service\Media\ServiceHealthCache;
 use App\Service\Media\SonarrClient;
 use App\Service\Media\TmdbClient;
 
@@ -35,6 +36,7 @@ class HealthService
         private readonly QBittorrentClient $qbittorrent,
         private readonly TmdbClient        $tmdb,
         private readonly ?ConfigService    $config = null,
+        private readonly ?ServiceHealthCache $serviceHealthCache = null,
     ) {}
 
     public function isHealthy(string $service): bool
@@ -58,13 +60,25 @@ class HealthService
         return $ok;
     }
 
-    /** Invalidate the cache — useful after a reconfiguration via admin. */
+    /**
+     * Invalidate the cache — useful after a reconfiguration via admin.
+     *
+     * Clears both the in-process isHealthy() cache and the cross-request
+     * filesystem "service down" cache (ServiceHealthCache) so that a manual
+     * "Test connection" click recovers instantly from a flagged-down state.
+     */
     public function invalidate(?string $service = null): void
     {
         if ($service === null) {
             $this->cache = [];
+            if ($this->serviceHealthCache !== null) {
+                foreach (['radarr', 'sonarr', 'prowlarr', 'jellyseerr', 'qbittorrent', 'tmdb'] as $svc) {
+                    $this->serviceHealthCache->clear($svc);
+                }
+            }
         } else {
             unset($this->cache[$service]);
+            $this->serviceHealthCache?->clear($service);
         }
     }
 

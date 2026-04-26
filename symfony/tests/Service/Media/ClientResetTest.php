@@ -8,12 +8,14 @@ use App\Service\Media\JellyseerrClient;
 use App\Service\Media\ProwlarrClient;
 use App\Service\Media\QBittorrentClient;
 use App\Service\Media\RadarrClient;
+use App\Service\Media\ServiceHealthCache;
 use App\Service\Media\SonarrClient;
 use App\Service\Media\TmdbClient;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
@@ -93,6 +95,7 @@ class ClientResetTest extends TestCase
         $client = new RadarrClient(
             $config,
             $this->createMock(LoggerInterface::class),
+            new ServiceHealthCache(new ArrayAdapter()),
         );
 
         $ref = new \ReflectionClass($client);
@@ -120,6 +123,7 @@ class ClientResetTest extends TestCase
         $client = new QBittorrentClient(
             $config,
             $this->createMock(LoggerInterface::class),
+            new ServiceHealthCache(new ArrayAdapter()),
         );
 
         $ref = new \ReflectionClass($client);

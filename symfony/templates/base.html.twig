@@ -951,13 +951,25 @@
         <div class="container-xl">
           {% for message in app.flashes('success') %}
             <div class="alert alert-success alert-dismissible" role="alert">
-              <div class="d-flex"><div>✓ {{ message }}</div></div>
+              <div class="d-flex"><div style="word-break: break-word; overflow-wrap: anywhere;">✓ {{ message }}</div></div>
               <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
             </div>
           {% endfor %}
           {% for message in app.flashes('error') %}
             <div class="alert alert-danger alert-dismissible" role="alert">
-              <div class="d-flex"><div>{{ message }}</div></div>
+              <div class="d-flex"><div style="word-break: break-word; overflow-wrap: anywhere;">{{ message }}</div></div>
+              <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+            </div>
+          {% endfor %}
+          {% for message in app.flashes('warning') %}
+            <div class="alert alert-warning alert-dismissible" role="alert">
+              <div class="d-flex"><div style="word-break: break-word; overflow-wrap: anywhere;">{{ message }}</div></div>
+              <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+            </div>
+          {% endfor %}
+          {% for message in app.flashes('info') %}
+            <div class="alert alert-info alert-dismissible" role="alert">
+              <div class="d-flex"><div style="word-break: break-word; overflow-wrap: anywhere;">{{ message }}</div></div>
               <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
             </div>
           {% endfor %}

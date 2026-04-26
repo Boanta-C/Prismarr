@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Concerns\ApiClientErrorTrait;
 use App\Service\Media\SonarrClient;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,6 +17,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[Route('/sonarr', name: 'sonarr_')]
 class SonarrController extends AbstractController
 {
+    use ApiClientErrorTrait;
+
     public function __construct(
         private readonly SonarrClient $sonarr,
         private readonly LoggerInterface $logger,
@@ -48,7 +51,7 @@ class SonarrController extends AbstractController
             return $this->json(['ok' => true, 'cmdId' => $cmdId]);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr installUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -76,7 +79,7 @@ class SonarrController extends AbstractController
             return $this->json(['ok' => true, 'cmdId' => $cmdId]);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr backupCreate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -84,10 +87,11 @@ class SonarrController extends AbstractController
     public function backupDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteBackup($id)]);
+            $ok = $this->sonarr->deleteBackup($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr backupDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -95,10 +99,11 @@ class SonarrController extends AbstractController
     public function backupRestore(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->restoreBackup($id)]);
+            $ok = $this->sonarr->restoreBackup($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr backupRestore failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -122,10 +127,11 @@ class SonarrController extends AbstractController
     public function notificationDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteNotification($id)]);
+            $ok = $this->sonarr->deleteNotification($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr notificationDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -133,10 +139,11 @@ class SonarrController extends AbstractController
     public function notificationTest(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->testNotification($id)]);
+            $ok = $this->sonarr->testNotification($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr notificationTest failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -159,7 +166,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr notificationAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -171,7 +178,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr notificationUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -183,7 +190,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr notificationTestPayload failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -217,7 +224,7 @@ class SonarrController extends AbstractController
             return $this->json(['ok' => ($exclusion['ok'] ?? false), 'exclusion' => $exclusion]);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr exclusionAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -225,10 +232,11 @@ class SonarrController extends AbstractController
     public function exclusionDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteImportListExclusion($id)]);
+            $ok = $this->sonarr->deleteImportListExclusion($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr exclusionDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -237,10 +245,11 @@ class SonarrController extends AbstractController
     {
         try {
             $ids = $request->toArray()['ids'] ?? [];
-            return $this->json(['ok' => $this->sonarr->bulkDeleteImportListExclusions($ids)]);
+            $ok = $this->sonarr->bulkDeleteImportListExclusions($ids);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr exclusionBulkDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -295,7 +304,7 @@ class SonarrController extends AbstractController
             return $this->json(['ok' => true, 'folders' => $unmatched]);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr libraryImportScan failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -338,7 +347,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr qualityProfileCreate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -350,7 +359,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr qualityProfileUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -358,10 +367,11 @@ class SonarrController extends AbstractController
     public function qualityProfileDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteQualityProfile($id)]);
+            $ok = $this->sonarr->deleteQualityProfile($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr qualityProfileDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -370,10 +380,11 @@ class SonarrController extends AbstractController
     {
         try {
             $definitions = $request->toArray();
-            return $this->json(['ok' => $this->sonarr->bulkUpdateQualityDefinitions($definitions)]);
+            $ok = $this->sonarr->bulkUpdateQualityDefinitions($definitions);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr qualityDefinitionsSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -404,10 +415,11 @@ class SonarrController extends AbstractController
     public function delayProfileDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteDelayProfile($id)]);
+            $ok = $this->sonarr->deleteDelayProfile($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr delayProfileDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -419,7 +431,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr delayProfileAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -431,7 +443,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr delayProfileUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -470,7 +482,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr customFormatAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -482,7 +494,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr customFormatUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -490,10 +502,11 @@ class SonarrController extends AbstractController
     public function customFormatDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteCustomFormat($id)]);
+            $ok = $this->sonarr->deleteCustomFormat($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr customFormatDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -517,10 +530,11 @@ class SonarrController extends AbstractController
     public function autoTagDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteAutoTag($id)]);
+            $ok = $this->sonarr->deleteAutoTag($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr autoTagDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -532,7 +546,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr autoTagAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -544,7 +558,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr autoTagUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -573,7 +587,7 @@ class SonarrController extends AbstractController
             return $this->json($tag);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr tagAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -581,10 +595,11 @@ class SonarrController extends AbstractController
     public function tagDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteTag($id)]);
+            $ok = $this->sonarr->deleteTag($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr tagDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -600,7 +615,7 @@ class SonarrController extends AbstractController
             return $this->json($tag);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr tagRename failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -645,7 +660,7 @@ class SonarrController extends AbstractController
             return $this->json(['ok' => $config !== null, 'config' => $config]);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr settingsHostSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -684,7 +699,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr uiSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -723,7 +738,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr indexerAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -735,7 +750,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr indexerUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -743,10 +758,11 @@ class SonarrController extends AbstractController
     public function indexerDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteIndexer($id)]);
+            $ok = $this->sonarr->deleteIndexer($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr indexerDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -758,7 +774,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr indexerTest failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -797,7 +813,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr downloadClientAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -809,7 +825,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr downloadClientUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -817,10 +833,11 @@ class SonarrController extends AbstractController
     public function downloadClientDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteDownloadClient($id)]);
+            $ok = $this->sonarr->deleteDownloadClient($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr downloadClientDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -832,7 +849,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr downloadClientTest failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -871,7 +888,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr importListAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -883,7 +900,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr importListUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -891,10 +908,11 @@ class SonarrController extends AbstractController
     public function importListDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteImportList($id)]);
+            $ok = $this->sonarr->deleteImportList($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr importListDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -929,10 +947,11 @@ class SonarrController extends AbstractController
     public function commandCancel(int $cmdId): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->cancelCommand($cmdId)]);
+            $ok = $this->sonarr->cancelCommand($cmdId);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr commandCancel failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -964,7 +983,7 @@ class SonarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'command' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr taskRun failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1093,7 +1112,7 @@ class SonarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'folder' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr rootFolderAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1101,10 +1120,11 @@ class SonarrController extends AbstractController
     public function rootFolderDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteRootFolder($id)]);
+            $ok = $this->sonarr->deleteRootFolder($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr rootFolderDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1143,7 +1163,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr mediaManagementNamingSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1167,7 +1187,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr mediaManagementMmSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1195,7 +1215,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr remotePathMappingAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1207,7 +1227,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr remotePathMappingUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1215,10 +1235,11 @@ class SonarrController extends AbstractController
     public function remotePathMappingDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteRemotePathMapping($id)]);
+            $ok = $this->sonarr->deleteRemotePathMapping($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr remotePathMappingDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1246,7 +1267,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr metadataUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1254,10 +1275,11 @@ class SonarrController extends AbstractController
     public function metadataDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteMetadata($id)]);
+            $ok = $this->sonarr->deleteMetadata($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr metadataDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1285,7 +1307,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr customFilterAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1297,7 +1319,7 @@ class SonarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr customFilterUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 
@@ -1305,10 +1327,11 @@ class SonarrController extends AbstractController
     public function customFilterDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->sonarr->deleteCustomFilter($id)]);
+            $ok = $this->sonarr->deleteCustomFilter($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Sonarr', $this->sonarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Sonarr customFilterDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Sonarr', $this->sonarr, $e->getMessage());
         }
     }
 

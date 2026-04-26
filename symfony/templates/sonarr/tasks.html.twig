@@ -83,7 +83,7 @@ document.querySelectorAll('.btn-task-run').forEach(function(btn) {
         showFeedback(I18N.launchedTpl.replace('__NAME__', commandName));
         setTimeout(function() { location.reload(); }, 1500);
       } else {
-        showFeedback(I18N.errorRun, 'danger');
+        showFeedback(data.error || I18N.errorRun, 'danger');
         btn.disabled = false;
         btn.innerHTML = SVG_PLAY;
       }

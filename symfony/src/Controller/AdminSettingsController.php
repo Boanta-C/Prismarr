@@ -412,6 +412,24 @@ class AdminSettingsController extends AbstractController
         ]);
     }
 
+    /**
+     * Manual reset of the cross-request "service down" cache for a given
+     * service. Called by the "Retry" button on the service-banner so the
+     * next page load probes the upstream again instead of waiting out the
+     * 10 s TTL.
+     */
+    #[Route('/health/invalidate/{service}', name: 'health_invalidate', methods: ['POST'])]
+    public function healthInvalidate(string $service): JsonResponse
+    {
+        $service = strtolower($service);
+        $allowed = ['radarr', 'sonarr', 'prowlarr', 'jellyseerr', 'qbittorrent', 'tmdb'];
+        if (!in_array($service, $allowed, true)) {
+            return new JsonResponse(['ok' => false], 400);
+        }
+        $this->health->invalidate($service);
+        return new JsonResponse(['ok' => true]);
+    }
+
     #[Route('/languages/save', name: 'languages_save', methods: ['POST'])]
     public function languagesSave(Request $request): Response
     {

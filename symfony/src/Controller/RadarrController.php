@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Concerns\ApiClientErrorTrait;
 use App\Service\Media\RadarrClient;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,6 +17,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[Route('/radarr', name: 'radarr_')]
 class RadarrController extends AbstractController
 {
+    use ApiClientErrorTrait;
+
     public function __construct(
         private readonly RadarrClient $radarr,
         private readonly LoggerInterface $logger,
@@ -48,7 +51,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => true, 'cmdId' => $cmdId]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr installUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -76,7 +79,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => true, 'cmdId' => $cmdId]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr backupCreate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -84,10 +87,11 @@ class RadarrController extends AbstractController
     public function backupDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteBackup($id)]);
+            $ok = $this->radarr->deleteBackup($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr backupDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -95,10 +99,11 @@ class RadarrController extends AbstractController
     public function backupRestore(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->restoreBackup($id)]);
+            $ok = $this->radarr->restoreBackup($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr backupRestore failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -122,10 +127,11 @@ class RadarrController extends AbstractController
     public function notificationDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteNotification($id)]);
+            $ok = $this->radarr->deleteNotification($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr notificationDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -133,10 +139,11 @@ class RadarrController extends AbstractController
     public function notificationTest(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->testNotification($id)]);
+            $ok = $this->radarr->testNotification($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr notificationTest failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -159,7 +166,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr notificationAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -171,7 +178,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr notificationUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -183,7 +190,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr notificationTestPayload failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -221,7 +228,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $exclusion !== null, 'exclusion' => $exclusion]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr exclusionAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -229,10 +236,11 @@ class RadarrController extends AbstractController
     public function exclusionDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteImportListExclusion($id)]);
+            $ok = $this->radarr->deleteImportListExclusion($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr exclusionDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -241,10 +249,11 @@ class RadarrController extends AbstractController
     {
         try {
             $ids = $request->toArray()['ids'] ?? [];
-            return $this->json(['ok' => $this->radarr->bulkDeleteImportListExclusions($ids)]);
+            $ok = $this->radarr->bulkDeleteImportListExclusions($ids);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr exclusionBulkDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -328,7 +337,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => true, 'folders' => $unmatched]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr libraryImportScan failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -370,7 +379,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => true, 'cmdId' => $cmdId]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr renameExecute failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -413,7 +422,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr qualityProfileCreate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -425,7 +434,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr qualityProfileUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -433,10 +442,11 @@ class RadarrController extends AbstractController
     public function qualityProfileDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteQualityProfile($id)]);
+            $ok = $this->radarr->deleteQualityProfile($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr qualityProfileDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -445,10 +455,11 @@ class RadarrController extends AbstractController
     {
         try {
             $definitions = $request->toArray();
-            return $this->json(['ok' => $this->radarr->bulkUpdateQualityDefinitions($definitions)]);
+            $ok = $this->radarr->bulkUpdateQualityDefinitions($definitions);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr qualityDefinitionsSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -479,10 +490,11 @@ class RadarrController extends AbstractController
     public function delayProfileDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteDelayProfile($id)]);
+            $ok = $this->radarr->deleteDelayProfile($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr delayProfileDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -494,7 +506,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'profile' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr delayProfileAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -506,7 +518,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'profile' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr delayProfileUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -545,7 +557,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'format' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr customFormatAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -557,7 +569,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'format' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr customFormatUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -565,10 +577,11 @@ class RadarrController extends AbstractController
     public function customFormatDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteCustomFormat($id)]);
+            $ok = $this->radarr->deleteCustomFormat($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr customFormatDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -592,10 +605,11 @@ class RadarrController extends AbstractController
     public function autoTagDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteAutoTag($id)]);
+            $ok = $this->radarr->deleteAutoTag($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr autoTagDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -607,7 +621,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'autoTag' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr autoTagAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -619,7 +633,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'autoTag' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr autoTagUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -648,7 +662,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $tag !== null, 'tag' => $tag]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr tagAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -683,7 +697,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $tag !== null, 'tag' => $tag]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr tagRename failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -728,7 +742,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $config !== null, 'config' => $config]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr settingsHostSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -766,7 +780,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr uiSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -805,7 +819,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr indexerAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -817,7 +831,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr indexerUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -825,10 +839,11 @@ class RadarrController extends AbstractController
     public function indexerDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteIndexer($id)]);
+            $ok = $this->radarr->deleteIndexer($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr indexerDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -840,7 +855,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr indexerTest failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -879,7 +894,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr downloadClientAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -891,7 +906,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr downloadClientUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -899,10 +914,11 @@ class RadarrController extends AbstractController
     public function downloadClientDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteDownloadClient($id)]);
+            $ok = $this->radarr->deleteDownloadClient($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr downloadClientDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -914,7 +930,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr downloadClientTest failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -953,7 +969,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr importListAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -965,7 +981,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr importListUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -973,10 +989,11 @@ class RadarrController extends AbstractController
     public function importListDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteImportList($id)]);
+            $ok = $this->radarr->deleteImportList($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr importListDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1011,10 +1028,11 @@ class RadarrController extends AbstractController
     public function commandCancel(int $cmdId): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->cancelCommand($cmdId)]);
+            $ok = $this->radarr->cancelCommand($cmdId);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr commandCancel failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1046,7 +1064,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'command' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr taskRun failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1193,7 +1211,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'folder' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr rootFolderAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1201,10 +1219,11 @@ class RadarrController extends AbstractController
     public function rootFolderDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteRootFolder($id)]);
+            $ok = $this->radarr->deleteRootFolder($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr rootFolderDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1243,7 +1262,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr mediaManagementNamingSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1260,7 +1279,7 @@ class RadarrController extends AbstractController
             return $this->json($result);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr mediaManagementMmSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1280,10 +1299,11 @@ class RadarrController extends AbstractController
             $data = $request->toArray();
             $ids  = $data['movieIds'] ?? [];
             unset($data['movieIds']);
-            return $this->json(['ok' => $this->radarr->bulkUpdateMovies($ids, $data)]);
+            $ok = $this->radarr->bulkUpdateMovies($ids, $data);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr moviesBulkUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1311,7 +1331,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'mapping' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr remotePathMappingAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1324,7 +1344,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'mapping' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr remotePathMappingUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1332,10 +1352,11 @@ class RadarrController extends AbstractController
     public function remotePathMappingDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteRemotePathMapping($id)]);
+            $ok = $this->radarr->deleteRemotePathMapping($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr remotePathMappingDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1363,7 +1384,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'metadata' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr metadataUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1371,10 +1392,11 @@ class RadarrController extends AbstractController
     public function metadataDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteMetadata($id)]);
+            $ok = $this->radarr->deleteMetadata($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr metadataDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1400,7 +1422,7 @@ class RadarrController extends AbstractController
             return $this->json($this->radarr->updateMetadataConfig($merged));
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr metadataConfigSave failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1428,7 +1450,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'filter' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr customFilterAdd failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1440,7 +1462,7 @@ class RadarrController extends AbstractController
             return $this->json(['ok' => $result !== null, 'filter' => $result]);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr customFilterUpdate failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 
@@ -1448,10 +1470,11 @@ class RadarrController extends AbstractController
     public function customFilterDelete(int $id): JsonResponse
     {
         try {
-            return $this->json(['ok' => $this->radarr->deleteCustomFilter($id)]);
+            $ok = $this->radarr->deleteCustomFilter($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Radarr', $this->radarr);
         } catch (\Throwable $e) {
             $this->logger->warning('Radarr customFilterDelete failed', ['exception' => $e::class, 'message' => $e->getMessage()]);
-            return $this->json(['ok' => false], 500);
+            return $this->jsonClientError('Radarr', $this->radarr, $e->getMessage());
         }
     }
 }

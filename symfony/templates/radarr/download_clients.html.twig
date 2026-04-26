@@ -178,7 +178,7 @@
       });
       const data = await r.json();
       if (data.ok) location.reload();
-      else showFeedback(I18N.error_delete, 'danger');
+      else showFeedback(data.error || I18N.error_delete, 'danger');
     });
   });
 })();

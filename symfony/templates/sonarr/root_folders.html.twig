@@ -113,7 +113,7 @@ document.querySelectorAll('.btn-rf-delete').forEach(btn => {
     });
     const data = await r.json();
     if (data.ok) location.reload();
-    else showFeedback(I18N.errorDelete, 'danger');
+    else showFeedback(data.error || I18N.errorDelete, 'danger');
   });
 });
 })();

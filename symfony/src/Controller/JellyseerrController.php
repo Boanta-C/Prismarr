@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Concerns\ApiClientErrorTrait;
 use App\Service\ConfigService;
 use App\Service\Media\JellyseerrClient;
 use Psr\Log\LoggerInterface;
@@ -17,6 +18,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[Route('/jellyseerr', name: 'jellyseerr_')]
 class JellyseerrController extends AbstractController
 {
+    use ApiClientErrorTrait;
+
     private const VALID_FILTERS = ['all', 'pending', 'approved', 'processing', 'available', 'partial', 'unavailable', 'failed'];
 
     public function __construct(
@@ -253,7 +256,7 @@ class JellyseerrController extends AbstractController
 
         $ok = $this->jellyseerr->deleteUser($id);
         if (!$ok) {
-            return $this->json(['ok' => false, 'error' => $this->translator->trans('jellyseerr.api.cannot_delete')]);
+            return $this->jsonClientError('Jellyseerr', $this->jellyseerr, $this->translator->trans('jellyseerr.api.cannot_delete'));
         }
         return $this->json(['ok' => true]);
     }
@@ -268,7 +271,7 @@ class JellyseerrController extends AbstractController
             return $this->json(['ok' => false, 'error' => $this->translator->trans('jellyseerr.api.password_too_short')]);
         }
         $ok = $this->jellyseerr->updateUserPassword($id, $password);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/utilisateurs/{id}/notifications', name: 'user_update_notifs', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -376,7 +379,7 @@ class JellyseerrController extends AbstractController
     public function settingsRulesDelete(int $id): JsonResponse
     {
         $ok = $this->jellyseerr->deleteOverrideRule($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/parametres/services', name: 'settings_services')]
@@ -452,14 +455,14 @@ class JellyseerrController extends AbstractController
     public function settingsRadarrDelete(int $id): JsonResponse
     {
         $ok = $this->jellyseerr->deleteRadarrServer($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/parametres/services/sonarr/{id}/delete', name: 'settings_sonarr_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function settingsSonarrDelete(int $id): JsonResponse
     {
         $ok = $this->jellyseerr->deleteSonarrServer($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/parametres/services/test', name: 'settings_service_test', methods: ['POST'])]
@@ -607,14 +610,14 @@ class JellyseerrController extends AbstractController
     public function cacheFlush(): JsonResponse
     {
         $ok = $this->jellyseerr->flushCache();
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/cache/{cacheId}/flush', name: 'cache_flush_one', methods: ['POST'])]
     public function cacheFlushOne(string $cacheId): JsonResponse
     {
         $ok = $this->jellyseerr->flushCacheById($cacheId);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     // ── Request actions ──────────────────────────────────────────────────────
@@ -623,28 +626,28 @@ class JellyseerrController extends AbstractController
     public function approveRequest(int $id): JsonResponse
     {
         $ok = $this->jellyseerr->approveRequest($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/request/{id}/decline', name: 'request_decline', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function declineRequest(int $id): JsonResponse
     {
         $ok = $this->jellyseerr->declineRequest($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/request/{id}/delete', name: 'request_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function deleteRequest(int $id): JsonResponse
     {
         $ok = $this->jellyseerr->deleteRequest($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/request/{id}/retry', name: 'request_retry', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function retryRequest(int $id): JsonResponse
     {
         $ok = $this->jellyseerr->retryRequest($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/request/{id}/edit', name: 'request_edit', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -674,7 +677,7 @@ class JellyseerrController extends AbstractController
     public function jellyfinSync(): JsonResponse
     {
         $ok = $this->jellyseerr->syncJellyfinLibraries();
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Jellyseerr', $this->jellyseerr);
     }
 
     #[Route('/service/settings-main', name: 'settings_main', methods: ['GET'])]

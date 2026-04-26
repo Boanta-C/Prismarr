@@ -9,6 +9,7 @@ use Symfony\Contracts\Service\ResetInterface;
 class QBittorrentClient implements ResetInterface
 {
     private const SERVICE = 'qBittorrent';
+    private const SERVICE_KEY = 'qbittorrent';
 
     /** qBittorrent session reused between calls (avoids a curl POST auth per method). */
     private ?string $sid = null;
@@ -22,9 +23,20 @@ class QBittorrentClient implements ResetInterface
     private string $user = '';
     private string $password = '';
 
+    /** @var array{code:int, method:string, path:string, message:string}|null */
+    private ?array $lastError = null;
+
+    /**
+     * Circuit breaker — once a network error / timeout occurs in this request,
+     * short-circuit subsequent calls to avoid stacking timeouts and tripping
+     * PHP's max_execution_time. Reset between worker requests via reset().
+     */
+    private bool $serviceUnavailable = false;
+
     public function __construct(
         private readonly ConfigService $config,
         private readonly LoggerInterface $logger,
+        private readonly ServiceHealthCache $health,
     ) {}
 
     private function ensureConfig(): void
@@ -44,6 +56,52 @@ class QBittorrentClient implements ResetInterface
         $this->sid = null;
         $this->serverStateCache = null;
         $this->serverStateCacheAt = 0.0;
+        $this->lastError = null;
+        $this->serviceUnavailable = false;
+    }
+
+    /**
+     * Returns the last upstream error captured by an HTTP method on this client,
+     * or null if the most recent call succeeded. Reset between worker requests.
+     *
+     * @return array{code:int, method:string, path:string, message:string}|null
+     */
+    public function getLastError(): ?array
+    {
+        return $this->lastError;
+    }
+
+    private function extractApiErrorMessage(string $body, int $code, string $curlError): string
+    {
+        $body = trim($body);
+        // qBit usually returns plain text bodies (e.g. "Fails.", "torrent not found")
+        $decoded = $body !== '' ? json_decode($body, true) : null;
+
+        if (is_array($decoded)) {
+            foreach (['errorMessage', 'error', 'message', 'detail'] as $key) {
+                if (isset($decoded[$key]) && is_string($decoded[$key]) && $decoded[$key] !== '') {
+                    return $decoded[$key];
+                }
+            }
+        }
+
+        if ($body !== '' && strlen($body) < 200) {
+            return $body;
+        }
+
+        if ($curlError !== '') return $curlError;
+
+        return "HTTP {$code}";
+    }
+
+    private function recordError(string $method, string $path, int $code, string $body, string $curlError): void
+    {
+        $this->lastError = [
+            'code'    => $code,
+            'method'  => $method,
+            'path'    => $path,
+            'message' => $this->extractApiErrorMessage($body, $code, $curlError),
+        ];
     }
 
     /** Light ping — true if qBit responds and accepts the credentials. */
@@ -296,6 +354,11 @@ class QBittorrentClient implements ResetInterface
     public function addTorrentFromFiles(array $files, ?string $category = null, ?string $savepath = null, bool $paused = false): bool
     {
         if (empty($files)) return false;
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return false;
+        }
+        if ($this->serviceUnavailable) return false;
         $sid = $this->login();
         if (!$sid) return false;
 
@@ -324,6 +387,7 @@ class QBittorrentClient implements ResetInterface
                 return false;
             }
 
+            $this->lastError = null;
             $ch = curl_init($url);
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
@@ -336,14 +400,26 @@ class QBittorrentClient implements ResetInterface
             ]);
             $response = curl_exec($ch);
             $code     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr  = curl_error($ch);
             curl_close($ch);
 
             if ($response === false || $code !== 200) {
                 $this->logger->warning('QBittorrentClient addTorrentFromFiles failed', ['code' => $code]);
+                $this->recordError('POST', '/api/v2/torrents/add', (int) $code, is_string($response) ? $response : '', $curlErr);
+                if ($curlErr !== '' || (int) $code === 0) {
+                    $this->serviceUnavailable = true;
+                    $this->health->markDown(self::SERVICE_KEY);
+                }
                 return false;
             }
             // qBit returns "Ok." with 200, or "Fails." on error
-            return stripos((string)$response, 'fail') === false;
+            $isFail = stripos((string)$response, 'fail') !== false;
+            if ($isFail) {
+                $this->recordError('POST', '/api/v2/torrents/add', (int) $code, (string) $response, $curlErr);
+            } else {
+                $this->health->clear(self::SERVICE_KEY);
+            }
+            return !$isFail;
         } finally {
             // Guaranteed cleanup even on exception
             foreach ($tmpPaths as $tmp) {
@@ -623,12 +699,20 @@ class QBittorrentClient implements ResetInterface
         // Reuse the already-obtained SID (survives between requests in the same PHP-FPM worker).
         if ($this->sid !== null) return $this->sid;
 
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return null;
+        }
+        if ($this->serviceUnavailable) {
+            return null;
+        }
+
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . '/api/v2/auth/login';
         $ch  = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_CONNECTTIMEOUT => 4,
             CURLOPT_TIMEOUT        => 8,
             // NOSIGNAL is critical in PHP worker mode on Alpine: without it
             // libcurl falls back to SIGALRM for DNS resolution, which PHP
@@ -642,15 +726,30 @@ class QBittorrentClient implements ResetInterface
         ]);
 
         $response = curl_exec($ch);
+        $code     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err      = curl_error($ch);
         if ($response === false) {
-            $this->logger->warning('QBittorrentClient login error', ['error' => curl_error($ch)]);
+            $this->logger->warning('QBittorrentClient login error', ['error' => $err]);
             curl_close($ch);
+            // Network failure → arm circuit breaker (in-process + cross-request)
+            // so subsequent get/postAction calls bail out fast.
+            $this->serviceUnavailable = true;
+            $this->health->markDown(self::SERVICE_KEY);
             return null;
         }
         curl_close($ch);
 
+        // Empty/zero HTTP code also means we never reached the host.
+        if ((int) $code === 0) {
+            $this->serviceUnavailable = true;
+            $this->health->markDown(self::SERVICE_KEY);
+        }
+
         preg_match('/Set-Cookie:\s*SID=([^;]+)/i', $response, $m);
         $this->sid = $m[1] ?? null;
+        if ($this->sid !== null) {
+            $this->health->clear(self::SERVICE_KEY);
+        }
         return $this->sid;
     }
 
@@ -673,6 +772,14 @@ class QBittorrentClient implements ResetInterface
 
     private function getRaw(string $path, array $params = [], ?string $sid = null): ?string
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return null;
+        }
+        if ($this->serviceUnavailable) {
+            return null;
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) $url .= '?' . http_build_query($params);
@@ -683,7 +790,7 @@ class QBittorrentClient implements ResetInterface
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_CONNECTTIMEOUT => 4,
             CURLOPT_TIMEOUT        => 8,
             CURLOPT_NOSIGNAL       => 1,
             CURLOPT_HTTPHEADER     => $headers,
@@ -691,10 +798,14 @@ class QBittorrentClient implements ResetInterface
 
         $body = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
 
         if ($body === false) {
-            $this->logger->warning('QBittorrentClient GET error', ['path' => $path, 'error' => curl_error($ch)]);
+            $this->logger->warning('QBittorrentClient GET error', ['path' => $path, 'error' => $curlErr]);
+            $this->recordError('GET', $path, (int) $code, '', $curlErr);
             curl_close($ch);
+            $this->serviceUnavailable = true;
+            $this->health->markDown(self::SERVICE_KEY);
             return null;
         }
         curl_close($ch);
@@ -705,14 +816,28 @@ class QBittorrentClient implements ResetInterface
                 $this->invalidateSession();
             }
             $this->logger->warning('QBittorrentClient GET error', ['path' => $path, 'code' => $code]);
+            $this->recordError('GET', $path, (int) $code, is_string($body) ? $body : '', $curlErr);
+            if ($curlErr !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
             return null;
         }
 
+        $this->health->clear(self::SERVICE_KEY);
         return $body;
     }
 
     private function postAction(string $path, array $params = [], bool $retried = false): bool
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return false;
+        }
+        if ($this->serviceUnavailable) {
+            return false;
+        }
+        $this->lastError = null;
         $sid = $this->login();
         if (!$sid) return false;
 
@@ -723,8 +848,8 @@ class QBittorrentClient implements ResetInterface
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 3,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_TIMEOUT        => 8,
             CURLOPT_NOSIGNAL       => 1,
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => http_build_query($params),
@@ -733,10 +858,14 @@ class QBittorrentClient implements ResetInterface
 
         $body = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
 
         if ($body === false) {
-            $this->logger->warning('QBittorrentClient POST error', ['path' => $path, 'error' => curl_error($ch)]);
+            $this->logger->warning('QBittorrentClient POST error', ['path' => $path, 'error' => $curlErr]);
+            $this->recordError('POST', $path, (int) $code, '', $curlErr);
             curl_close($ch);
+            $this->serviceUnavailable = true;
+            $this->health->markDown(self::SERVICE_KEY);
             return false;
         }
         curl_close($ch);
@@ -748,9 +877,15 @@ class QBittorrentClient implements ResetInterface
                 return $this->postAction($path, $params, true);
             }
             $this->logger->warning('QBittorrentClient POST error', ['path' => $path, 'code' => $code]);
+            $this->recordError('POST', $path, (int) $code, is_string($body) ? $body : '', $curlErr);
+            if ($curlErr !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
             return false;
         }
 
+        $this->health->clear(self::SERVICE_KEY);
         return true;
     }
 }

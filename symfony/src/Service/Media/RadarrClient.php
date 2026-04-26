@@ -9,13 +9,25 @@ use Symfony\Contracts\Service\ResetInterface;
 class RadarrClient implements ResetInterface
 {
     private const SERVICE = 'Radarr';
+    private const SERVICE_KEY = 'radarr';
 
     private string $baseUrl = '';
     private string $apiKey = '';
 
+    /** @var array{code:int, method:string, path:string, message:string}|null */
+    private ?array $lastError = null;
+
+    /**
+     * Circuit breaker — once a network error / timeout occurs in this request,
+     * short-circuit subsequent calls to avoid stacking 4s timeouts and tripping
+     * PHP's max_execution_time. Reset between worker requests via reset().
+     */
+    private bool $serviceUnavailable = false;
+
     public function __construct(
         private readonly ConfigService $config,
         private readonly LoggerInterface $logger,
+        private readonly ServiceHealthCache $health,
     ) {}
 
     private function ensureConfig(): void
@@ -30,6 +42,75 @@ class RadarrClient implements ResetInterface
     {
         $this->baseUrl = '';
         $this->apiKey  = '';
+        $this->lastError = null;
+        $this->serviceUnavailable = false;
+    }
+
+    /**
+     * Returns the last upstream error captured by an HTTP method on this client,
+     * or null if the most recent call succeeded. Reset between worker requests.
+     *
+     * @return array{code:int, method:string, path:string, message:string}|null
+     */
+    public function getLastError(): ?array
+    {
+        return $this->lastError;
+    }
+
+    /**
+     * Extracts a human-readable error message from an upstream API response body.
+     * Handles JSON objects ({errorMessage}/{error}/{message}/{detail}), JSON arrays
+     * of validation errors ([{propertyName, errorMessage}, ...]), short raw bodies,
+     * and falls back to curl error or "HTTP {code}".
+     */
+    private function extractApiErrorMessage(string $body, int $code, string $curlError): string
+    {
+        $body = trim($body);
+        $decoded = $body !== '' ? json_decode($body, true) : null;
+
+        if (is_array($decoded)) {
+            // Array of validation errors: [{propertyName, errorMessage}, ...]
+            if (isset($decoded[0]) && is_array($decoded[0])) {
+                $messages = [];
+                foreach ($decoded as $entry) {
+                    if (!is_array($entry)) continue;
+                    $msg = $entry['errorMessage'] ?? $entry['error'] ?? $entry['message'] ?? $entry['detail'] ?? null;
+                    if (is_string($msg) && $msg !== '') {
+                        $prop = $entry['propertyName'] ?? '';
+                        $messages[] = $prop !== '' ? "{$prop}: {$msg}" : $msg;
+                    }
+                }
+                if (!empty($messages)) return implode('; ', $messages);
+            }
+
+            // Object with a known error key
+            foreach (['errorMessage', 'error', 'message', 'detail'] as $key) {
+                if (isset($decoded[$key]) && is_string($decoded[$key]) && $decoded[$key] !== '') {
+                    return $decoded[$key];
+                }
+            }
+        }
+
+        if ($body !== '' && strlen($body) < 200) {
+            return $body;
+        }
+
+        if ($curlError !== '') return $curlError;
+
+        return "HTTP {$code}";
+    }
+
+    /**
+     * @internal Stores last error metadata for getLastError() consumers.
+     */
+    private function recordError(string $method, string $path, int $code, string $body, string $curlError): void
+    {
+        $this->lastError = [
+            'code'    => $code,
+            'method'  => $method,
+            'path'    => $path,
+            'message' => $this->extractApiErrorMessage($body, $code, $curlError),
+        ];
     }
 
     /** Light ping — true if the API responds and accepts the key. */
@@ -1373,6 +1454,14 @@ class RadarrClient implements ResetInterface
 
     private function get(string $path, array $params = []): ?array
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return null;
+        }
+        if ($this->serviceUnavailable) {
+            return null;
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if (!empty($params)) {
@@ -1383,7 +1472,9 @@ class RadarrClient implements ResetInterface
         curl_setopt_array($ch, [
             CURLOPT_URL            => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_NOSIGNAL       => 1,
             CURLOPT_HTTPHEADER     => ["X-Api-Key: {$this->apiKey}", 'Accept: application/json'],
         ]);
 
@@ -1394,9 +1485,15 @@ class RadarrClient implements ResetInterface
 
         if ($err || $code !== 200) {
             $this->logger->warning("RadarrClient GET {$path} → HTTP {$code} {$err}");
+            $this->recordError('GET', $path, (int) $code, is_string($body) ? $body : '', $err);
+            if ($err !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
             return null;
         }
 
+        $this->health->clear(self::SERVICE_KEY);
         return json_decode($body, true);
     }
 
@@ -1407,6 +1504,14 @@ class RadarrClient implements ResetInterface
 
     private function delete(string $path, array $params = []): bool
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return false;
+        }
+        if ($this->serviceUnavailable) {
+            return false;
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) $url .= '?' . http_build_query($params);
@@ -1414,36 +1519,78 @@ class RadarrClient implements ResetInterface
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_NOSIGNAL       => 1,
             CURLOPT_CUSTOMREQUEST  => 'DELETE',
             CURLOPT_HTTPHEADER     => ["X-Api-Key: {$this->apiKey}"],
         ]);
-        curl_exec($ch);
+        $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
         curl_close($ch);
-        return $code >= 200 && $code < 300;
+        if ($code < 200 || $code >= 300) {
+            $this->logger->warning("RadarrClient DELETE {$path} → HTTP {$code}");
+            $this->recordError('DELETE', $path, (int) $code, is_string($resp) ? $resp : '', $err);
+            if ($err !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
+            return false;
+        }
+        $this->health->clear(self::SERVICE_KEY);
+        return true;
     }
 
     private function deleteWithBody(string $path, array $body): bool
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return false;
+        }
+        if ($this->serviceUnavailable) {
+            return false;
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_NOSIGNAL       => 1,
             CURLOPT_CUSTOMREQUEST  => 'DELETE',
             CURLOPT_POSTFIELDS     => json_encode($body),
             CURLOPT_HTTPHEADER     => ["X-Api-Key: {$this->apiKey}", 'Content-Type: application/json'],
         ]);
-        curl_exec($ch);
+        $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
         curl_close($ch);
-        return $code >= 200 && $code < 300;
+        if ($code < 200 || $code >= 300) {
+            $this->logger->warning("RadarrClient DELETE (body) {$path} → HTTP {$code}");
+            $this->recordError('DELETE', $path, (int) $code, is_string($resp) ? $resp : '', $err);
+            if ($err !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
+            return false;
+        }
+        $this->health->clear(self::SERVICE_KEY);
+        return true;
     }
 
     private function request(string $method, string $path, array $params, array $body): ?array
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return null;
+        }
+        if ($this->serviceUnavailable) {
+            return null;
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) $url .= '?' . http_build_query($params);
@@ -1451,7 +1598,9 @@ class RadarrClient implements ResetInterface
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_CONNECTTIMEOUT => 4,
+            CURLOPT_NOSIGNAL       => 1,
             CURLOPT_CUSTOMREQUEST  => $method,
             CURLOPT_POSTFIELDS     => json_encode($body),
             CURLOPT_HTTPHEADER     => ["X-Api-Key: {$this->apiKey}", 'Content-Type: application/json', 'Accept: application/json'],
@@ -1459,13 +1608,20 @@ class RadarrClient implements ResetInterface
 
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
         curl_close($ch);
 
         if ($code < 200 || $code >= 300) {
             $this->logger->warning("RadarrClient {$method} {$path} → HTTP {$code}");
+            $this->recordError($method, $path, (int) $code, is_string($resp) ? $resp : '', $err);
+            if ($err !== '' || (int) $code === 0) {
+                $this->serviceUnavailable = true;
+                $this->health->markDown(self::SERVICE_KEY);
+            }
             return null;
         }
 
+        $this->health->clear(self::SERVICE_KEY);
         return json_decode($resp ?: '{}', true) ?? [];
     }
 
@@ -1474,6 +1630,14 @@ class RadarrClient implements ResetInterface
      */
     private function requestWithError(string $method, string $path, array $body): array
     {
+        if ($this->health->isDown(self::SERVICE_KEY)) {
+            $this->serviceUnavailable = true;
+            return ['ok' => false, 'error' => 'Service unavailable (circuit breaker open)'];
+        }
+        if ($this->serviceUnavailable) {
+            return ['ok' => false, 'error' => 'Service unavailable (circuit breaker open)'];
+        }
+        $this->lastError = null;
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
 
@@ -1492,13 +1656,23 @@ class RadarrClient implements ResetInterface
         curl_close($ch);
 
         if ($err) {
+            $this->recordError($method, $path, (int) $code, is_string($resp) ? $resp : '', $err);
+            $this->serviceUnavailable = true;
+            $this->health->markDown(self::SERVICE_KEY);
             return ['ok' => false, 'error' => "Network error: {$err}"];
+        }
+        if ((int) $code === 0) {
+            $this->recordError($method, $path, 0, is_string($resp) ? $resp : '', $err);
+            $this->serviceUnavailable = true;
+            $this->health->markDown(self::SERVICE_KEY);
+            return ['ok' => false, 'error' => 'Network error: no HTTP response'];
         }
 
         $data = json_decode($resp ?: '{}', true) ?? [];
 
         if ($code < 200 || $code >= 300) {
             $this->logger->warning("RadarrClient {$method} {$path} → HTTP {$code}", ['response' => $resp]);
+            $this->recordError($method, $path, (int) $code, is_string($resp) ? $resp : '', $err);
             // Radarr may return either a {message} object or an array [{propertyName, errorMessage}]
             if (isset($data[0]['errorMessage'])) {
                 $messages = array_map(fn($e) => ($e['propertyName'] ?? '') . ' : ' . ($e['errorMessage'] ?? '?'), $data);
@@ -1509,6 +1683,7 @@ class RadarrClient implements ResetInterface
             return ['ok' => false, 'error' => $msg, 'details' => $data];
         }
 
+        $this->health->clear(self::SERVICE_KEY);
         return ['ok' => true, 'data' => $data];
     }
 }

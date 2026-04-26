@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Controller\Concerns\ApiClientErrorTrait;
 use App\Service\ConfigService;
 use App\Service\Media\ProwlarrClient;
 use Psr\Log\LoggerInterface;
@@ -17,6 +18,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[Route('/prowlarr', name: 'prowlarr_')]
 class ProwlarrController extends AbstractController
 {
+    use ApiClientErrorTrait;
+
     public function __construct(
         private readonly ProwlarrClient $prowlarr,
         private readonly ConfigService $config,
@@ -103,7 +106,7 @@ class ProwlarrController extends AbstractController
     public function indexerDelete(int $id): JsonResponse
     {
         $ok = $this->prowlarr->deleteIndexer($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Prowlarr', $this->prowlarr);
     }
 
     #[Route('/indexer/test', name: 'indexer_test', methods: ['POST'])]
@@ -208,7 +211,8 @@ class ProwlarrController extends AbstractController
     #[Route('/application/{id}/delete', name: 'application_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function applicationDelete(int $id): JsonResponse
     {
-        return $this->json(['ok' => $this->prowlarr->deleteApplication($id)]);
+        $ok = $this->prowlarr->deleteApplication($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Prowlarr', $this->prowlarr);
     }
 
     #[Route('/application/test', name: 'application_test', methods: ['POST'])]
@@ -246,7 +250,8 @@ class ProwlarrController extends AbstractController
     #[Route('/downloadclient/{id}/delete', name: 'downloadclient_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function downloadClientDelete(int $id): JsonResponse
     {
-        return $this->json(['ok' => $this->prowlarr->deleteDownloadClient($id)]);
+        $ok = $this->prowlarr->deleteDownloadClient($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Prowlarr', $this->prowlarr);
     }
 
     #[Route('/downloadclient/test', name: 'downloadclient_test', methods: ['POST'])]
@@ -284,7 +289,8 @@ class ProwlarrController extends AbstractController
     #[Route('/notification/{id}/delete', name: 'notification_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function notificationDelete(int $id): JsonResponse
     {
-        return $this->json(['ok' => $this->prowlarr->deleteNotification($id)]);
+        $ok = $this->prowlarr->deleteNotification($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Prowlarr', $this->prowlarr);
     }
 
     #[Route('/notification/test', name: 'notification_test', methods: ['POST'])]
@@ -534,7 +540,7 @@ class ProwlarrController extends AbstractController
     public function backupDelete(int $id): JsonResponse
     {
         $ok = $this->prowlarr->deleteBackup($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Prowlarr', $this->prowlarr);
     }
 
     // ── Tag delete ───────────────────────────────────────────────────────
@@ -543,7 +549,7 @@ class ProwlarrController extends AbstractController
     public function tagDelete(int $id): JsonResponse
     {
         $ok = $this->prowlarr->deleteTag($id);
-        return $this->json(['ok' => $ok]);
+        return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Prowlarr', $this->prowlarr);
     }
 
     // ── Indexer Stats ─────────────────────────────────────────────────
@@ -575,7 +581,8 @@ class ProwlarrController extends AbstractController
     public function indexerBulkDelete(Request $request): JsonResponse
     {
         $ids = $request->toArray()['ids'] ?? [];
-        return $this->json(['ok' => $this->prowlarr->bulkDeleteIndexers($ids)]);
+        $ok = $this->prowlarr->bulkDeleteIndexers($ids);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Prowlarr', $this->prowlarr);
     }
 
     #[Route('/indexer/testall', name: 'indexer_testall', methods: ['POST'])]
@@ -687,7 +694,8 @@ class ProwlarrController extends AbstractController
     #[Route('/app-profile/{id}/delete', name: 'app_profile_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function appProfileDelete(int $id): JsonResponse
     {
-        return $this->json(['ok' => $this->prowlarr->deleteAppProfile($id)]);
+        $ok = $this->prowlarr->deleteAppProfile($id);
+            return $ok ? $this->json(['ok' => true]) : $this->jsonClientError('Prowlarr', $this->prowlarr);
     }
 
     // ── Commands ────────────────────────────────────────────────────────────
