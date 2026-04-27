@@ -384,6 +384,35 @@
     .secret-toggle:hover { opacity: .95; }
     .secret-toggle svg { width: 16px; height: 16px; }
 
+    /* ── Test connection result badge (button itself is Tabler-standard) ── */
+    .test-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-top: .6rem;
+      flex-wrap: wrap;
+    }
+
+    .test-result {
+      font-size: .78rem;
+      font-weight: 500;
+      letter-spacing: .01em;
+      display: none;
+    }
+    .test-result.is-pending,
+    .test-result.is-ok,
+    .test-result.is-error { display: inline-flex; align-items: center; gap: .3rem; }
+    .test-result.is-pending { color: #9ca3af; }
+    .test-result.is-ok      { color: #4ade80; }
+    .test-result.is-error   { color: #fca5a5; }
+    [data-bs-theme="light"] .test-result.is-ok    { color: #16a34a; }
+    [data-bs-theme="light"] .test-result.is-error { color: #b91c1c; }
+    .test-result-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 6px currentColor;
+    }
+
     {% block extra_css %}{% endblock %}
   </style>
 </head>
@@ -463,6 +492,77 @@
         var input = document.getElementById(btn.dataset.toggleFor);
         if (!input) return;
         input.type = input.type === 'password' ? 'text' : 'password';
+      };
+    });
+
+    // ── Wizard "Test connection" buttons ──
+    // Each [data-test-service] button POSTs the current form values for the
+    // service it tests to /setup/test/<service>, displays {ok, category} as
+    // a small inline badge. Strict no-fetch beyond the controlled endpoint:
+    // we never echo the credentials back, and the JSON response holds no
+    // upstream body.
+    var TEST_LABELS = {
+      ok:           {{ 'setup.test.ok'|trans|json_encode|raw }},
+      pending:      {{ 'setup.test.testing'|trans|json_encode|raw }},
+      network:      {{ 'setup.test.category.network'|trans|json_encode|raw }},
+      auth:         {{ 'setup.test.category.auth'|trans|json_encode|raw }},
+      forbidden:    {{ 'setup.test.category.forbidden'|trans|json_encode|raw }},
+      not_found:    {{ 'setup.test.category.not_found'|trans|json_encode|raw }},
+      server_error: {{ 'setup.test.category.server_error'|trans|json_encode|raw }},
+      unconfigured: {{ 'setup.test.category.unconfigured'|trans|json_encode|raw }},
+      unknown:      {{ 'setup.test.category.unknown'|trans|json_encode|raw }},
+      csrf:         {{ 'setup.test.error.csrf'|trans|json_encode|raw }},
+      forbidden_endpoint: {{ 'setup.test.error.forbidden'|trans|json_encode|raw }},
+      rate_limited: {{ 'setup.test.error.rate_limited'|trans|json_encode|raw }}
+    };
+
+    document.querySelectorAll('[data-test-service]').forEach(function (btn) {
+      btn.onclick = function () {
+        var svc = btn.dataset.testService;
+        var fields = (btn.dataset.testFields || '').split(',').filter(Boolean);
+        var csrf = btn.dataset.testCsrf || '';
+        var resultEl = document.querySelector('[data-test-result-for="' + svc + '"]');
+        if (!resultEl) return;
+
+        // Reflect "pending" state with an aria-live update for screen readers.
+        btn.disabled = true;
+        resultEl.className = 'test-result is-pending';
+        resultEl.innerHTML = '<span class="test-result-dot"></span><span>' + TEST_LABELS.pending + '</span>';
+
+        var fd = new FormData();
+        fd.append('_csrf_token', csrf);
+        fields.forEach(function (f) {
+          var input = document.getElementById(f);
+          if (input) fd.append(f, input.value || '');
+        });
+
+        fetch('/setup/test/' + svc, {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin',
+          headers: { 'Accept': 'application/json' }
+        })
+        .then(function (r) { return r.json().then(function (j) { return { http: r.status, body: j }; }); })
+        .then(function (res) {
+          var ok = res.body && res.body.ok === true;
+          var cat = (res.body && res.body.category) ? res.body.category : 'unknown';
+          // 429 / 403 envelopes use distinct labels so the user knows it's a
+          // rate-limit or post-setup lockout rather than an upstream error.
+          if (res.http === 429) cat = 'rate_limited';
+          else if (res.http === 403 && !ok) cat = 'forbidden_endpoint';
+
+          var label = ok ? TEST_LABELS.ok : (TEST_LABELS[cat] || TEST_LABELS.unknown);
+          resultEl.className = 'test-result ' + (ok ? 'is-ok' : 'is-error');
+          resultEl.innerHTML = '<span class="test-result-dot"></span><span></span>';
+          // Use textContent on the inner span to avoid XSS via translation strings.
+          resultEl.querySelector('span:last-child').textContent = label;
+        })
+        .catch(function () {
+          resultEl.className = 'test-result is-error';
+          resultEl.innerHTML = '<span class="test-result-dot"></span><span></span>';
+          resultEl.querySelector('span:last-child').textContent = TEST_LABELS.network;
+        })
+        .finally(function () { btn.disabled = false; });
       };
     });
   </script>

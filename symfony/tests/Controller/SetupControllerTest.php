@@ -6,17 +6,21 @@ use App\Controller\SetupController;
 use App\Repository\SettingRepository;
 use App\Repository\UserRepository;
 use App\Service\ConfigService;
+use App\Service\HealthService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
@@ -253,6 +257,148 @@ class SetupControllerTest extends TestCase
         // Page rendered (Twig mock returns HTML) — important: ConfigService::get()
         // was never called for the sensitive key.
         $this->assertInstanceOf(Response::class, $response);
+    }
+
+    // ─── /setup/test/{service} — connection-test endpoint (v1.0.6) ───
+
+    /**
+     * Build a real RateLimiterFactory with an in-memory storage. Symfony's
+     * factory is `final` so we can't mock it — but a generous limit (999/min)
+     * achieves the same goal of "let everything through during the happy
+     * path tests" and an `n=1` factory in the rate-limit test reproduces the
+     * exhaustion case after one consume.
+     */
+    private function makeLimiter(int $limit = 999): RateLimiterFactory
+    {
+        return new RateLimiterFactory(
+            ['id' => 'setup_test', 'policy' => 'fixed_window', 'limit' => $limit, 'interval' => '1 minute'],
+            new InMemoryStorage(),
+        );
+    }
+
+    private function passingLimiter(): RateLimiterFactory
+    {
+        return $this->makeLimiter(999);
+    }
+
+    public function testTestServiceReturns403WhenSetupCompleted(): void
+    {
+        $settings = $this->createMock(SettingRepository::class);
+        $settings->method('get')->willReturnCallback(
+            fn(string $k) => $k === SetupController::SETUP_DONE_KEY ? '1' : null
+        );
+
+        $health = $this->createMock(HealthService::class);
+        // Critical: HealthService MUST NOT be probed once setup is done.
+        // This is what stops a post-setup attacker from using the wizard
+        // as a SSRF jumpbox into the operator's LAN.
+        $health->expects($this->never())->method('diagnose');
+
+        // The guard runs first so the limiter is never reached. Pass any
+        // factory — the test asserts diagnose() is never called and the
+        // response is 403, both of which prove we short-circuited early.
+        $users = $this->createMock(UserRepository::class);
+        $em = $this->createMock(EntityManagerInterface::class);
+
+        $controller = $this->newController($users, $em, $settings);
+
+        $response = $controller->testService('radarr', new Request(), $health, $this->passingLimiter());
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertSame(403, $response->getStatusCode());
+        $payload = json_decode((string) $response->getContent(), true);
+        $this->assertSame(['ok' => false, 'category' => 'forbidden'], $payload);
+    }
+
+    public function testTestServiceReturns400OnInvalidCsrf(): void
+    {
+        $users = $this->createMock(UserRepository::class);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $settings = $this->createMock(SettingRepository::class);
+        $settings->method('get')->willReturn(null); // setup not completed
+
+        // Override the CSRF manager mock to reject this specific token id.
+        $controller = $this->newController($users, $em, $settings);
+        $container = $this->createMock(ContainerInterface::class);
+        $router = $this->createMock(UrlGeneratorInterface::class);
+        $csrf = $this->createMock(CsrfTokenManagerInterface::class);
+        $csrf->method('isTokenValid')->willReturn(false);
+        $container->method('has')->willReturnCallback(fn(string $id) => $id === 'security.csrf.token_manager');
+        $container->method('get')->willReturnCallback(fn(string $id) => match ($id) {
+            'security.csrf.token_manager' => $csrf,
+            'router' => $router,
+            default => null,
+        });
+        $controller->setContainer($container);
+
+        $health = $this->createMock(HealthService::class);
+        $health->expects($this->never())->method('diagnose');
+
+        $response = $controller->testService('radarr', new Request(), $health, $this->passingLimiter());
+
+        $this->assertSame(400, $response->getStatusCode());
+        $payload = json_decode((string) $response->getContent(), true);
+        $this->assertFalse($payload['ok']);
+        $this->assertSame('csrf', $payload['category']);
+    }
+
+    public function testTestServiceHappyPathReturnsMinimalPayload(): void
+    {
+        $users = $this->createMock(UserRepository::class);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $settings = $this->createMock(SettingRepository::class);
+        $settings->method('get')->willReturn(null);
+
+        $health = $this->createMock(HealthService::class);
+        $health->expects($this->once())
+            ->method('diagnose')
+            ->with('radarr', $this->callback(function (array $overrides): bool {
+                // Only the whitelisted radarr fields are forwarded.
+                return array_keys($overrides) === ['radarr_url', 'radarr_api_key'];
+            }))
+            ->willReturn(['ok' => true, 'category' => 'ok', 'http' => 200]);
+
+        $controller = $this->newController($users, $em, $settings);
+        $request = $this->postRequest([
+            'radarr_url' => 'http://radarr.lan:7878',
+            'radarr_api_key' => 'fake-key',
+            // An attacker trying to inject a sonarr field should be ignored.
+            'sonarr_api_key' => 'should-not-be-forwarded',
+        ]);
+
+        $response = $controller->testService('radarr', $request, $health, $this->passingLimiter());
+
+        $this->assertSame(200, $response->getStatusCode());
+        $payload = json_decode((string) $response->getContent(), true);
+        // Strict envelope: only ok + category, never the URL or key.
+        $this->assertSame(['ok' => true, 'category' => 'ok'], $payload);
+        // Cache headers: response must never be cached by an upstream proxy.
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
+        $this->assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
+    }
+
+    public function testTestServiceReturns429WhenRateLimited(): void
+    {
+        $users = $this->createMock(UserRepository::class);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $settings = $this->createMock(SettingRepository::class);
+        $settings->method('get')->willReturn(null);
+
+        $health = $this->createMock(HealthService::class);
+        $health->method('diagnose')->willReturn(['ok' => true, 'category' => 'ok', 'http' => 200]);
+
+        // Limit = 1, so the first call consumes the bucket and the second
+        // call (same client IP × service) is rate-limited.
+        $factory = $this->makeLimiter(1);
+        $controller = $this->newController($users, $em, $settings);
+
+        $first = $controller->testService('radarr', $this->postRequest([]), $health, $factory);
+        $this->assertSame(200, $first->getStatusCode());
+
+        $second = $controller->testService('radarr', $this->postRequest([]), $health, $factory);
+        $this->assertSame(429, $second->getStatusCode());
+        $payload = json_decode((string) $second->getContent(), true);
+        $this->assertSame('rate_limited', $payload['category']);
     }
 
     public function testAdminSuccessRedirectsToNextStep(): void

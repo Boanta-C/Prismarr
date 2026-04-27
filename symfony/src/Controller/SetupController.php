@@ -7,13 +7,17 @@ use App\Repository\SettingRepository;
 use App\Repository\UserRepository;
 use App\EventSubscriber\LocaleSubscriber;
 use App\Service\ConfigService;
+use App\Service\HealthService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -299,6 +303,102 @@ class SetupController extends AbstractController
             'errors'          => $errors,
             'values'          => $fields,
         ]);
+    }
+
+    // ─── AJAX endpoint: Test connection (called from each step's "Test" button) ───
+
+    /**
+     * Probe a single service against the values currently typed in the wizard
+     * form (no DB write). Returns a strict JSON envelope `{ok, category}` —
+     * deliberately minimal to prevent leaking the upstream response body, the
+     * URL probed, or the API key submitted.
+     *
+     * Defense-in-depth:
+     *  - guardSetupNotCompleted(): 403 once setup is finished, so an attacker
+     *    can't hit this endpoint to scan the LAN post-install
+     *  - CSRF token bound to the service name: prevents cross-origin form posts
+     *  - service whitelist via Symfony route requirements
+     *  - field whitelist per service inside collectTestFields()
+     *  - rate limiter (30/min per IP): neuters scripted port-scan attempts
+     *    during the brief window where the wizard is publicly reachable
+     *  - HealthService::httpProbe() applies CURLOPT_PROTOCOLS + link-local
+     *    blocklist so the actual cURL can't reach file:// / cloud-metadata
+     *
+     * Trade-off: a legitimate user typing fast may hit the rate limit. The
+     * limit is generous (30/min, sliding window) and the JSON envelope tells
+     * the front-end exactly which category triggered it.
+     */
+    #[Route(
+        '/test/{service}',
+        name: 'app_setup_test',
+        requirements: ['service' => 'tmdb|radarr|sonarr|prowlarr|jellyseerr|qbittorrent'],
+        methods: ['POST'],
+    )]
+    public function testService(
+        string $service,
+        Request $request,
+        HealthService $health,
+        // Bound explicitly to the framework.yaml-declared limiter. Symfony
+        // 7+ does not auto-resolve `RateLimiterFactory $xxxLimiter` against
+        // `limiter.xxx` without an explicit Autowire / alias.
+        #[Autowire(service: 'limiter.setup_test')] RateLimiterFactory $setupTestLimiter,
+    ): JsonResponse {
+        if ($this->guardSetupNotCompleted() !== null) {
+            return $this->testResponse(false, 'forbidden', 403);
+        }
+        if (!$this->isCsrfTokenValid('setup_test_' . $service, (string) $request->request->get('_csrf_token'))) {
+            return $this->testResponse(false, 'csrf', 400);
+        }
+
+        // One bucket per (client IP × service) so a stuck Radarr probe doesn't
+        // burn the budget for the user's still-valid Sonarr probe.
+        $limiter = $setupTestLimiter->create(($request->getClientIp() ?? 'unknown') . '|' . $service);
+        if (!$limiter->consume(1)->isAccepted()) {
+            return $this->testResponse(false, 'rate_limited', 429);
+        }
+
+        $overrides = $this->collectTestFields($service, $request);
+        $result = $health->diagnose($service, $overrides);
+
+        return $this->testResponse((bool) $result['ok'], (string) $result['category'], 200);
+    }
+
+    /**
+     * Build a minimal JSON envelope with strict no-store cache headers. We
+     * never echo back the URL or the API key; the front-end only learns
+     * whether the probe succeeded and which broad category failed.
+     */
+    private function testResponse(bool $ok, string $category, int $status): JsonResponse
+    {
+        $resp = new JsonResponse(['ok' => $ok, 'category' => $category], $status);
+        $resp->headers->set('Cache-Control', 'no-store, no-cache, private, max-age=0');
+        $resp->headers->set('Pragma', 'no-cache');
+        $resp->headers->set('X-Content-Type-Options', 'nosniff');
+        return $resp;
+    }
+
+    /**
+     * Whitelist of form fields read for each service. We deliberately do NOT
+     * use $request->request->all() to avoid surprises from unexpected fields
+     * sneaking into HealthService::probeFor().
+     *
+     * @return array<string, string>
+     */
+    private function collectTestFields(string $service, Request $request): array
+    {
+        $fieldsPerService = [
+            'tmdb'        => ['tmdb_api_key'],
+            'radarr'      => ['radarr_url', 'radarr_api_key'],
+            'sonarr'      => ['sonarr_url', 'sonarr_api_key'],
+            'prowlarr'    => ['prowlarr_url', 'prowlarr_api_key'],
+            'jellyseerr'  => ['jellyseerr_url', 'jellyseerr_api_key'],
+            'qbittorrent' => ['qbittorrent_url', 'qbittorrent_user', 'qbittorrent_password'],
+        ];
+        $out = [];
+        foreach ($fieldsPerService[$service] ?? [] as $f) {
+            $out[$f] = trim((string) $request->request->get($f, ''));
+        }
+        return $out;
     }
 
     // ─── Step 7: Finalization ──────────────────────────────────────────────

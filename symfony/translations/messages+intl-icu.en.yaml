@@ -307,6 +307,22 @@ setup:
       back: '← Back'
       skip: Skip this step
       save_next: 'Save and continue →'
+  test:
+    button: Test connection
+    testing: Testing…
+    ok: Connected
+    category:
+      network: Cannot reach service
+      auth: Wrong API key or password
+      forbidden: Access forbidden (403)
+      not_found: Endpoint not found (404)
+      server_error: Service error (5xx)
+      unconfigured: Fill in the URL and credentials first
+      unknown: Unexpected response
+    error:
+      csrf: 'Session expired, please refresh the page'
+      forbidden: Setup is already completed
+      rate_limited: Too many test requests, wait a moment
 
 home:
   welcome:

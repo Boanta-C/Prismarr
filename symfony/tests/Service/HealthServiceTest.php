@@ -189,4 +189,55 @@ class HealthServiceTest extends TestCase
         $svc->isHealthy('qbittorrent');
         $svc->isHealthy('tmdb');
     }
+
+    // ─── SSRF guard (urlBlockedReason) — added in v1.0.6 ───
+
+    /**
+     * Anything that isn't HTTP(S) must be rejected before cURL even runs.
+     * Without this, an attacker submitting `radarr_url=file:///etc/passwd`
+     * during the wizard window could probe the container filesystem.
+     */
+    #[DataProvider('blockedSchemeProvider')]
+    public function testUrlBlockedReasonRejectsNonHttpSchemes(string $url): void
+    {
+        $this->assertSame('scheme', HealthService::urlBlockedReason($url));
+    }
+
+    public static function blockedSchemeProvider(): array
+    {
+        return [
+            'file'   => ['file:///etc/passwd'],
+            'gopher' => ['gopher://localhost:6379/_FLUSHALL'],
+            'dict'   => ['dict://localhost:11211/stats'],
+            'ftp'    => ['ftp://example.com/'],
+            'data'   => ['data:text/html,<script>alert(1)</script>'],
+            'no-scheme' => ['localhost:8080/api'],
+        ];
+    }
+
+    /**
+     * AWS / GCP / Azure expose unauthenticated cloud-metadata endpoints on
+     * 169.254.169.254. A SSRF that hits this IP can leak IAM credentials in
+     * a few requests, so the IP literal is a hard-block.
+     */
+    public function testUrlBlockedReasonRejectsLinkLocalIpv4(): void
+    {
+        $this->assertSame('link-local', HealthService::urlBlockedReason('http://169.254.169.254/latest/meta-data/'));
+        $this->assertSame('link-local', HealthService::urlBlockedReason('http://169.254.0.1/'));
+    }
+
+    public function testUrlBlockedReasonAllowsRfc1918LanIps(): void
+    {
+        // Critical: Prismarr MUST be able to reach Radarr on 192.168.x or
+        // 10.x. We deliberately do NOT blacklist RFC1918 — only the
+        // link-local /16 used by cloud metadata.
+        $this->assertNull(HealthService::urlBlockedReason('http://192.168.1.50:7878/api/v3/system/status'));
+        $this->assertNull(HealthService::urlBlockedReason('http://10.0.0.10:8989/'));
+        $this->assertNull(HealthService::urlBlockedReason('http://172.16.5.5:9696/'));
+    }
+
+    public function testUrlBlockedReasonAllowsPublicHttps(): void
+    {
+        $this->assertNull(HealthService::urlBlockedReason('https://api.themoviedb.org/3/configuration'));
+    }
 }

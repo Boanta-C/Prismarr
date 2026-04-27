@@ -379,12 +379,17 @@
                       <p class="service-card-sub">{{ meta.subtitle }}</p>
                     </div>
                     <div class="service-card-actions">
-                      <span class="status-pill" data-service-result="{{ service_id }}">{{ 'admin.services.status.not_tested'|trans }}</span>
-                      <button type="button"
-                              class="btn btn-sm btn-outline-secondary admin-settings-test"
-                              data-service="{{ service_id }}">
-                        {{ 'admin.services.test'|trans }}
-                      </button>
+                      {# Gluetun has no health probe in HealthService::probeFor() —
+                         it would always come back "unknown". Hide the test
+                         affordance until/unless we add a real Gluetun probe. #}
+                      {% if service_id != 'gluetun' %}
+                        <span class="status-pill" data-service-result="{{ service_id }}">{{ 'admin.services.status.not_tested'|trans }}</span>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-secondary admin-settings-test"
+                                data-service="{{ service_id }}">
+                          {{ 'admin.services.test'|trans }}
+                        </button>
+                      {% endif %}
                     </div>
                   </div>
 

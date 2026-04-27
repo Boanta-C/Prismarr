@@ -224,6 +224,54 @@ class HealthService
     }
 
     /**
+     * Validate a target URL before issuing the probe. Reject anything that
+     * isn't HTTP(S), then resolve the hostname and reject link-local IPs
+     * (169.254.0.0/16) which are how AWS / GCP / Azure expose unauthenticated
+     * cloud-metadata endpoints. Returns null when the URL is acceptable, or
+     * a short reason string when it must be blocked.
+     *
+     * Important: we deliberately do NOT block the rest of RFC1918 — Prismarr
+     * legitimately talks to LAN services like Radarr on 192.168.x or 10.x.
+     * The SSRF surface here is mostly an admin-supplied URL, so the goal is
+     * "bar the violent exploits" (file://, gopher://, cloud-metadata) rather
+     * than "fully prevent intra-LAN scanning".
+     */
+    public static function urlBlockedReason(string $url): ?string
+    {
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        if ($scheme !== 'http' && $scheme !== 'https') {
+            return 'scheme';
+        }
+        $host = parse_url($url, PHP_URL_HOST);
+        if (!is_string($host) || $host === '') {
+            return 'host';
+        }
+
+        // Resolve hostname to IPs. gethostbynamel returns the A records
+        // (IPv4); IPv6 link-local literals are caught further down via the
+        // IP-literal short-circuit.
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips = [$host];
+        } else {
+            $resolved = gethostbynamel($host);
+            $ips = is_array($resolved) ? $resolved : [];
+        }
+        foreach ($ips as $ip) {
+            if (str_starts_with($ip, '169.254.')) {
+                return 'link-local';
+            }
+            // IPv6 link-local addresses (fe80::/10) and IPv6 cloud metadata
+            // (fd00:ec2::254 on AWS) — blocked too. Coarse check is enough
+            // because RFC1918 equivalent ULAs are not common for LAN services.
+            $lower = strtolower($ip);
+            if (str_starts_with($lower, 'fe80:') || str_starts_with($lower, 'fd00:ec2')) {
+                return 'link-local';
+            }
+        }
+        return null;
+    }
+
+    /**
      * Issue the curl request and return a normalized response array. Kept
      * private so we can swap the implementation later (e.g. Symfony's
      * HttpClient) without changing diagnose() callers.
@@ -233,12 +281,23 @@ class HealthService
      */
     private function httpProbe(string $url, array $headers, string $method, ?string $body): array
     {
+        // SSRF guard #1 — reject before opening the socket. Cuts off
+        // file:// / gopher:// / dict:// schemes that curl would otherwise
+        // happily honour, plus link-local IPs used by AWS/GCP/Azure metadata.
+        if (($reason = self::urlBlockedReason($url)) !== null) {
+            return ['http' => null, 'body' => null, 'err' => 'blocked: ' . $reason];
+        }
+
         $ch = curl_init($url);
         if ($ch === false) {
             return ['http' => null, 'body' => null, 'err' => 'curl_init failed'];
         }
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
+            // SSRF guard #2 — even if a follow-up redirect somehow flips
+            // the protocol or destination, curl is locked to HTTP(S) only.
+            CURLOPT_PROTOCOLS       => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
             CURLOPT_CONNECTTIMEOUT => 3,
             CURLOPT_TIMEOUT        => 5,
             CURLOPT_FOLLOWLOCATION => false,

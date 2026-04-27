@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **"Test connection" buttons in the setup wizard.** Each service step (TMDb, Radarr, Sonarr, Prowlarr, Jellyseerr, qBittorrent) now has an inline `Test connection` button next to its inputs. Result is shown as a small status badge (green "Connected", red category like "Wrong API key" / "Cannot reach service" / "Endpoint not found"). Non-blocking — users can still continue without testing. Categories are surfaced from `HealthService::diagnose()` so the same labels appear in `/admin/settings`.
+
+### Security
+- **SSRF guard on `HealthService::httpProbe()`.** The probe now hard-rejects any URL that isn't `http://` or `https://`, blocks the `169.254.0.0/16` link-local range used by AWS / GCP / Azure cloud-metadata endpoints, and pins cURL to `CURLPROTO_HTTP | CURLPROTO_HTTPS` for both the initial request and any redirect. RFC1918 LAN ranges (`10/8`, `172.16-31`, `192.168/16`) are intentionally still allowed because Prismarr legitimately needs to reach Radarr/Sonarr/Prowlarr/Jellyseerr/qBittorrent on private addresses. This closes a dormant blind-SSRF that wasn't exploitable in v1.0.5 (the only call site was admin-only `/admin/settings`) but would have become exploitable as soon as the new public `/setup/test/<service>` endpoint shipped.
+- **Rate limiter on `/setup/test/<service>`.** 30 attempts per minute per (client IP × service), `sliding_window` policy. Neuters scripted port-scan attempts during the brief window where the wizard is publicly reachable (post-image-pull, pre-`setup_completed=1`).
+- **Strict response envelope** on `/setup/test/<service>` — `{ok, category}` only, no echo of the URL probed, no echo of the API key submitted, no upstream response body. Headers force `Cache-Control: no-store, no-cache, private` and `X-Content-Type-Options: nosniff` so the response cannot be cached by an intermediate proxy.
+- 7 new PHPUnit tests covering the new endpoint (guard / CSRF / rate limit / strict payload / field whitelist) and the SSRF guard (file:// / gopher:// / dict:// / link-local IPs blocked, RFC1918 + public HTTPS allowed).
+
+### Fixed
+- **"Test connection" button is no longer rendered for Gluetun on `/admin/settings`.** `HealthService::probeFor()` has no Gluetun handler so the probe always came back as `unconfigured`, which made the button look broken even when Gluetun was correctly set up. The button is hidden until/unless we add a real Gluetun probe.
+
 ## [1.0.5] - 2026-04-26
 
 ### Security

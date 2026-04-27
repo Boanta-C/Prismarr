@@ -42,6 +42,13 @@
           </div>
         </div>
       </div>
+      <div class="test-row">
+        <button type="button" class="btn btn-sm btn-outline-primary"
+                data-test-service="qbittorrent"
+                data-test-csrf="{{ csrf_token('setup_test_qbittorrent') }}"
+                data-test-fields="qbittorrent_url,qbittorrent_user,qbittorrent_password">{{ 'setup.test.button'|trans }}</button>
+        <span class="test-result" data-test-result-for="qbittorrent" aria-live="polite"></span>
+      </div>
     </div>
 
     <div class="wizard-section">

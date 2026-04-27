@@ -306,6 +306,22 @@ setup:
       back: '← Précédent'
       skip: Passer cette étape
       save_next: 'Enregistrer et continuer →'
+  test:
+    button: Tester la connexion
+    testing: Test en cours…
+    ok: Connecté
+    category:
+      network: Service injoignable
+      auth: Clé API ou mot de passe incorrect
+      forbidden: Accès refusé (403)
+      not_found: Endpoint introuvable (404)
+      server_error: Erreur du service (5xx)
+      unconfigured: Renseignez l'URL et les identifiants d'abord
+      unknown: Réponse inattendue
+    error:
+      csrf: 'Session expirée, rafraîchissez la page'
+      forbidden: Le setup est déjà terminé
+      rate_limited: Trop de tests, patientez un instant
 
 home:
   welcome:
