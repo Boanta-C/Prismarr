@@ -72,11 +72,7 @@
                 {% endif %}
               </td>
               <td class="text-muted small">
-                {% if backup.size is defined %}
-                  {{ (backup.size / 1048576)|number_format(1) }} Mo
-                {% else %}
-                  —
-                {% endif %}
+                {{ backup.size is defined ? backup.size|prismarr_bytes : '—' }}
               </td>
               <td class="text-muted small">
                 {{ backup.time is defined ? backup.time|date('d/m/Y H:i') : '—' }}

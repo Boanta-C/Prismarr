@@ -32,8 +32,8 @@
             {% for folder in folders %}
             <tr>
               <td class="fw-medium font-monospace small">{{ folder.path ?? '—' }}</td>
-              <td class="text-muted">{{ folder.freeSpace is defined ? (folder.freeSpace / 1073741824)|round(1) ~ ' Go' : '—' }}</td>
-              <td class="text-muted">{{ folder.totalSpace is defined ? (folder.totalSpace / 1073741824)|round(1) ~ ' Go' : '—' }}</td>
+              <td class="text-muted">{{ folder.freeSpace is defined ? folder.freeSpace|prismarr_bytes : '—' }}</td>
+              <td class="text-muted">{{ folder.totalSpace is defined ? folder.totalSpace|prismarr_bytes : '—' }}</td>
               <td class="text-muted">{{ folder.unmappedFolders is defined ? folder.unmappedFolders|length : '—' }}</td>
               <td class="text-end">
                 <button class="btn btn-ghost-danger btn-sm btn-rf-delete" data-id="{{ folder.id }}" data-path="{{ folder.path ?? '' }}">{{ 'media.arr_admin.root_folders.delete'|trans }}</button>

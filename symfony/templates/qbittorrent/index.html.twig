@@ -362,11 +362,11 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
             <div class="d-flex align-items-center justify-content-between">
                 <div>
                     <div class="stat-lbl">{{ 'qbittorrent.stats.total_downloaded'|trans }}</div>
-                    <span class="stat-val" style="color:#3b82f6" id="qbt-total-dl">{{ ((stats.dl_alltime ?? 0) / 1073741824)|number_format(1) }} {{ 'qbittorrent.units.gb'|trans }}</span>
+                    <span class="stat-val" style="color:#3b82f6" id="qbt-total-dl">{{ (stats.dl_alltime ?? 0)|prismarr_bytes }}</span>
                 </div>
                 <div class="text-end" style="font-size:.68rem;color:var(--tblr-text-secondary);line-height:1.3;">
                     <div>{{ 'qbittorrent.stats.session'|trans }}</div>
-                    <strong id="qbt-session-dl" style="color:#3b82f6;font-family:'SF Mono',Menlo,monospace;">{{ ((stats.dl_session ?? 0) / 1073741824)|number_format(1) }} {{ 'qbittorrent.units.gb'|trans }}</strong>
+                    <strong id="qbt-session-dl" style="color:#3b82f6;font-family:'SF Mono',Menlo,monospace;">{{ (stats.dl_session ?? 0)|prismarr_bytes }}</strong>
                 </div>
             </div>
             <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5"><path d="M12 3v13m-5-5l5 5 5-5"/><path d="M4 20h16"/></svg>
@@ -377,11 +377,11 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
             <div class="d-flex align-items-center justify-content-between">
                 <div>
                     <div class="stat-lbl">{{ 'qbittorrent.stats.total_uploaded'|trans }}</div>
-                    <span class="stat-val" style="color:#22c55e" id="qbt-total-up">{{ ((stats.up_alltime ?? 0) / 1073741824)|number_format(1) }} {{ 'qbittorrent.units.gb'|trans }}</span>
+                    <span class="stat-val" style="color:#22c55e" id="qbt-total-up">{{ (stats.up_alltime ?? 0)|prismarr_bytes }}</span>
                 </div>
                 <div class="text-end" style="font-size:.68rem;color:var(--tblr-text-secondary);line-height:1.3;">
                     <div>{{ 'qbittorrent.stats.session'|trans }}</div>
-                    <strong id="qbt-session-up" style="color:#22c55e;font-family:'SF Mono',Menlo,monospace;">{{ ((stats.up_session ?? 0) / 1073741824)|number_format(1) }} {{ 'qbittorrent.units.gb'|trans }}</strong>
+                    <strong id="qbt-session-up" style="color:#22c55e;font-family:'SF Mono',Menlo,monospace;">{{ (stats.up_session ?? 0)|prismarr_bytes }}</strong>
                 </div>
             </div>
             <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5"><path d="M12 21V8m-5 5l5-5 5 5"/><path d="M4 4h16"/></svg>
@@ -428,7 +428,7 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
                 <div class="text-end" style="font-size:.68rem;color:var(--tblr-text-secondary);line-height:1.3;white-space:nowrap;">
                     <div>{{ 'qbittorrent.stats.peak_dl'|trans }} <strong id="qbt-peak-dl" style="color:#3b82f6;font-family:'SF Mono',Menlo,monospace;">—</strong></div>
                     <div>{{ 'qbittorrent.stats.peak_up'|trans }} <strong id="qbt-peak-up" style="color:#22c55e;font-family:'SF Mono',Menlo,monospace;">—</strong></div>
-                    <div>{{ 'qbittorrent.stats.free_space'|trans }} <strong id="qbt-free-space" style="color:var(--tblr-body-color);font-family:'SF Mono',Menlo,monospace;">{{ ((stats.free_space ?? 0) / 1073741824)|number_format(0) }} {{ 'qbittorrent.units.gb'|trans }}</strong></div>
+                    <div>{{ 'qbittorrent.stats.free_space'|trans }} <strong id="qbt-free-space" style="color:var(--tblr-body-color);font-family:'SF Mono',Menlo,monospace;">{{ (stats.free_space ?? 0)|prismarr_bytes(0) }}</strong></div>
                 </div>
             </div>
             <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#a259ff" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
@@ -809,16 +809,16 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
         <div class="qbt-stats-line">
             <span class="item"><strong>{{ t.progress }}%</strong></span>
             <span class="sep"></span>
-            <span class="item">{{ (t.size / 1073741824)|number_format(2) }} {{ 'qbittorrent.units.gb'|trans }}</span>
+            <span class="item">{{ t.size|prismarr_bytes(2) }}</span>
             <span class="sep"></span>
             <span class="item">{{ state_label }}</span>
             {% if t.dlspeed > 0 %}
             <span class="sep"></span>
-            <span class="item dl-speed">&#8595; {% if t.dlspeed >= 1048576 %}{{ (t.dlspeed / 1048576)|number_format(1) }} {{ 'qbittorrent.units.mb_per_s'|trans }}{% else %}{{ (t.dlspeed / 1024)|number_format(0) }} {{ 'qbittorrent.units.kb_per_s'|trans }}{% endif %}</span>
+            <span class="item dl-speed">&#8595; {{ t.dlspeed|prismarr_speed }}</span>
             {% endif %}
             {% if t.upspeed > 0 %}
             <span class="sep"></span>
-            <span class="item up-speed">&#8593; {% if t.upspeed >= 1048576 %}{{ (t.upspeed / 1048576)|number_format(1) }} {{ 'qbittorrent.units.mb_per_s'|trans }}{% else %}{{ (t.upspeed / 1024)|number_format(0) }} {{ 'qbittorrent.units.kb_per_s'|trans }}{% endif %}</span>
+            <span class="item up-speed">&#8593; {{ t.upspeed|prismarr_speed }}</span>
             {% endif %}
             {% if t.state == 'downloading' and t.eta < 8640000 %}
             <span class="sep"></span>
@@ -836,10 +836,10 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
     </div>
 
     {# Cellules mode tableau #}
-    <div class="qbt-table-cell qbt-cell-size">{{ (t.size / 1073741824)|number_format(2) }} {{ 'qbittorrent.units.gb'|trans }}</div>
+    <div class="qbt-table-cell qbt-cell-size">{{ t.size|prismarr_bytes(2) }}</div>
     <div class="qbt-table-cell qbt-cell-progress"><div class="qbt-cell-progress-fill" style="width:{{ t.progress }}%"></div><span>{{ t.progress }}%</span></div>
-    <div class="qbt-table-cell qbt-cell-dl">{% if t.dlspeed > 0 %}{% if t.dlspeed >= 1048576 %}{{ (t.dlspeed / 1048576)|number_format(1) }} {{ 'qbittorrent.units.mb_per_s'|trans }}{% else %}{{ (t.dlspeed / 1024)|number_format(0) }} {{ 'qbittorrent.units.kb_per_s'|trans }}{% endif %}{% else %}—{% endif %}</div>
-    <div class="qbt-table-cell qbt-cell-up">{% if t.upspeed > 0 %}{% if t.upspeed >= 1048576 %}{{ (t.upspeed / 1048576)|number_format(1) }} {{ 'qbittorrent.units.mb_per_s'|trans }}{% else %}{{ (t.upspeed / 1024)|number_format(0) }} {{ 'qbittorrent.units.kb_per_s'|trans }}{% endif %}{% else %}—{% endif %}</div>
+    <div class="qbt-table-cell qbt-cell-dl">{{ t.dlspeed > 0 ? t.dlspeed|prismarr_speed : '—' }}</div>
+    <div class="qbt-table-cell qbt-cell-up">{{ t.upspeed > 0 ? t.upspeed|prismarr_speed : '—' }}</div>
     <div class="qbt-table-cell">{{ t.num_seeds }}</div>
     <div class="qbt-table-cell">{{ (t.ratio ?? 0)|number_format(2) }}</div>
     <div class="qbt-table-cell qbt-cell-added" data-added="{{ t.added_on ?? 0 }}">{% if t.added_on %}{{ t.added_on|date('d/m/y') }}{% else %}—{% endif %}</div>
@@ -1036,17 +1036,11 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-    function fmtSize(bytes) {
-        if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' ' + QBT_I18N.units.gb;
-        if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' ' + QBT_I18N.units.mb;
-        if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' ' + QBT_I18N.units.kb;
-        return bytes + ' ' + QBT_I18N.units.bytes;
-    }
-    function fmtSpeed(bytes) {
-        if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' ' + QBT_I18N.units.mb_per_s;
-        if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' ' + QBT_I18N.units.kb_per_s;
-        return bytes > 0 ? bytes + ' ' + QBT_I18N.units.bytes_per_s : '-';
-    }
+    // Defer to the global locale-aware helpers from base.html.twig so qBit
+    // sizes and speeds match the rest of the app (and the server-rendered
+    // |prismarr_bytes / |prismarr_speed Twig output).
+    function fmtSize(bytes) { return window.prismarrBytes(bytes); }
+    function fmtSpeed(bytes) { return bytes > 0 ? window.prismarrBytes(bytes) + '/s' : '-'; }
     function fmtEta(sec) {
         if (!sec || sec >= 8640000) return '∞';
         var h = Math.floor(sec / 3600);
@@ -1264,14 +1258,14 @@ body[data-bs-theme="dark"] .qbt-torrent-list[data-view="table"] .qbt-cell-progre
         var upEl = document.getElementById('qbt-speed-up'); if (upEl) upEl.innerHTML = s.up_speed > 0 ? ('&#8593; ' + fmtSpeed(s.up_speed)) : '&nbsp;';
         var dot = document.getElementById('qbt-conn-dot');
         if (dot) dot.className = 'qbt-connection ' + (s.connection === 'connected' ? 'connected' : s.connection === 'firewalled' ? 'firewalled' : 'disconnected');
-        // Totaux globaux
-        function fmtGo(bytes) { return (bytes / 1073741824).toFixed(1) + ' ' + QBT_I18N.units.gb; }
-        set('qbt-total-dl', fmtGo(s.dl_alltime || 0));
-        set('qbt-total-up', fmtGo(s.up_alltime || 0));
-        set('qbt-session-dl', fmtGo(s.dl_session || 0));
-        set('qbt-session-up', fmtGo(s.up_session || 0));
+        // Totaux globaux — uses the global locale-aware byte formatter
+        // (defined in base.html.twig) so EN gets GB and FR gets Go.
+        set('qbt-total-dl', window.prismarrBytes(s.dl_alltime || 0));
+        set('qbt-total-up', window.prismarrBytes(s.up_alltime || 0));
+        set('qbt-session-dl', window.prismarrBytes(s.dl_session || 0));
+        set('qbt-session-up', window.prismarrBytes(s.up_session || 0));
         set('qbt-total-ratio', (s.global_ratio || 0).toFixed(2));
-        set('qbt-free-space', ((s.free_space || 0) / 1073741824).toFixed(0) + ' ' + QBT_I18N.units.gb);
+        set('qbt-free-space', window.prismarrBytes(s.free_space || 0));
         // Pics DL/UP
         if (s.dl_speed > peakDl) { peakDl = s.dl_speed; set('qbt-peak-dl', fmtSpeed(peakDl)); }
         if (s.up_speed > peakUp) { peakUp = s.up_speed; set('qbt-peak-up', fmtSpeed(peakUp)); }

@@ -1888,7 +1888,24 @@
     function loadPrev() { try { return JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); } catch (e) { return {}; } }
     function savePrev(map) { try { localStorage.setItem(STATE_KEY, JSON.stringify(map)); } catch (e) {} }
 
-    function fmtGo(bytes) { return (bytes / 1073741824).toFixed(1) + ' Go'; }
+    // Global locale-aware byte formatter, mirrors the server-side
+    // |prismarr_bytes Twig filter so JS-rendered sizes match Twig-rendered
+    // ones exactly. Units come from prismarr_byte_units() so EN gets
+    // GB / MB / KB / B and FR gets Go / Mo / Ko / o.
+    if (!window.prismarrBytes) {
+      window.PRISMARR_BYTE_UNITS = {{ prismarr_byte_units()|json_encode|raw }};
+      window.prismarrBytes = function (bytes) {
+        if (typeof bytes !== 'number' || isNaN(bytes)) return '—';
+        var u = window.PRISMARR_BYTE_UNITS || {B:'B',KB:'KB',MB:'MB',GB:'GB',TB:'TB'};
+        var abs = Math.abs(bytes);
+        if (abs >= 1099511627776) return (bytes / 1099511627776).toFixed(1) + ' ' + u.TB;
+        if (abs >= 1073741824)    return (bytes / 1073741824).toFixed(1)    + ' ' + u.GB;
+        if (abs >= 1048576)       return (bytes / 1048576).toFixed(1)       + ' ' + u.MB;
+        if (abs >= 1024)          return (bytes / 1024).toFixed(1)          + ' ' + u.KB;
+        return Math.round(bytes) + ' ' + u.B;
+      };
+    }
+    function fmtGo(bytes) { return window.prismarrBytes(bytes); }
 
     function updateBadge(active) {
       var label = active > 99 ? '99+' : String(active);

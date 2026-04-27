@@ -118,7 +118,7 @@
                     <td class="text-end" style="font-size:.82rem;">{{ api.stats.hits|number_format(0, ',', ' ') }}</td>
                     <td class="text-end" style="font-size:.82rem;">{{ api.stats.misses|number_format(0, ',', ' ') }}</td>
                     <td class="text-end" style="font-size:.82rem;">{{ api.stats.keys }}</td>
-                    <td class="text-end" style="font-size:.82rem;">{{ ((api.stats.ksize + api.stats.vsize) / 1024)|round(1) }} Ko</td>
+                    <td class="text-end" style="font-size:.82rem;">{{ (api.stats.ksize + api.stats.vsize)|prismarr_bytes }}</td>
                     <td class="text-end">
                         <button class="btn btn-sm btn-ghost-danger js-flush-one" data-cache-id="{{ api.id }}" title="{{ 'jellyseerr.settings.tasks_cache.cache_flush_one'|trans }}" {{ api.stats.keys == 0 ? 'disabled' }}>
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
@@ -149,7 +149,7 @@
                 <tr>
                     <td style="font-weight:600;font-size:.85rem;">{{ key|capitalize }}</td>
                     <td class="text-end" style="font-size:.82rem;">{{ img.imageCount ?? 0 }}</td>
-                    <td class="text-end" style="font-size:.82rem;">{{ ((img.size ?? 0) / 1048576)|round(2) }} Mo</td>
+                    <td class="text-end" style="font-size:.82rem;">{{ (img.size ?? 0)|prismarr_bytes(2) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

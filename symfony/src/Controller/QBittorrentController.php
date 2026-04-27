@@ -523,7 +523,7 @@ class QBittorrentController extends AbstractController
             /** @var \Symfony\Component\HttpFoundation\File\UploadedFile $file */
             if (!$file->isValid()) continue;
             if ($file->getSize() > 10 * 1024 * 1024) { // 10 MB max, a normal .torrent is < 1 MB
-                return $this->json(['ok' => false, 'error' => 'Fichier trop volumineux (>10 Mo)'], 400);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('qbittorrent.upload.too_large')], 400);
             }
             $ext = strtolower($file->getClientOriginalExtension());
             if ($ext !== 'torrent') {
@@ -531,7 +531,7 @@ class QBittorrentController extends AbstractController
             }
             $content = file_get_contents($file->getPathname());
             if ($content === false || $content === '') {
-                return $this->json(['ok' => false, 'error' => 'Fichier illisible'], 400);
+                return $this->json(['ok' => false, 'error' => $this->translator->trans('qbittorrent.upload.unreadable')], 400);
             }
             // Magic-bytes check: a bencoded torrent always starts with 'd' (dict)
             // + typically contains "announce" or "info" within the first few KB

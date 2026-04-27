@@ -3444,6 +3444,8 @@ qbittorrent:
     forbidden_host: 'Cette URL pointe vers un hôte interdit (métadonnées cloud)'
     no_file: 'Aucun fichier reçu'
     invalid_format: 'Seuls les fichiers .torrent sont acceptés'
+    too_large: 'Fichier trop volumineux (>10 Mo)'
+    unreadable: 'Fichier illisible'
   api:
     empty_name: Nom vide
     no_valid_hash: Aucun hash valide

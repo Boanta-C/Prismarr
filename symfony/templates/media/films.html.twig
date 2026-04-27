@@ -1531,9 +1531,9 @@
   }
 
   function formatSize(bytes) {
+    // Locale-aware via the global helper (defined in base.html.twig).
     if (!bytes || bytes <= 0) return '—';
-    if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' ' + FILM_I18N.gb_suffix;
-    return Math.round(bytes / 1048576) + ' ' + FILM_I18N.mo_suffix;
+    return window.prismarrBytes(bytes);
   }
 
   function formatRuntime(min) {
@@ -2285,7 +2285,7 @@
         '<td class="text-nowrap"><span class="badge bg-blue-lt">' + esc(r.quality) + '</span></td>' +
         '<td class="text-end text-nowrap ' + scoreClass + '" title="' + esc(scoreTooltip) + '" style="cursor:help">' + r.customFormatScore + '</td>' +
         '<td>' + (fmtBadges || '<span class="text-muted">—</span>') + '</td>' +
-        '<td class="text-end text-nowrap text-muted">' + (r.sizeMb > 1024 ? (r.sizeMb / 1024).toFixed(1) + ' Go' : r.sizeMb + ' Mo') + '</td>' +
+        '<td class="text-end text-nowrap text-muted">' + window.prismarrBytes(r.sizeMb * 1048576) + '</td>' +
         '<td class="text-end text-nowrap">' + (r.protocol === 'torrent' ? '<span class="text-success">' + (r.seeders != null ? r.seeders : '—') + '</span>' : '<span class="text-muted">usenet</span>') + '</td>' +
         '<td class="text-nowrap">' + (langBadges || '—') + '</td>' +
         '<td class="text-end text-muted">' + r.age + 'j</td>' +
@@ -3353,8 +3353,7 @@
 
     items.forEach(function(q) {
       var pct = q.size > 0 ? Math.round((q.size - q.sizeleft) / q.size * 100) : 0;
-      var sizeMo = q.size ? Math.round(q.size / 1048576) : 0;
-      var sizeLabel = sizeMo > 1024 ? (sizeMo / 1024).toFixed(1) + ' ' + FILM_I18N.gb_suffix : sizeMo + ' ' + FILM_I18N.mo_suffix;
+      var sizeLabel = q.size ? window.prismarrBytes(q.size) : '0';
       var state = q.trackedState || '';
       var status = q.trackedStatus || '';
 

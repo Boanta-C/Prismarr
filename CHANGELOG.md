@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **"Test connection" button is no longer rendered for Gluetun on `/admin/settings`.** `HealthService::probeFor()` has no Gluetun handler so the probe always came back as `unconfigured`, which made the button look broken even when Gluetun was correctly set up. The button is hidden until/unless we add a real Gluetun probe.
+- **Locale-aware byte units** (issue [#4](https://github.com/Shoshuo/Prismarr/issues/4)). All filesize and transfer-rate displays now follow the active UI locale: English renders `GB / MB / KB / B` and `MB/s`, French keeps `Go / Mo / Ko / o` and `Mo/s`. Previously the FR abbreviations were hardcoded everywhere, including in the EN UI. Implemented as two new Twig filters (`prismarr_bytes`, `prismarr_speed`) and a global JS helper (`window.prismarrBytes`) so server- and client-rendered sizes stay consistent. Covered: root folders (Radarr / Sonarr), backups, Jellyseerr cache stats, qBittorrent dashboard totals, film/series detail cards, the post-download toast notification, and the qBittorrent torrent upload size-limit error message.
 
 ## [1.0.5] - 2026-04-26
 
