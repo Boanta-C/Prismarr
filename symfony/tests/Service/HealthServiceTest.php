@@ -164,6 +164,43 @@ class HealthServiceTest extends TestCase
         $this->assertTrue($svc->isConfigured('jellyseerr'));
     }
 
+    /**
+     * Issue #10 — qBittorrent only requires a URL. Empty user/password
+     * means the user is on a reverse-proxy setup (qui, traefik forward
+     * auth, …) where the proxy injects credentials transparently. We
+     * MUST treat that as configured, otherwise the topbar/dashboard
+     * marks it as unconfigured and hides the widgets.
+     */
+    public function testQbittorrentIsConfiguredWithUrlOnly(): void
+    {
+        $config = $this->createMock(ConfigService::class);
+        $config->method('has')->willReturnCallback(fn (string $k) => match ($k) {
+            'qbittorrent_url'      => true,
+            'qbittorrent_user'     => false,
+            'qbittorrent_password' => false,
+            default                => false,
+        });
+
+        $svc = $this->makeService(config: $config);
+        $this->assertTrue($svc->isConfigured('qbittorrent'));
+    }
+
+    public function testQbittorrentIsNotConfiguredWithoutUrl(): void
+    {
+        // Even if user/password are filled in, no URL means we can't talk
+        // to qBit at all → must be marked unconfigured.
+        $config = $this->createMock(ConfigService::class);
+        $config->method('has')->willReturnCallback(fn (string $k) => match ($k) {
+            'qbittorrent_url'      => false,
+            'qbittorrent_user'     => true,
+            'qbittorrent_password' => true,
+            default                => false,
+        });
+
+        $svc = $this->makeService(config: $config);
+        $this->assertFalse($svc->isConfigured('qbittorrent'));
+    }
+
     public function testUnconfiguredResultIsCachedSoSecondCallStillSkipsPing(): void
     {
         $jellyseerr = $this->createMock(JellyseerrClient::class);

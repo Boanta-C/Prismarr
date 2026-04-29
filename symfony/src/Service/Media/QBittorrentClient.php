@@ -11,6 +11,17 @@ class QBittorrentClient implements ResetInterface
     private const SERVICE = 'qBittorrent';
     private const SERVICE_KEY = 'qbittorrent';
 
+    /**
+     * Sentinel SID used in reverse-proxy mode (qui, traefik forward auth,
+     * …) where user/password are empty in BDD because the proxy injects
+     * credentials transparently on every request. Returned by login()
+     * without making any /auth/login HTTP call. Recognized by the HTTP
+     * helpers (getRaw / postAction) which then skip the `Cookie: SID=…`
+     * header instead of sending a literal "SID=__noauth__" to qBit.
+     * Issue #10.
+     */
+    private const NO_AUTH_SID = '__noauth__';
+
     /** qBittorrent session reused between calls (avoids a curl POST auth per method). */
     private ?string $sid = null;
 
@@ -42,9 +53,12 @@ class QBittorrentClient implements ResetInterface
     private function ensureConfig(): void
     {
         if ($this->baseUrl === '') {
+            // URL stays mandatory — without it we have nothing to talk to.
+            // user/password are optional (issue #10): empty means "reverse
+            // proxy injects auth", login() short-circuits accordingly.
             $this->baseUrl  = $this->config->require('qbittorrent_url', self::SERVICE);
-            $this->user     = $this->config->require('qbittorrent_user', self::SERVICE);
-            $this->password = $this->config->require('qbittorrent_password', self::SERVICE);
+            $this->user     = (string) ($this->config->get('qbittorrent_user') ?? '');
+            $this->password = (string) ($this->config->get('qbittorrent_password') ?? '');
         }
     }
 
@@ -398,7 +412,9 @@ class QBittorrentClient implements ResetInterface
                 CURLOPT_NOSIGNAL       => 1,
                 CURLOPT_POST           => true,
                 CURLOPT_POSTFIELDS     => $postFields,
-                CURLOPT_HTTPHEADER     => ['Cookie: SID=' . $sid],
+                // Issue #10 — reverse-proxy mode skips the Cookie header
+                // (proxy injects auth itself); see NO_AUTH_SID docblock.
+                CURLOPT_HTTPHEADER     => $sid !== self::NO_AUTH_SID ? ['Cookie: SID=' . $sid] : [],
             ]);
             $response = curl_exec($ch);
             $code     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -710,6 +726,19 @@ class QBittorrentClient implements ResetInterface
         }
 
         $this->ensureConfig();
+
+        // Reverse-proxy mode (issue #10): empty user OR password means the
+        // proxy in front of qBit (qui, traefik forward auth, …) handles
+        // authentication. POSTing /auth/login with an empty body would
+        // make qBit answer "Fails." even though the proxy works fine, so
+        // we skip that round-trip entirely and return a sentinel SID.
+        // getRaw() / postAction() recognize it and omit the Cookie header.
+        if ($this->user === '' || $this->password === '') {
+            $this->sid = self::NO_AUTH_SID;
+            $this->health->clear(self::SERVICE_KEY);
+            return $this->sid;
+        }
+
         $url = rtrim($this->baseUrl, '/') . '/api/v2/auth/login';
         $ch  = curl_init($url);
         curl_setopt_array($ch, [
@@ -789,7 +818,9 @@ class QBittorrentClient implements ResetInterface
         if ($params) $url .= '?' . http_build_query($params);
 
         $headers = [];
-        if ($sid) $headers[] = 'Cookie: SID=' . $sid;
+        // Issue #10 — in reverse-proxy mode the SID is a sentinel that
+        // must NOT be echoed as a real qBit cookie (qBit would reject it).
+        if ($sid && $sid !== self::NO_AUTH_SID) $headers[] = 'Cookie: SID=' . $sid;
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -849,7 +880,9 @@ class QBittorrentClient implements ResetInterface
 
         $this->ensureConfig();
         $url = rtrim($this->baseUrl, '/') . $path;
-        $headers = ['Cookie: SID=' . $sid];
+        // Issue #10 — reverse-proxy mode: skip Cookie header when login()
+        // returned the sentinel (proxy injects auth itself).
+        $headers = $sid !== self::NO_AUTH_SID ? ['Cookie: SID=' . $sid] : [];
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [

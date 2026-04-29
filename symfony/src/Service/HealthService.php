@@ -94,10 +94,13 @@ class HealthService
                 $this->config->has('jellyseerr_url') && $this->config->has('jellyseerr_api_key'),
             'tmdb' =>
                 $this->config->has('tmdb_api_key'),
+            // qBittorrent — only the URL is required. Empty user/password
+            // is a legitimate "reverse proxy" setup (qui, traefik forward
+            // auth, …) where the proxy injects credentials on every call,
+            // so the upstream qBit doesn't need a /auth/login round-trip.
+            // See issue #10.
             'qbittorrent' =>
-                $this->config->has('qbittorrent_url')
-                && $this->config->has('qbittorrent_user')
-                && $this->config->has('qbittorrent_password'),
+                $this->config->has('qbittorrent_url'),
             default => true,
         };
     }
@@ -249,7 +252,23 @@ class HealthService
                 $url  = $get('qbittorrent_url');
                 $user = $get('qbittorrent_user');
                 $pass = $get('qbittorrent_password');
-                if ($url === '' || $user === '' || $pass === '') return null;
+                if ($url === '') return null;
+
+                // Reverse-proxy mode (issue #10): missing user OR password
+                // means we shouldn't probe /auth/login because the body
+                // would be empty and qBit would answer "Fails." A lightweight
+                // GET /api/v2/app/version is enough to confirm reachability,
+                // and the proxy will inject auth transparently. If qBit is
+                // NOT actually behind a bypass-auth proxy, the call returns
+                // 403 → diagnosed as `forbidden`, which is the right hint
+                // for the user (they meant to fill creds and forgot one).
+                if ($user === '' || $pass === '') {
+                    return [
+                        'url'     => rtrim($url, '/') . '/api/v2/app/version',
+                        'headers' => ['Referer: ' . rtrim($url, '/')],
+                    ];
+                }
+
                 return [
                     'url'     => rtrim($url, '/') . '/api/v2/auth/login',
                     'headers' => [

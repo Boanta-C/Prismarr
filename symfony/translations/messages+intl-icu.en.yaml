@@ -286,6 +286,7 @@ setup:
         subtitle: Authentication through the qBittorrent Web UI.
         user: Username
         password: Password
+        reverse_proxy_hint: 'Leave the username and password empty if qBittorrent sits behind a reverse proxy that injects authentication itself (qui, traefik forward auth, …).'
       gluetun:
         section: 'Gluetun'
         section_suffix: 'VPN — optional'
@@ -495,14 +496,11 @@ admin:
     subtitle: 'Services and interface configuration. Changes take effect immediately — no restart required.'
   nav:
     section: Settings
-    coming: Coming soon
     services: External services
     display: Display
     backup: Backup
     updates: Updates
     about: About
-    email_notifications: Email notifications
-    security_sessions: 'Security · sessions'
     aria_label: Settings sections
   services:
     title: External services
@@ -633,6 +631,7 @@ admin:
     password: Password
     protocol: 'Protocol (openvpn/wireguard)'
     api_key_if_protected: 'API key (if protected)'
+    clear: Clear
     tmdb:
       api_key: v3 API key
   internal:
@@ -718,8 +717,6 @@ admin:
     release_notes: Release notes
     no_releases: 'No release information available right now (GitHub API unreachable).'
     installed: Installed
-  coming:
-    v1_1: v1.1
 
 decouverte:
   title: Discover

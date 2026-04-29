@@ -36,7 +36,11 @@ class AdminSettingsController extends AbstractController
 {
     /**
      * Grouped field declarations. Each group maps to a card in the template.
-     * @var array<string, list<array{key: string, type: string, label: string, placeholder?: string}>>
+     * `clearable: true` opts a field into the explicit "Clear" button — used
+     * for qBittorrent user/password where leaving them empty is a legitimate
+     * setup (reverse-proxy injects auth, issue #10) and the default
+     * empty-value guard would otherwise silently restore the previous value.
+     * @var array<string, list<array{key: string, type: string, label: string, placeholder?: string, clearable?: bool}>>
      */
     private const FIELDS = [
         'tmdb' => [
@@ -60,8 +64,8 @@ class AdminSettingsController extends AbstractController
         ],
         'qbittorrent' => [
             ['key' => 'qbittorrent_url',      'type' => 'text',     'label' => 'admin.field.url',             'placeholder' => 'http://host.docker.internal:8080'],
-            ['key' => 'qbittorrent_user',     'type' => 'text',     'label' => 'admin.field.username'],
-            ['key' => 'qbittorrent_password', 'type' => 'password', 'label' => 'admin.field.password'],
+            ['key' => 'qbittorrent_user',     'type' => 'text',     'label' => 'admin.field.username',  'clearable' => true],
+            ['key' => 'qbittorrent_password', 'type' => 'password', 'label' => 'admin.field.password',  'clearable' => true],
         ],
         'gluetun' => [
             ['key' => 'gluetun_url',      'type' => 'text',     'label' => 'admin.field.url'],
@@ -707,18 +711,32 @@ class AdminSettingsController extends AbstractController
         $payload = [];
         foreach (self::FIELDS as $group) {
             foreach ($group as $field) {
-                $value = trim((string) $request->request->get($field['key'], ''));
+                $key   = $field['key'];
+                $value = trim((string) $request->request->get($key, ''));
+
+                // Explicit clear via the dedicated trash button next to the
+                // input (only rendered for clearable fields — qBit user/
+                // password). Bypasses the empty-value guard below so the user
+                // can deliberately wipe credentials, which is needed for qBit
+                // behind a reverse proxy that injects auth itself (issue #10).
+                if (($field['clearable'] ?? false)
+                    && (string) $request->request->get('_clear_' . $key, '') === '1') {
+                    $payload[$key] = null;
+                    continue;
+                }
+
                 // Sensitive fields (api keys, passwords) come back empty when
                 // the browser refuses to keep type="password" pre-filled with
                 // autocomplete="off" (Firefox + recent Chrome). Treat empty
                 // submission as "unchanged" so saving the form from another
                 // section (theme color, sidebar, etc.) does not silently wipe
                 // every credential at once. To clear a key, the user must use
-                // the dedicated reset action — never via an empty input.
+                // the dedicated trash button (handled above) — never via an
+                // empty input alone.
                 if (($field['type'] ?? null) === 'password' && $value === '') {
                     continue;
                 }
-                $payload[$field['key']] = $value !== '' ? $value : null;
+                $payload[$key] = $value !== '' ? $value : null;
             }
         }
 
