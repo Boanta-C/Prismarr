@@ -25,6 +25,23 @@ APP_ENV="${APP_ENV:-prod}"
 # Status flags (populated during the run, printed in the summary)
 secrets_action="already configured"
 schema_action="already up to date"
+tz_action="UTC (default, no \$TZ set)"
+
+# ── 0. Time zone propagation ───────────────────────────────────────────────
+# Issue #12 — honor the user's TZ env var (e.g. TZ=Pacific/Honolulu in
+# docker-compose). Two layers: the OS clock (used by `date`, file mtimes,
+# log timestamps from FrankenPHP) and PHP's date.timezone (used by Twig
+# helpers, /admin/settings server time, calendar). php.ini ships UTC as a
+# safe default; we drop a higher-priority zz-tz.ini here so PHP picks up
+# the user's zone without us editing the base ini.
+if [ -n "$TZ" ] && [ -f "/usr/share/zoneinfo/$TZ" ]; then
+  cp "/usr/share/zoneinfo/$TZ" /etc/localtime
+  echo "$TZ" > /etc/timezone
+  echo "date.timezone = $TZ" > /usr/local/etc/php/conf.d/zz-tz.ini
+  tz_action="$TZ"
+elif [ -n "$TZ" ]; then
+  tz_action="invalid \$TZ='$TZ' — falling back to UTC"
+fi
 
 # ── 1. Writable volume ──────────────────────────────────────────────────────
 # var/caddy = HOME of the FrankenPHP process (XDG data store, autosave files).
@@ -106,6 +123,7 @@ cat <<BANNER
   ──────────────────────────────────────────────────────────
   [ok] Secrets                $secrets_action
   [ok] Database schema        $schema_action
+  [ok] Time zone              $tz_action
 
   Ready — open http://localhost:$PRISMARR_PORT to access the UI.
   If this is a first install, you will be redirected to the

@@ -475,9 +475,14 @@
                       </label>
 
                     {% elseif spec.type == 'timezone' %}
+                      {# Empty stored value (issue #12) means "follow system",
+                         so we pre-select the resolved system timezone — the
+                         dropdown stays a single source of truth that the user
+                         can then confirm/save explicitly. #}
+                      {% set selected_tz = display_values[key] != '' ? display_values[key] : system_timezone %}
                       <select id="{{ key }}" name="{{ key }}" class="form-select form-select-sm">
                         {% for tz in timezones %}
-                          <option value="{{ tz }}" {% if display_values[key] == tz %}selected{% endif %}>{{ tz }}</option>
+                          <option value="{{ tz }}" {% if selected_tz == tz %}selected{% endif %}>{{ tz }}</option>
                         {% endfor %}
                       </select>
 

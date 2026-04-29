@@ -7,5 +7,6 @@ services:
     environment:
       - APP_ENV=dev
       - APP_DEBUG=1
+      - TZ=Europe/Paris
     volumes:
       - ./symfony:/var/www/html

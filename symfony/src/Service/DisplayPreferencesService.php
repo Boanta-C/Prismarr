@@ -45,7 +45,21 @@ class DisplayPreferencesService implements ResetInterface
 
     public function getHomePage(): string           { return $this->get('display_home_page'); }
     public function areToastsEnabled(): bool        { return $this->get('display_toasts') === '1'; }
-    public function getTimezone(): string           { return $this->get('display_timezone'); }
+
+    /**
+     * Issue #12 — when the admin hasn't picked a timezone via /admin/settings,
+     * fall back to the system zone (which the init script wires to the
+     * container's $TZ env var). Stops the UI from forcing Europe/Paris on
+     * users who set TZ=Pacific/Honolulu (or any other zone) in their compose.
+     */
+    public function getTimezone(): string
+    {
+        $stored = $this->config->get('display_timezone');
+        if ($stored !== null && $stored !== '') {
+            return (string) $stored;
+        }
+        return date_default_timezone_get();
+    }
     public function getDateFormat(): string         { return $this->get('display_date_format'); }
     public function getTimeFormat(): string         { return $this->get('display_time_format'); }
     public function getThemeColor(): string         { return $this->get('display_theme_color'); }

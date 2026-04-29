@@ -1,5 +1,13 @@
 FROM dunglas/frankenphp:1.3.6-php8.4-alpine
 
+# ── Build-time version injection ────────────────────────────────────────
+# The release workflow passes `--build-arg PRISMARR_VERSION=$TAG` so the
+# init.sh boot banner displays the actual version instead of "1.0.0-dev".
+# Issue #11 — kept in sync with App\Service\AppVersion::VERSION which the
+# UI uses; both are bumped together at each release.
+ARG PRISMARR_VERSION=dev
+ENV PRISMARR_VERSION=${PRISMARR_VERSION}
+
 # ── OCI metadata (surfaced on Docker Hub and `docker inspect`) ──────────
 LABEL org.opencontainers.image.title="Prismarr" \
       org.opencontainers.image.description="Self-hosted media stack dashboard — Radarr, Sonarr, Prowlarr, Jellyseerr, qBittorrent, TMDb in one Symfony UI." \
@@ -7,7 +15,8 @@ LABEL org.opencontainers.image.title="Prismarr" \
       org.opencontainers.image.source="https://github.com/Shoshuo/Prismarr" \
       org.opencontainers.image.url="https://github.com/Shoshuo/Prismarr" \
       org.opencontainers.image.documentation="https://github.com/Shoshuo/Prismarr#readme" \
-      org.opencontainers.image.vendor="Prismarr"
+      org.opencontainers.image.vendor="Prismarr" \
+      org.opencontainers.image.version="${PRISMARR_VERSION}"
 
 # ── s6-overlay (multi-process init system) ──────────────────────────────
 ARG S6_OVERLAY_VERSION=3.2.0.2
@@ -35,6 +44,7 @@ RUN apk add --no-cache \
         libzip \
         oniguruma \
         sqlite-libs \
+        tzdata \
     && apk add --no-cache --virtual .build-deps \
         git \
         zip \

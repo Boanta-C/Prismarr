@@ -39,6 +39,13 @@ jobs:
         id: image
         run: echo "name=${{ vars.DOCKERHUB_IMAGE || 'shoshuo/prismarr' }}" >> "$GITHUB_OUTPUT"
 
+      - name: Strip leading "v" from tag
+        id: ver
+        # Issue #11 — the tag is "v1.0.6" but App\Service\AppVersion::VERSION
+        # is the bare "1.0.6", so the build-arg passes the stripped form to
+        # match exactly what the UI displays.
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
       - name: Docker metadata (tags + labels)
         id: meta
         uses: docker/metadata-action@v5
@@ -74,6 +81,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            PRISMARR_VERSION=${{ steps.ver.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false

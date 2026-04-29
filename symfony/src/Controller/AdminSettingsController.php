@@ -163,7 +163,10 @@ class AdminSettingsController extends AbstractController
         'display_timezone' => [
             'label'   => 'admin.display.timezone.label',
             'type'    => 'timezone',
-            'default' => 'Europe/Paris',
+            // Issue #12 — empty default means "follow the system zone"
+            // which the init script wires to $TZ. The DisplayPreferencesService
+            // getter resolves the fallback at read time.
+            'default' => '',
             'help'    => 'admin.display.timezone.help',
         ],
         'display_date_format' => [
@@ -297,6 +300,10 @@ class AdminSettingsController extends AbstractController
             'display_options'    => self::DISPLAY_OPTIONS,
             'display_values'     => $this->loadDisplayValues(),
             'timezones'          => \DateTimeZone::listIdentifiers(),
+            // Surface the host system timezone (resolved from $TZ via the
+            // init script — issue #12) so the admin select can pre-select
+            // it when display_timezone hasn't been chosen yet.
+            'system_timezone'    => date_default_timezone_get(),
             'system_info'        => $this->systemInfo(),
             'export_counts'      => $this->exportCounts(),
             'languages'          => $this->loadServiceLanguages(),
@@ -341,7 +348,11 @@ class AdminSettingsController extends AbstractController
         } catch (\Throwable) {}
 
         return [
-            'prismarr_version' => $_ENV['PRISMARR_VERSION'] ?? getenv('PRISMARR_VERSION') ?: '1.0.0-dev',
+            // Single source of truth — same constant the /admin/settings
+            // Updates page reads, so the About card and the Updates card
+            // can never disagree (issue #11). Bumped at every release tag
+            // alongside CHANGELOG.md.
+            'prismarr_version' => $this->appVersion->current(),
             'symfony_version'  => Kernel::VERSION,
             'php_version'      => PHP_VERSION,
             'sapi'             => PHP_SAPI,

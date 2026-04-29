@@ -34,7 +34,10 @@ class DisplayPreferencesServiceTest extends TestCase
 
         $this->assertSame('dashboard', $prefs->getHomePage());
         $this->assertTrue($prefs->areToastsEnabled());
-        $this->assertSame('Europe/Paris', $prefs->getTimezone());
+        // Issue #12 — empty timezone preference falls back to the system
+        // zone (the init script wires this to $TZ from docker compose).
+        // The test sets it to UTC for determinism via the makeCmd setup.
+        $this->assertSame(date_default_timezone_get(), $prefs->getTimezone());
         $this->assertSame('fr', $prefs->getDateFormat());
         $this->assertSame('24h', $prefs->getTimeFormat());
         $this->assertSame('indigo', $prefs->getThemeColor());
@@ -142,8 +145,11 @@ class DisplayPreferencesServiceTest extends TestCase
     {
         $dt = new \DateTimeImmutable('2026-04-21 14:30:00', new \DateTimeZone('Europe/Paris'));
 
-        $this->assertSame('14:30', $this->serviceWith(['display_time_format' => '24h'])->formatTime($dt));
-        $this->assertSame('2:30 PM', $this->serviceWith(['display_time_format' => '12h'])->formatTime($dt));
+        // display_timezone explicit so the test isolates time-format
+        // formatting from the (now system-aware) timezone fallback added
+        // for issue #12.
+        $this->assertSame('14:30', $this->serviceWith(['display_time_format' => '24h', 'display_timezone' => 'Europe/Paris'])->formatTime($dt));
+        $this->assertSame('2:30 PM', $this->serviceWith(['display_time_format' => '12h', 'display_timezone' => 'Europe/Paris'])->formatTime($dt));
     }
 
     public function testFormatTimeAppliesTimezone(): void
@@ -160,7 +166,13 @@ class DisplayPreferencesServiceTest extends TestCase
     public function testFormatDateTimeJoinsDateAndTime(): void
     {
         $dt = new \DateTimeImmutable('2026-04-21 14:30:00', new \DateTimeZone('Europe/Paris'));
-        $prefs = $this->serviceWith(['display_date_format' => 'iso', 'display_time_format' => '24h']);
+        $prefs = $this->serviceWith([
+            'display_date_format' => 'iso',
+            'display_time_format' => '24h',
+            // Pin the zone for determinism — the system fallback would
+            // depend on the host TZ in CI vs dev (issue #12).
+            'display_timezone'    => 'Europe/Paris',
+        ]);
 
         $this->assertSame('2026-04-21 · 14:30', $prefs->formatDateTime($dt));
     }
