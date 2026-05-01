@@ -70,7 +70,7 @@ sidebar:
     radarr: Radarr
     sonarr: Sonarr
     prowlarr: Prowlarr
-    jellyseerr: Jellyseerr
+    jellyseerr: Seerr
     films: Movies
     series: TV Shows
   footer:
@@ -270,12 +270,12 @@ setup:
     indexers:
       eyebrow: 'Step 5 of 7 · Optional'
       title: Indexers & requests
-      subtitle: 'Prowlarr centralises your tracker indexers. Jellyseerr lets users request movies and TV shows, which are then sent to Radarr/Sonarr.'
+      subtitle: 'Prowlarr centralises your tracker indexers. Seerr lets users request movies and TV shows, which are then sent to Radarr/Sonarr.'
       prowlarr:
         section: '🔎 Prowlarr — Indexers'
         subtitle: Indexer aggregator compatible with Radarr/Sonarr.
       jellyseerr:
-        section: '🙋 Jellyseerr — User requests'
+        section: '🙋 Seerr — User requests'
         subtitle: Request interface for end users.
     downloads:
       eyebrow: 'Step 6 of 7 · Optional'
@@ -337,7 +337,7 @@ home:
         title: Radarr & Sonarr
         subtitle: Movie & TV management.
       indexers:
-        title: Prowlarr & Jellyseerr
+        title: Prowlarr & Seerr
         subtitle: Indexers & requests.
       downloads:
         title: qBittorrent
@@ -529,7 +529,7 @@ admin:
     test: Test
   languages:
     tab_label: Languages
-    description: 'Central control for Prismarr UI language and connected services. Changes to Radarr/Sonarr/Prowlarr/Jellyseerr are pushed via their APIs.'
+    description: 'Central control for Prismarr UI language and connected services. Changes to Radarr/Sonarr/Prowlarr/Seerr are pushed via their APIs.'
     prismarr_section: Prismarr
     prismarr_ui_label: Interface language
     prismarr_ui_help: 'Language displayed in Prismarr. Users cannot change their own language (admin-only setting).'
@@ -542,13 +542,13 @@ admin:
     sonarr_ui_label: Sonarr — UI language
     sonarr_info_unavailable: 'Sonarr v4 no longer has a global series info language (each series has its own originalLanguage).'
     prowlarr_ui_label: Prowlarr — UI language
-    jellyseerr_ui_label: Jellyseerr — UI language (admin)
+    jellyseerr_ui_label: Seerr — UI language (admin)
     not_configured: Service not configured
     unreachable: Service unreachable
     save_btn: Save languages
     saved_success: Languages updated.
     partial_error: 'Partial save: {services} failed.'
-    info_jellyseerr_global: Sets the Jellyseerr app default language (Settings → General). Users who set their own profile language keep their override.
+    info_jellyseerr_global: Sets the Seerr app default language (Settings → General). Users who set their own profile language keep their override.
     info_existing_items: 'Tip: changing a service language does not retranslate indexers/notifications/clients that were already created. To retranslate them you need to recreate them.'
   display:
     title: Display
@@ -613,7 +613,7 @@ admin:
         en: English
     metadata_language:
       label: Metadata language
-      help: 'Language requested from TMDb for titles, overviews and images. Applies to everyone. Radarr/Sonarr/Jellyseerr still have to be configured in their own UI (automatic sync planned for v1.1).'
+      help: 'Language requested from TMDb for titles, overviews and images. Applies to everyone. Radarr/Sonarr/Seerr still have to be configured in their own UI (automatic sync planned for v1.1).'
       options:
         fr_FR: Français (fr-FR)
         en_US: 'English — US (en-US)'
@@ -1048,6 +1048,7 @@ media:
       search_placeholder: "Search…"
       status:
         all: All
+        monitored: Monitored
         downloaded: Downloaded
         missing: Missing
         unmonitored: Unmonitored
@@ -1559,6 +1560,7 @@ media:
       search_placeholder: "Search…"
       status:
         all: All
+        monitored: Monitored
         continuing: Continuing
         ended: Ended
         anime: Anime
@@ -3954,8 +3956,8 @@ jellyseerr:
     linked: Linked
     linked_as_tpl: 'Connected as __NAME__'
     by_user_tpl: 'by __NAME__'
-    open_in_jellyseerr: Open Jellyseerr
-    manage_in_jellyseerr: Manage in Jellyseerr
+    open_in_jellyseerr: Open Seerr
+    manage_in_jellyseerr: Manage in Seerr
     season_tpl: 'Season __N__'
     confirm_delete_request: Delete this request?
     confirm_delete_user_tpl: 'Delete user "__NAME__"?'
@@ -3994,7 +3996,7 @@ jellyseerr:
     season_status_pending: Pending
     season_status_processing: Processing
   user_detail:
-    page_title_tpl: '__NAME__ — Jellyseerr'
+    page_title_tpl: '__NAME__ — Seerr'
     member_since_tpl: 'Member since __DATE__'
     requests_count_tpl: '{count, plural, one {# request} other {# requests}}'
     back: Back
@@ -4144,7 +4146,7 @@ jellyseerr:
   users:
     page_title: Users
     user_list_title: User list
-    cannot_reach: Cannot reach Jellyseerr
+    cannot_reach: Cannot reach Seerr
     search_placeholder: 'Search a user…'
     create_user: Create user
     import_jellyfin: Import from Jellyfin
@@ -4195,7 +4197,7 @@ jellyseerr:
   settings:
     about:
       title: About
-      app_title: Jellyseerr
+      app_title: Seerr
       version: Version
       update_available: Update available
       commit: Commit
@@ -4222,7 +4224,7 @@ jellyseerr:
       issues_closed: Closed
     general:
       title: General settings
-      subtitle: Configure the general settings of your Jellyseerr instance.
+      subtitle: Configure the general settings of your Seerr instance.
       section_application: Application
       section_regions_languages: Regions & Languages
       section_filters_blocking: Filters & Blocking
@@ -4263,15 +4265,15 @@ jellyseerr:
       special_episodes_desc: Display and allow special episode requests.
     jellyfin:
       title: Jellyfin
-      readonly_warning_html: 'For security reasons, Jellyfin settings can only be changed from the <a href="__URL__" target="_blank" style="color:inherit;text-decoration:underline;">native Jellyseerr interface</a>. This page is read-only.'
+      readonly_warning_html: 'For security reasons, Jellyfin settings can only be changed from the <a href="__URL__" target="_blank" style="color:inherit;text-decoration:underline;">native Seerr interface</a>. This page is read-only.'
       libraries_title: Jellyfin libraries
-      manage_in_jellyseerr: Manage in Jellyseerr
+      manage_in_jellyseerr: Manage in Seerr
       no_library: No library found
       lib_movies: Movies
       lib_tv: TV shows
       manual_scan_title: Manual library scan
       manual_scan_desc: Run a scan to detect changes in your libraries. The automatic scan runs every 24 hours.
-      run_scan: Run scan in Jellyseerr
+      run_scan: Run scan in Seerr
       settings_title: Jellyfin settings
       internal_name: Internal name
       ip_hostname: IP / Hostname
@@ -4306,9 +4308,9 @@ jellyseerr:
     services:
       title: Services
       radarr_settings: Radarr settings
-      radarr_subtitle: Manage your Radarr servers connected to Jellyseerr.
+      radarr_subtitle: Manage your Radarr servers connected to Seerr.
       sonarr_settings: Sonarr settings
-      sonarr_subtitle: Manage your Sonarr servers connected to Jellyseerr.
+      sonarr_subtitle: Manage your Sonarr servers connected to Seerr.
       add_radarr: Add a Radarr server
       add_sonarr: Add a Sonarr server
       default_badge: Default
@@ -4320,7 +4322,7 @@ jellyseerr:
       rules_users_label: 'Users:'
       rules_genre_label: 'Genre:'
       rules_no_rules: No rule configured
-      manage_rules: Manage rules in Jellyseerr
+      manage_rules: Manage rules in Seerr
       modal_title: Edit service
       modal_test: Test
       modal_save: Save
@@ -4401,7 +4403,7 @@ jellyseerr:
       images_col_type: Type
       images_col_count: Images
       images_col_size: Size
-      flush_confirm: Flush all Jellyseerr cache?
+      flush_confirm: Flush all Seerr cache?
       flush_done: Cache flushed
       flush_progress: 'Flushing…'
       flush_network_error: Network error
@@ -4449,7 +4451,7 @@ jellyseerr:
       modal_cancel: Cancel
     updates:
       title: Updates
-      docker_warning_html: 'Jellyseerr runs in a Docker container. To update, update the Docker image (e.g. <code>docker pull</code> or via Portainer).'
+      docker_warning_html: 'Seerr runs in a Docker container. To update, update the Docker image (e.g. <code>docker pull</code> or via Portainer).'
       installed_version: Installed version
       update_available: Update available
       up_to_date: Up to date

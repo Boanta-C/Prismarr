@@ -69,7 +69,7 @@ sidebar:
     radarr: Radarr
     sonarr: Sonarr
     prowlarr: Prowlarr
-    jellyseerr: Jellyseerr
+    jellyseerr: Seerr
     films: Films
     series: Séries
   footer:
@@ -269,12 +269,12 @@ setup:
     indexers:
       eyebrow: 'Étape 5 sur 7 · Optionnel'
       title: Indexeurs & requêtes
-      subtitle: 'Prowlarr centralise vos indexeurs trackers. Jellyseerr permet aux utilisateurs de faire des demandes de films et séries qui sont ensuite envoyées à Radarr/Sonarr.'
+      subtitle: 'Prowlarr centralise vos indexeurs trackers. Seerr permet aux utilisateurs de faire des demandes de films et séries qui sont ensuite envoyées à Radarr/Sonarr.'
       prowlarr:
         section: '🔎 Prowlarr — Indexeurs'
         subtitle: Agrégateur d'indexeurs compatible Radarr/Sonarr.
       jellyseerr:
-        section: '🙋 Jellyseerr — Requêtes utilisateurs'
+        section: '🙋 Seerr — Requêtes utilisateurs'
         subtitle: Interface de requêtes pour les utilisateurs finaux.
     downloads:
       eyebrow: 'Étape 6 sur 7 · Optionnel'
@@ -336,7 +336,7 @@ home:
         title: Radarr & Sonarr
         subtitle: Gestion films & séries.
       indexers:
-        title: Prowlarr & Jellyseerr
+        title: Prowlarr & Seerr
         subtitle: Indexeurs & requêtes.
       downloads:
         title: qBittorrent
@@ -528,7 +528,7 @@ admin:
     test: Tester
   languages:
     tab_label: Langues
-    description: 'Centralise les paramètres de langue de Prismarr et des services connectés. Les modifications côté Radarr/Sonarr/Prowlarr/Jellyseerr sont poussées via leurs API.'
+    description: 'Centralise les paramètres de langue de Prismarr et des services connectés. Les modifications côté Radarr/Sonarr/Prowlarr/Seerr sont poussées via leurs API.'
     prismarr_section: Prismarr
     prismarr_ui_label: Langue de l'interface
     prismarr_ui_help: 'Langue affichée dans Prismarr. Les utilisateurs ne peuvent pas changer leur propre langue (paramètre admin uniquement).'
@@ -541,13 +541,13 @@ admin:
     sonarr_ui_label: Sonarr — Langue UI
     sonarr_info_unavailable: 'Sonarr v4 ne propose plus de langue globale pour les séries (chaque série a son originalLanguage propre).'
     prowlarr_ui_label: Prowlarr — Langue UI
-    jellyseerr_ui_label: Jellyseerr — Langue UI (admin)
+    jellyseerr_ui_label: Seerr — Langue UI (admin)
     not_configured: Service non configuré
     unreachable: Service injoignable
     save_btn: Enregistrer les langues
     saved_success: Langues mises à jour.
     partial_error: 'Sauvegarde partielle : {services} ont échoué.'
-    info_jellyseerr_global: Modifie la langue par défaut de l'app Jellyseerr (Settings → General). Les utilisateurs gardent leurs préférences perso s'ils en ont défini une.
+    info_jellyseerr_global: Modifie la langue par défaut de l'app Seerr (Settings → General). Les utilisateurs gardent leurs préférences perso s'ils en ont défini une.
     info_existing_items: 'Astuce : changer la langue d''un service ne retraduit pas les indexers/notifications/clients déjà créés. Pour cela il faut les recréer.'
   display:
     title: Affichage
@@ -612,7 +612,7 @@ admin:
         en: English
     metadata_language:
       label: Langue des métadonnées
-      help: 'Langue demandée à TMDb pour les titres, résumés et images. S''applique à tous les utilisateurs. Radarr/Sonarr/Jellyseerr restent à configurer dans leur propre interface (synchronisation automatique prévue en v1.1).'
+      help: 'Langue demandée à TMDb pour les titres, résumés et images. S''applique à tous les utilisateurs. Radarr/Sonarr/Seerr restent à configurer dans leur propre interface (synchronisation automatique prévue en v1.1).'
       options:
         fr_FR: Français (fr-FR)
         en_US: 'English — US (en-US)'
@@ -1047,6 +1047,7 @@ media:
       search_placeholder: "Rechercher…"
       status:
         all: Tous
+        monitored: Suivis
         downloaded: Téléchargés
         missing: Manquants
         unmonitored: Non suivis
@@ -1558,6 +1559,7 @@ media:
       search_placeholder: "Rechercher…"
       status:
         all: Toutes
+        monitored: Suivies
         continuing: En cours
         ended: Terminées
         anime: Animés
@@ -3953,8 +3955,8 @@ jellyseerr:
     linked: Lié
     linked_as_tpl: 'Connecté en tant que __NAME__'
     by_user_tpl: 'par __NAME__'
-    open_in_jellyseerr: Ouvrir Jellyseerr
-    manage_in_jellyseerr: Gérer sur Jellyseerr
+    open_in_jellyseerr: Ouvrir Seerr
+    manage_in_jellyseerr: Gérer sur Seerr
     season_tpl: 'Saison __N__'
     confirm_delete_request: Supprimer cette requête ?
     confirm_delete_user_tpl: 'Supprimer l''utilisateur "__NAME__" ?'
@@ -3993,7 +3995,7 @@ jellyseerr:
     season_status_pending: En attente
     season_status_processing: En cours
   user_detail:
-    page_title_tpl: '__NAME__ — Jellyseerr'
+    page_title_tpl: '__NAME__ — Seerr'
     member_since_tpl: 'Membre depuis le __DATE__'
     requests_count_tpl: '{count, plural, one {# demande} other {# demandes}}'
     back: Retour
@@ -4143,7 +4145,7 @@ jellyseerr:
   users:
     page_title: Utilisateurs
     user_list_title: Liste des utilisateurs
-    cannot_reach: Impossible de contacter Jellyseerr
+    cannot_reach: Impossible de contacter Seerr
     search_placeholder: 'Rechercher un utilisateur…'
     create_user: Créer un utilisateur
     import_jellyfin: Importer Jellyfin
@@ -4194,7 +4196,7 @@ jellyseerr:
   settings:
     about:
       title: À propos
-      app_title: Jellyseerr
+      app_title: Seerr
       version: Version
       update_available: Mise à jour disponible
       commit: Commit
@@ -4221,7 +4223,7 @@ jellyseerr:
       issues_closed: Fermés
     general:
       title: Paramètres généraux
-      subtitle: Configurez les paramètres généraux de votre instance Jellyseerr.
+      subtitle: Configurez les paramètres généraux de votre instance Seerr.
       section_application: Application
       section_regions_languages: Régions & Langues
       section_filters_blocking: Filtres & Blocage
@@ -4262,15 +4264,15 @@ jellyseerr:
       special_episodes_desc: Afficher et permettre les demandes d'épisodes spéciaux.
     jellyfin:
       title: Jellyfin
-      readonly_warning_html: 'Par mesure de sécurité, les paramètres Jellyfin ne sont modifiables que depuis <a href="__URL__" target="_blank" style="color:inherit;text-decoration:underline;">l''interface native de Jellyseerr</a>. Cette page est en lecture seule.'
+      readonly_warning_html: 'Par mesure de sécurité, les paramètres Jellyfin ne sont modifiables que depuis <a href="__URL__" target="_blank" style="color:inherit;text-decoration:underline;">l''interface native de Seerr</a>. Cette page est en lecture seule.'
       libraries_title: Bibliothèques Jellyfin
-      manage_in_jellyseerr: Gérer sur Jellyseerr
+      manage_in_jellyseerr: Gérer sur Seerr
       no_library: Aucune bibliothèque trouvée
       lib_movies: Films
       lib_tv: Séries
       manual_scan_title: Analyse manuelle de la bibliothèque
       manual_scan_desc: Lance une analyse pour détecter les modifications dans vos bibliothèques. L'analyse automatique est effectuée toutes les 24 heures.
-      run_scan: Lancer l'analyse sur Jellyseerr
+      run_scan: Lancer l'analyse sur Seerr
       settings_title: Paramètres Jellyfin
       internal_name: Nom interne
       ip_hostname: Adresse IP / Hostname
@@ -4305,9 +4307,9 @@ jellyseerr:
     services:
       title: Services
       radarr_settings: Paramètres Radarr
-      radarr_subtitle: Gérez vos serveurs Radarr connectés à Jellyseerr.
+      radarr_subtitle: Gérez vos serveurs Radarr connectés à Seerr.
       sonarr_settings: Paramètres Sonarr
-      sonarr_subtitle: Gérez vos serveurs Sonarr connectés à Jellyseerr.
+      sonarr_subtitle: Gérez vos serveurs Sonarr connectés à Seerr.
       add_radarr: Ajouter un serveur Radarr
       add_sonarr: Ajouter un serveur Sonarr
       default_badge: Par défaut
@@ -4319,7 +4321,7 @@ jellyseerr:
       rules_users_label: 'Utilisateurs:'
       rules_genre_label: 'Genre:'
       rules_no_rules: Aucune règle configurée
-      manage_rules: Gérer les règles sur Jellyseerr
+      manage_rules: Gérer les règles sur Seerr
       modal_title: Modifier le service
       modal_test: Tester
       modal_save: Sauvegarder
@@ -4400,7 +4402,7 @@ jellyseerr:
       images_col_type: Type
       images_col_count: Images
       images_col_size: Taille
-      flush_confirm: Vider tout le cache Jellyseerr ?
+      flush_confirm: Vider tout le cache Seerr ?
       flush_done: Cache vidé
       flush_progress: 'Vidage…'
       flush_network_error: Erreur réseau
@@ -4448,7 +4450,7 @@ jellyseerr:
       modal_cancel: Annuler
     updates:
       title: Mises à jour
-      docker_warning_html: 'Jellyseerr tourne en conteneur Docker. Pour mettre à jour, mettez à jour l''image Docker (ex: <code>docker pull</code> ou via Portainer).'
+      docker_warning_html: 'Seerr tourne en conteneur Docker. Pour mettre à jour, mettez à jour l''image Docker (ex: <code>docker pull</code> ou via Portainer).'
       installed_version: Version installée
       update_available: Mise à jour disponible
       up_to_date: À jour

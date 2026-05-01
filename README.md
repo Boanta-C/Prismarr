@@ -66,7 +66,7 @@
 
 ## About
 
-**Prismarr** brings qBittorrent, Radarr, Sonarr, Prowlarr, Jellyseerr and
+**Prismarr** brings qBittorrent, Radarr, Sonarr, Prowlarr, Seerr and
 TMDb together in a single modern Symfony interface. No more juggling six
 tabs to manage your library.
 
@@ -122,9 +122,10 @@ where the others might suit you better:
 - **[Homarr](https://homarr.dev/)** - drag-and-drop launcher with rich
   widgets. Closer to Prismarr in spirit but still a launcher: Radarr is
   a tile, not a page.
-- **[Overseerr](https://overseerr.dev/) / [Jellyseerr](https://github.com/Fallenbagel/jellyseerr)** -
-  request frontends. Prismarr embeds Jellyseerr as one component among
-  others; if requests are *all* you need, Jellyseerr alone is enough.
+- **[Seerr](https://docs.seerr.dev/)** (the unified successor of the
+  archived Overseerr / Seerr) - request frontend. Prismarr embeds
+  Seerr as one component among others; if requests are *all* you need,
+  Seerr alone is enough.
 - **Servarr web UIs themselves** - the most powerful option. Prismarr
   doesn't replace them; it sits on top and gives you a unified search,
   calendar, dashboard and download view.
@@ -138,7 +139,7 @@ external dependencies.
 
 **Pick something else if** you want iframes (Organizr), pure bookmarks
 (Heimdall / Homer / Homepage), drag-and-drop dashboards (Homarr) or just
-a request UI (Jellyseerr).
+a request UI (Seerr).
 
 ---
 
@@ -154,7 +155,7 @@ a request UI (Jellyseerr).
 ### Dashboard
 - Hero spotlight with a random pick from your library
 - Upcoming releases (seven-day mini-calendar)
-- Pending Jellyseerr requests enriched with TMDb metadata
+- Pending Seerr requests enriched with TMDb metadata
 - Live health of all six services
 - Personal watchlist, weekly TMDb trending, latest library additions
 
@@ -192,7 +193,7 @@ a request UI (Jellyseerr).
 ### Requirements
 
 - Docker and Docker Compose
-- At least one of: qBittorrent, Radarr, Sonarr, Prowlarr, Jellyseerr
+- At least one of: qBittorrent, Radarr, Sonarr, Prowlarr, Seerr
 - Optional: Gluetun if qBittorrent runs behind a VPN
 - Optional: a TMDb API key (free) to enable the Discovery page
 
@@ -241,7 +242,7 @@ will guide you through:
 
 - admin account creation
 - TMDb API key (optional)
-- Radarr / Sonarr / Prowlarr / Jellyseerr URLs and keys
+- Radarr / Sonarr / Prowlarr / Seerr URLs and keys
 - qBittorrent + Gluetun (optional)
 
 `APP_SECRET` and `MERCURE_JWT_SECRET` are auto-generated on first boot and
@@ -266,7 +267,7 @@ Everything is configured from the UI:
 - **First boot**: the 7-step setup wizard at `/setup`
 - **Later**: the Settings page at `/admin/settings` (admin only)
 
-External service credentials (TMDb / Radarr / Sonarr / Prowlarr / Jellyseerr
+External service credentials (TMDb / Radarr / Sonarr / Prowlarr / Seerr
 API keys, qBittorrent password, service URLs), display preferences and
 language are stored in the SQLite database (`setting` table). They never
 appear in environment variables or in any committable file.
@@ -481,7 +482,7 @@ under the same license.
 
 Inspired by the remarkable work of:
 
-- [Overseerr / Jellyseerr](https://github.com/Fallenbagel/jellyseerr)
+- [Overseerr / Seerr](https://github.com/Fallenbagel/jellyseerr)
 - The [Servarr](https://wiki.servarr.com/) family (Radarr, Sonarr, Prowlarr, Bazarr…)
 - [Tabler](https://tabler.io/) for the UI kit
 
@@ -507,7 +508,7 @@ enough to keep me going. This release is for you.
 >
 > - **i18n translation and key wiring** - English isn't my native language; Claude handled the bulk of the EN/FR YAML files (4 188 keys on each side, kept in exact parity) and the `trans()` call sites in PHP and Twig.
 > - **Log and JavaScript debugging** - faster triage of stack traces, Turbo/Alpine quirks, and front-end edge cases I couldn't reproduce locally.
-> - **API endpoint cataloguing** - mapping the ~600 endpoints across Radarr v3, Sonarr v3, Prowlarr v1, Jellyseerr, qBittorrent v2 and TMDb v3 from their OpenAPI specs.
+> - **API endpoint cataloguing** - mapping the ~600 endpoints across Radarr v3, Sonarr v3, Prowlarr v1, Seerr, qBittorrent v2 and TMDb v3 from their OpenAPI specs.
 > - **Code audits** - flagging missed translations, forgotten edge cases and bugs in my own code.
 > - **SVG icons and illustrations** - generating and tweaking inline SVGs (logo variants, empty-state illustrations, status icons) when no off-the-shelf asset matched.
 >

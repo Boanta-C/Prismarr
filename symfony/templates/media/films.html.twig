@@ -59,6 +59,7 @@
 .filter-btn.active { background: transparent !important; }
 .filter-btn[data-filter="all"].active,
 .filter-btn[data-filter="unmonitored"].active { color: var(--tblr-secondary) !important; border-bottom-color: var(--tblr-secondary) !important; }
+.filter-btn[data-filter="monitored"].active { color: var(--tblr-info) !important; border-bottom-color: var(--tblr-info) !important; }
 .filter-btn[data-filter="downloaded"].active { color: var(--tblr-success) !important; border-bottom-color: var(--tblr-success) !important; }
 .filter-btn[data-filter="missing"].active { color: var(--tblr-warning) !important; border-bottom-color: var(--tblr-warning) !important; }
 
@@ -135,7 +136,7 @@
 .media-grid.view-extended .media-card .hover-info { display: none !important; }
 .media-grid.view-extended .media-card .extended-info { display: flex; flex-direction: column; justify-content: center; padding: .5rem .75rem; flex: 1; min-width: 0; }
 .media-card .extended-info { display: none; }
-/* Hover Jellyseerr */
+/* Hover Seerr */
 .media-card .hover-info {
     position: absolute; inset: 0; background: rgba(0,0,0,.75);
     display: flex; flex-direction: column; justify-content: flex-end;
@@ -293,6 +294,7 @@
         <button class="btn btn-sm btn-ghost-success filter-btn" data-filter="downloaded">{{ 'media.films.filters.status.downloaded'|trans }}</button>
         <button class="btn btn-sm btn-ghost-warning filter-btn" data-filter="missing">{{ 'media.films.filters.status.missing'|trans }}</button>
         <button class="btn btn-sm btn-ghost-secondary filter-btn" data-filter="unmonitored">{{ 'media.films.filters.status.unmonitored'|trans }}</button>
+        <button class="btn btn-sm btn-ghost-info filter-btn" data-filter="monitored">{{ 'media.films.filters.status.monitored'|trans }}</button>
       </div>
       <select id="filter-quality" class="form-select form-select-sm" style="max-width:110px">
         <option value="">{{ 'media.films.filters.quality'|trans }}</option>
@@ -625,7 +627,7 @@
       <div class="card-year">{{ movie.year }}</div>
     </div>
 
-    {# Hover Jellyseerr #}
+    {# Hover Seerr #}
     <div class="hover-info">
       <div style="position:absolute;top:.3rem;left:.4rem;right:.4rem;display:flex;align-items:center;justify-content:space-between;">
         <div class="d-flex align-items-center gap-2">
@@ -1300,6 +1302,7 @@
 
       var matchSearch = !q || title.includes(q);
       var matchStatus = currentFilter === 'all'
+        || (currentFilter === 'monitored'    && monitored)
         || (currentFilter === 'downloaded'   && hasFile)
         || (currentFilter === 'missing'      && !hasFile && monitored)
         || (currentFilter === 'unmonitored'  && !monitored);
@@ -1514,14 +1517,54 @@
     applyFilters();
   });
 
+  // Issue #14 — persist the active status filter so refreshes, shared
+  // links and sidebar navigation back to /medias/films keep the same
+  // view. Two layers: URL params (for shareable / refresh-safe links)
+  // and localStorage (so navigating away then back via the sidebar
+  // doesn't reset to "All"). URL wins when present so a shared link
+  // overrides the visitor's local pref. Only the status filter is
+  // persisted here; quality / genre / language / sort / search follow
+  // alongside the v1.1.0 pagination refactor.
+  var FILMS_FILTER_KEY = 'prismarrFilmsFilter';
+
+  function syncFilterToUrl() {
+    var url = new URL(window.location.href);
+    if (currentFilter === 'all') {
+      url.searchParams.delete('filter');
+      try { localStorage.removeItem(FILMS_FILTER_KEY); } catch (e) {}
+    } else {
+      url.searchParams.set('filter', currentFilter);
+      try { localStorage.setItem(FILMS_FILTER_KEY, currentFilter); } catch (e) {}
+    }
+    window.history.replaceState({}, '', url);
+  }
+
   btnAll.forEach(function (btn) {
     btn.addEventListener('click', function () {
       btnAll.forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
       currentFilter = btn.dataset.filter;
+      syncFilterToUrl();
       applyFilters();
     });
   });
+
+  // Restore the persisted filter AFTER the click handlers are wired up,
+  // by dispatching a click on the matching button. This goes through the
+  // same code path as a manual click (active class + applyFilters), so
+  // we don't end up with two slightly different init paths.
+  (function restorePersistedFilter() {
+    var requested = new URL(window.location.href).searchParams.get('filter');
+    if (!requested) {
+      try { requested = localStorage.getItem(FILMS_FILTER_KEY); } catch (e) {}
+    }
+    if (!requested || requested === 'all') return;
+    var target = null;
+    btnAll.forEach(function (b) {
+      if (b.dataset.filter === requested) target = b;
+    });
+    if (target) target.click();
+  })();
 
   /* ══════════════════════════════════════════════════════════════════════════
      Utilitaires
@@ -4009,6 +4052,7 @@
       var monitored = c.dataset.monitored === '1';
       var matchSearch = !q || title.includes(q);
       var matchStatus = currentFilter === 'all'
+        || (currentFilter === 'monitored' && monitored)
         || (currentFilter === 'downloaded' && hasFile)
         || (currentFilter === 'missing' && !hasFile && monitored)
         || (currentFilter === 'unmonitored' && !monitored);

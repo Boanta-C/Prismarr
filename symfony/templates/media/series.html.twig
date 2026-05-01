@@ -96,6 +96,7 @@
 .filter-btn.active { background: transparent !important; }
 .filter-btn[data-filter="all"].active,
 .filter-btn[data-filter="ended"].active { color: var(--tblr-secondary) !important; border-bottom-color: var(--tblr-secondary) !important; }
+.filter-btn[data-filter="monitored"].active { color: var(--tblr-info) !important; border-bottom-color: var(--tblr-info) !important; }
 .filter-btn[data-filter="continuing"].active { color: var(--tblr-success) !important; border-bottom-color: var(--tblr-success) !important; }
 .filter-btn[data-filter="anime"].active { color: var(--tblr-purple) !important; border-bottom-color: var(--tblr-purple) !important; }
 .filter-btn[data-filter="unmonitored"].active { color: var(--tblr-muted) !important; border-bottom-color: var(--tblr-muted) !important; }
@@ -337,6 +338,7 @@
         <button class="btn btn-sm btn-ghost-secondary filter-btn" data-filter="ended">{{ 'media.series.filters.status.ended'|trans }}</button>
         <button class="btn btn-sm btn-ghost-purple filter-btn" data-filter="anime">{{ 'media.series.filters.status.anime'|trans }}</button>
         <button class="btn btn-sm btn-ghost-secondary filter-btn" data-filter="unmonitored">{{ 'media.series.filters.status.unmonitored'|trans }}</button>
+        <button class="btn btn-sm btn-ghost-info filter-btn" data-filter="monitored">{{ 'media.series.filters.status.monitored'|trans }}</button>
         <button class="btn btn-sm btn-ghost-danger filter-btn" data-filter="missing">{{ 'media.series.filters.status.missing'|trans }}</button>
       </div>
       <select id="filter-genre" class="form-select form-select-sm" style="max-width:110px">
@@ -554,7 +556,7 @@
       {% endif %}
     </div>
 
-    {# Info hover (Jellyseerr style) #}
+    {# Info hover (Seerr style) #}
     <div class="hover-info">
       <div style="position:absolute;top:.25rem;left:.4rem;right:.4rem;display:flex;align-items:center;justify-content:space-between;">
         <div class="d-flex align-items-center gap-2">
@@ -1247,6 +1249,7 @@
       var percent = parseInt(c.dataset.percent) || 0;
       var epCount = parseInt(c.dataset.episodeCount) || 0;
       var matchFilter = currentFilter === 'all'
+        || (currentFilter === 'monitored'   && mon === '1')
         || (currentFilter === 'continuing' && status === 'continuing')
         || (currentFilter === 'ended'      && status === 'ended')
         || (currentFilter === 'anime'      && type === 'anime')
@@ -1305,14 +1308,47 @@
     applyFilters();
   });
 
+  // Issue #14 — persist the active status filter in the URL + localStorage.
+  // URL wins when present (shareable links override local pref), localStorage
+  // kicks in for sidebar nav back to /medias/series so the user keeps their
+  // filter even when the URL doesn't carry it.
+  var SERIES_FILTER_KEY = 'prismarrSeriesFilter';
+
+  function syncFilterToUrl() {
+    var url = new URL(window.location.href);
+    if (currentFilter === 'all') {
+      url.searchParams.delete('filter');
+      try { localStorage.removeItem(SERIES_FILTER_KEY); } catch (e) {}
+    } else {
+      url.searchParams.set('filter', currentFilter);
+      try { localStorage.setItem(SERIES_FILTER_KEY, currentFilter); } catch (e) {}
+    }
+    window.history.replaceState({}, '', url);
+  }
+
   btnAll.forEach(function (btn) {
     btn.addEventListener('click', function () {
       btnAll.forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
       currentFilter = btn.dataset.filter;
+      syncFilterToUrl();
       applyFilters();
     });
   });
+
+  // Restore the persisted filter AFTER the click handlers are wired up.
+  (function restorePersistedFilter() {
+    var requested = new URL(window.location.href).searchParams.get('filter');
+    if (!requested) {
+      try { requested = localStorage.getItem(SERIES_FILTER_KEY); } catch (e) {}
+    }
+    if (!requested || requested === 'all') return;
+    var target = null;
+    btnAll.forEach(function (b) {
+      if (b.dataset.filter === requested) target = b;
+    });
+    if (target) target.click();
+  })();
 
   // View mode switch + persist
   var tableView = document.getElementById('series-table-view');

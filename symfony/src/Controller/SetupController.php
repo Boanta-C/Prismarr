@@ -577,7 +577,7 @@ class SetupController extends AbstractController
             $this->summaryRow('Radarr',      'radarr_url'),
             $this->summaryRow('Sonarr',      'sonarr_url'),
             $this->summaryRow('Prowlarr',    'prowlarr_url'),
-            $this->summaryRow('Jellyseerr',  'jellyseerr_url'),
+            $this->summaryRow('Seerr',       'jellyseerr_url'),
             $this->summaryRow('qBittorrent', 'qbittorrent_url'),
             $this->summaryRow('Gluetun',     'gluetun_url'),
         ];

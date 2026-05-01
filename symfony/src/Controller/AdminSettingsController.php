@@ -112,7 +112,7 @@ class AdminSettingsController extends AbstractController
         'radarr'      => 'Radarr',
         'sonarr'      => 'Sonarr',
         'prowlarr'    => 'Prowlarr',
-        'jellyseerr'  => 'Jellyseerr',
+        'jellyseerr'  => 'Seerr',
         'qbittorrent' => 'qBittorrent',
         'gluetun'     => 'Gluetun',
     ];
@@ -579,7 +579,7 @@ class AdminSettingsController extends AbstractController
                     }
                 }
             } catch (\Throwable $e) {
-                $failed[] = 'Jellyseerr';
+                $failed[] = 'Seerr';
                 $this->logger->warning('AdminSettings languagesSave jellyseerr failed', ['message' => $e->getMessage()]);
             }
         }

@@ -601,7 +601,7 @@
     {% endif %}
 
     {# ── Requests + Services health ─────────────────────────────────── #}
-    {# Jellyseerr requests masqué quand le service n'est pas configuré.
+    {# Seerr requests masqué quand le service n'est pas configuré.
        La grid se réduit alors à la seule carte "Services health". #}
     <div class="row row-cards mb-3">
       {% if services_configured.jellyseerr %}
@@ -651,7 +651,7 @@
       {% endif %}
 
       {# Services health card spans the full width when the requests card is
-         hidden (no Jellyseerr), otherwise sits next to it on the right. #}
+         hidden (no Seerr), otherwise sits next to it on the right. #}
       <div class="col-12 {% if services_configured.jellyseerr %}col-lg-6{% endif %}">
         <div class="card h-100">
           <div class="card-header">
@@ -682,7 +682,7 @@
                   radarr:      {name:'Radarr',      color:'#FFC230'},
                   sonarr:      {name:'Sonarr',      color:'#00CCFF'},
                   prowlarr:    {name:'Prowlarr',    color:'#E88D1A'},
-                  jellyseerr:  {name:'Jellyseerr',  color:'#a259ff'},
+                  jellyseerr:  {name:'Seerr',       color:'#a259ff'},
                   qbittorrent: {name:'qBittorrent', color:'#2f67ba'},
                   tmdb:        {name:'TMDb',        color:'#01B4E4'},
                 }[id] %}
