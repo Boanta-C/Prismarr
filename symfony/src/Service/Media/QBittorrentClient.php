@@ -16,13 +16,13 @@ class QBittorrentClient implements ResetInterface
      * …) where user/password are empty in BDD because the proxy injects
      * credentials transparently on every request. Returned by login()
      * without making any /auth/login HTTP call. Recognized by the HTTP
-     * helpers (getRaw / postAction) which then skip the `Cookie: SID=…`
-     * header instead of sending a literal "SID=__noauth__" to qBit.
+     * helpers (getRaw / postAction) which then skip the Cookie header
+     * instead of sending a literal "__noauth__" value to qBit.
      * Issue #10.
      */
     private const NO_AUTH_SID = '__noauth__';
 
-    /** qBittorrent session reused between calls (avoids a curl POST auth per method). */
+    /** qBittorrent session cookie reused between calls (avoids a curl POST auth per method). */
     private ?string $sid = null;
 
     /** Short cache for server_state (alltime_dl/ul changes slowly, /sync/maindata is expensive). */
@@ -414,7 +414,7 @@ class QBittorrentClient implements ResetInterface
                 CURLOPT_POSTFIELDS     => $postFields,
                 // Issue #10 — reverse-proxy mode skips the Cookie header
                 // (proxy injects auth itself); see NO_AUTH_SID docblock.
-                CURLOPT_HTTPHEADER     => $sid !== self::NO_AUTH_SID ? ['Cookie: SID=' . $sid] : [],
+                CURLOPT_HTTPHEADER     => $sid !== self::NO_AUTH_SID ? ['Cookie: ' . $sid] : [],
             ]);
             $response = curl_exec($ch);
             $code     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -727,6 +727,10 @@ class QBittorrentClient implements ResetInterface
 
         $this->ensureConfig();
 
+        // TODO: qBittorrent API-key auth would require a new stored credential
+        // and request-header strategy; keep the current password/cookie flow
+        // until that can be added without changing unrelated settings schema.
+
         // Reverse-proxy mode (issue #10): empty user OR password means the
         // proxy in front of qBit (qui, traefik forward auth, …) handles
         // authentication. POSTing /auth/login with an empty body would
@@ -778,15 +782,40 @@ class QBittorrentClient implements ResetInterface
             $this->health->markDown(self::SERVICE_KEY);
         }
 
-        preg_match('/Set-Cookie:\s*SID=([^;]+)/i', $response, $m);
-        $this->sid = $m[1] ?? null;
+        if (!in_array((int) $code, [200, 204], true)) {
+            return null;
+        }
+
+        $this->sid = $this->extractSessionCookie($response);
         if ($this->sid !== null) {
             $this->health->clear(self::SERVICE_KEY);
         }
         return $this->sid;
     }
 
-    /** Invalidate the session (call this if qBit rejects a call: expired SID). */
+    /**
+     * Parse the cookie name/value exactly as qBittorrent returned it.
+     *
+     * qBittorrent 5.2.x may return cookie names such as QBT_SID_8081 instead
+     * of the historical SID, so keep the complete name=value pair.
+     */
+    private function extractSessionCookie(string $response): ?string
+    {
+        if (!preg_match_all('/^Set-Cookie:\s*([^=;\s]+)=([^;\r\n]*)/im', $response, $matches, PREG_SET_ORDER)) {
+            return null;
+        }
+
+        foreach ($matches as $match) {
+            $name = trim($match[1]);
+            if ($name === '') continue;
+
+            return $name . '=' . $match[2];
+        }
+
+        return null;
+    }
+
+    /** Invalidate the session (call this if qBit rejects a call: expired session cookie). */
     private function invalidateSession(): void
     {
         $this->sid = null;
@@ -803,7 +832,7 @@ class QBittorrentClient implements ResetInterface
         return json_decode($body, true) ?? null;
     }
 
-    private function getRaw(string $path, array $params = [], ?string $sid = null): ?string
+    private function getRaw(string $path, array $params = [], ?string $sid = null, bool $retried = false): ?string
     {
         if ($this->health->isDown(self::SERVICE_KEY)) {
             $this->serviceUnavailable = true;
@@ -814,13 +843,16 @@ class QBittorrentClient implements ResetInterface
         }
         $this->lastError = null;
         $this->ensureConfig();
+        $sid ??= $this->login();
+        if (!$sid) return null;
+
         $url = rtrim($this->baseUrl, '/') . $path;
         if ($params) $url .= '?' . http_build_query($params);
 
         $headers = [];
         // Issue #10 — in reverse-proxy mode the SID is a sentinel that
         // must NOT be echoed as a real qBit cookie (qBit would reject it).
-        if ($sid && $sid !== self::NO_AUTH_SID) $headers[] = 'Cookie: SID=' . $sid;
+        if ($sid && $sid !== self::NO_AUTH_SID) $headers[] = 'Cookie: ' . $sid;
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -848,9 +880,10 @@ class QBittorrentClient implements ResetInterface
         curl_close($ch);
 
         if ($code !== 200) {
-            // Expired SID → invalidate; the next call will auto re-login
-            if ($code === 403 || $code === 401) {
+            // Expired session cookie → invalidate + 1 retry after auto re-login.
+            if (($code === 401 || $code === 403) && !$retried) {
                 $this->invalidateSession();
+                return $this->getRaw($path, $params, null, true);
             }
             $this->logger->warning('QBittorrentClient GET error', ['path' => $path, 'code' => $code]);
             $this->recordError('GET', $path, (int) $code, is_string($body) ? $body : '', $curlErr);
@@ -882,7 +915,7 @@ class QBittorrentClient implements ResetInterface
         $url = rtrim($this->baseUrl, '/') . $path;
         // Issue #10 — reverse-proxy mode: skip Cookie header when login()
         // returned the sentinel (proxy injects auth itself).
-        $headers = $sid !== self::NO_AUTH_SID ? ['Cookie: SID=' . $sid] : [];
+        $headers = $sid !== self::NO_AUTH_SID ? ['Cookie: ' . $sid] : [];
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -912,7 +945,7 @@ class QBittorrentClient implements ResetInterface
         curl_close($ch);
 
         if ($code !== 200) {
-            // Expired SID → invalidate + 1 retry after auto re-login
+            // Expired session cookie → invalidate + 1 retry after auto re-login
             if (($code === 401 || $code === 403) && !$retried) {
                 $this->invalidateSession();
                 return $this->postAction($path, $params, true);
