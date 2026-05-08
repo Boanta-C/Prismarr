@@ -1,0 +1,4670 @@
+common:
+  action:
+    save: Save
+    cancel: Cancel
+    close: Close
+    back: Back
+    next: Next
+    previous: Previous
+    search: Search
+    confirm: Confirm
+    delete: Delete
+    edit: Edit
+    add: Add
+    apply: Apply
+    reset: Reset
+    download: Download
+    upload: Upload
+    submit: Submit
+    retry: Retry
+    continue: Continue
+    finish: Finish
+    refresh: Refresh
+    view_all: View all
+    view_more: View more
+  status:
+    loading: Loading…
+    saving: Saving…
+    done: Done
+    error: Error
+    success: Success
+    'yes': 'Yes'
+    'no': 'No'
+    optional: optional
+    required: required
+    coming_soon: Coming soon
+  labels:
+    email: Email
+    username: Username
+    password: Password
+    language: Language
+    welcome: Welcome
+    today: Today
+    tomorrow: Tomorrow
+    yesterday: Yesterday
+    unknown: Unknown
+  empty:
+    default: Nothing to show yet.
+app:
+  name: Prismarr
+  tagline: Self-hosted media stack
+sidebar:
+  section:
+    overview: Overview
+    media: Media
+    discovery: Discover
+    tools: Tools
+  nav:
+    dashboard: Dashboard
+    qbittorrent: Downloads
+    discovery: Discover
+    calendar: Calendar
+    radarr: Radarr
+    sonarr: Sonarr
+    prowlarr: Prowlarr
+    jellyseerr: Seerr
+    films: Movies
+    series: TV Shows
+  footer:
+    collapse: Collapse sidebar
+    expand: Expand sidebar
+    settings: Settings
+    logout: Sign out
+topbar:
+  brand:
+    home: Back to home
+  search:
+    placeholder: Search a movie, a TV show, a torrent…
+    placeholder_short: Type at least 2 characters to start searching.
+    label: Global search
+    shortcut_hint: Ctrl+K
+    filter:
+      all: All
+      films: Movies
+      series: TV Shows
+      torrents: Downloads
+    recent: Recent searches
+    empty: No results
+    empty_short: No results.
+    clear: Clear
+    forget: Forget
+    loading_online: Loading…
+    in_library_badge: In library
+    not_added_badge: Not added
+    group_local: In your library
+    group_online: On TMDb / TheTVDB
+    more_local: See more in your library
+    more_online: See more on TMDb
+  theme:
+    toggle: Toggle light/dark theme
+    light: Light
+    dark: Dark
+    label_light: Light theme
+    label_dark: Dark theme
+  locale:
+    toggle: Change language
+    label: Language
+    options:
+      fr: Français
+      en: English
+      ro: Română
+    use_default: Use instance default language
+  health:
+    title: Services health
+    summary_ok: All services OK
+    summary_partial: '{count, plural, one {# service down} other {# services down}}'
+    summary_unknown: Checking status…
+    summary_no_service: No service configured
+    summary_running: '{ok} / {total} services up'
+    loading: Checking…
+    status:
+      not_configured: Not configured
+      ok: Up
+      down: Unreachable
+  profile:
+    menu: User menu
+    greeting: Hi {name}
+    profile: My profile
+    settings: Settings
+    admin: Administration
+    logout: Sign out
+footer:
+  made_with: Powered by Prismarr
+  version: Versiune {version}
+quickadd:
+  close: Close
+  already_in_library: Already in library
+  field:
+    quality_profile: Quality profile
+    root_folder: Root folder
+    min_availability: Minimum availability
+    series_type: Series type
+    monitor: Monitor
+    season_folder: Season folders
+    search_missing: Search for missing
+    search_auto: Auto-search
+  availability:
+    announced: Announced
+    inCinemas: In theatres
+    released: Released
+  series_type_options:
+    standard: Standard
+    daily: Daily
+    anime: Anime
+  monitor_options:
+    all: All episodes
+    future: Future only
+    missing: Missing
+    firstSeason: First season
+    lastSeason: Last season
+    pilot: Pilot
+    none: None
+  cta:
+    add_radarr: Add to Radarr
+    add_sonarr: Add to Sonarr
+    add_to: Add to {service}
+  toast:
+    added: '{type} added to {service}'
+    type_film: Movie
+    type_series: TV Show
+  error:
+    network: Network error
+    retry: Retry
+    missing_fields: Pick a profile and a folder.
+    adding: Adding…
+    generic: 'Error: {reason}'
+    cannot_add: Cannot add
+    added_success: '{type} successfully added!'
+    added_done: ✓ Added!
+login:
+  title: Sign in
+  subtitle: Access your Prismarr instance
+  email: Email
+  email_placeholder: you@email.com
+  password: Password
+  remember: Remember me
+  submit: Sign in
+  forgot_hint: Forgot your password? Please contact your instance administrator.
+  error:
+    invalid: Invalid credentials.
+    throttled: Too many attempts, please try again in a few minutes.
+    generic: We couldn't sign you in right now.
+setup:
+  layout:
+    title: Setup
+  error:
+    csrf: Invalid CSRF token, please retry.
+    email_invalid: Invalid email.
+    password_too_short: Password must be at least 8 characters.
+    password_mismatch: The two passwords do not match.
+  flash:
+    welcome: Prismarr is ready. Welcome!
+  nav:
+    step: Step {current}/{total}
+  stepper:
+    welcome: Welcome
+    admin: Account
+    tmdb: TMDb
+    managers: Media
+    indexers: Indexers
+    downloads: Downloads
+    finish: Finish
+  step:
+    welcome:
+      title: Welcome to Prismarr
+      subtitle: A unified dashboard for your self-hosted media stack. A few minutes are enough to configure everything.
+      features:
+        media: Movies & TV shows
+        indexers: Indexers
+        downloads: Downloads
+        discovery: TMDb discovery
+      cta: Start the setup →
+      language_label: Language
+      language:
+        en: English
+        fr: Français
+        ro: Română
+    admin:
+      eyebrow: Step 2 of 7
+      title: Create your admin account
+      subtitle: This account will have access to every Prismarr configuration option. You can create more users later from the admin area.
+      email: Email
+      display_name: Display name
+      display_name_optional: (optional)
+      password: Password
+      password_hint: (8 min.)
+      password_confirm: Confirm
+      toggle_visibility: Show/hide
+      back: ← Back
+      cta: Create account →
+    tmdb:
+      eyebrow: Step 3 of 7 · Optional
+      title: The Movie Database (TMDb)
+      subtitle: Required for the <strong>Discover</strong> page (trending movies & TV shows, recommendations, watchlist). Create a free key on <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">themoviedb.org</a>. If you skip this step, Discover will be disabled.
+      api_key: API v3 key
+      api_key_hint: v3 only — v4 (Bearer token) is not supported yet.
+    managers:
+      eyebrow: Step 4 of 7 · Optional
+      title: Media managers
+      subtitle: Radarr manages your movie library, Sonarr manages TV shows. You can configure both, only one, or skip this step.
+      radarr:
+        section: 🎬 Radarr — Movies
+        subtitle: Automated movie management service.
+      sonarr:
+        section: 📺 Sonarr — TV Shows
+        subtitle: Automated TV show management service.
+      fields:
+        url: URL
+        api_key: API key
+    indexers:
+      eyebrow: Step 5 of 7 · Optional
+      title: Indexers & requests
+      subtitle: Prowlarr centralises your tracker indexers. Seerr lets users request movies and TV shows, which are then sent to Radarr/Sonarr.
+      prowlarr:
+        section: 🔎 Prowlarr — Indexers
+        subtitle: Indexer aggregator compatible with Radarr/Sonarr.
+      jellyseerr:
+        section: 🙋 Seerr — User requests
+        subtitle: Request interface for end users.
+    downloads:
+      eyebrow: Step 6 of 7 · Optional
+      title: Download client
+      subtitle: qBittorrent is your BitTorrent client. Gluetun is an optional VPN router that sits in front of qBittorrent to mask your IP.
+      qbittorrent:
+        section: ⬇️ qBittorrent
+        subtitle: Authentication through the qBittorrent Web UI.
+        user: Username
+        password: Password
+        reverse_proxy_hint: Leave the username and password empty if qBittorrent sits behind a reverse proxy that injects authentication itself (qui, traefik forward auth, …).
+      gluetun:
+        section: Gluetun
+        section_suffix: VPN — optional
+        subtitle: Leave blank if qBittorrent does not route through a VPN.
+        url: URL (Control Server)
+        protocol: Protocol
+        protocol_auto: Auto
+        api_key: API key
+        api_key_optional: (optional)
+        api_key_placeholder: Bearer token if the Control Server is protected
+    finish:
+      eyebrow: Step 7 of 7
+      title: You're all set!
+      subtitle: Here is a summary of your configuration. You can edit or add services at any time from the admin area.
+      badge_configured: Configured
+      badge_skipped: Skipped
+      cta: Launch Prismarr →
+    common:
+      back: ← Back
+      skip: Skip this step
+      save_next: Save and continue →
+  test:
+    button: Test connection
+    testing: Testing…
+    ok: Connected
+    category:
+      network: Cannot reach service
+      auth: Wrong API key or password
+      forbidden: Access forbidden (403)
+      not_found: Endpoint not found (404)
+      server_error: Service error (5xx)
+      unconfigured: Fill in the URL and credentials first
+      unknown: Unexpected response
+    error:
+      csrf: Session expired, please refresh the page
+      forbidden: Setup is already completed
+      rate_limited: Too many test requests, wait a moment
+home:
+  welcome:
+    title: Bine ai venit pe Prismarr
+    subtitle: Momentan, nu este configurat niciun serviciu. Alege o secțiune pentru a începe.
+    cards:
+      discovery:
+        title: Descoperă (TMDb)
+        subtitle: Filme și seriale populare, lista de vizionat.
+      managers:
+        title: Radarr & Sonarr
+        subtitle: Gestionarea filmelor și a Serialelor.
+      indexers:
+        title: Prowlarr & Seerr
+        subtitle: Indexatori și solicitări.
+      downloads:
+        title: qBittorrent
+        subtitle: Client de descărcare
+dashboard:
+  title: Dashboard
+  greeting:
+    morning: Good morning
+    afternoon: Good afternoon
+    evening: Good evening
+  relative:
+    today: Today
+    yesterday: Yesterday
+    days_ago: '{count, plural, one {# day ago} other {# days ago}}'
+    weeks_ago: '{count, plural, one {# week ago} other {# weeks ago}}'
+    months_ago: '{count, plural, one {# month ago} other {# months ago}}'
+    years_ago: '{count, plural, one {# year ago} other {# years ago}}'
+  hero:
+    stats:
+      films: Movies
+      series: TV Shows
+      upcoming_7d: Next 7d
+  weekdays:
+    mon: Monday
+    tue: Tuesday
+    wed: Wednesday
+    thu: Thursday
+    fri: Friday
+    sat: Saturday
+    sun: Sunday
+  upcoming:
+    title: Upcoming releases · 7 days
+    empty: No releases planned this week.
+    more: '{count, plural, one {+ # more} other {+ # more}}'
+    calendar_cta: Calendar →
+  requests:
+    title: Pending requests
+    empty: No pending requests.
+    manage_cta: Manage →
+    by: by
+    status_pending: Pending
+  health:
+    title: Services health
+    settings_cta: Settings →
+    status_ok: Up
+    status_ko: Unreachable
+    status_unk: Not configured
+    none_configured: No service configured yet — pick the ones you use in Settings.
+  watchlist:
+    title: My watchlist
+    view_all: View all →
+  trending:
+    title: Trending this week
+    discover_cta: Discover →
+  recent:
+    title: Recently added to your library
+  type:
+    film: Movie
+    series: TV Show
+  release_badge:
+    digital: Digital
+    cinema: Cinema
+    bluray: Blu-ray
+  lib_badge:
+    downloaded: Downloaded
+  hero_badge:
+    in_library: In your library
+    monitored: Monitored · awaiting download
+    trending: ★ Trending this week
+    cta_view: ▶ View details
+    cta_discover: ▶ Discover
+profile:
+  title: My profile
+  identity:
+    section: Info
+    display_name: Display name
+    display_name_help: Shown in the dashboard and sidebar. Leave empty to use your email.
+    email: Email
+    role: Role
+    registered_on: Member since
+    last_login: Last sign-in
+    save: Save
+  password:
+    section: Change password
+    hint: Leave empty to keep the current one. 8 characters minimum.
+    current: Current password
+    new: New password
+    confirm: Confirm
+    save: Update password
+  avatar:
+    upload_button: Choose an image
+    delete: Remove picture
+    delete_confirm: Remove profile picture?
+    hint: JPG, PNG, WebP, GIF · 2 MB max
+  stats:
+    section: Personal stats
+    watchlist_label: '{count, plural, =0 {No movie/show in my list} one {# movie/show in my list} other {# movies/shows in my list}}'
+    member_since: Member since
+    role: Current role
+    role_admin: Administrator
+    role_user: User
+    role_admin_short: Admin
+    role_user_short: User
+    today: Today
+    days_short: '{count} d'
+    months_short: '{count} mo'
+    years_short: '{count, plural, one {# yr} other {# yrs}}'
+  watchlist_preview:
+    title: Latest additions to my watchlist
+    view_all: View all →
+    type_film: Movie
+    type_tv: TV Show
+error:
+  '403':
+    title: Access denied
+    message: You don't have the required permissions to access this page.
+  '404':
+    title: Page not found
+    message: The page you requested doesn't exist or has been moved.
+  '500':
+    title: Server error
+    message: Something unexpected happened. Please retry in a moment.
+  '503':
+    title: Service unavailable
+    message: Prismarr isn't reachable right now.
+  generic:
+    title: Oops
+    message: Something went wrong.
+  action:
+    home: Back to home
+    retry: Retry
+  service_not_configured:
+    title: Service not configured
+    heading: Service "{service}" not configured
+    description: Prismarr can't reach this service because its connection settings haven't been filled in yet.
+    missing_key: 'Missing parameter:'
+    configure_cta: Configure {service}
+    service_unavailable_flash: Configure {service} to access this section.
+    service_unavailable_warn: The "{service}" service is not configured yet.
+  service_banner:
+    title_not_configured: '{service} is not configured'
+    title_unreachable: '{service} is not responding'
+    body_not_configured: Configure {service} from the wizard to enable this section.
+    body_unreachable_url: Cannot reach <code>{url}</code>. Make sure the service is running, the URL is correct and the API key is valid.
+    body_unreachable_no_url: Cannot reach the service. Make sure it is running, the URL is correct and the API key is valid.
+    cta_configure: Configure {service}
+    cta_edit: Edit configuration
+    cta_retry: Retry
+admin:
+  page:
+    title: Settings
+    subtitle: Services and interface configuration. Changes take effect immediately — no restart required.
+  nav:
+    section: Settings
+    services: External services
+    display: Display
+    backup: Backup
+    updates: Updates
+    about: About
+    aria_label: Settings sections
+  services:
+    title: External services
+    description: URLs and API keys for the services Prismarr drives. Use <em>Test</em> to validate connectivity after changes.
+    group:
+      discovery: Discovery
+      managers: Managers
+      indexers: Indexers & requests
+      downloads: Downloads
+    subtitle:
+      tmdb: Movie & TV discovery, watchlist
+      radarr: Movie manager
+      sonarr: TV show manager
+      prowlarr: Indexer aggregator
+      jellyseerr: Request platform
+      qbittorrent: Torrent client
+      gluetun: VPN / port forwarding
+    sidebar_toggle: Menu
+    sidebar_toggle_title: Show in sidebar
+    status:
+      not_tested: Not tested
+      testing: Testing…
+      connected: Connected
+      unreachable: Unreachable
+      error: Error
+    test: Test
+  languages:
+    tab_label: Languages
+    description: Central control for Prismarr UI language and connected services. Changes to Radarr/Sonarr/Prowlarr/Seerr are pushed via their APIs.
+    prismarr_section: Prismarr
+    prismarr_ui_label: Interface language
+    prismarr_ui_help: Language displayed in Prismarr. Users cannot change their own language (admin-only setting).
+    prismarr_metadata_label: TMDb metadata language
+    prismarr_metadata_help: Language for titles, overviews and metadata fetched from TMDb (for the Discover page and enriched cards).
+    services_section: Connected services
+    radarr_ui_label: Radarr — UI language
+    radarr_info_label: Radarr — Movie info language
+    radarr_info_help: Language for movie titles, overviews and metadata fetched from TMDb by Radarr.
+    sonarr_ui_label: Sonarr — UI language
+    sonarr_info_unavailable: Sonarr v4 no longer has a global series info language (each series has its own originalLanguage).
+    prowlarr_ui_label: Prowlarr — UI language
+    jellyseerr_ui_label: Seerr — UI language (admin)
+    not_configured: Service not configured
+    unreachable: Service unreachable
+    save_btn: Save languages
+    saved_success: Languages updated.
+    partial_error: 'Partial save: {services} failed.'
+    info_jellyseerr_global: Sets the Seerr app default language (Settings → General). Users who set their own profile language keep their override.
+    info_existing_items: 'Tip: changing a service language does not retranslate indexers/notifications/clients that were already created. To retranslate them you need to recreate them.'
+  display:
+    title: Display
+    description: Personal display preferences (timezone, date format, theme, density) and sidebar section visibility.
+    preferences:
+      title: Preferences
+      subtitle: Default UI behaviour
+    sidebar:
+      title: Sidebar visibility
+      description: Pick which services and features show up in the left sidebar.
+    switch:
+      'on': Enabled
+      'off': Disabled
+    home_page:
+      label: Default home page
+      help: Page shown right after sign-in.
+      options:
+        dashboard: Dashboard
+        discovery: Discover (TMDb)
+        films: Movies
+        series: TV shows
+        qbittorrent: Downloads
+        last: Last visited page
+    toasts:
+      label: Toast notifications
+      help: Transient bubbles at the bottom of the screen (downloads finished, errors).
+    timezone:
+      label: Timezone
+      help: Used for all dates/times.
+    date_format:
+      label: Date format
+      options:
+        fr: French (21/04/2026)
+        us: American (Apr 21, 2026)
+        iso: ISO (2026-04-21)
+    time_format:
+      label: Time format
+      options:
+        24h: 24h (14:30)
+        12h: 12h (2:30 PM)
+    theme_color:
+      label: Primary colour
+    qbit_refresh:
+      label: qBittorrent refresh
+      help: Auto-polling frequency on the Downloads page.
+      options:
+        '0': Disabled
+        '1': 1 second (real-time)
+        '2': 2 seconds (default)
+        '5': 5 seconds
+        '10': 10 seconds (low load)
+    ui_density:
+      label: UI density
+      options:
+        comfortable: Comfortable (default)
+        compact: Compact
+    language:
+      label: UI language
+      help: Default UI language. Every user can override it via the top-bar picker.
+      options:
+        fr: Français
+        en: English
+        ro: Română
+    metadata_language:
+      label: Metadata language
+      help: Language requested from TMDb for titles, overviews and images. Applies to everyone. Radarr/Sonarr/Seerr still have to be configured in their own UI (automatic sync planned for v1.1).
+      options:
+        fr_FR: Français (fr-FR)
+        en_US: English — US (en-US)
+        en_GB: English — UK (en-GB)
+        es_ES: Español (es-ES)
+        de_DE: Deutsch (de-DE)
+        it_IT: Italiano (it-IT)
+        pt_PT: Português (pt-PT)
+        pt_BR: Português — Brazil (pt-BR)
+        ja_JP: 日本語 (ja-JP)
+        ro_RO: Română (ro-RO)
+  field:
+    url: URL
+    api_key: API key
+    username: Username
+    password: Password
+    protocol: Protocol (openvpn/wireguard)
+    api_key_if_protected: API key (if protected)
+    clear: Clear
+    tmdb:
+      api_key: v3 API key
+  internal:
+    calendar:
+      label: Calendar
+      subtitle: Aggregated movie + episode releases (Radarr + Sonarr)
+  backup:
+    title: Backup
+    description: 'Exportați configurația (URL-urile serviciilor, opțiunile din bara laterală și preferințele de afișare) pentru a o muta pe un alt homelab sau pentru a o păstra în gestionarea versiunilor. Cheile API și parolele sunt excluse intenționat: acestea trebuie reintroduse după import.'
+    export:
+      title: Exportă configurația
+      count: '{safe, plural, one {# setare exportabilă} few {# setări exportabile} other {# setări exportabile}} · {skipped} omise (chei / parole)'
+      cta: Descarcă JSON
+    import:
+      title: Importă o configurație.
+      subtitle: Fișier JSON Prismarr (export v1, max. 64 KB).
+      cta: Import
+      confirm: Vrei să importezi configurația? Valorile actuale vor fi înlocuite.
+    reset:
+      title: Reset display preferences
+      subtitle: Resetează opțiunile din secțiunea "Display" la valorile implicite (pagina principală, fus orar, format dată/oră, temă, densitate, notificări, actualizare qBit, limbi).
+      cta: Reseteaza
+      confirm: Vrei să resetezi toate setările de afișare la valorile implicite?
+  about:
+    title: Despre
+    description: Informații de rulare despre această instanță Prismarr.
+    field:
+      version: Version
+      environment: Mediu
+      symfony: Symfony
+      php: PHP
+      database: Baza de date
+      server_time: Ora serverului.
+      memory_limit: Limita de memorie PHP
+      max_execution_time: Timpul maxim de execuție PHP
+      unlimited: Nelimitat (-1)
+    content:
+      title: Conținut
+      users: '{count, plural, one {# utilizator} other {# utilizatori}}'
+      films: '{count, plural, one {# film} other {# filme}}'
+      series: '{count, plural, one {# serial} other {# seriale}}'
+    links:
+      title: Link-uri
+      source: Codul Sursa ↗
+      bug: Raportează o eroare ↗
+      docs: Documentație ↗
+      roadmap: Roadmap ↗
+  save: Save changes
+  flash:
+    saved: Changes saved.
+    imported: Configuration imported.
+    import_failed: Import failed.
+    display_reset: Display preferences reset.
+    display_reset_full: Display preferences reset to their defaults.
+  test:
+    unknown_service: Unknown service
+    unreachable: Service unreachable
+    category:
+      ok: Connected ({http})
+      unconfigured: Not configured (URL or key missing)
+      network: Unreachable — check the URL and that the service is running
+      auth: Authentication refused — invalid API key or password
+      forbidden: Access refused (403) — IP banned or firewall
+      not_found: Endpoint not found (404) — wrong URL or API path
+      server_error: Service error ({http}) — check service logs
+      unknown: Unexpected response ({http})
+  export:
+    encode_failed: Cannot encode.
+  import:
+    no_file: No file received.
+    too_big: File too large (64 KB max).
+    read_failed: Cannot read file.
+    invalid_json: Invalid JSON
+    unknown_format: Unknown format (export v1 expected).
+    result: '{applied, plural, =0 {No settings imported} one {# setting imported} other {# settings imported}}, {skipped, plural, one {# skipped.} other {# skipped.}}'
+  updates:
+    title: Updates
+    description: Track the version you are running and review release notes published on GitHub. Prismarr does not auto-update — you stay in control.
+    current_version: Current version
+    update_available: '{version} available'
+    badge_available: Update
+    up_to_date: Up to date
+    no_remote_info: No remote info (GitHub unreachable)
+    view_on_github: GitHub releases
+    docker_hub: Docker Hub
+    roadmap: Roadmap (GitHub project)
+    upgrade_hint_html: 'To upgrade: <code>docker compose pull &amp;&amp; docker compose up -d</code>. Read the release notes below for any breaking change.'
+    release_notes: Release notes
+    no_releases: No release information available right now (GitHub API unreachable).
+    installed: Installed
+decouverte:
+  title: Discover
+  search_placeholder: Search a movie or TV show on TMDb…
+  actions:
+    filters: Filters
+    watchlist: Watchlist
+    explorer: Explorer
+  filters:
+    type: Type
+    movies: Movies
+    series: TV shows
+    genre: Genre
+    all: All
+    year_from: Year from
+    year_to: to
+    vote_min: 'Min rating: {value}/10'
+    sort: Sort
+    sort_options:
+      popularity: Popularity ↓
+      vote_avg: Rating ↓
+      vote_count: Reviews ↓
+      release: Release date ↓
+      revenue: Revenue ↓
+    apply: Apply
+    reset: Reset
+  search:
+    results: Results
+    results_filtered: Filtered results ({label})
+    close: × Close
+    no_results: No results.
+    no_filter_results: No results with these filters.
+    searching: Searching…
+    search_error: Error while searching
+    count: ({count} results)
+    no_filter_item: No result for this filter.
+    error_prefix: 'Error: {message}'
+  hero:
+    movie: Trending movie · This week
+    tv: Trending TV show · This week
+  section:
+    my_recs:
+      title: For you
+      subtitle: based on your library
+      loading: Scanning your library…
+    trending: Trending this week
+    popular_movies: Popular movies
+    popular_tv: Popular TV shows
+    upcoming: Upcoming theatrical releases
+    on_air: TV shows currently airing
+    top_movies: Top-rated movies
+    top_tv: Top-rated TV shows
+  scroll:
+    prev: Previous
+    next: Next
+  recent:
+    title: Recently viewed
+    clear: Clear
+    clear_title: Clear history
+  badge:
+    in_library: In library
+  action:
+    add: Add
+    close: Close
+    details: Details
+  card:
+    rating: Rating {value}/10
+    status_short:
+      downloaded: Available
+      missing: Missing
+      announced: Announced
+      inCinemas: Theatres
+      partial: Partial
+      unmonitored: Unmonitored
+      default: Available
+    in_library_short: In library
+  modal:
+    quick_info: Quick facts
+    part_of: Part of
+    next_episode: Next episode
+    last_episode: Last episode
+    available_on: Available on
+    synopsis: Overview
+    trailer: Trailer
+    trailer_youtube_link: Open on YouTube
+    cast: Main cast
+    info: Details
+    seasons: Seasons
+    season_label: Season {n}
+    episode_short: ep
+    alt_titles: Alternative titles
+    reviews: Reviews
+    gallery: Gallery
+    similar: Similar
+    add_to: Add to {service}
+    view_in: View in {section}
+    view_movies: Movies
+    view_series: TV shows
+    network_error: Network error
+    impossible: 'Cannot do it: {reason}'
+    generic_error: error
+    type_film: Movie
+    type_series: TV Show
+    watchlist: Watchlist
+    in_watchlist: In watchlist
+    in_library: In library
+    not_monitored: Not monitored
+    coming_soon: Upcoming
+    in_production: In production
+    ended_series: Ended
+    canceled_series: Canceled
+    status:
+      downloaded: Downloaded
+      missing: Missing
+      announced: Announced
+      inCinemas: In theatres
+      partial: Partial
+      unmonitored: Unmonitored
+    tmdb_status:
+      released: Released
+      post_production: Post-production
+      in_production: In production
+      planned: Planned
+      rumored: Rumored
+      canceled: Canceled
+      ended: Ended
+      returning_series: Returning
+      pilot: Pilot
+    qi:
+      release: Release
+      runtime: Runtime
+      episode_runtime: Ep. runtime
+      status: Status
+      certification: Rating
+      orig_language: Original language
+      country: Country
+      budget: Budget
+      box_office: Box office
+      votes: TMDb votes
+      popularity: Popularity
+    provider:
+      flatrate: Subscription
+      rent: Rent
+      buy: Buy
+    info_row:
+      director: Directed by
+      writers: Written by
+      composers: Music
+      cinematography: Cinematography
+      creators: Creator
+      production: Production
+      network: Network
+      country: Country
+      orig_language: Original language
+      languages: Languages
+      classification: Rating
+      budget: Budget
+      revenue: Revenue
+      episode_runtime: Episode runtime
+      tags: Tags
+      popularity_tmdb: TMDb popularity
+    seasons_episodes: '{seasons, plural, one {# season} other {# seasons}} · {episodes, plural, one {# episode} other {# episodes}}'
+  watchlist:
+    title: Watchlist
+    filter_all: All
+    filter_movies: Movies
+    filter_tv: TV shows
+    search_placeholder: Search...
+    sort:
+      added_desc: Most recent
+      added_asc: Oldest
+      title_asc: Title A-Z
+      title_desc: Title Z-A
+      vote_desc: Best rated
+      year_desc: Year ↓
+    type_film: Movie
+    type_tv: TV Show
+    empty_title: Watchlist empty
+    empty_message: Add movies and TV shows from the <a href="{path}">Discover page</a>.
+    remove_confirm: Remove "{title}" from the watchlist?
+    removed_toast: Removed from watchlist
+    added_toast: Added to watchlist
+    notes_title: Notes
+    notes_placeholder: Add a note...
+    notes_cancel: Cancel
+    notes_save: Save
+    notes_saved_toast: Note saved
+  error:
+    not_found: Not found
+    not_found_tmdb: Not found on TMDb
+    not_found_thetvdb: TV show not found on TheTVDB (Sonarr requires a tvdbId).
+    invalid_params: Invalid parameters
+    collection_not_found: Collection not found
+    person_not_found: Person not found
+  explorer:
+    title: Explorer
+    subtitle: Filter TMDb by genre, year, rating, language, popularity.
+    no_results: No results for these filters.
+    back_to_discover: Discover
+    section:
+      type: Type
+      genre: Genre
+      decade: Decade
+      sort: Sort
+      collections: Collections
+      by_actor: By actor
+    sort_options:
+      popular: Popular
+      top_rated: Top-rated
+      recent: Most recent
+      box_office: Box office
+    collection_search: Search a collection...
+    actor_search: Actor name...
+    search: Search
+    load_more: Load more
+    empty_hint: Pick some filters and click Search, or choose a collection / actor.
+    loading: Loading...
+    resolving: Resolving...
+    no_results_js: No results.
+    network_error: Network error
+    results_count: '{count, plural, one {# result} other {# results}}'
+    titles_count: '{count, plural, one {# title} other {# titles}}'
+    filmography: Filmography
+    watchlist: Watchlist
+    watchlist_added: ✓
+    type_film: Movie
+    type_series: TV Show
+    add_to: Add to {service}
+    view_in_movies: View in Movies
+    view_in_series: View in TV shows
+    status:
+      downloaded: Available
+      missing: Missing
+      announced: Announced
+      inCinemas: Theatres
+      partial: Partial
+      unmonitored: Unmonitored
+    page: Page {current} / {total}
+media:
+  api:
+    tag_still_used: This tag is still in use. Remove it from all movies before deleting it.
+    delete_error: Error while deleting.
+    label_required: Label required
+    config_not_found: Config not found
+    command_name_required: Command name required
+    no_indexer: No active indexer — searches will not work.
+    radarr_unreachable: Cannot reach Radarr.
+    sonarr_unreachable: Cannot reach Sonarr.
+    file_not_found: File not found
+    movie_not_found: Movie not found
+    series_not_found: TV show not found
+    series_data_missing: TV show data missing
+    no_movies_selected: No movie selected
+    no_movie: No movie
+    no_series: No TV show
+    queue_item_not_found: Item not found in the queue
+    raw_movie_failed: Cannot fetch raw movie
+    tmdb_id_missing: Missing TMDb ID
+    tmdb_person_schema_missing: TMDbPerson schema not found
+    no_file: No file
+    no_missing_episodes: No missing monitored episode.
+    warning_format: '{source}: {message}'
+  label:
+    season_prefix: Season {number}
+  nav:
+    films: Movies
+    series: TV Shows
+    library_films: Movie library
+    library_series: TV show library
+  group:
+    activity: Activity
+    wanted: Wanted
+    discovery: Discover
+    settings: Settings
+    profiles: Profiles
+    integrations: Integrations
+    general: General
+    system: System
+  item:
+    history: History
+    blocklist: Blocklist
+    commands: Commands
+    missing: Missing
+    cutoff: Quality cutoff
+    library_import: Library import
+    collections: Collections
+    suggestions: Suggestions
+    exclusions: Exclusions
+    quality: Quality
+    delay_profiles: Delay profiles
+    custom_formats: Custom formats
+    custom_filters: Custom filters
+    indexers: Indexers
+    download_clients: Download clients
+    import_lists: Import lists
+    notifications: Notifications
+    auto_tags: Auto tags
+    tags: Tags
+    media_management: Media management
+    ui: UI
+    root_folders: Root folders
+    remote_paths: Remote path mappings
+    metadata: Metadata
+    status: Status
+    general: General
+    tasks: Tasks
+    logs: Logs
+    stats: Stats
+    parse: Title parser
+    backups: Backups
+    updates: Updates
+  films:
+    stats:
+      total: Total
+      downloaded: Downloaded
+      waiting: Waiting
+      total_size: Total size
+      gb_suffix: GB
+      mo_suffix: MB
+    filters:
+      search_placeholder: Search…
+      status:
+        all: All
+        monitored: Monitored
+        downloaded: Downloaded
+        missing: Missing
+        unmonitored: Unmonitored
+      quality: Quality
+      genre: Genre
+      language: Language
+      sort:
+        title_asc: Title A→Z
+        title_desc: Title Z→A
+        year_desc: Year ↓
+        year_asc: Year ↑
+        added_desc: Recently added
+        size_desc: Size ↓
+        size_asc: Size ↑
+    view:
+      grid: Grid
+      wall: Wall
+      extended: Extended
+      table: Table
+      shelf: Shelves
+    actions:
+      refresh_filtered: Refresh filtered
+      search_filtered: Search filtered
+      refresh_all_title: Refresh and scan all
+      rss_sync: RSS sync
+      select_mode: Selection mode
+      cancel: Cancel
+      add: Add
+      refresh_filtered_title: Refresh and scan filtered movies
+      search_filtered_title: Search for filtered missing movies
+    status:
+      downloaded: Downloaded
+      missing: Missing
+      unmonitored: Unmonitored
+      announced: Announced
+      in_cinemas: In theatres
+      announced_lc: announced
+      in_cinemas_lc: in theatres
+      monitored_indisp: Monitored — unavailable ({status})
+      monitored_missing: Monitored — missing
+      radarr_monitors: Radarr monitors this movie and will search for a release automatically
+      radarr_not_monitored: This movie isn't monitored, Radarr won't look for a release
+      file_on_disk: The file is present on disk
+      released_not_found: The movie has been released but no file has been found or downloaded
+      in_cinemas_tip: This movie is currently in theatres, not yet available for download
+      announced_tip: This movie is announced but has not been released yet
+      file_quality_tip: Downloaded file quality
+      file_size_tip: File size on disk
+      indisponible_prefix: 'Unavailable — '
+    table:
+      title: Title
+      year: Year
+      quality: Quality
+      size: Size
+      status: Status
+    bulk:
+      edit: Edit
+      rename: Rename files
+      tags: Set tags
+      delete: Delete
+      select_all: Select all
+      clear: Clear
+      selected_count: selected
+      edit_title: Edit selected movies
+      edit_monitored: Monitored
+      edit_keep: — Keep current —
+      edit_follow: Monitor
+      edit_unfollow: Unmonitor
+      edit_quality: Quality profile
+      edit_availability: Minimum availability
+      edit_root: Root folder
+      availability_announced: Announced
+      availability_in_cinemas: In theatres
+      availability_released: Released
+      cancel: Cancel
+      save: Save
+      tags_title: Tags
+      tags_label: Tags
+      tags_action: Tag action
+      tags_add: Add — Add tags to existing movies
+      tags_remove: Remove — Remove tags from existing movies
+      tags_replace: Replace — Replace tags with the selected ones
+      apply: Apply
+      delete_title: Delete selected movies
+      delete_warning: Are you sure you want to delete <strong id="bulk-delete-count">0</strong> movie(s)? This action is irreversible.
+      delete_files: Delete files on disk
+      delete_exclude: Add to import exclusion list
+      delete_confirm: Delete
+      rename_title: Organize & Rename
+      rename_loading: Loading previews...
+      rename_go: Organize
+      selected_hint: '{count} movie(s) selected'
+      no_tag_defined: No tag defined
+      all_correct: Already correct
+      organise_files: Organize {count} file(s)
+      films_correctly_named: '{count} movie(s) already correctly named.'
+    modal:
+      add_title: Add a movie
+      search_placeholder: Search a movie…
+      search_btn: Search
+      quality_profile: Quality profile
+      root_folder: Root folder
+      loading: Loading…
+      search_auto: Auto-search
+      add_button: Add
+      no_results: No results
+      search_error: Error while searching
+      no_poster: No poster
+      already_radarr: Already in Radarr
+      pick_quality_folder: ⚠️ Pick a quality profile and a folder.
+      adding: Adding…
+      added_success: ✅ «{title}» added to Radarr!
+      added_searching: ✅ «{title}» added — 🔍 Radarr is searching on {count} indexer(s)...
+      searching_dots: 🔍 Radarr searching{dots}
+      searching_elapsed: ' ({seconds}s)'
+      dl_started: ✅ «{title}» — 📥 Download started{src}! Reloading...
+      via_prefix: ' via {src}'
+      dl_failed: ❌ «{title}» — Download failed. Check qBittorrent and retry via interactive search.
+      grab_but_no_queue: ⚠️ «{title}» — Torrent grabbed{src} but not detected in the queue. Check qBittorrent.
+      no_download_detected: ⚠️ «{title}» added but no download detected. Open the movie to launch an interactive search.
+      added_not_monitored: ✅ «{title}» added (not monitored)
+      add_error_duplicate: ❌ Error — the movie may already exist.
+      network_error: ❌ Network error
+    detail:
+      follow: Monitor
+      unfollow: Unmonitor
+      close: Close
+      search: Search
+      interactive_search: Interactive search
+      refresh_scan: Refresh & scan
+      remove_from_radarr: Remove from Radarr
+      delete_file: Delete file
+      delete_all: Delete everything (Radarr + file)
+      releases_available: Available releases
+      interrogating_indexers: Querying indexers (30-60s)...
+      release_col: Release
+      indexer_col: Indexer
+      quality_col: Quality
+      score_col: Score
+      formats_col: Formats
+      size_col: Size
+      seeds_col: Seeds
+      langs_col: Langs
+      age_col: Age
+      no_release_found: No release found.
+      loading_error: Error while loading (timeout or indexers unavailable).
+      synopsis: Overview
+      no_synopsis: No overview available.
+      studio_prefix: 'Studio: '
+      file_info: File information
+      no_extras: No extra files to manage.
+      extras_suffix: ' extra file(s): '
+      file_naming: File naming
+      rename: Rename
+      loading_proposals: Loading proposals...
+      current_name: 'Current name:'
+      expected_name: 'Expected name:'
+      already_correct: The file is already correctly named.
+      no_rename_proposal: No rename proposal.
+      edit: Edit
+      edit_modify: Edit
+      edit_monitored: Monitored
+      edit_monitored_help: Download the movie if available
+      edit_availability: Minimum availability
+      edit_quality: Quality profile
+      edit_path: Path
+      edit_explorer: Explorer
+      edit_update_path: Update path
+      edit_empty_folder: Empty folder
+      edit_tags: Tags
+      edit_tag_placeholder: New tag...
+      edit_delete: Delete
+      edit_cancel: Cancel
+      edit_save: Save
+      edit_modified_title: Edit — {title}
+      edit_update_path_confirm: |-
+        Update the path to:
+        {path}
+      edit_path_updated: ✅ Path updated.
+      edit_delete_confirm: Delete «{title}»?
+      edit_delete_files_confirm: Also delete files on disk?
+      edit_saved: ✅ Movie updated.
+      edit_error: '❌ Error: {error}'
+      edit_config_error: Error loading configuration.
+      manage_files: Manage files
+      loading_files: Loading files...
+      loading_error_short: Error while loading.
+      no_file_associated: No file associated with this movie.
+      expected_path: 'Expected path:'
+      release_group: Release group
+      release_group_placeholder: 'ex: MyGroup'
+      quality: Quality
+      languages: Languages
+      path: Path
+      video: Video
+      audio: Audio
+      subtitles: Subtitles
+      save: Save
+      saving: Saving...
+      delete_file_btn: Delete file
+      delete_file_confirm: |-
+        Delete this file from disk?
+
+        This action is irreversible.
+      file_deleted: File deleted.
+      delete_error: Error while deleting.
+      network_error: Network error.
+      pick_language: Pick at least one language.
+      saved: Changes saved.
+      save_error: 'Error: {error}'
+      cast: Cast
+      loading: Loading...
+      no_cast: No cast information available.
+      crew: Crew
+      titles: Titles
+      alt_title: Alternative title
+      source: Source
+      history: History
+      no_history: No history.
+      bookmark_artist: Follow this artist
+      original_title_prefix: 'Original title: '
+      ev_grabbed: Grabbed
+      ev_imported: Imported
+      ev_download_failed: Download failed
+      ev_file_deleted: File deleted
+      ev_movie_imported: Imported
+      ev_file_renamed: Renamed
+      search_launch: Starting...
+      search_start: 🔍 Starting search for "{title}"...
+      search_cannot_launch: ❌ Cannot launch search — check that the movie is in Radarr
+      search_indexers_plural: 📡 Querying {count} indexers...
+      search_indexers_sing: 📡 Querying {count} indexer...
+      search_indexers_generic: 📡 Querying indexers...
+      search_indexers_short: Indexers...
+      search_verify: Verifying...
+      search_results_check: 📋 Search done — checking results...
+      search_download_in_progress: '✅ Download in progress: "{title}" — status: {status}'
+      search_torrent_grabbed: ✅ Torrent grabbed via {indexer} — waiting for download
+      search_no_auto_result: 🔍 Auto-search empty — querying indexers directly...
+      search_idx_connect: 📡 Connecting to indexers...
+      search_idx_query_plural: 📡 Querying {count} indexers...
+      search_idx_query_sing: 📡 Querying {count} indexer...
+      search_torrents_searching: 🔍 Searching for torrents...
+      search_torrents_analysing: 🔍 Analysing results...
+      search_progress_elapsed: ' ({seconds}s)'
+      search_results_grab_best: 📥 {total} result(s) found, {approved} valid — grabbing the best...
+      search_grab_started: '✅ Download started via {indexer}: {title}'
+      search_grab_failed_manual: '⚠️ {count} torrent(s) found but grab failed: {error}. Use interactive search to pick manually.'
+      search_grab_network_error: ⚠️ Network error during grab. Use interactive search.
+      search_no_quality_match: ⚠️ {count} result(s) found but none match the quality profile. Use interactive search for details.
+      search_no_torrent_found: ⚠️ No torrent found on the indexers for this movie.
+      search_indexer_timeout: ⚠️ Indexers timed out. Retry or use interactive search.
+      search_completed: ✅ Search complete
+      search_failed: '❌ Search failed: {error}'
+      unknown_error: Unknown error
+      search_network_error: ❌ Network error — cannot reach Radarr
+      refresh_in_progress: Refreshing...
+      refresh_launch_error: Error while starting
+      refresh_done: Refresh complete!
+      refresh_failed: Refresh failed
+      no_release_for_grab: No custom format
+      grab_launched: '📥 Download started: {title} — progress will appear in the banner at the top of the page'
+      grab_failed_err: ❌ Grab failed — {error}
+      rename_launch: Renaming...
+      rename_launch_start: Starting rename...
+      rename_launch_error: Error while starting rename.
+      rename_success: ✅ Rename complete!
+      rename_failed: 'Rename failed: {error}'
+      delete_in_progress: Deleting...
+      delete_success: ✅ Deleted!
+      delete_error_msg: Error while deleting.
+      file_delete_success: ✅ File deleted!
+      no_file_found: No file found.
+      del_file_confirm: |-
+        Delete the file of «{title}» from disk?
+
+        ⚠️ This action is irreversible.
+      del_film_and_file_confirm: |-
+        Delete «{title}» from Radarr AND delete the file on disk?
+
+        ⚠️ This action is irreversible.
+    filter:
+      filter_label: 'Filter:'
+    warnings_update: ✅ Refresh started for {count} movie(s) — Radarr is updating metadata and scanning files.
+    warnings_update_error: '❌ Refresh error: {error}'
+    warnings_network_error: ❌ Network error.
+    warnings_no_missing_filter: ⚠️ No missing movie in the filtered selection.
+    warnings_search_confirm: Search for {count} missing movie(s)?
+    warnings_search_progress: 🔍 Searching for {count} missing movie(s) on {indexers} indexer(s)...
+    warnings_search_dl: ✅ Search done — {dl} download(s) started for {total} movie(s). Check the queue above.
+    warnings_search_none: ⚠️ Search done for {total} movie(s) — no matching torrent found.
+    warnings_search_failed: '❌ Search failed: {error}'
+    warnings_search_elapsed: 🔍 {msg}{progress}
+    warnings_search_progress_suffix: ' — Movie {done}/{total}'
+    warnings_search_in_progress_elapsed: Search in progress... ({seconds}s)
+    warnings_search_error_pr: '❌ Search error: {error}'
+    warnings_refresh_label: Library refresh
+    warnings_rss_label: RSS sync
+    warnings_generic_error: ❌ Error.
+    warnings_cmd_search: Movie search
+    warnings_cmd_missing_search: Missing movies search
+    warnings_cmd_rename: Rename
+    warnings_cmd_import: Manual import
+    warnings_cmd_in_progress: 🔍 {label} — in progress...
+    warnings_cmd_dl_ok: ✅ {label} — {count} download(s) started. Check the queue.
+    warnings_cmd_import_done: ✅ Import complete.
+    warnings_cmd_nothing: ⚠️ {label} — done, no result found.
+    warnings_cmd_failed: '❌ {label} — failed: {error}'
+    warnings_cmd_elapsed: 🔍 {label} — {msg}
+    warnings_cmd_done: ✅ {label} — complete.
+    warnings_bulk_modified: ✅ {count} movie(s) updated.
+    warnings_bulk_tags_ok: ✅ Tags updated for {count} movie(s).
+    warnings_bulk_rename_ok: ✅ Rename started for {count} movie(s).
+    warnings_bulk_delete_ok: ✅ {count} movie(s) deleted.
+    queue:
+      title: Downloads
+      movie_col: Movie
+      quality_col: Quality
+      progress_col: Progress
+      status_col: Status
+      actions_col: Actions
+      eta_prefix: ' — ETA '
+      importing: Importing...
+      import_pending: Awaiting import
+      import_blocked: Import blocked
+      completed_pct: 100%
+      status_importing: 📦 Importing
+      status_pending: ⏳ Awaiting import
+      status_blocked: ⚠️ Import blocked
+      status_warning_prefix: '⚠️ '
+      status_error_prefix: '✗ '
+      status_completed: ✓ Complete
+      status_downloading: ⬇️ Downloading
+      action_force_import: Force import
+      action_force_download: Force download
+      action_delete: Delete
+      import_done_badge: ✓ Imported
+      delete_msg: 'Delete «{title}»:'
+      delete_remove_client: Remove from download client
+      delete_blocklist: Add to blocklist
+      delete_confirm: Confirm
+      delete_cancel: Cancel
+      import_done_status: ✓ Imported
+      import_failed: ❌ {message}
+      import_failed_short: Import failed
+      import_failed_status: ✗ Failed
+      network_error: ❌ Network error
+      error_generic: ❌ {error}
+      error: Error
+    banner:
+      path_update: ✅ Path updated.
+  films_blocklist:
+    title: Blocklist
+    bulk_delete: Delete selection ({count})
+    bulk_delete_label: Delete selection
+    col_date: Date
+    col_film: Movie
+    col_source: Source / Title
+    col_quality: Quality
+    col_protocol: Protocol
+    col_indexer: Indexer
+    col_reason: Reason
+    empty: Blocklist empty
+    delete: Delete
+    pagination_summary: Page {page} — {count} entries out of {total}
+    prev: Previous
+    next: Next
+    confirm_delete: Remove this item from the blocklist?
+    confirm_bulk_delete: Remove {count} item(s) from the blocklist?
+    error: Error.
+    error_bulk_delete: Error while deleting.
+  films_collections:
+    title: Collections
+    empty: No collection found in Radarr.
+    stats_total: Collections
+    stats_films: Movies in total
+    stats_downloaded: Downloaded
+    follow: Monitor
+    unfollow: Unmonitor
+    monitored_badge: Monitored
+    films_count_suffix: movies
+    modal:
+      close: Close
+      film_count: '{count} movie(s)'
+      col_title: Title
+      col_year: Year
+      col_status: Status
+      quality_profile: Quality profile
+      root_folder: Root folder
+      loading: Loading…
+      downloaded: Downloaded
+      missing: Missing
+      add: Add
+      added: Added
+      error: Error
+  films_cutoff:
+    title: Movies below quality cutoff
+    empty_title: Movies below cutoff
+    col_poster: Poster
+    col_title: Title
+    col_year: Year
+    col_current_quality: Current quality
+    col_release_date: Release date
+    col_actions: Actions
+    upgrade: Upgrade
+    upgrade_title: Search for a better quality
+    empty: No movie below the quality cutoff
+    pagination_summary: Page {page} — {count} results out of {total}
+    prev: Previous
+    next: Next
+    launched: Launched ✓
+    error: Error
+  films_history:
+    title: Movies history
+    filter_label: 'Filter:'
+    event_all: All
+    event_grabbed: Grabbed
+    event_imported: Imported
+    event_failed: Failed
+    event_deleted: Deleted
+    event_renamed: Renamed
+    col_date: Date
+    col_film: Movie
+    col_event: Event
+    col_quality: Quality
+    col_source: Source / Indexer
+    col_protocol: Protocol
+    ev_grabbed: Grabbed
+    ev_imported: Imported
+    ev_download_failed: DL failed
+    ev_file_deleted: Deleted
+    ev_film_imported: Movie imported
+    ev_file_renamed: Renamed
+    empty: No history
+    pagination_summary: Page {page} — {count} entries out of {total}
+    prev: Previous
+    next: Next
+  films_missing:
+    title: Missing movies
+    col_title: Title
+    col_year: Year
+    col_profile: Profile
+    col_release: Release
+    col_status: Status
+    col_actions: Actions
+    status_announced: Announced
+    status_in_cinemas: In theatres
+    status_missing: Missing
+    announced_tip: This movie is announced but has not been released yet
+    in_cinemas_tip: In theatres, not yet available
+    released_missing_tip: Released but not downloaded
+    in_cinemas_short: In theatres
+    announced_short: Announced
+    missing_short: Missing
+    search_title: Search
+    unmonitor_title: Unmonitor
+    search_all: Search all missing movies
+    empty: No missing movie
+    pagination_summary: Page {page} — {count} out of {total}
+    prev: Previous
+    next: Next
+    searching: Searching…
+    download_started: Download started
+    nothing_found: Nothing found
+    error: Error
+    no_missing: No missing movie.
+    confirm_search_all: Search for {count} missing movie(s)?
+    searching_for: Searching for {count} missing movie(s)...
+    launch_error: Error while starting.
+    search_done_dl: Search done — {dl} download(s) started out of {total} movie(s) searched.
+    search_done_none: Search done for {total} movie(s) — no matching result.
+    search_failed: 'Search failed: {error}'
+    search_progress: Movie {done}/{total} — {title}
+    search_in_progress: Searching... ({seconds}s)
+    unknown_error: unknown error
+    confirm_unmonitor: Unmonitor this movie?
+    network_error: Network error.
+  series:
+    stats:
+      total: Total
+      continuing: Continuing
+      ended: Ended
+      total_size: Total size
+      gb_suffix: GB
+      mo_suffix: MB
+    queue:
+      title: Downloads
+      col_series_episode: Series / Episode
+      col_quality: Quality
+      col_progress: Progress
+      col_status: Status
+      status_import: Import
+      confirm_delete: Remove from queue?
+      force_download: Force download
+      delete_from_queue: Remove from queue
+      warning_already_imported: '{count, plural, one {# already imported} other {# already imported}} (can be cleaned)'
+      warning_imports_pending: '{count, plural, one {# import pending} other {# imports pending}}'
+      clean_duplicates: Clean {count} duplicate(s)
+      import_files: Import {count} file(s)
+      confirm_clean: Remove {count} already-imported item(s) from the queue?
+      cleaning: Cleaning...
+      importing: Importing...
+      error: Error
+    calendar:
+      title: Upcoming episodes
+      col_series: Series
+      col_episode: Episode
+      col_air: Airing
+      col_status: Status
+      available: Available
+      missing: Missing
+      upcoming: Upcoming
+    filters:
+      search_placeholder: Search…
+      status:
+        all: All
+        monitored: Monitored
+        continuing: Continuing
+        ended: Ended
+        anime: Anime
+        unmonitored: Unmonitored
+        missing: Missing
+      genre: Genre
+      network: Network
+      sort:
+        title_asc: Title A→Z
+        title_desc: Title Z→A
+        year_desc: Year ↓
+        year_asc: Year ↑
+        added_desc: Recently added
+        size_desc: Size ↓
+        percent_desc: Progress ↓
+        percent_asc: Progress ↑
+    view:
+      grid: Grid
+      wall: Poster wall
+      extended: Extended
+      table: Table
+      shelf: Shelves
+    actions:
+      refresh_filtered: Refresh filtered
+      refresh_filtered_title: Refresh filtered series
+      search_filtered: Search filtered
+      search_filtered_title: Search missing episodes for filtered series
+      refresh_all_title: Refresh and scan all
+      rss_sync: RSS sync
+      select_mode: Selection mode
+      add: Add
+    status:
+      continuing: Continuing
+      ended: Ended
+      upcoming: Upcoming
+      followed: Monitored
+      unfollowed: Unmonitored
+      anime: Anime
+      anime_emoji: 🌸 Anime
+      series_ended: Series ended
+      not_monitored: Unmonitored
+      up_to_date_tpl: Up to date — {files}/{total} (continuing)
+      complete_tpl: Complete — {files}/{total}
+      missing_tpl: '{count, plural, one {Missing # episode} other {Missing # episodes}}'
+      missing_detail_tpl: '{count, plural, one {Missing # episode} other {Missing # episodes}} — {files}/{total}'
+      up_to_date_detail_tpl: Up to date — {files}/{total} episodes (continuing)
+      complete_detail_tpl: Complete — {files}/{total} episodes
+      upcoming_tpl: Upcoming series — {total} episodes announced
+      episodes_suffix: episodes
+      season_tpl: '{count, plural, one {# season} other {# seasons}}'
+    table:
+      title: Title
+      col_s: S.
+      network: Network
+      progress: Progress
+      episodes: Episodes
+      size: Size
+      status: Status
+    bulk:
+      edit: Edit
+      rename: Rename files
+      tags: Set tags
+      delete: Delete
+      select_all: Select all
+      clear: Clear
+      selected_count: selected
+      edit_title: Edit selected series
+      edit_monitored: Monitored
+      edit_quality: Quality profile
+      edit_type: Series type
+      edit_root: Root folder
+      edit_season_folder: Season folder
+      edit_keep: — Keep current —
+      edit_follow: Monitor
+      edit_unfollow: Unmonitor
+      type_standard: Standard
+      type_daily: Daily
+      type_anime: Anime
+      'yes': 'Yes'
+      'no': 'No'
+      save: Save
+      cancel: Cancel
+      tags_title: Tags
+      tags_label: Tags
+      tags_action: Action
+      tags_add: Add
+      tags_remove: Remove
+      tags_replace: Replace
+      apply: Apply
+      delete_title: Delete selected series
+      delete_warning: Are you sure you want to delete <strong id="bulk-s-delete-count">0</strong> series?
+      delete_files: Delete files on disk
+      delete_exclude: Add to import exclusion list
+      delete_confirm: Delete
+      rename_title: Organize selected series
+      rename_loading: Loading previews...
+      rename_go: Organize
+      selected_info_tpl: '{count} series selected'
+      already_correct_tpl: ✅ {count} series already correctly named.
+      organise_files_tpl: Organize {count} file(s)
+      all_correct: Already correct
+    modal:
+      add_title: Add a series
+      search_placeholder: Search a series…
+      add_button: Add
+      adding: Adding...
+      quality_profile: Quality profile
+      root_folder: Root folder
+      series_type: Series type
+      type_standard: Standard
+      type_daily: Daily
+      type_anime: Anime
+      type_anime_absolute: Anime / Absolute
+      monitor: Monitor
+      monitor_all: All episodes
+      monitor_future: Future only
+      monitor_missing: Missing
+      monitor_first_season: First season
+      monitor_last_season: Last season
+      monitor_none: None
+      season_folders: Season folders
+      search_missing: Search for missing
+      tags_label: 'Tags:'
+      searching: Searching...
+      no_results: No results.
+      already_added: Already added
+      added_success: ✅ Series added successfully!
+      add_error_tpl: '❌ Error: {error}'
+      network_error: ❌ Network error.
+      error_unknown: unknown
+    detail:
+      monitor: Monitor
+      unmonitor: Unmonitor
+      refresh_scan: Refresh & scan
+      refresh_in_progress: Refreshing...
+      search_monitored: Search monitored
+      search_in_progress: Searching...
+      rename_files: Rename files
+      manage_files: Manage files
+      loading: Loading...
+      loading_files: Loading files...
+      loading_episodes: Loading episodes...
+      history: History
+      modify: Edit
+      delete_series: Delete series
+      synopsis: Overview
+      no_synopsis: No overview available.
+      seasons: Seasons
+      season_tpl: Season {n}
+      season_specials: Specials
+      season_prefix: Season
+      no_episodes: No episode.
+      no_history: No history.
+      releases_available: Available releases
+      releases_season_tpl: Releases — Season {n}
+      releases_episode_tpl: Releases — {label}
+      close: Close
+      interrogating_indexers: Querying indexers (30-60s)...
+      interrogating_indexers_season_tpl: Querying indexers for season {n} (30-60s)...
+      no_release_found: No release found.
+      loading_error_indexers: Error (timeout or indexers unavailable).
+      loading_error_full: Error while loading (timeout or indexers unavailable).
+      releases_found_tpl: '{count, plural, one {# release found} other {# releases found}}.'
+      releases_found_season_tpl: '{count, plural, one {# release found} other {# releases found}} for season {n}.'
+      col_release: Release
+      col_indexer: Indexer
+      col_quality: Quality
+      col_score: Score
+      col_formats: Formats
+      col_size: Size
+      col_seeds: Seeds
+      col_langs: Langs
+      col_age: Age
+      col_episode: Episode
+      col_action: Action
+      col_source: Source
+      col_date: Date
+      age_suffix: d
+      usenet: usenet
+      version_prefix: 'Version: '
+      tvdb_prefix: 'TheTVDB: '
+      group_prefix: 'Group: '
+      full_season_pack: Full season pack
+      episode_not_requested: The mapped episode was not requested in this search
+      no_custom_format: No custom format
+      download_started: Download started.
+      grab_error_tpl: 'Error: {error}'
+      search_still_in_progress: ⏳ Search in progress — please wait (45s max)...
+      no_history_for_season_tpl: No history for season {n}.
+      history_loading_error: Error loading history.
+      network_error: Network error.
+      error: Error.
+      unknown_error: unknown error
+      error_tpl: 'Error: {error}'
+      filemanager_title: Manage files
+      filemanager_season_title_tpl: Manage files — Season {n}
+      rename_title_tpl: Rename — Season {n} ({count} file(s))
+      rename_file_count_tpl: '{count, plural, one {Rename # file} other {Rename # files}}'
+      rename_files_already_correct_tpl: All files from season {n} are already correctly named.
+      all_files_correct: All files are already correctly named.
+      col_current_name: Current name
+      col_new_name: New name
+      rename_selection: Rename selection
+      files_selected_tpl: '{count} file(s) selected'
+      no_file_selected: No file selected.
+      rename_error: Error while renaming.
+      rename_failed: Rename failed.
+      renamed: ✅ Renamed
+      rename_done_tpl: '{count} file(s) renamed.'
+      rename_in_progress: Renaming...
+      confirm_delete_file: |-
+        Delete this file from disk?
+
+        This action is irreversible.
+      file_deleted: File deleted.
+      file_delete_error: Error while deleting.
+      no_files_for_series: No file for this series.
+      no_files_for_season: No file for this season.
+      load_files_error: Error loading files.
+      load_error: Error loading.
+      load_error_short: Error while loading.
+      load_proposals_error: Error loading proposals.
+      edit_series_tpl: Edit — {title}
+      edit_monitored_label: Monitored
+      edit_monitored_help: Download monitored episodes of this series
+      edit_monitor_new_seasons: Monitor new seasons
+      edit_monitor_new_all: All seasons
+      edit_monitor_new_none: None
+      edit_monitor_new_only: New seasons only
+      edit_monitor_new_help: Which new seasons should be monitored automatically
+      edit_use_season_folder: Use season folder
+      edit_use_season_folder_help: Sort episodes into season folders
+      edit_quality_profile: Quality profile
+      edit_series_type: Series type
+      edit_series_type_help: The series type is used for renaming, parsing and searching
+      edit_path: Path
+      edit_path_browse: File browser
+      edit_path_update: Update series path
+      edit_empty_folder: Empty folder
+      edit_browse_loading: Loading...
+      edit_tags: Tags
+      edit_tag_placeholder: New tag...
+      edit_delete: Delete
+      edit_cancel: Cancel
+      edit_save: Save
+      confirm_move_tpl: |-
+        Move the series to:
+        {path}
+
+        Continue?
+      path_updated: Path updated.
+      confirm_delete_series_tpl: Delete «{title}»?
+      confirm_delete_series_default: this series
+      confirm_delete_files: Also delete files on disk?
+      series_updated: Series updated successfully.
+      save_error_tpl: 'Error: {error}'
+      search_episode: Episode search
+      search_season_tpl: Season search {n}
+      search_series: Series search
+      search_missing_short: Missing search
+      search_cmd_episode: Episode search
+      search_cmd_season: Season search
+      search_cmd_rename: Rename
+      search_in_progress_generic_tpl: Searching... ({seconds}s)
+      episode_info_path: 'Quality: '
+      episode_info_video: 'Video: '
+      episode_info_resolution: 'Resolution: '
+      episode_info_audio: 'Audio: '
+      episode_info_tracks: 'Tracks: '
+      episode_info_subs: 'Subtitles: '
+      episode_info_size: 'Size: '
+      episode_info_group: 'Group: '
+      episode_info_none: No info
+      episode_info_none_media: No media info
+      episode_info_fps: 'FPS: '
+      episode_info_tracks_audio: 'Audio tracks: '
+      episode_info_runtime: 'Runtime: '
+      episode_info_scan: 'Scan: '
+      search_bookmark: Search
+      interactive_search: Interactive search
+      season_interactive_search: Season interactive search
+      search_season_title: Search the season
+      delete_file: Delete file
+    filemanager:
+      col_path: Path
+      col_season: Season
+      col_episode: Episode
+      col_quality: Quality
+      col_languages: Languages
+      col_group: Group
+      col_version: Version
+      col_flags: Flags
+      col_size: Size
+      selected_count_tpl: '{count, plural, one {# selected} other {# selected}}'
+      bulk_modify: Edit...
+      bulk_season: Season
+      bulk_episode: Episode
+      bulk_quality: Quality
+      bulk_language: Language
+      bulk_group: Release group
+      bulk_release_type: Release type
+      bulk_indexer_flags: Indexer flags
+      bulk_choose: Choose...
+      bulk_pick_eps: Pick episodes...
+      bulk_apply: Apply
+      bulk_no_episode: No episode
+      bulk_group_placeholder: Group name
+      bulk_group_ok: OK
+      save_all: Save
+      saving: Saving...
+      season_option_special: Specials
+      no_ep_for_file_tpl: 'Select an episode for: {name}...'
+      save_success_tpl: '{count, plural, one {# file saved} other {# files saved}}.'
+      save_partial_tpl: '{ok} saved, {errors} error(s).'
+      save_network_error: Network error while saving.
+      save_bulk_too_many_tpl: Too many episodes picked ({picked}) for {selected} selected file(s).
+      save_bulk_none_selected: No file selected.
+      release_type_single: Single episode
+      release_type_multi: Multi-episode
+      release_type_pack: Season pack
+      indexer_flag_none: None
+      back: Back
+      close: Close
+    warnings:
+      refresh_tpl: '{count, plural, one {✅ Refresh started for # series} other {✅ Refresh started for # series}}'
+      refreshing_tpl: Refreshing {count} series...
+      no_monitored_filtered: ⚠️ No monitored series in the filtered selection.
+      confirm_search_filtered_tpl: Search for missing episodes of {count} filtered series?
+      searching_tpl: 🔍 Searching {count} series...
+      search_launched_tpl: ✅ Search started for {count} series.
+      delete_ok_tpl: '{count, plural, one {# series deleted} other {# series deleted}}.'
+      modified_ok_tpl: ✅ {count} series updated.
+      tags_ok_tpl: ✅ Tags updated for {count} series.
+      rename_ok_tpl: ✅ Rename started for {count} series.
+      bulk_error: ❌ Error.
+      error_tpl: 'Error: {error}'
+      generic_error: ❌ Error.
+      refresh_label: Library refresh
+      rss_label: RSS sync
+      open_series_title: Open series
+      cmd_in_progress_tpl: 🔍 {label} — in progress...
+      cmd_dl_ok_tpl: ✅ {label} — {count} download(s) started. Check the queue.
+      cmd_nothing_tpl: ⚠️ {label} — done, no result found.
+      cmd_failed_tpl: '❌ {label} — failed: {error}'
+      cmd_elapsed_tpl: 🔍 {label} — {msg}
+      cmd_done_tpl: ✅ {label} — complete.
+  series_detail:
+    header:
+      status_continuing: Continuing
+      status_ended: Ended
+      monitored: Monitored
+      unmonitored: Unmonitored
+      anime: Anime
+      size_gb_tpl: '{size} GB'
+      rating_tpl: ★ {rating}
+      runtime_tpl: '{min} min'
+      search_series: Search the series
+      monitor: Monitor
+      unmonitor: Unmonitor
+      server_error: Cannot reach Sonarr.
+    season:
+      label_tpl: Season {n}
+      specials: Specials
+      episode_count_tpl: '{files}/{total} episodes'
+      search_season: Search the season
+    episode:
+      status_downloaded: Downloaded
+      status_missing: Missing
+      status_unmonitored: Unmonitored
+      search_episode: Search this episode
+    feedback:
+      search_launched: Search started for the whole series.
+      search_season_launched_tpl: Season {n} search started.
+      error: Error.
+  series_blocklist:
+    title: Blocklist
+    bulk_delete: Delete selection
+    bulk_delete_tpl: Delete {count} item(s)
+    col_series: Series
+    col_source: Source
+    col_quality: Quality
+    col_date: Date
+    empty: Blocklist is empty.
+    delete: Delete
+    prev: ← Previous
+    next: Next →
+    pagination_summary_tpl: Page {page} / {total}
+    confirm_delete: Remove from the blocklist?
+    confirm_bulk_delete_tpl: Remove {count} item(s) from the blocklist?
+  series_cutoff:
+    title: Cutoff unmet
+    col_series: Series
+    col_episode: Episode
+    col_title: Title
+    col_current_quality: Current quality
+    col_air_date: Air date
+    empty: All episodes meet the cutoff.
+    prev: ← Previous
+    next: Next →
+    pagination_summary_tpl: Page {page} / {total}
+  series_history:
+    title: Series history
+    col_series: Series
+    col_episode: Episode
+    col_action: Action
+    col_source: Source
+    col_quality: Quality
+    col_date: Date
+    empty: No history.
+    prev: ← Previous
+    next: Next →
+    pagination_summary_tpl: Page {page} / {total}
+    event_grabbed: Grabbed
+    event_imported: Imported
+    event_deleted: Deleted
+    event_renamed: Renamed
+    event_failed: Failed
+    event_folder_imported: Imported (folder)
+  series_missing:
+    title: Missing episodes
+    col_series: Series
+    col_episode: Episode
+    col_title: Episode title
+    col_air_date: Air date
+    col_actions: Actions
+    empty: No missing episode.
+    search_title: Search
+    search_all: Search all missing
+    searching_all: Searching...
+    searching_label: Searching for all missing episodes...
+    search_launched: ✅ Search started.
+    error: ❌ Error.
+    prev: ← Previous
+    next: Next →
+    pagination_summary_tpl: Page {page} / {total}
+  downloads:
+    page_title: Downloads
+    error_unreachable: Unable to reach qBittorrent.
+    stats:
+      downloading: Downloading
+      seeding: Seeding
+      paused: Paused
+      completed: Completed
+      speed_mb: MB/s
+    filters:
+      search_placeholder: Search…
+      all: All
+      downloading: Downloading
+      seeding: Seeding
+      paused: Paused
+      completed: Completed
+    state:
+      downloading: Downloading
+      seeding: Seeding
+      paused: Paused
+      queued: Queued
+      checking: Checking
+      error: Error
+      completed: Completed
+    count_tpl: '{count, plural, one {# torrent} other {# torrents}}'
+    empty: No active torrent.
+    gb_suffix: GB
+    eta_tpl: ETA {h}h{m}
+    ratio: Ratio
+  indexeurs:
+    page_title: Indexers
+    error_unreachable: Unable to reach Prowlarr.
+    stats:
+      total: Total
+      enabled: Enabled
+      torrent: Torrent
+      usenet: Usenet
+    configured: Configured indexers
+    empty: No indexer configured.
+    table:
+      name: Name
+      type: Type
+      priority: Priority
+      status: Status
+      health: Health
+    badge:
+      torrent: Torrent
+      usenet: Usenet
+      enabled: Enabled
+      disabled: Disabled
+    health:
+      error: Error detected
+      ok: OK
+    searches:
+      title: Recent searches
+      date: Date
+      indexer: Indexer
+      query: Query
+      result: Result
+      results_tpl: '{count, plural, one {# result} other {# results}}'
+      failed: Failed
+  arr_system:
+    title_radarr: Radarr system
+    title_sonarr: Sonarr system
+    section:
+      status: System status
+      health: Health
+      disk: Disk space
+      download_clients: Download clients
+      indexers: Indexers
+      logs: Recent logs
+    status:
+      version: Version
+      os: OS
+      net: .NET
+      db: Database
+      started: Started on
+      url_base: Base URL
+      docker: Docker
+      update: Update
+      'yes': 'Yes'
+      'no': 'No'
+      update_available: Available
+      up_to_date: Up to date
+      unavailable: Status unavailable
+    health:
+      alerts_tpl: '{count, plural, one {# alert} other {# alerts}}'
+      ok: OK
+      empty: No issues detected
+      error: Error
+      warning: Warn.
+      info: Info
+    disk:
+      empty: No information available
+      free_total_tpl: '{free} GB free / {total} GB total'
+      used_pct_tpl: '{pct}% used'
+    download_clients:
+      name: Name
+      type: Type
+      enabled: Enabled
+      empty: No client configured
+    indexers:
+      name: Name
+      enabled: Enabled
+      rss: RSS
+      search: Search
+      empty: No indexer configured
+    logs:
+      date: Date
+      level: Level
+      message: Message
+      empty: No log available
+      level_info: info
+  arr_admin:
+    quality:
+      title_radarr: Quality — Radarr
+      title_sonarr: Quality — Sonarr
+      page_title: Quality
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      profiles_section: Quality Profiles
+      profiles_count_tpl: '{count, plural, one {# profile} other {# profiles}}'
+      add: Add
+      empty_profiles: No profile.
+      col_name: Name
+      col_cutoff: Cutoff
+      col_qualities: Included Qualities
+      col_actions: Actions
+      edit: Edit
+      delete: Delete
+      definitions_section: Quality Definitions
+      definitions_count_tpl: '{count, plural, one {# quality} other {# qualities}}'
+      save: Save
+      empty_definitions: No definition.
+      def_quality: Quality
+      def_title: Title
+      def_rate: Bitrate
+      def_values: Min / Pref. / Max
+      modal_new: New Quality Profile
+      modal_edit: Edit Profile
+      name_label: Name
+      name_placeholder: 'Ex: HD-1080p, Ultra-HD...'
+      upgrade_allowed: Upgrades Allowed
+      language: Language
+      language_any: Any
+      min_format_score: Min Format Score
+      cutoff_format_score: Cutoff Format Score
+      custom_formats_subsection: Custom Formats
+      custom_formats_help: Set a score for each custom format.
+      qualities_subsection: Qualities
+      qualities_help: Check the allowed qualities. The top-to-bottom order represents the upgrade priority (top = best). Groups contain several equivalent sub-qualities.
+      cutoff_label: Cutoff
+      cutoff_placeholder: '-- Select --'
+      cutoff_help_radarr: Radarr stops looking for a better quality once the cutoff is reached.
+      cutoff_help_sonarr: Sonarr stops looking for a better quality once the cutoff is reached.
+      cancel: Cancel
+      save_modal: Save
+      drag_reorder: Drag to reorder
+      group_name: Group
+      format_fallback_tpl: Format {id}
+      language_fallback_tpl: Language {id}
+      error_save_def: Error while saving definitions.
+      error_save_profile: Error while saving.
+      error_delete: Error while deleting.
+      error_network: Network error.
+      error_name_required: Name is required.
+      confirm_delete_tpl: Delete profile "{name}"?
+      size_min_tooltip: Minimum size
+      size_pref_tooltip: Preferred size
+      size_max_tooltip: Maximum size
+    custom_formats:
+      title_radarr: Custom Formats — Radarr
+      title_sonarr: Custom Formats — Sonarr
+      page_title: Custom Formats
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      card_title: Custom Formats
+      add: Add
+      empty: No custom format.
+      col_name: Name
+      col_conditions: Conditions
+      col_include_renaming: Include When Renaming
+      col_actions: Actions
+      none: None
+      'yes': 'Yes'
+      'no': 'No'
+      edit: Edit
+      delete: Delete
+      modal_new: New Custom Format
+      modal_edit_tpl: 'Edit: {name}'
+      modal_edit_fallback: Format
+      name_label: Name
+      name_placeholder: 'Ex: HDR10, Remux, FLAC...'
+      include_renaming: Include when renaming
+      conditions_section: Conditions (Specifications)
+      add_condition: Add condition
+      empty_conditions: No condition. Click "Add condition" to begin.
+      cancel: Cancel
+      save: Save
+      create: Create
+      condition_tpl: 'Condition #{index}'
+      condition_type: Condition Type
+      condition_type_placeholder: '-- Choose a type --'
+      condition_name: Condition Name
+      condition_name_placeholder: Name...
+      negate: Negate
+      required: Required
+      error_load_schema_radarr: Unable to load condition types from Radarr.
+      error_load_schema_sonarr: Unable to load condition types from Sonarr.
+      error_load_schema_short: Unable to load condition types.
+      error_save: Error while saving.
+      error_delete: Error while deleting.
+      error_network_tpl: 'Network error: {message}'
+      error_network: Network error.
+      error_name_required: Name is required.
+      confirm_delete_tpl: Delete format "{name}"?
+    delay_profiles:
+      title_radarr: Delay Profiles — Radarr
+      title_sonarr: Delay Profiles — Sonarr
+      page_title: Delay Profiles
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      card_title: Delay Profiles
+      add: Add
+      empty: No delay profile.
+      col_order: Order
+      col_tags: Tags
+      col_usenet: Usenet
+      col_torrent: Torrent
+      col_protocol: Preferred Protocol
+      col_delay_usenet: Usenet Delay (min)
+      col_delay_torrent: Torrent Delay (min)
+      col_bypass_cutoff: Bypass if Cutoff Met
+      col_actions: Actions
+      tags_global: Global
+      'yes': 'Yes'
+      'no': 'No'
+      default: Default
+      edit: Edit
+      delete: Delete
+      modal_new: New Delay Profile
+      modal_edit_tpl: 'Edit profile #{id}'
+      enable_usenet: Enable Usenet
+      enable_torrent: Enable Torrent
+      preferred_protocol: Preferred Protocol
+      usenet_delay: Usenet Delay (min)
+      torrent_delay: Torrent Delay (min)
+      bypass_highest: Bypass if highest quality met
+      bypass_cf_score: Bypass if custom format score exceeded
+      min_cf_score: Min. Custom Format Score
+      tags_label: Tags (IDs, commas)
+      tags_placeholder: 'Ex: 1,3,5'
+      tags_help: Tag identifiers, separated by commas.
+      cancel: Cancel
+      create: Create
+      save: Save
+      error_save: Error while saving.
+      error_delete: Error while deleting.
+      error_network_tpl: 'Network error: {message}'
+      confirm_delete: Delete this delay profile?
+    schema_modal:
+      type: Type
+      type_placeholder: — Choose a type —
+      name_label: Name
+      name_placeholder: My indexer...
+      triggers_label: Notification Triggers
+      opt_rss: RSS
+      opt_auto_search: Auto Search
+      opt_interactive_search: Interactive Search
+      opt_priority: Priority
+      cancel: Cancel
+      test: Test
+      save: Save
+      path_placeholder: /path/to/folder
+      csv_help: Enter comma-separated values
+      csv_placeholder: Comma-separated values
+      cats_placeholder: 'Ex: 2000, 2010, 2030'
+      trigger:
+        on_grab: Grab
+        on_download: Download
+        on_upgrade: Upgrade
+        on_rename: Rename
+        on_movie_added: Movie added
+        on_movie_delete: Movie deleted
+        on_movie_file_delete: File deleted
+        on_movie_file_delete_for_upgrade: File deleted (upgrade)
+        on_health_issue: Health issue
+        on_health_restored: Health restored
+        on_application_update: App update
+        on_manual_interaction_required: Manual interaction
+        include_health_warnings: Include warnings
+      newznab:
+        tv: TV
+        films: Movies
+        audio: Audio
+        pc: PC
+        tv_sport: TV-Sport
+        xxx: XXX
+        books: Books
+        other: Other
+        films_foreign: Movies/Foreign
+        films_other: Movies/Other
+        films_sd: Movies/SD
+        films_hd: Movies/HD
+        films_uhd: Movies/UHD
+        films_bluray: Movies/Blu-Ray
+        films_3d: Movies/3D
+        films_dvd: Movies/DVD
+        films_webdl: Movies/WEB-DL
+        anime: Anime
+        doc: Documentary
+        tv_webdl: TV/WEB-DL
+        tv_foreign: TV/Foreign
+        tv_sd: TV/SD
+        tv_hd: TV/HD
+        tv_uhd: TV/UHD
+        tv_other: TV/Other
+        tv_sport_sub: TV/Sport
+        tv_anime: TV/Anime
+        tv_doc: TV/Documentary
+      error_schema_http_tpl: Schema load error (HTTP {status})
+      error_schema_none_radarr: No type available — check connection to Radarr.
+      error_schema_none_sonarr: No type available — check connection to Sonarr.
+      error_schema_generic: Unable to load schema.
+      error_name_required: Name is required.
+      error_impl_missing: Implementation type not found in schema.
+      error_form_init: Error while initializing the form.
+      error_save: Error while saving.
+      error_network_tpl: 'Network error: {message}'
+      error_network_test: Network error during test.
+      test_success: Test successful ✓
+      test_failure: Test failed.
+    indexers:
+      title_radarr: Indexers — Radarr
+      title_sonarr: Indexers — Sonarr
+      page_title: Indexers
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      card_title: Configured Indexers
+      empty: No indexer configured. Click "Add".
+      col_name: Name
+      col_implementation: Implementation
+      col_enabled: Enabled
+      col_rss: RSS
+      col_search: Search
+      col_priority: Priority
+      col_actions: Actions
+      'yes': 'Yes'
+      'no': 'No'
+      edit: Edit
+      test: Test
+      delete: Delete
+      modal_title_add: Add an indexer
+      modal_title_edit: Edit indexer
+      fallback_name: Indexer
+      test_success_title: Test successful
+      test_failure: Test failed
+      test_success_feedback_tpl: '{name} — test successful'
+      test_failure_feedback_tpl: '{name} — {error}'
+      error_network_title: Network error
+      error_network: Network error
+      error_delete: Error while deleting.
+      confirm_delete_tpl: Delete indexer "{name}"?
+    download_clients:
+      title_radarr: Download clients — Radarr
+      title_sonarr: Download clients — Sonarr
+      page_title: Download clients
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      card_title: Configured Clients
+      empty: No download client configured.
+      col_name: Name
+      col_type: Type
+      col_host: Host
+      col_port: Port
+      col_enabled: Enabled
+      col_priority: Priority
+      col_actions: Actions
+      'yes': 'Yes'
+      'no': 'No'
+      edit: Edit
+      test: Test
+      delete: Delete
+      modal_title_add: Add a download client
+      modal_title_edit: Edit client
+      fallback_name: Client
+      test_success_title: Test successful
+      test_failure: Test failed
+      test_success_feedback_tpl: '{name} — test successful'
+      test_failure_feedback_tpl: '{name} — {error}'
+      error_network_title: Network error
+      error_network: Network error
+      error_delete: Error while deleting.
+      confirm_delete_tpl: Delete client "{name}"?
+    remote_path_mappings:
+      title_radarr: Remote paths — Radarr
+      title_sonarr: Remote paths — Sonarr
+      page_title: Remote paths
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      card_title: Configured Mappings
+      empty: No remote path configured.
+      col_host: Host
+      col_remote_path: Remote path
+      col_local_path: Local path
+      col_actions: Actions
+      edit: Edit
+      delete: Delete
+      modal_title_add: Add a remote path
+      modal_title_edit: Edit remote path
+      host_label: Host
+      host_placeholder: localhost
+      remote_path_label: Remote path
+      remote_path_placeholder: /download/
+      local_path_label: Local path
+      local_path_placeholder: /data/download/
+      cancel: Cancel
+      save: Save
+      error_required_fields: All fields are required.
+      error_save: Error while saving.
+      error_delete: Error while deleting.
+      confirm_delete_tpl: Delete mapping for "{host}"?
+    import_lists:
+      title_radarr: Import lists — Radarr
+      title_sonarr: Import lists — Sonarr
+      page_title: Import lists
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      suggestions: Suggestions
+      card_title: Configured Import Lists
+      empty: No import list configured.
+      col_name: Name
+      col_type: Type
+      col_enabled: Enabled
+      col_quality_profile: Quality profile
+      col_root_folder: Root folder
+      col_actions: Actions
+      'yes': 'Yes'
+      'no': 'No'
+      edit: Edit
+      delete: Delete
+      modal_title_add: Add an import list
+      modal_title_edit: Edit list
+      error_delete: Error while deleting.
+      confirm_delete_tpl: Delete list "{name}"?
+    notifications:
+      title_radarr: Notifications — Radarr
+      title_sonarr: Notifications — Sonarr
+      page_title: Notifications
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add: Add
+      card_title: Configured Notifications
+      empty: No notification configured.
+      col_name: Name
+      col_type: Type
+      col_triggers: Triggers
+      col_actions: Actions
+      edit: Edit
+      test: Test
+      delete: Delete
+      modal_title_add: Add a notification
+      modal_title_edit: Edit notification
+      trigger_grab: Grab
+      trigger_download: Download
+      trigger_upgrade: Upgrade
+      trigger_rename: Rename
+      trigger_movie_added: Movie added
+      trigger_series_added: Series added
+      trigger_delete: Deletion
+      trigger_health: Health
+      trigger_update: Update
+      trigger_interaction: Interaction
+      error_test: Test failed.
+      error_network: Network error.
+      error_delete: Error while deleting.
+      confirm_delete_tpl: Delete notification "{name}"?
+    settings:
+      title_radarr: General — Radarr
+      title_sonarr: General — Sonarr
+      page_title: General
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      save: Save
+      saved: Configuration saved.
+      error_save: Error while saving.
+      error_network: Network error.
+      empty_config: Configuration unavailable.
+      host:
+        title: Host
+        bind_address: Bind address
+        bind_address_hint: Valid IP address, localhost or * for all interfaces
+        port: Port number
+        ssl_port: SSL port
+        url_base: Base URL
+        url_base_placeholder_radarr: /radarr
+        url_base_placeholder_sonarr: /sonarr
+        url_base_hint: Restart required to take effect
+        instance_name: Instance name
+        application_url: Application URL
+        ssl: SSL
+        launch_browser: Open browser on start
+      security:
+        title: Security
+        authentication: Authentication
+        auth_none: None
+        auth_basic: Basic (browser popup)
+        auth_forms: Forms (login page)
+        auth_external: External
+        auth_required: Auth required
+        required_enabled: Enabled
+        required_disabled_local: Disabled for local addresses
+        username: Username
+        password: Password
+        password_placeholder: Leave blank to keep current
+        password_confirm: Confirmation
+        password_confirm_placeholder: Confirm
+        api_key: API Key
+        api_copy_title: Copy
+        api_regen_title: Regenerate
+        api_regen_confirm: Regenerate the API key? All applications using the old key will need to be updated.
+        api_regen_done: New key generated. Save to apply.
+        certificate_validation: Certificate validation
+        cert_enabled: Enabled
+        cert_disabled_local: Disabled for local
+        cert_disabled: Disabled
+      proxy:
+        title: Proxy
+        use_proxy: Use proxy
+        type: Type
+        host: Host
+        port: Port
+        username: Username
+        password: Password
+        bypass_for: Bypass for
+        bypass_placeholder: Comma-separated domains
+        bypass_local: Bypass for local
+      logging:
+        title: Logging
+        level: Log level
+        level_info: Info
+        level_debug: Debug
+        level_trace: Trace
+        size_limit: Max size (MB)
+      analytics:
+        title: Analytics
+        anonymous_data: Anonymous data
+        hint_radarr: Helps developers improve Radarr
+        hint_sonarr: Helps developers improve Sonarr
+      updates:
+        title: Updates
+        branch: Branch
+        mechanism_label: 'Mechanism: '
+        auto_update: Auto-update
+      backups:
+        title: Backups
+        folder: Folder
+        interval_days: Interval (d)
+        retention_days: Retention (d)
+      indexer_config:
+        title: Indexer Configuration
+        minimum_age: Minimum age (min)
+        retention: Retention (days)
+        rss_sync: RSS sync (min)
+        prefer_flags: Prefer indexer flags
+        availability_delay: Availability delay
+      download_client_config:
+        title: Download Client Configuration
+        working_folders: Working folders
+        completed_handling: Completed handling
+        auto_redownload: Auto re-download failed
+      import_list_config:
+        title: Import Lists Configuration
+        sync_level: Sync level
+        min_refresh: Min refresh interval
+      'yes': 'Yes'
+      'no': 'No'
+    ui:
+      title_radarr: Interface — Radarr
+      title_sonarr: Interface — Sonarr
+      page_title: Interface (UI)
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      empty_config: UI configuration unavailable.
+      save: Save
+      saved: UI configuration saved.
+      error_save: Error while saving.
+      error_network: Network error.
+      dates:
+        title: Dates & Times
+        first_day: First day of week
+        sunday: Sunday
+        monday: Monday
+        calendar_header: Calendar header
+        short_date: Short date
+        long_date: Long date
+        time: Time
+        time_12h: 12h (4:00pm)
+        time_24h: 24h (16:00)
+        relative: Relative dates
+        relative_hint: Show "2 days ago" instead of the exact date
+      style:
+        title: Style
+        theme: Theme
+        theme_auto: Auto
+        theme_light: Light
+        theme_dark: Dark
+        color_impaired: Color-impaired mode
+        color_impaired_hint: Colors adapted for colorblind users
+        runtime_format: Movie runtime
+        runtime_hours_minutes: Hours & Minutes (1h 37m)
+        runtime_minutes: Minutes (97 min)
+      language:
+        title: Language
+        ui_language: UI language
+        ui_language_hint_radarr: Radarr interface language
+        ui_language_hint_sonarr: Sonarr interface language
+        info_language_radarr: Movie info language
+        info_language_sonarr: Series info language
+        info_language_hint_radarr: Language used for movie titles and synopses
+        info_language_hint_sonarr: Language used for series titles and synopses
+    media_management:
+      title_radarr: Media Management — Radarr
+      title_sonarr: Media Management — Sonarr
+      page_title: Media Management
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      saved: Configuration saved successfully.
+      saving: Saving...
+      save: Save
+      error_prefix: 'Error: '
+      error_unknown: Unknown error
+      error_network: Network error.
+      naming_saved: Naming saved.
+      mm_saved: Management saved.
+      naming:
+        title_radarr: File naming
+        title_sonarr: Naming format
+        rename_movies: Rename movies
+        rename_episodes: Rename episodes
+        replace_illegal: Replace illegal characters
+        colon_replacement: Colon replacement format
+        colon_smart: Smart
+        colon_dash: Dash
+        colon_space_dash: Space Dash
+        colon_space_dash_space: Space Dash Space
+        movie_format: Movie file format
+        movie_folder_format: Movie folder format
+        standard_episode_format: Standard episode format
+        daily_episode_format: Daily episode format
+        anime_episode_format: Anime episode format
+        series_folder_format: Series folder format
+        season_folder_format: Season folder format
+        multi_episode_style: Multi-episode style
+        multi_extend: Extend
+        multi_duplicate: Duplicate
+        multi_repeat: Repeat
+        multi_scene: Scene
+        multi_range: Range
+        multi_prefixed_range: Prefixed Range
+        tokens_summary: Available tokens
+        save: Save
+        save_naming_sonarr: Save naming
+        preview: Preview
+        loading: Loading...
+        preview_movie: Movie file
+        preview_movie_folder: Movie folder
+        preview_single_episode: Standard episode
+        preview_daily_episode: Daily episode
+        preview_anime_episode: Anime episode
+        preview_multi_episode: Multi-episodes
+        preview_series_folder: Series folder
+        preview_season_folder: Season folder
+        preview_empty: No example available
+      mm:
+        title: Media management
+        save_radarr: Save
+        save_sonarr: Save management
+        auto_unmonitor_movies: Auto-unmonitor downloaded movies
+        auto_unmonitor_episodes: Auto-unmonitor downloaded episodes
+        create_empty_folders: Create empty folders
+        create_empty_series_folders: Create empty series folders
+        delete_empty_folders: Delete empty folders
+        delete_empty_folders_short: Delete empty folders
+        auto_rename_folders: Auto-rename folders
+        copy_hardlinks: Copy using hardlinks
+        import_extra_files: Import extra files
+        enable_mediainfo: Enable MediaInfo
+        set_permissions: Set permissions (Linux)
+        recycle_bin_path: Recycle bin path
+        recycle_bin: Recycle bin
+        recycle_bin_placeholder: Recycle bin path (empty = disabled)
+        recycle_bin_cleanup: Recycle bin cleanup (days)
+        recycle_bin_duration: Recycle bin duration (days)
+        min_free_space: Minimum free space (MB)
+        extra_extensions: Extra file extensions
+        chmod_folder: chmod Folder
+        chown_group: chown Group
+        propers_repacks: Propers & Repacks
+        prefer_upgrade: Prefer and upgrade
+        do_not_upgrade: Do not upgrade
+        do_not_prefer: Do not prefer
+        file_date: File date
+        file_date_none: None
+        file_date_cinemas: Theatrical release
+        file_date_release: Release date
+        rescan_after_refresh: Rescan after refresh
+        rescan_always: Always
+        rescan_after_manual: After manual refresh
+        rescan_never: Never
+    root_folders:
+      title_radarr: Root Folders — Radarr
+      title_sonarr: Root Folders — Sonarr
+      page_title: Root Folders
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      add: Add
+      card_title: Configured folders
+      empty: No root folder configured.
+      col_path: Path
+      col_free: Free space
+      col_total: Total space
+      col_movies: Movies
+      col_actions: Actions
+      delete: Delete
+      modal_title: Add a root folder
+      path_label: Path
+      path_placeholder: /data/movies
+      path_hint_radarr: Absolute path accessible by Radarr.
+      path_hint_sonarr: Absolute path accessible by Sonarr.
+      cancel: Cancel
+      add_btn: Add
+      error_path_required: Path is required.
+      error_add_radarr: Error — check that the path exists and is accessible by Radarr.
+      error_add_sonarr: Error — check that the path exists and is accessible by Sonarr.
+      error_delete: Error while deleting.
+      confirm_delete_tpl: |-
+        Delete folder "{path}"?
+        ⚠️ The movies it contains will not be deleted.
+    backups:
+      title_radarr: Radarr Backups
+      title_sonarr: Sonarr Backups
+      page_title: Backups
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      create: Create a backup
+      card_title: Available backups
+      count_tpl: '{count} backup(s)'
+      empty: No backup available.
+      col_name: Name
+      col_type: Type
+      col_size: Size
+      col_date: Date
+      col_actions: Actions
+      type_scheduled: Scheduled
+      type_manual: Manual
+      restore: Restore
+      delete: Delete
+      modal_title: Confirm restoration
+      modal_question_prefix: 'Restore '
+      modal_question_suffix: '?'
+      restart_warning_radarr: Radarr will restart after the restoration.
+      restart_warning_sonarr: Sonarr will restart after the restoration.
+      cancel: Cancel
+      backup_in_progress: Backup in progress...
+      backup_starting: Starting backup...
+      backup_status_tpl: 'Backup: {status}'
+      backup_done: Backup created! Reloading...
+      backup_failed: Backup failed.
+      backup_error: Error.
+      restore_in_progress: Restoration in progress...
+      restore_started_radarr: Restoration started. Radarr will restart.
+      restore_started_sonarr: Restoration started. Sonarr will restart.
+      restore_error: Error during restoration.
+      confirm_delete: Delete this backup?
+      error_delete: Error while deleting.
+      error_network: Network error.
+    updates:
+      title_radarr: Updates — Radarr
+      title_sonarr: Updates — Sonarr
+      page_title: Updates
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      docker_warning_radarr: Radarr runs in a Docker container. To update, update the Docker image.
+      docker_warning_sonarr: Sonarr runs in a Docker container. To update, update the Docker image.
+      installed_version: Installed version
+      update_available: Update available
+      up_to_date: Up to date
+      history_title: Version history
+      empty_radarr: Radarr is up to date.
+      empty_sonarr: Sonarr is up to date.
+      col_version: Version
+      col_date: Date
+      col_branch: Branch
+      col_status: Status
+      latest: Latest
+      installed: Installed
+      available: Available
+      old: Old
+      install: Install
+      via_docker: Via Docker
+      changes_new: What's new
+      changes_fixed: Fixes
+    tasks:
+      title_radarr: System Tasks — Radarr
+      title_sonarr: System Tasks — Sonarr
+      page_title: System tasks
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      card_title: Scheduled tasks
+      empty: No task.
+      col_name: Name
+      col_interval: Interval
+      col_last: Last execution
+      col_next: Next execution
+      run_title: Run
+      launched_tpl: Task "{name}" launched.
+      error_run: Error while launching.
+      error_network: Network error.
+    commands:
+      title_radarr: Commands — Radarr
+      title_sonarr: Commands — Sonarr
+      page_title: Commands
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      card_title: Recent commands
+      refresh_hint: Refreshed every 5s
+      empty: No recent command.
+      col_id: '#'
+      col_command: Command
+      col_status: Status
+      col_started: Started
+      col_ended: Ended
+      col_duration: Duration
+      col_message: Message
+      status_queued: Queued
+      status_started: Running
+      status_completed: Completed
+      status_failed: Failed
+      cancel_title: Cancel
+      confirm_cancel_tpl: 'Cancel command #{id}?'
+      cancelled_tpl: 'Command #{id} cancelled.'
+      error_cancel: Error while cancelling.
+      error_network: Network error.
+    logs:
+      title_radarr: Logs — Radarr
+      title_sonarr: Logs — Sonarr
+      page_title: Logs
+      error_unreachable_radarr: Cannot reach Radarr.
+      error_unreachable_sonarr: Cannot reach Sonarr.
+      files_title: Log files
+      recent_title: Recent logs
+      search_placeholder: Search...
+      level_all: All
+      level_info: Info
+      level_debug: Debug
+      level_warn: Warn
+      level_error: Error
+      empty: No log.
+      col_date: Date
+      col_level: Level
+      col_message: Message
+      col_logger: Logger
+      page_prev: Prev.
+      page_next: Next
+    parse:
+      title_radarr: Parse a title — Radarr
+      title_sonarr: Parse a title — Sonarr
+      page_title: Parse a title
+      example_placeholder: 'Ex: The.Dark.Knight.2008.1080p.BluRay.x264'
+      button_parse: Parse
+      error: Error during parsing.
+      result_title: Parse result
+      parsed_title: Parsed title
+      year: Year
+      quality: Quality
+      edition: Edition
+      languages: Languages
+      matched_movie: Matching movie
+      matched_series: Matching series
+      no_result: No result for this title.
+    tags:
+      title_radarr: Tags — Radarr
+      title_sonarr: Tags — Sonarr
+      page_title: Tags
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add_card_title: Add a tag
+      add_placeholder: Tag name
+      add_button: Add
+      existing_card_title: Existing tags
+      empty: No tag.
+      btn_rename: Rename
+      btn_delete: Delete
+      created_tpl: Tag "{label}" created.
+      created_error: Error during creation.
+      rename_prompt: 'New tag name:'
+      renamed_tpl: Tag renamed to "{label}".
+      rename_error: Error during renaming.
+      delete_confirm_tpl: Delete the tag "{label}"?
+      delete_error: Error during deletion.
+    custom_filters:
+      title_radarr: Custom filters — Radarr
+      title_sonarr: Custom filters — Sonarr
+      page_title: Custom filters
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      btn_add: Add
+      card_title: Filters
+      empty: No custom filter.
+      col_name: Name
+      col_type: Type
+      col_filters: Filters
+      col_actions: Actions
+      modal_title_add: Add a filter
+      modal_title_edit: Edit filter
+      label: Name
+      label_placeholder: My filter
+      type: Type
+      conditions_label: Conditions (JSON)
+      conditions_help: JSON array of filter conditions.
+      cancel: Cancel
+      save: Save
+      btn_edit_title: Edit
+      btn_delete_title: Delete
+      err_name_required: Name is required.
+      err_invalid_json: Invalid JSON for conditions.
+      err_save: Error during save.
+      delete_confirm_tpl: Delete the filter "{label}"?
+      delete_error: Error during deletion.
+    metadata:
+      title_radarr: Metadata — Radarr
+      title_sonarr: Metadata — Sonarr
+      page_title: Metadata
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      consumers_title: Metadata consumers
+      empty: No metadata consumer.
+      col_name: Name
+      col_type: Type
+      col_status: Status
+      col_actions: Actions
+      enabled: Active
+      disabled: Inactive
+      btn_enable: Enable
+      btn_disable: Disable
+      btn_edit_title: Edit
+      btn_delete_title: Delete
+      footer_help_radarr: Metadata consumers write .nfo files and images alongside movie files.
+      footer_help_sonarr: Metadata consumers write .nfo files and images alongside episode files.
+      modal_title_default: Edit consumer
+      modal_title_edit_tpl: 'Edit: {name}'
+      label_name: Name
+      label_active: Active
+      fields_title: Fields
+      cancel: Cancel
+      save: Save
+      err_generic: Error.
+      err_save: Error during save.
+      delete_confirm_tpl: Delete "{name}"?
+      delete_error: Error during deletion.
+    auto_tags:
+      title_radarr: Auto-Tags — Radarr
+      title_sonarr: Auto-Tags — Sonarr
+      page_title: Auto-Tags
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      btn_add: Add
+      btn_tags: Tags
+      rules_card_title: Auto-tagging rules
+      empty: No auto-tagging rule.
+      col_name: Name
+      col_conditions: Conditions
+      col_tags_applied: Applied tags
+      col_remove_unmatched: Remove if not matching
+      col_actions: Actions
+      conditions_count_tpl: '{count, plural, one {# condition} other {# conditions}}'
+      'yes': 'Yes'
+      'no': 'No'
+      btn_edit_title: Edit
+      btn_delete_title: Delete
+      modal_title_new: New auto-tagging rule
+      modal_title_edit_tpl: 'Edit: {name}'
+      label_name: Name
+      label_name_placeholder: Rule name
+      label_tags: Tags (IDs, comma-separated)
+      label_tags_placeholder: 'Ex: 1,3,5'
+      label_tags_help: IDs of tags to apply.
+      label_remove_unmatched: Remove tags if not matching
+      specifications_title: Specifications (conditions)
+      btn_add_spec: Add
+      no_specs: No condition. Click "Add" to start.
+      cancel: Cancel
+      btn_create: Create
+      btn_save: Save
+      spec_root_folder: Root folder
+      spec_quality_profile: Quality profile
+      spec_genre: Genre
+      spec_year: Year
+      spec_original_language: Original language
+      spec_movie_status: Movie status
+      spec_series_type: Series type
+      condition_n_tpl: 'Condition #{n}'
+      type_label: Type
+      type_placeholder: '-- Condition type --'
+      name_label: Name
+      name_placeholder: Name...
+      negate_label: Negate
+      required_label: Required
+      fields_label: Fields (JSON)
+      fields_help: 'Format: JSON array of condition fields.'
+      err_name_required: Name is required.
+      err_save: Error during save.
+      err_network_tpl: 'Network error: {error}'
+      delete_confirm_tpl: Delete the rule "{name}"?
+      delete_error: Error during deletion.
+    exclusions:
+      title_radarr: Radarr import exclusions
+      title_sonarr: Import exclusions — Sonarr
+      page_title: Import exclusions
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      add_card_title: Add an exclusion
+      tmdb_id: TMDB ID
+      tmdb_id_placeholder: '12345'
+      movie_title: Movie title
+      movie_title_placeholder: Original title
+      year: Year
+      add_button: Add
+      list_card_title: Exclusions
+      bulk_delete: Delete selection
+      total_suffix: total
+      empty: No exclusion.
+      col_title: Title
+      col_year: Year
+      col_tmdb: TMDB ID
+      col_tvdb: TVDB ID
+      col_actions: Actions
+      btn_delete: Delete
+      btn_delete_title: Delete
+      page_label_tpl: Page {page} / {total}
+      page_simple_tpl: Page {page}
+      bulk_confirm_tpl: Delete {count} exclusion(s)?
+      delete_confirm: Delete this exclusion?
+      delete_error: Deletion error.
+      generic_error: Error.
+      added_ok: Exclusion added.
+      add_error: Error during addition.
+      page_prev: ← Previous
+      page_next: Next →
+    library_import:
+      title_radarr: Library import — Radarr
+      title_sonarr: Library import — Sonarr
+      page_title: Library import
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      folder_label: Folder to scan
+      folder_card_title_sonarr: Folder to scan
+      btn_scan: Scan
+      btn_scanning: Scanning...
+      not_imported_title: Folders not imported
+      col_folder: Folder
+      col_movie: Movie
+      col_serie: Series
+      col_monitor: Monitor
+      col_availability: Availability
+      col_quality_profile: Quality profile
+      col_series_type: Series type
+      col_season_folder_short: Season
+      col_check_all_title: Select all
+      monitor_movie_only: Movie only
+      monitor_none: 'No'
+      monitor_all_episodes: All episodes
+      monitor_future: Future only
+      monitor_future_short: Future
+      monitor_missing: Missing
+      monitor_first_season: First season
+      monitor_last_season: Last season
+      monitor_last_season_short: Last
+      monitor_none_episodes: None
+      availability_announced: Announced
+      availability_in_cinemas: In cinemas
+      availability_released: Released
+      type_standard: Standard
+      type_daily: Daily
+      type_anime: Anime
+      season_folders: Season folders
+      btn_import_movies_tpl: Import {count} movie(s)
+      btn_import_series_tpl: Import {count} series
+      btn_import_series_default: Import series
+      show_existing: Show existing
+      all_imported: All folders are already imported.
+      no_result_search_manual: No result — search manually
+      err_search_manual: Error — search manually
+      searching: Searching...
+      not_found: Not found
+      lookup_error: Error
+      status_existing: Existing
+      status_to_import: To import
+      status_imported: ✓ Imported
+      status_error: ✗ Error
+      generic_error: Error.
+      network_error: Network error.
+      import_error: Error during import.
+      import_success_tpl: '{count} movie(s) imported'
+      import_success_with_fail_tpl: '{ok} movie(s) imported, {fail} error(s)'
+      import_done: Import done
+      import_in_progress: Importing...
+      import_processed_tpl: '{count} series processed.'
+    rename:
+      title_radarr: Rename — Radarr
+      page_title: Rename files
+      error_unreachable_radarr: Unable to reach Radarr.
+      choose_movie_card_title: Choose a movie
+      select_placeholder: — Select a movie —
+      loading: Loading...
+      proposals_card_title: Rename proposals
+      btn_rename_all: Rename all
+      select_movie_hint: Select a movie to view proposals.
+      no_rename_needed: No rename needed.
+      col_current_path: Current path
+      col_new_path: New path
+      load_error: Error during loading.
+      progress_starting: Starting rename...
+      progress_status_tpl: 'Rename: {status}'
+      progress_done: Rename completed.
+      generic_error: Error.
+      network_error: Network error.
+    suggestions:
+      title_radarr: Radarr import suggestions
+      title_sonarr: Suggestions — Sonarr
+      page_title_radarr: Import suggestions
+      page_title_sonarr: Series suggestions
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      empty_radarr: No suggestion available.
+      empty_sonarr_title: No suggestion available.
+      empty_sonarr_help: Sonarr does not provide recommendations through import lists like Radarr. Use the "Add" button on the Series page to search manually.
+      count_movies_tpl: '{count, plural, one {# suggested movie} other {# suggested movies}}'
+      count_series_tpl: '{count, plural, one {# suggested series} other {# suggested series}}'
+      already_added: Already added
+      modal_title: Add a movie
+      already_in_lib: This movie is already in your library.
+      no_overview: No synopsis available.
+      label_quality_profile: Quality profile
+      label_root_folder: Root folder
+      label_search_auto: Auto search
+      cancel: Cancel
+      btn_add: Add
+      badge_recommended: Recommended
+      badge_trending: Trending
+      badge_popular: Popular
+      added_success_tpl: '"{title}" added successfully.'
+      add_error: Error during addition.
+      network_error: Network error.
+    stats:
+      title_radarr: Statistics — Radarr
+      title_sonarr: Statistics — Sonarr
+      page_title_radarr: Statistics
+      page_title_sonarr: Series statistics
+      error_unreachable_radarr: Unable to reach Radarr.
+      error_unreachable_sonarr: Unable to reach Sonarr.
+      none_available: No statistics available.
+      card_movies: Movies
+      card_downloaded: Downloaded
+      card_monitored: Monitored
+      card_missing: Missing
+      card_series: Series
+      card_continuing: Continuing
+      card_ended: Ended
+      card_monitored_series: Monitored
+      total_size: Total movies size
+      free_space_tpl: '{value} GB free'
+      total_space_tpl: '{value} GB total'
+      used_pct_tpl: '{pct}% used'
+      storage_disk_card_title: Disk storage
+      free_total_tpl: '{free} GB free / {total} GB'
+      by_quality_card_title: By quality
+      by_genre_card_title: By genre
+      by_decade_card_title: By decade
+      genres_card_title: Genres
+      networks_card_title: Networks
+      col_quality: Quality
+      col_films: Movies
+      col_size: Size
+      col_genre: Genre
+      no_data: No data.
+      chart_films_label: Movies
+      tooltip_films_count_tpl: '{count, plural, one {# movie} other {# movies}}'
+      gb_suffix: GB
+      size_gb_tpl: '{size} GB'
+  import:
+    blocked_warning: '{count, plural, one {# blocked import — manual intervention required.} other {# blocked imports — manual intervention required.}}'
+qbittorrent:
+  page_title: Downloads
+  error_unreachable: Unable to reach qBittorrent.
+  stats:
+    total: Total
+    downloading: Downloading
+    seeding: Seeding
+    stalled: Stalled
+    paused: Paused
+    errored: Errors
+    total_downloaded: Total downloaded
+    total_uploaded: Total uploaded
+    session: Session
+    free_space: Free
+    peak_dl: Peak ↓
+    peak_up: Peak ↑
+  vpn:
+    label: VPN
+    port_vpn: VPN port
+    port_qbt: qBit port
+    sync_ok: ✓ Sync
+    sync_ko: ✗ Out of sync
+    sync_unknown: —
+    sync_title_match: qBit is listening on the Gluetun forwarded port
+    sync_title_desync_tpl: Gluetun port-update did not push port __VPN__ to qBit (currently __QBT__)
+    sync_title_unknown: Port forwarding or qBit unavailable
+  session:
+    label: Session
+    ratio: Ratio
+  filters:
+    search_placeholder: Search...
+    all: All
+    active: ⚡ Active
+    active_title: Torrents with speed > 0
+    downloading: Downloading
+    seeding: Seeding
+    stalled: Stalled
+    paused: Paused
+    completed: Completed
+    error: Errors
+    category_label: 'Category:'
+    category_all: All
+    tag_label: 'Tag:'
+    tag_all: All
+    sort_label: 'Sort:'
+    select_all: Select all
+  count_tpl: '{count, plural, one {# torrent} other {# torrents}}'
+  sort:
+    added_desc: Added (newest → oldest)
+    added_asc: Added (oldest → newest)
+    name_asc: Name (A → Z)
+    name_desc: Name (Z → A)
+    size_desc: Size (↓)
+    size_asc: Size (↑)
+    progress_desc: Progress (↓)
+    dlspeed_desc: DL speed (↓)
+    upspeed_desc: UP speed (↓)
+    ratio_desc: Ratio (↓)
+    seeds_desc: Seeds (↓)
+  view:
+    aria_label: Display mode
+    list: List
+    list_title: List view
+    table: Table
+    table_title: Table view
+    compact: Compact
+    compact_title: Compact view
+  table:
+    name: Name
+    size: Size
+    progress: '%'
+    dl_speed: DL/s
+    up_speed: UP/s
+    seeds: Seeds
+    ratio: Ratio
+    added: Added
+    actions: Actions
+  pagination:
+    per_page: 'Per page:'
+    info_tpl: __FROM__–__TO__ / __TOTAL__
+  toolbar:
+    add: Add
+    add_title: Add a torrent
+    pause_all_title: Pause all
+    resume_all_title: Resume all
+  state:
+    downloading: Downloading
+    seeding: Seeding
+    paused: Paused
+    queued: Queued
+    checking: Checking
+    error: Error
+    completed: Completed
+    stalled: Stalled
+    moving: Moving
+    unknown: Unknown state
+  row:
+    title_seeds_leechers: Seeds / Leechers
+    title_ratio: Ratio
+    title_added_tpl: Added on __DATE__
+    title_radarr: View in Radarr
+    title_sonarr: View in Sonarr
+    pause_title: Pause
+    resume_title: Resume
+    delete_title: Delete
+  bulk:
+    selected_tpl: '{count, plural, one {# selected} other {# selected}}'
+    resume: Resume
+    pause: Pause
+    delete: Delete
+    recheck: Recheck
+    category_placeholder: Category...
+    cancel: Cancel
+  empty:
+    no_match: No torrent matches these criteria.
+  modal_detail:
+    loading: Loading...
+    tab_general: General
+    tab_files: Files
+    tab_trackers: Trackers
+    tab_peers: Peers
+    files:
+      col_name: Name
+      col_size: Size
+      col_progress: Progress
+      col_priority: Priority
+      empty: No files
+      prio_skip: Skip
+      prio_normal: Normal
+      prio_high: High
+      prio_max: Max
+    trackers:
+      col_url: URL
+      col_status: Status
+      col_seeds: Seeds
+      col_leechs: Leechers
+      empty: No trackers
+      status_disabled: Disabled
+      status_not_contacted: Not contacted
+      status_ok: OK
+      status_running: Running
+      status_error: Error
+    peers:
+      col_ip: IP
+      col_client: Client
+      col_progress: '%'
+      col_dl: DL
+      col_up: UP
+      empty: No peers connected
+    props:
+      downloaded: Downloaded
+      uploaded: Uploaded
+      ratio: Ratio
+      dl_speed: DL speed
+      up_speed: UP speed
+      eta: Time left
+      seeds_tpl: __N__ / __TOTAL__
+      seeds: Seeds
+      peers: Peers
+      total_size: Total size
+      added: Added
+      completed: Completed
+      save_path: Save folder
+    actions:
+      pause: Pause
+      resume: Resume
+      recheck: Recheck
+      reannounce: Reannounce
+      delete: Delete
+    error_load: Loading error
+  modal_add:
+    title: Add a torrent
+    urls_label: Magnet link or .torrent URL
+    urls_placeholder: magnet:?xt=urn:btih:... or https://...
+    urls_hint: One link per line to add multiple torrents.
+    files_label: Or .torrent files
+    drop_text: Drag your <strong>.torrent</strong> files here
+    drop_browse: or click to browse
+    file_remove_title: Remove
+    category_label: Category
+    category_none: None
+    start_label: Start
+    start_now: Start immediately
+    start_paused: Add paused
+    cancel: Cancel
+    submit: Add
+  modal_delete:
+    title: Delete
+    msg_single: Delete this torrent?
+    msg_named_tpl: Delete "__NAME__"?
+    msg_bulk_tpl: '{count, plural, one {Delete # torrent?} other {Delete # torrents?}}'
+    delete_files: Also delete files
+    cancel: Cancel
+    confirm: Delete
+  toast:
+    action_sent: Action sent
+    network_error: Network error
+    failed_tpl: 'Failed: __ERROR__'
+    error_generic: error
+    paused: Torrent paused
+    resumed: Torrent resumed
+    recheck_started: Recheck started
+    reannounce_sent: Reannounce sent
+    bulk_resumed_tpl: '{count, plural, one {# torrent resumed} other {# torrents resumed}}'
+    bulk_paused_tpl: '{count, plural, one {# torrent paused} other {# torrents paused}}'
+    bulk_recheck_tpl: '{count, plural, one {Rechecking # torrent} other {Rechecking # torrents}}'
+    bulk_deleted_tpl: '{count, plural, one {# torrent deleted} other {# torrents deleted}}'
+    bulk_deleted_with_files_suffix: ' + files'
+    pause_all: All torrents paused
+    resume_all: All torrents resumed
+    add_files_ok_tpl: '{count, plural, one {# file added} other {# files added}}'
+    add_files_ko: File upload failed
+    add_url_ok: Torrent(s) added
+    add_url_ko: URL add failed
+    add_required: Add a magnet/URL or a .torrent file
+    file_ignored_tpl: 'Ignored (not .torrent): __NAME__'
+    cat_resolve_search: Searching...
+    cat_resolve_no_match_tpl: No match found for "__NAME__"
+    cat_resolve_error: Resolution error
+  date:
+    just_now: just now
+    minutes_ago_tpl: __N__min ago
+    hours_ago_tpl: __N__h ago
+    days_ago_tpl: __N__d ago
+    months_ago_tpl: __N__ months ago
+    years_ago_tpl: '{count, plural, one {# year ago} other {# years ago}}'
+  units:
+    gb: GB
+    mb: MB
+    kb: KB
+    bytes: B
+    mb_per_s: MB/s
+    kb_per_s: KB/s
+    bytes_per_s: B/s
+    eta_tpl: __H__h__M__m
+    duration_days_tpl: __D__d __H__h
+    duration_hours_tpl: __H__h __M__m
+    duration_minutes_tpl: __M__m
+    uptime_hours_tpl: __H__h __M__m
+    uptime_minutes_tpl: __M__ min
+    uptime_seconds_tpl: __S__s
+  upload:
+    invalid_url: 'Only http(s) and magnet: links are accepted'
+    forbidden_host: This URL points to a forbidden host (cloud metadata)
+    no_file: No file received
+    invalid_format: Only .torrent files are accepted
+    too_large: File too large (>10 MB)
+    unreadable: Unreadable file
+  api:
+    empty_name: Empty name
+    no_valid_hash: No valid hash
+    no_valid_file: No valid file
+    torrent_not_found: Torrent not found
+prowlarr:
+  nav:
+    indexers: Indexers
+    history: History
+    settings: Settings
+    system: System
+    integrations: Integrations
+    apps: Applications
+    download_clients: Download Clients
+    notifications: Notifications
+    config: Configuration
+    tags: Tags
+    general: General
+    ui: UI
+    status: Status
+    tasks: Tasks
+    backups: Backups
+    updates: Updates
+    logs: Logs
+  common:
+    error_unreachable: Unable to reach Prowlarr.
+    cannot_reach: Unable to reach Prowlarr
+    name: Name
+    type: Type
+    status: Status
+    actions: Actions
+    enabled: Enabled
+    disabled: Disabled
+    active: Active
+    add: Add
+    edit: Edit
+    test: Test
+    delete: Delete
+    save: Save
+    saved: Saved!
+    cancel: Cancel
+    back: Back
+    close: Close
+    no_results: No results
+    no_items: No items configured.
+    search_placeholder: Search…
+    saving: Saving…
+    adding: Adding…
+    testing: Testing…
+    'on': 'ON'
+    'off': 'OFF'
+    ok: OK
+    failed: Failed
+    error: Error
+    test_success: Connection successful!
+    test_failure_tpl: 'Failed: __ERROR__'
+    error_tpl: 'Error: __ERROR__'
+    confirm_delete_tpl: Delete "__NAME__"?
+  schema_modal:
+    add_title_tpl: Add — __SECTION__
+    edit_title: Edit
+    edit_title_tpl: Edit — __NAME__
+  index:
+    title: Prowlarr
+    indexer_not_found: Indexer not found
+    stats_indexers: Indexers
+    stats_active: Active
+    stats_failing: Failing
+    stats_torrent: Torrent
+    stats_usenet: Usenet
+    stats_apps: Applications
+    health_title: Health
+    indexers_card_title: Indexers
+    test_all_btn: Test all
+    test_all_title: Test all indexers
+    test_all_in_progress: Testing…
+    test_all_ok: All OK
+    test_all_errors: Errors detected
+    sync_apps_btn: Sync apps
+    sync_apps_title: Sync with Radarr/Sonarr
+    sync_in_progress: Sync…
+    sync_done: Synced!
+    sync_failed: Failed
+    filter_all: All
+    filter_enabled: Enabled
+    filter_disabled: Disabled
+    filter_torrent: Torrent
+    filter_usenet: Usenet
+    col_name: Name
+    col_protocol: Protocol
+    col_privacy: Privacy
+    col_priority: Priority
+    col_functions: Capabilities
+    col_categories: Categories
+    col_queries: Queries
+    col_grabs: Grabs
+    col_failures: Failures
+    col_health: Health
+    col_added: Added
+    col_actions: Actions
+    empty_indexers: No indexer configured.
+    privacy_private: Private
+    privacy_semi: Semi
+    privacy_semiprivate: Semi-private
+    privacy_public: Public
+    status_disabled: Disabled
+    status_error: Error
+    status_ok: OK
+    toggle_enable_title: Enable
+    toggle_disable_title: Disable
+    search_card_title: Search
+    search_placeholder: Search across all indexers…
+    search_btn: Search
+    searching: Searching…
+    search_no_results: No results
+    search_results_count_tpl: '{count, plural, one {# result} other {# results}}'
+    search_col_title: Title
+    search_col_indexer: Indexer
+    search_col_size: Size
+    search_col_seeds: Seeds
+    search_col_age: Age
+    age_days_tpl: __D__d
+    apps_card_title: Connected applications
+    apps_empty: No application
+    apps_connected: Connected
+    modal_add_title: Add an indexer
+    modal_edit_title: Edit indexer
+    modal_search_placeholder: Search (e.g. YGG, 1337x…)
+    filter_protocol: Protocol
+    filter_privacy: Privacy
+    filter_lang: Language
+    filter_category: Category
+    field_name_label: Name
+    field_app_profile: Application profile
+    field_app_profile_loading: Loading…
+    field_priority: Priority
+    field_redirect: Redirect
+    field_tags: Tags
+    field_new_tag: New…
+    field_create_tag_title: Create a tag
+    error_size_units: GB
+    info_tab_details: Details
+    info_tab_categories: Categories
+    info_tab_history: History
+    info_details_heading: Indexer details
+    info_label_type: Type
+    info_label_description: Description
+    info_label_language: Language
+    info_label_protocol: Protocol
+    info_label_privacy: Privacy
+    info_label_urls: URL(s)
+    info_search_capabilities: Search capabilities
+    info_cap_rss: RSS
+    info_cap_raw_search: Raw search
+    info_cap_search: Search
+    info_cap_tv_search: TV search
+    info_cap_movie_search: Movie search
+    info_cap_music_search: Music search
+    info_cap_book_search: Book search
+    info_cap_supported: Supported
+    info_cap_unsupported: Unsupported
+    info_param_q: Text
+    info_param_season: Season
+    info_param_ep: Episode
+    info_param_imdb: IMDb
+    info_param_tmdb: TMDb
+    info_param_tvdb: TVDB
+    info_param_tvmaze: TVMaze
+    info_param_year: Year
+    info_param_genre: Genre
+    info_param_artist: Artist
+    info_param_album: Album
+    info_param_label: Label
+    info_param_title: Title
+    info_param_author: Author
+    info_no_categories: No category
+    info_categories_count_tpl: '{count, plural, one {# category} other {# categories}}'
+    info_col_id: ID
+    info_no_history: No history
+    info_col_date: Date
+    info_col_type: Type
+    info_col_query: Query
+    info_col_source: Source
+    info_event_rss: RSS
+    info_event_query: Query
+    confirm_delete_indexer_tpl: Delete indexer "__NAME__"?
+    indexer_added: Indexer added!
+    error_add_failed: Unable to add
+    error_save_failed: Unable to save
+  apps:
+    title: Applications
+    page_title_full: Applications — Prowlarr
+    info_baseurl: Base URL
+    info_synclevel: Sync level
+    add_btn: Add an application
+    profiles_title: Sync profiles
+    profile_modal_title: Sync profile
+    profile_new_title: New profile
+    profile_edit_title_tpl: Edit — __NAME__
+    profile_name: Name
+    profile_rss: RSS
+    profile_auto_search: Automatic search
+    profile_interactive_search: Interactive search
+    profile_min_seeders: Minimum seeders
+    profile_empty: No profile
+    profile_col_rss: RSS
+    profile_col_auto: Auto search
+    profile_col_interactive: Interactive
+    profile_col_seeders: Min seeders
+    profile_save_error: Error
+    confirm_delete_profile: Delete this profile?
+    sync_disabled: Disabled
+    sync_add_only: Add only
+    sync_full: Full sync
+    sync_level_label: Sync Level
+    field_name: Name
+    add_modal_title: Add an application
+    edit_modal_title: Edit
+  download_clients:
+    title: Download clients
+    page_title_full: Download clients — Prowlarr
+    add_btn: Add a client
+    add_modal_title: Add a download client
+    edit_modal_title: Edit
+    priority_label_tpl: 'Priority: __VALUE__'
+    field_name: Name
+    field_priority: Priority
+  notifications:
+    title: Notifications
+    page_title_full: Notifications — Prowlarr
+    add_btn: Add a notification
+    add_modal_title: Add a notification
+    edit_modal_title: Edit
+    search_placeholder: Search (Discord, Telegram, Email…)
+    empty: No notification configured.
+    triggers_label: Triggers
+    trigger_grab: Grab
+    trigger_health_issue: Health issue
+    trigger_health_restored: Health restored
+    trigger_app_update: App update
+    include_warnings: Include warnings
+    badge_health: Health
+    badge_health_restored: Health restored
+    badge_app_update: Update
+    badge_warnings: Warnings included
+    field_name: Name
+    test_success: Test successful!
+  general:
+    title: General
+    page_title_full: General — Prowlarr
+    section_host: Host
+    section_security: Security
+    section_proxy: Proxy
+    section_logging: Logging
+    field_port: Port
+    field_url_base: URL Base
+    field_url_base_placeholder: Empty by default
+    field_instance_name: Instance name
+    field_auth_method: Authentication
+    auth_none: None
+    auth_basic: Basic (popup)
+    auth_forms: Forms
+    field_auth_required: Authentication required
+    auth_required_enabled: Enabled
+    auth_required_local: Disabled for local
+    field_username: Username
+    field_password: Password
+    field_password_confirm: Password confirmation
+    field_cert_validation: Certificate validation
+    cert_enabled: Enabled
+    cert_local: Disabled for local
+    cert_disabled: Disabled
+    field_api_key: API Key
+    copy_title: Copy
+    api_key_help: Restart required to regenerate
+    restart_required: Restart required
+    proxy_use: Use a proxy
+    proxy_type: Type
+    proxy_hostname: Hostname
+    proxy_port: Port
+    log_level: Log level
+    log_info: Info
+    log_debug: Debug
+    log_trace: Trace
+    save_btn: Save
+    saved: Saved
+    save_error: Error
+  ui:
+    title: UI
+    page_title_full: UI — Prowlarr
+    section_dates: Dates
+    section_style: Style
+    section_language: Language
+    short_date: Short date format
+    long_date: Long date format
+    time_format: Time format
+    show_relative: Show relative dates
+    theme: Theme
+    theme_auto: Auto
+    theme_light: Light
+    theme_dark: Dark
+    color_impaired: Color impaired mode
+    ui_language: Interface language
+    reload_required: Browser reload required
+    save_btn: Save
+    saved: Saved
+    save_error: Error
+  history:
+    title: History
+    page_title_full: History — Prowlarr
+    since_label: 'Since:'
+    filter_btn: Filter
+    empty: No history.
+    col_date: Date
+    col_type: Type
+    col_source: Source
+    col_query: Query
+    col_category: Category
+    col_results: Results
+    col_time: Time
+    col_status: Status
+    event_rss: RSS
+    event_query: Query
+    event_grab: Grab
+    event_auth: Auth
+    status_ok: OK
+    status_failed: Failed
+    elapsed_ms_tpl: __MS__ms
+  tags:
+    title: Tags
+    page_title_full: Tags — Prowlarr
+    card_title: Tags
+    new_placeholder: New tag…
+    add_btn: Add
+    col_tag: Tag
+    col_indexers: Indexers
+    col_apps: Applications
+    col_notifications: Notifications
+    col_actions: Actions
+    empty: No tag.
+    feedback_created: Created
+    feedback_error: Error
+    confirm_delete_tpl: Delete tag "__LABEL__"?
+    delete_in_use: This tag is still in use — remove it from indexers/apps before deleting
+  system:
+    title: System status
+    page_title_full: System status — Prowlarr
+    info_card: Information
+    health_card: Health
+    health_ok_badge: OK
+    health_ok: All systems operational
+    info_version: Version
+    info_branch: Branch
+    info_os: OS
+    info_runtime: Runtime
+    info_started: Started
+    info_appdata: App Data
+    info_migration: Migration
+    info_authentication: Authentication
+    documentation: Documentation
+  tasks:
+    title: System tasks
+    page_title_full: System tasks — Prowlarr
+    card_title: Scheduled tasks
+    empty: No task.
+    col_name: Name
+    col_interval: Interval
+    col_last: Last execution
+    col_duration: Duration
+    col_next: Next execution
+    last_never: Never
+    run_title: Run now
+    interval_hours_min_tpl: __H__h __M__min
+    interval_hours_tpl: __H__h
+    interval_minutes_tpl: __M__ min
+    feedback_launched_tpl: Task "__NAME__" launched.
+    feedback_run_error: Error launching task.
+    feedback_network_error: Network error.
+  backups:
+    title: Backups
+    page_title_full: Backups — Prowlarr
+    create_btn: Create a backup
+    create_in_progress: Backup in progress...
+    create_starting: Starting backup...
+    create_done: Backup created! Reloading...
+    create_error: Backup failed.
+    network_error: Network error.
+    card_title: Available backups
+    count_tpl: '{count, plural, one {# backup} other {# backups}}'
+    empty: No backup available.
+    col_name: Name
+    col_type: Type
+    col_size: Size
+    col_date: Date
+    col_actions: Actions
+    type_scheduled: Scheduled
+    type_manual: Manual
+    size_mb_tpl: __SIZE__ MB
+    confirm_delete_tpl: Delete "__NAME__"?
+    delete_error: Delete failed.
+    fallback_name: this backup
+  logs:
+    title: Logs
+    page_title_full: Logs — Prowlarr
+    card_title: Recent logs
+    search_placeholder: Search…
+    level_all: All
+    level_info: Info
+    level_debug: Debug
+    level_warn: Warn
+    level_error: Error
+    level_fatal: Fatal
+    empty: No log.
+    col_date: Date
+    col_level: Level
+    col_message: Message
+    col_logger: Logger
+    page_prev: Prev.
+    page_next: Next
+  updates:
+    title: Updates
+    page_title_full: Updates — Prowlarr
+    docker_warning: Prowlarr runs in a Docker container. To update, pull the new Docker image (e.g. <code>docker pull</code> or via Portainer).
+    version_installed: Installed version
+    update_available: Update available
+    up_to_date: Up to date
+    history_title: Version history
+    empty: Prowlarr is up to date.
+    install_in_progress: Installation in progress...
+    install_starting: Starting update...
+    install_launched: Update check launched. Refreshing in 5 seconds…
+    install_error: Error launching.
+    network_error_tpl: 'Network error: __MSG__'
+    network_no_connection: connection failed
+    col_version: Version
+    col_release_date: Release date
+    col_branch: Branch
+    col_status: Status
+    badge_latest: Latest
+    status_installed: Installed
+    status_available: Available
+    status_old: Old
+    install_btn_tpl: Install __VERSION__
+    install_via_docker: Update via Docker
+    changes_new: New
+    changes_fixed: Fixed
+jellyseerr:
+  nav:
+    requests: Requests
+    users: Users
+    tasks_cache: Tasks & Cache
+    settings: Settings
+    system: System
+    general: General
+    default_users: Default users
+    jellyfin: Jellyfin
+    services: Services
+    about: About
+    logs: Logs
+    updates: Updates
+  filters:
+    all: All
+    pending: Pending
+    processing: Processing
+    approved: Approved
+    available: Available
+    partial: Partially available
+    unavailable: Unavailable
+    failed: Failed
+    type_all: All
+    type_movie: Movies
+    type_tv: TV shows
+    sort_added: Most recent
+    sort_modified: Last modified
+  common:
+    movie: Movie
+    tv: TV show
+    tv_show: TV show
+    'yes': 'Yes'
+    'no': 'No'
+    cancel: Cancel
+    save: Save
+    save_changes: Save changes
+    save_changes_alt: Save changes
+    saving: Saving…
+    saved: Saved
+    error: Error
+    network_error: Network error
+    delete: Delete
+    edit: Edit
+    approve: Approve
+    decline: Decline
+    validate: Approve
+    test: Test
+    add: Add
+    none: None
+    loading: Loading
+    optional: Optional
+    not_linked: Not linked
+    linked: Linked
+    linked_as_tpl: Connected as __NAME__
+    by_user_tpl: by __NAME__
+    open_in_jellyseerr: Open Seerr
+    manage_in_jellyseerr: Manage in Seerr
+    season_tpl: Season __N__
+    confirm_delete_request: Delete this request?
+    confirm_delete_user_tpl: Delete user "__NAME__"?
+    confirm_delete_user_irreversible: Delete this user? This action cannot be undone.
+    confirm_delete_server_tpl: Delete this __TYPE__ server? This action cannot be undone.
+    error_load: Loading error
+    error_loading_short: Loading error
+    error_action_failed: 'Error: action failed'
+    minutes: minutes
+    hours: hours
+    seconds: seconds
+  index:
+    request_title: Requests
+    stat_total: Total
+    stat_pending: Pending
+    stat_processing: Processing
+    stat_approved: Approved
+    stat_declined: Declined
+    stat_movies_count_tpl: __N__ movies
+    stat_tv_count_tpl: __N__ TV shows
+    none_with_filter: No request with this filter
+    none: No request
+    edit_request_title: Edit request
+    edit_request_title_tpl: Edit — __TITLE__
+    edit_request_fallback_tpl: 'Request #__ID__'
+    season_col: Season
+    episodes_col: Episodes
+    status_col: Status
+    not_requested: Not requested
+    seasons_label: Seasons
+    root_folder_label: Root folder
+    quality_profile_label: Quality profile
+    requested_by_label: Requested by
+    season_status_available: Available
+    season_status_approved: Approved
+    season_status_pending: Pending
+    season_status_processing: Processing
+  user_detail:
+    page_title_tpl: __NAME__ — Seerr
+    member_since_tpl: Member since __DATE__
+    requests_count_tpl: '{count, plural, one {# request} other {# requests}}'
+    back: Back
+    tab_general: General settings
+    tab_password: Password
+    tab_perms: Permissions
+    tab_notifs: Notifications
+    tab_linked: Linked accounts
+    tab_requests: Requests
+    section_profile: Profile
+    section_regions_languages: Regions & languages
+    section_quotas: Quotas
+    section_information: Information
+    field_display_name: Display name
+    field_email: Email
+    field_discord_id: Discord user ID
+    field_display_language: Display language
+    default_language_french: Default language (French)
+    discover_country: Discover country
+    discover_language: Discover language
+    streaming_country: Streaming country
+    server_setting: — Server setting —
+    filter_by_region: Filter content by regional availability
+    filter_by_language: Filter content by original language
+    streaming_by_region: Show streaming sites by availability
+    all_languages: All languages
+    languages_count_tpl: '{count, plural, one {# language} other {# languages}}'
+    languages_count_one: 1 language
+    languages_count_many_tpl: __N__ languages
+    languages_selected_count_tpl: '{count, plural, one {# language selected} other {# languages selected}}'
+    languages_selected_count_one: 1 language selected
+    languages_selected_count_many_tpl: __N__ languages selected
+    search_language: Search a language…
+    movie_request_limit: Movie request limit
+    tv_request_limit: TV show request limit
+    bypass_global_limit: Override global limit
+    movies_every: movie(s) every
+    tv_every: TV show(s) every
+    days: days
+    info_type: Type
+    info_role: Role
+    info_requests: Requests
+    info_registered: Registered
+    info_jellyfin_username: Jellyfin
+    info_jellyfin_id: Jellyfin ID
+    info_user_local: Local
+    info_user_other: Other
+    role_admin: Admin
+    role_manager: Manager
+    role_user: User
+    password_card_title: Password
+    password_jellyfin_managed_html: This user is logged in via <strong>Jellyfin</strong>. The password is managed directly by Jellyfin and cannot be changed here.
+    password_warning: Changing the password will sign the user out of all active sessions. They will need to sign in again with the new password.
+    new_password: New password
+    confirm_password: Confirm password
+    placeholder_min8: 8 characters minimum
+    save_password: Save password
+    password_min_length: 8 characters minimum
+    password_mismatch: Passwords do not match
+    notifs_unavailable_title: Notifications not yet available
+    notifs_unavailable_desc: User notification configuration will be available soon.
+    select_notif_channel: Select a notification channel above to configure it.
+    notif_discord_id_label: Discord user ID
+    notif_discord_id_placeholder: Enter your Discord ID
+    notif_telegram_id_label: Telegram chat ID
+    notif_telegram_id_placeholder: Enter your chat ID
+    notif_telegram_silent: Send silently
+    notif_pushbullet_label: Pushbullet access token
+    notif_pushbullet_placeholder: Access token
+    notif_pushover_app_label: Pushover application token
+    notif_pushover_app_placeholder: Application token
+    notif_pushover_user_label: Pushover user key
+    notif_pushover_user_placeholder: User key
+    notif_email_desc: Email notifications will be sent to the address configured in the user profile.
+    notif_webpush_desc: Web Push notifications will be sent to the user's browser.
+    linked_accounts_title: Linked accounts
+    account_type_label: 'Account type:'
+    registered_label: 'Registered on:'
+    last_modified_label: 'Last modified:'
+    no_requests: No request
+    no_4k_server: No 4K server configured
+    perms:
+      admin_label: Administrator
+      admin_desc: Full access. All permissions are granted automatically.
+      manage_users_label: Manage users
+      manage_users_desc: Allows managing all user-related settings.
+      manage_requests_label: Manage requests
+      manage_requests_desc: Allows managing requests, viewing, editing and deleting them.
+      advanced_requests_label: Advanced requests
+      advanced_requests_desc: Allows changing advanced options when requesting.
+      view_requests_label: View requests
+      view_requests_desc: Allows viewing other users' requests.
+      view_recents_label: View recently added
+      view_recents_desc: Allows viewing recently added media.
+      view_jf_playlists_label: View Jellyfin playlists
+      view_jf_playlists_desc: Allows viewing Jellyfin playlists.
+      request_label: Request
+      request_desc: Allows requesting movies and TV shows.
+      request_movies_label: Request movies
+      request_movies_desc: Allows requesting movies.
+      request_tv_label: Request TV shows
+      request_tv_desc: Allows requesting TV shows.
+      auto_approve_label: Auto-approve
+      auto_approve_desc: Automatically approves all requests.
+      auto_approve_movies_label: Auto-approve movies
+      auto_approve_movies_desc: Automatically approves movie requests.
+      auto_approve_tv_label: Auto-approve TV shows
+      auto_approve_tv_desc: Automatically approves TV show requests.
+      auto_request_label: Auto-request
+      auto_request_desc: Automatically requests media added to the watchlist.
+      auto_request_default_desc: Automatically requests media from the watchlist.
+      auto_request_movies_label: Auto-request movies
+      auto_request_movies_desc: Automatically requests movies added to the watchlist.
+      auto_request_movies_default_desc: Automatically requests movies from the watchlist.
+      auto_request_tv_label: Auto-request TV shows
+      auto_request_tv_desc: Automatically requests TV shows added to the watchlist.
+      auto_request_tv_default_desc: Automatically requests TV shows from the watchlist.
+      request_4k_label: Request 4K
+      request_4k_desc: Allows requesting media in 4K.
+      request_movies_4k_label: Request movies in 4K
+      request_movies_4k_desc: Allows requesting movies in 4K.
+      request_tv_4k_label: Request TV shows in 4K
+      request_tv_4k_desc: Allows requesting TV shows in 4K.
+      auto_approve_4k_label: Auto-approve 4K
+      auto_approve_4k_desc: Automatically approves all 4K requests.
+      auto_approve_movies_4k_label: Auto-approve 4K movies
+      auto_approve_movies_4k_desc: Automatically approves 4K movie requests.
+      auto_approve_tv_4k_label: Auto-approve 4K TV shows
+      auto_approve_tv_4k_desc: Automatically approves 4K TV show requests.
+      manage_issues_label: Manage issues
+      manage_issues_desc: Allows managing issue reports.
+      create_issues_label: Create issues
+      create_issues_desc: Allows reporting issues on media.
+      view_issues_label: View issues
+      view_issues_desc: Allows viewing other users' issue reports.
+      manage_blocklist_label: Manage blocklist
+      manage_blocklist_desc: Allows managing the blocklist.
+      view_blocklist_label: View blocklist
+      view_blocklist_desc: Allows viewing the blocklist.
+      section_general: General
+      section_auto_approve: Auto-approve
+      section_auto_request: Auto-request
+      section_4k: Request in 4K
+      section_auto_approve_4k: Auto-approve 4K
+      section_issues: Report issues
+      section_blocklist: Blocklist
+  users:
+    page_title: Users
+    user_list_title: User list
+    cannot_reach: Cannot reach Seerr
+    search_placeholder: Search a user…
+    create_user: Create user
+    import_jellyfin: Import from Jellyfin
+    col_user: User
+    col_perms: Permissions
+    col_requests: Requests
+    col_registered: Registered
+    action_manage: Manage
+    action_delete: Delete
+    cannot_delete_account: This account cannot be deleted.
+    create_user_modal_title: Create local user
+    create_btn: Create
+    import_modal_title: Import from Jellyfin
+    import_btn: Import selection
+    local_login_disabled_html: The <strong>Enable local login</strong> setting is currently disabled.
+    configure_app_url_html: Configure the <strong>application URL</strong> as well as <strong>email notifications</strong> to enable automatic password generation.
+    email_required_label: Email
+    email_placeholder: email@example.com
+    username_label: Username
+    username_placeholder: Optional
+    autogen_password_label: Auto-generate password
+    autogen_password_hint: Configure the application URL and email notifications to enable this option.
+    password_label: Password
+    password_placeholder: Password
+    email_required_error: Email is required.
+    email_invalid_error: Please enter a valid email address.
+    password_required_error: Password is required.
+    creation_error: Error during creation.
+    new_jellyfin_login_html: The <strong>Enable new Jellyfin login</strong> setting is currently enabled. Jellyfin users with library access do not need to be imported to sign in.
+    all_jellyfin_imported: All Jellyfin users have already been imported.
+    select_users_to_import: 'Select users to import:'
+    profile_registered_on_tpl: Registered on __DATE__
+    stat_requests: Requests
+    stat_pending: Pending
+    stat_available: Available
+    stat_movies_tv: Movies / TV shows
+    profile_tab_requests: Requests
+    profile_tab_info: Info
+    profile_no_requests: No request
+    profile_email_row: Email
+    profile_jellyfin_name_row: Jellyfin name
+    profile_type_row: Type
+    profile_jellyfin_id_row: Jellyfin ID
+    profile_registered_row: Registered
+    profile_last_modified_row: Last modified
+    profile_owner_locked: Owner account — not editable
+    profile_manage_user: Manage this user
+  settings:
+    about:
+      title: About
+      app_title: Seerr
+      version: Version
+      update_available: Update available
+      commit: Commit
+      timezone: Timezone
+      data_path: Data path
+      restart_required: Restart required
+      stat_media: Media
+      stat_requests: Requests
+      stat_movies: Movies
+      stat_series: TV shows
+      stat_users: Users
+      stat_issues: Issues
+      requests_detail_title: Request breakdown
+      total: Total
+      movies: Movies
+      series: TV shows
+      pending: Pending
+      processing: Processing
+      approved: Approved
+      available: Available
+      declined: Declined
+      issues_title: Issues
+      issues_open: Open
+      issues_closed: Closed
+    general:
+      title: General settings
+      subtitle: Configure the general settings of your Seerr instance.
+      section_application: Application
+      section_regions_languages: Regions & Languages
+      section_filters_blocking: Filters & Blocking
+      section_requests: Requests
+      app_name: Application name
+      app_url: Application URL
+      api_key: API key
+      show: Show
+      copy: Copy
+      enable_image_proxy: Enable image proxy
+      enable_image_proxy_desc: Routes external images through the server for privacy.
+      youtube_url: YouTube URL
+      youtube_url_desc: Custom URL for trailers.
+      display_language: Display language
+      default_language: Default
+      discover_country: Discover country
+      discover_country_desc: Filter content by regional availability.
+      all_countries: All countries
+      discover_language: Discover language
+      discover_language_desc: Filter by original language. Multiple allowed.
+      all_languages: All languages
+      streaming_country: Streaming country
+      streaming_country_desc: Streaming sites by availability.
+      languages_count_tpl: '{count, plural, one {# language} other {# languages}}'
+      search_placeholder: Search…
+      blocked_tags: Blocked tags
+      blocked_tags_desc: Media with these tags will be hidden. Comma-separated.
+      blocked_tags_placeholder: tag1, tag2, ...
+      tags_limit: Tag limit
+      tags_limit_desc: Maximum number of blocked tags.
+      hide_available: Hide available media
+      hide_available_desc: Hide media already available in the library.
+      hide_blocked: Hide blocked items
+      hide_blocked_desc: Hide media present in the blocklist.
+      partial_requests: Partial requests
+      partial_requests_desc: Allows requesting individual seasons.
+      special_episodes: Special episodes
+      special_episodes_desc: Display and allow special episode requests.
+    jellyfin:
+      title: Jellyfin
+      readonly_warning_html: For security reasons, Jellyfin settings can only be changed from the <a href="__URL__" target="_blank" style="color:inherit;text-decoration:underline;">native Seerr interface</a>. This page is read-only.
+      libraries_title: Jellyfin libraries
+      manage_in_jellyseerr: Manage in Seerr
+      no_library: No library found
+      lib_movies: Movies
+      lib_tv: TV shows
+      manual_scan_title: Manual library scan
+      manual_scan_desc: Run a scan to detect changes in your libraries. The automatic scan runs every 24 hours.
+      run_scan: Run scan in Seerr
+      settings_title: Jellyfin settings
+      internal_name: Internal name
+      ip_hostname: IP / Hostname
+      tls_label: TLS (SSL) closure
+      api_key: API key
+      base_url: Base URL
+      base_url_desc: Base path if Jellyfin sits behind a reverse proxy.
+      external_url: External URL
+      external_url_desc: URL used for links to Jellyfin.
+      forgot_password_url: Forgot password URL
+      forgot_password_url_desc: Link to the Jellyfin password recovery page.
+      not_configured: Not configured
+      server_id: Server ID
+      show: Show
+      copy: Copy
+    logs:
+      title: Logs
+      recent_title: Recent logs
+      search_placeholder: Search…
+      level_all: All
+      level_debug: Debug
+      level_info: Info
+      level_warn: Warning
+      level_error: Error
+      none: No log.
+      col_date: Date
+      col_level: Level
+      col_module: Module
+      col_message: Message
+      pagination_prev: Prev.
+      pagination_next: Next
+    services:
+      title: Services
+      radarr_settings: Radarr settings
+      radarr_subtitle: Manage your Radarr servers connected to Seerr.
+      sonarr_settings: Sonarr settings
+      sonarr_subtitle: Manage your Sonarr servers connected to Seerr.
+      add_radarr: Add a Radarr server
+      add_sonarr: Add a Sonarr server
+      default_badge: Default
+      profile: Profile
+      rules_title: Override rules
+      rules_subtitle: Override rules automatically redirect requests to a specific server or profile based on user, genre or language.
+      rules_radarr: Radarr
+      rules_sonarr: Sonarr
+      rules_users_label: 'Users:'
+      rules_genre_label: 'Genre:'
+      rules_no_rules: No rule configured
+      manage_rules: Manage rules in Seerr
+      modal_title: Edit service
+      modal_test: Test
+      modal_save: Save
+      modal_delete: Delete
+      modal_cancel: Cancel
+      modal_add_title_tpl: Add a __TYPE__ server
+      modal_edit_title_tpl: Edit __TYPE__ server
+      modal_test_hint_html: Fill in the connection details then click <strong>Test</strong> to load the available quality profiles and root folders.
+      modal_test_hint_disabled_save: Test the connection first to load profiles and folders
+      section_mode: Mode
+      default_server: Default server
+      server_4k: 4K server
+      section_connection: Connection
+      server_name: Server name
+      hostname_or_ip: Hostname or IP address
+      enable_ssl: Enable SSL
+      api_key: API key
+      base_url: Base URL
+      external_url: External URL
+      section_profiles_folders: Profiles & Folders
+      quality_profile: Quality profile
+      root_folder: Root folder
+      minimum_availability: Minimum availability
+      avail_announced: Announced
+      avail_in_cinemas: In cinemas
+      avail_released: Released
+      series_type: Series type
+      series_type_standard: Standard
+      series_type_daily: Daily
+      series_type_anime: Anime
+      section_anime: Anime
+      anime_series_type: Anime series type
+      anime_quality_profile: Anime quality profile
+      anime_root_folder: Anime root folder
+      section_folders: Folders
+      auto_season_folders: Automatic season folders
+      section_tags: Tags
+      tags_label: Tags
+      tags_placeholder: tag1, tag2
+      anime_tags_label: Anime tags
+      section_options: Options
+      enable_search: Enable search
+      enable_sync: Enable sync
+      tag_requests: Tag requests
+      test_connection_success: Connection successful — profiles and folders loaded
+      test_connection_success_simple: Connection successful
+      test_connection_failed: Connection failed
+      testing_label: Test…
+      test_ok: OK
+      test_failed: Failed
+      placeholder_radarr_base: /radarr
+      placeholder_radarr_url: https://radarr.example.com
+    tasks_cache:
+      title: Tasks & Cache
+      jobs_title: Scheduled tasks
+      jobs_count_tpl: '{count, plural, one {# task} other {# tasks}}'
+      col_task: Task
+      col_frequency: Frequency
+      col_next: Next run
+      col_status: Status
+      col_actions: Actions
+      status_running: Running
+      status_idle: Idle
+      status_error: Error
+      action_run: Run
+      action_cancel: Cancel
+      action_edit_schedule: Edit
+      cache_title: API cache
+      flush_all: Flush all
+      cache_col_service: Service
+      cache_col_efficiency: Hit rate
+      cache_col_cached: Cached
+      cache_col_misses: Misses
+      cache_col_keys: Keys
+      cache_col_size: Size
+      cache_flush_one: Flush this cache
+      images_title: Image cache
+      images_col_type: Type
+      images_col_count: Images
+      images_col_size: Size
+      flush_confirm: Flush all Seerr cache?
+      flush_done: Cache flushed
+      flush_progress: Flushing…
+      flush_network_error: Network error
+      modal_title: Edit schedule
+      cron_type_label: Frequency type
+      cron_type_seconds: Every X seconds
+      cron_type_minutes: Every X minutes
+      cron_type_hours: Every X hours
+      cron_type_daily: Every day at
+      cron_type_weekly: Every week
+      cron_type_custom: Custom cron expression
+      cron_seconds: Seconds
+      cron_minutes: Minutes
+      cron_hours: Hours
+      cron_hour_field: Hour
+      cron_day_and_hour: Day and hour
+      cron_custom_label: Cron expression (6 fields)
+      cron_custom_placeholder: 0 */5 * * * *
+      cron_custom_help: Sec Min Hour Day Month DayOfWeek
+      cron_expression: 'Cron expression:'
+      day_monday: Monday
+      day_tuesday: Tuesday
+      day_wednesday: Wednesday
+      day_thursday: Thursday
+      day_friday: Friday
+      day_saturday: Saturday
+      day_sunday: Sunday
+      mins_15: 15 seconds
+      mins_30: 30 seconds
+      mins_45: 45 seconds
+      min_1: 1 minute
+      min_2: 2 minutes
+      min_5: 5 minutes
+      min_10: 10 minutes
+      min_15: 15 minutes
+      min_30: 30 minutes
+      h_1: 1 hour
+      h_2: 2 hours
+      h_3: 3 hours
+      h_4: 4 hours
+      h_6: 6 hours
+      h_8: 8 hours
+      h_12: 12 hours
+      modal_save: Save
+      modal_cancel: Cancel
+    updates:
+      title: Updates
+      docker_warning_html: Seerr runs in a Docker container. To update, update the Docker image (e.g. <code>docker pull</code> or via Portainer).
+      installed_version: Installed version
+      update_available: Update available
+      up_to_date: Up to date
+      history_title: Version history
+      cant_fetch_releases: Could not fetch GitHub releases.
+      col_version: Version
+      col_release_date: Release date
+      col_status: Status
+      installed_badge: Installed
+      status_installed: Installed
+      status_available: Available
+      status_old: Old
+      view_on_github: View on GitHub
+      changes_security: Security
+      changes_features: New
+      changes_fixes: Fixes
+      changes_refactor: Refactoring
+      changes_performance: Performance
+    settings_users:
+      title: User settings
+      subtitle: Configure default settings for users.
+      section_auth: Authentication
+      enable_local_login: Enable local login
+      enable_local_login_desc: Allows users to sign in with a local account.
+      enable_jellyfin_login: Enable Jellyfin login
+      enable_jellyfin_login_desc: Allows Jellyfin users to sign in automatically.
+      allow_new_jellyfin_login: Allow new Jellyfin login
+      allow_new_jellyfin_login_desc: Allows Jellyfin users to create an account by signing in for the first time.
+      section_global_quotas: Global request limits
+      global_movie_limit: Global movie request limit
+      global_tv_limit: Global TV show request limit
+      movies_every: movie(s) every
+      tv_every: TV show(s) every
+      days: days
+      section_default_perms: Default permissions
+      perm_admin: Administrator
+      perm_admin_desc: Full access. All permissions are automatically granted.
+      perm_manage_users: Manage users
+      perm_manage_users_desc: Allow managing all user-related settings.
+      perm_manage_requests: Manage requests
+      perm_manage_requests_desc: Allow managing requests, viewing, editing and deleting them.
+      perm_advanced_request: Advanced requests
+      perm_advanced_request_desc: Allow modifying advanced options when making a request.
+      perm_view_requests: View requests
+      perm_view_requests_desc: Allow viewing other users' requests.
+      perm_view_recent: View recently added
+      perm_view_recent_desc: Allow viewing recently added media.
+      perm_view_jellyfin_playlists: View Jellyfin playlists
+      perm_view_jellyfin_playlists_desc: Allow viewing Jellyfin playlists.
+      perm_request: Request
+      perm_request_desc: Allow making movie and TV show requests.
+      perm_request_movies: Request movies
+      perm_request_movies_desc: Allow making movie requests.
+      perm_request_tv: Request TV shows
+      perm_request_tv_desc: Allow making TV show requests.
+      section_auto_approve: Auto-approve
+      perm_auto_approve: Auto-approve
+      perm_auto_approve_desc: Automatically approve all requests.
+      perm_auto_approve_movies: Auto-approve movies
+      perm_auto_approve_movies_desc: Automatically approve movie requests.
+      perm_auto_approve_tv: Auto-approve TV shows
+      perm_auto_approve_tv_desc: Automatically approve TV show requests.
+      section_auto_request: Auto-request
+      perm_auto_request: Auto-request
+      perm_auto_request_desc: Automatically request watchlist media.
+      perm_auto_request_movies: Auto-request movies
+      perm_auto_request_movies_desc: Automatically request watchlist movies.
+      perm_auto_request_tv: Auto-request TV shows
+      perm_auto_request_tv_desc: Automatically request watchlist TV shows.
+      section_request_4k: Request in 4K
+      perm_request_4k: Request in 4K
+      perm_request_4k_desc: Allow requesting media in 4K.
+      perm_request_4k_movies: Request movies in 4K
+      perm_request_4k_movies_desc: Allow requesting movies in 4K.
+      perm_request_4k_tv: Request TV shows in 4K
+      perm_request_4k_tv_desc: Allow requesting TV shows in 4K.
+      section_auto_approve_4k: Auto-approve 4K
+      perm_auto_approve_4k: Auto-approve 4K
+      perm_auto_approve_4k_desc: Automatically approve all 4K requests.
+      perm_auto_approve_4k_movies: Auto-approve 4K movies
+      perm_auto_approve_4k_movies_desc: Automatically approve 4K movie requests.
+      perm_auto_approve_4k_tv: Auto-approve 4K TV shows
+      perm_auto_approve_4k_tv_desc: Automatically approve 4K TV show requests.
+      section_issues: Report issues
+      perm_manage_issues: Manage issues
+      perm_manage_issues_desc: Allow managing issue reports.
+      perm_create_issues: Create issues
+      perm_create_issues_desc: Allow reporting issues on media.
+      perm_view_issues: View issues
+      perm_view_issues_desc: Allow viewing other users' issue reports.
+      section_blocklist: Blocklist
+      perm_manage_blocklist: Manage blocklist
+      perm_manage_blocklist_desc: Allow managing the blocklist.
+      perm_view_blocklist: View blocklist
+      perm_view_blocklist_desc: Allow viewing the blocklist.
+      save_changes: Save changes
+      saved: Saved
+      error: Error
+  api:
+    no_user_selected: No user selected
+    cannot_delete_owner: The owner account cannot be deleted.
+    cannot_delete_admin: Administrator accounts cannot be deleted.
+    cannot_delete: This account cannot be deleted.
+    owner_protected: Owner account is protected.
+    password_too_short: 8 characters minimum
+    empty_data: Empty data
+    request_not_found: Request not found
+    user_not_found: User not found
+    email_password_required: Email and password required
+  status:
+    request:
+      pending: Pending
+      approved: Approved
+      declined: Declined
+      processing: Processing
+    media:
+      available: Available
+      partially_available: Partially available
+user:
+  email:
+    already_exists: Există deja un cont asociat acestei adrese de email.
+watchlist_page:
+  back_to_discover: Descoperă
+  count_titles: '{count, plural, one {# titlu} other {# titluri}}'
+  films_suffix: filme
+  series_suffix: Seriale TV
+  added_on: Adăugat {date}
+  loading: Se încarcă...
+calendar:
+  title: Calendar
+  subtitle: Aggregated movie + episode releases (Radarr + Sonarr)
+  filter:
+    all: All
+    media: Media
+    cinema: Cinema
+    digital: Digital
+    physical: Physical
+    episode: Episodes
+    status: Status
+    status_all: All
+    status_monitored: Monitored
+    status_missing: Not monitored
+    status_available: Available
+  view:
+    month: Month
+    week: Week
+    day: Day
+    aria_label: Calendar view
+  nav:
+    today: Today
+    prev: Previous
+    next: Next
+    ical: iCal
+    ical_title: iCal subscription (Apple Calendar / Google / Thunderbird)
+  empty:
+    month: No releases scheduled this month.
+    week: No releases scheduled this week.
+    day: No releases scheduled this day.
+  error:
+    radarr_unreachable_title: Radarr is currently unreachable
+    radarr_unreachable_body: The calendar may be missing upcoming movies. Check your Radarr URL and API key in <a href="/admin/settings">/admin/settings</a> or verify the service is running.
+    sonarr_unreachable_title: Sonarr is currently unreachable
+    sonarr_unreachable_body: The calendar may be missing upcoming episodes. Check your Sonarr URL and API key in <a href="/admin/settings">/admin/settings</a> or verify the service is running.
+    both_unreachable_title: Radarr and Sonarr are currently unreachable
+    both_unreachable_body: The calendar cannot show upcoming releases. Check your service URLs and API keys in <a href="/admin/settings">/admin/settings</a>.
+  info:
+    none_configured_title: No media services configured
+    none_configured_body: The calendar needs Radarr (movies) or Sonarr (episodes) to show upcoming releases. Configure at least one in <a href="/admin/settings">/admin/settings</a>.
+  months:
+    full:
+      - January
+      - February
+      - March
+      - April
+      - May
+      - June
+      - July
+      - August
+      - September
+      - October
+      - November
+      - December
+  weekdays:
+    short:
+      - Mon
+      - Tue
+      - Wed
+      - Thu
+      - Fri
+      - Sat
+      - Sun
+    full:
+      - Monday
+      - Tuesday
+      - Wednesday
+      - Thursday
+      - Friday
+      - Saturday
+      - Sunday
+  event:
+    type_cinema: Cinema
+    type_digital: Digital
+    type_physical: Physical
+    type_episode: Episode
+    film: Movie
+    series: TV Show
+    episode: Episode
+    release_cinema: Cinema release
+    release_digital: Digital release
+    release_physical: Physical release
+    release_episode: Episode
+    release_unknown: Unknown date
+    more: + {count} more
+    count: '{count, plural, one {# event} other {# events}}'
+    none: No events
+  week:
+    same_month: Week of {start}–{end} {month} {year}
+    cross_month: Week of {start_day} {start_month} — {end_day} {end_month} {year}
+  status:
+    available: Available
+    monitored: Monitored
+    unmonitored: Not monitored
+  day:
+    empty: Nothing scheduled this day.
+    today_suffix: (today)
+    overflow: + {count} more
+flash:
+  profile:
+    updated: Profile updated.
+    avatar_updated: Profile picture updated.
+    avatar_deleted: Profile picture removed.
+    avatar_invalid_mime: Unsupported format (JPG, PNG, WebP or GIF only).
+    avatar_too_big: The image exceeds 2 MB.
+    avatar_upload_failed: The image could not be saved.
+    avatar_no_file: No file received or upload invalid.
+    avatar_not_found: Avatar not found.
+  password:
+    current_wrong: Current password is incorrect.
+    too_short: The new password must be at least 8 characters long.
+    mismatch: The two new passwords don't match.
+  csrf:
+    invalid: Invalid CSRF token.
